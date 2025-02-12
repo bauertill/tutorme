@@ -6,12 +6,12 @@ export default function Instructions() {
   const [markdownContent, setMarkdownContent] = useState<string>('');
 
   // List of available lessons
-  const lessons = ['lesson_1.md']; // Add more lessons as needed
+  const lessons = ['lesson_0.md', 'lesson_1.md', 'lesson_2.md']; // Add more lessons as needed
 
   useEffect(() => {
     if (selectedLesson) {
       // Fetch and load the markdown content
-      fetch(`/content/${selectedLesson}`)
+      fetch(`/content/chapter_1/${selectedLesson}`)
         .then((response) => response.text())
         .then((content) => setMarkdownContent(content))
         .catch((error) => console.error('Error loading markdown:', error));
@@ -26,7 +26,7 @@ export default function Instructions() {
       <select
         value={selectedLesson}
         onChange={(e) => setSelectedLesson(e.target.value)}
-        className="mb-4 p-2 border rounded"
+        className="mb-4 p-2 border rounded bg-gray-100"
       >
         <option value="">Select a lesson</option>
         {lessons.map((lesson) => (
@@ -37,7 +37,7 @@ export default function Instructions() {
       </select>
 
       {/* Markdown content */}
-      <div className="prose">
+      <div>
         {selectedLesson ? (
           <ReactMarkdown>{markdownContent}</ReactMarkdown>
         ) : (
