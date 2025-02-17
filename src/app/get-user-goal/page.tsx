@@ -5,11 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 const UserGoal = () => {
   const [goalText, setGoalText] = useState("");
 
-  const {
-    mutate: createGoal,
-    isPending,
-    isSuccess,
-  } = useMutation({
+  const createMutation = useMutation({
     mutationFn: async (newGoal: string) => {
       const response = await fetch("/api/goal", {
         method: "POST",
@@ -29,7 +25,7 @@ const UserGoal = () => {
     },
   });
 
-  const { data: goal } = useQuery({
+  const { data: goal, isLoading } = useQuery({
     queryKey: ["goal"],
     queryFn: async () => {
       const response = await fetch("/api/goal");
@@ -39,10 +35,13 @@ const UserGoal = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    createGoal(goal);
+    createMutation.mutate(goalText);
   };
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
   if (goal) {
-    return <div>Goal: {goal.goal}</div>;
+    return <div>Goal: {goal.goal.goal}</div>;
   }
 
   return (
@@ -66,12 +65,12 @@ const UserGoal = () => {
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-          disabled={isPending}
+          disabled={createMutation.isPending}
         >
-          {isPending ? "Submitting..." : "Submit Goal"}
+          {createMutation.isPending ? "Submitting..." : "Submit Goal"}
         </button>
 
-        {isSuccess && (
+        {createMutation.isSuccess && (
           <p className="text-green-500 mt-2">Goal saved successfully!</p>
         )}
       </form>
