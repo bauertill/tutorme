@@ -14,10 +14,6 @@ const UserGoal = () => {
         body: JSON.stringify({ goal }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to save goal");
-      }
-
       const data = await response.json();
       console.log("Goal saved successfully:", data);
       // You might want to add some success feedback here
@@ -38,7 +34,7 @@ const UserGoal = () => {
           <textarea
             id="goal"
             value={goal}
-            onChange={(e) => setGoal(e.target.value)}
+            onChange={e => setGoal(e.target.value)}
             className="w-full p-2 border rounded-md"
             rows={4}
             placeholder="Enter your goal here..."
