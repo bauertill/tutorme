@@ -44,13 +44,12 @@ export class DBAdapter {
     };
   }
 
-  async getGoalByUserId(userId: string): Promise<Goal> {
+  async getGoalByUserId(userId: number): Promise<Goal> {
     const goal = await this.prisma.goal.findFirst({
       where: {
         userId: userId,
       },
     });
-
     return Goal.parse(goal);
   }
 

@@ -1,27 +1,49 @@
 "use client";
 import React, { useState } from "react";
-const UserGoal = () => {
-  const [goal, setGoal] = useState("");
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
+const UserGoal = () => {
+  const [goalText, setGoalText] = useState("");
+
+  const {
+    mutate: createGoal,
+    isPending,
+    isSuccess,
+  } = useMutation({
+    mutationFn: async (newGoal: string) => {
       const response = await fetch("/api/goal", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ goal }),
+        body: JSON.stringify({ goal: newGoal }),
       });
-
-      const data = await response.json();
+      return response.json();
+    },
+    onSuccess: data => {
       console.log("Goal saved successfully:", data);
-      // You might want to add some success feedback here
-    } catch (error) {
+      setGoalText(""); // Reset form after successful submission
+    },
+    onError: error => {
       console.error("Error saving goal:", error);
-      // You might want to add some error feedback here
-    }
+    },
+  });
+
+  const { data: goal } = useQuery({
+    queryKey: ["goal"],
+    queryFn: async () => {
+      const response = await fetch("/api/goal");
+      return response.json();
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    createGoal(goal);
   };
+  if (goal) {
+    return <div>Goal: {goal.goal}</div>;
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -33,8 +55,8 @@ const UserGoal = () => {
           </label>
           <textarea
             id="goal"
-            value={goal}
-            onChange={e => setGoal(e.target.value)}
+            value={goalText}
+            onChange={e => setGoalText(e.target.value)}
             className="w-full p-2 border rounded-md"
             rows={4}
             placeholder="Enter your goal here..."
@@ -44,9 +66,14 @@ const UserGoal = () => {
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+          disabled={isPending}
         >
-          Submit Goal
+          {isPending ? "Submitting..." : "Submit Goal"}
         </button>
+
+        {isSuccess && (
+          <p className="text-green-500 mt-2">Goal saved successfully!</p>
+        )}
       </form>
     </div>
   );

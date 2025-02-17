@@ -20,8 +20,7 @@ export async function storeGoalForUserInDb(
 }
 export async function getGoalForUser(
   dbAdapter: DBAdapter,
-  userId: string
+  userId: number
 ): Promise<Goal> {
-  const goal = await dbAdapter.getGoalByUserId(userId);
-  return goal;
+  return await dbAdapter.getGoalByUserId(userId);
 }

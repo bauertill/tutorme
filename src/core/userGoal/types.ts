@@ -23,7 +23,7 @@ export type UserContext = z.infer<typeof UserContext>;
 
 export const Goal = z.object({
   id: z.string(),
-  userId: z.string(),
+  userId: z.number(),
   goal: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
