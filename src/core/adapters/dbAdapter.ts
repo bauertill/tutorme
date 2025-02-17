@@ -1,16 +1,18 @@
 import { PrismaClient } from "@prisma/client";
-import { Goal, User } from "../userGoal/types";
+import { Goal } from "../userGoal/types";
+import { User } from "../user/types";
 
 export class DBAdapter {
   private prisma: PrismaClient;
 
   constructor() {
-    try {
-      this.prisma = new PrismaClient();
-    } catch (e) {
-      console.error("Error connecting to database", e);
-    }
+    this.prisma = new PrismaClient();
   }
+
+  async getAllUsers(): Promise<User[]> {
+    return await this.prisma.user.findMany();
+  }
+
   async getUserById(userId: number): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
       where: {
