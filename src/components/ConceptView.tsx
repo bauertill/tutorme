@@ -1,7 +1,6 @@
 "use client";
 
 import { ConceptWithGoal } from "@/core/goal/types";
-import { Typography, Button, Box, Chip } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 
 // Create fetch functions (can be moved to a separate api.ts file)
