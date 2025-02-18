@@ -13,70 +13,36 @@ export class DBAdapter {
     return await this.prisma.user.findMany();
   }
 
-  async getUserById(userId: number): Promise<User | null> {
+  async getUserById(id: number): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
+      where: { id },
     });
 
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
 
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-    };
+    return User.parse(user);
   }
 
   async createUser(email: string, name: string): Promise<User> {
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        name,
-      },
-    });
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-    };
+    const data = { name, email };
+    return await this.prisma.user.create({ data });
   }
 
-  async getGoalByUserId(userId: number): Promise<Goal> {
+  async getGoalById(id: string): Promise<Goal> {
     const goal = await this.prisma.goal.findFirst({
-      where: {
-        userId: userId,
-      },
+      where: { id },
     });
     return Goal.parse(goal);
   }
 
   async createGoal(userId: number, goalText: string): Promise<Goal> {
-    const goal = await this.prisma.goal.create({
-      data: {
-        userId,
-        goal: goalText,
-      },
-    });
-
-    return {
-      id: goal.id,
-      userId: goal.userId,
-      goal: goal.goal,
-      createdAt: goal.createdAt,
-      updatedAt: goal.updatedAt,
-    };
+    const data = { userId, goal: goalText };
+    return await this.prisma.goal.create({ data });
   }
 
   async getUserGoals(userId: number): Promise<Goal[]> {
     const goals = await this.prisma.goal.findMany({
-      where: {
-        userId: userId,
-      },
+      where: { userId },
     });
     return goals.map(goal => Goal.parse(goal));
   }
