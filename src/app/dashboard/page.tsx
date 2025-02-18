@@ -1,6 +1,5 @@
 import { DBAdapter } from "@/core/adapters/dbAdapter";
 import { notFound } from "next/navigation";
-import { LearningGoal } from "@/core/types/learning";
 import LearningGoalsList from "@/components/LearningGoalsList";
 
 export default async function DashboardPage({
@@ -8,7 +7,7 @@ export default async function DashboardPage({
 }: {
   searchParams: { userId: string };
 }) {
-  const userId = searchParams.userId;
+  const userId = await searchParams.userId;
   if (!userId) {
     notFound();
   }
