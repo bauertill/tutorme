@@ -31,11 +31,11 @@ export async function getConceptsForGoal(
   dbAdapter: DBAdapter,
   goal: Goal
 ): Promise<Concept[]> {
-  // const existingConcepts = await dbAdapter.getConceptsByGoalId(goal.id);
-  // if (existingConcepts.length > 0) {
-  //   return existingConcepts;
-  // }
+  const existingConcepts = await dbAdapter.getConceptsByGoalId(goal.id);
+  if (existingConcepts.length > 0) {
+    return existingConcepts;
+  }
   const newConcepts = await llmAdapter.getConceptsForGoal(goal);
-  // await dbAdapter.createConcepts(newConcepts);
+  await dbAdapter.createConcepts(newConcepts);
   return newConcepts;
 }
