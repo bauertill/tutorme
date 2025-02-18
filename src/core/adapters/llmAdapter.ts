@@ -18,6 +18,9 @@ Separate each concept with a blank line. Be concise and clear.`;
 const HUMAN_TEMPLATE = `Please break down the following learning goal into core concepts:
 {goal}`;
 
+// @TODO add a JSON schema to the prompt to ensure the output is valid
+// @TODO use a zod object to parse the output
+
 export class LLMAdapter {
   private model: ChatOpenAI;
   private promptTemplate: ChatPromptTemplate;
