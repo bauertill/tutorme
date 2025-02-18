@@ -5,6 +5,8 @@ import {
   SystemMessagePromptTemplate,
   HumanMessagePromptTemplate,
 } from "@langchain/core/prompts";
+import { RunnableSequence } from "@langchain/core/runnables";
+import { Runnable } from "@langchain/core/runnables";
 
 const SYSTEM_PROMPT = `You are an expert at breaking down learning goals into fundamental concepts.
 When given a learning goal, analyze it and break it down into a list of core concepts that need to be understood.
@@ -24,10 +26,11 @@ const HUMAN_TEMPLATE = `Please break down the following learning goal into core 
 export class LLMAdapter {
   private model: ChatOpenAI;
   private promptTemplate: ChatPromptTemplate;
+  private chain: Runnable;
 
   constructor() {
     this.model = new ChatOpenAI({
-      modelName: "gpt-4o",
+      modelName: "gpt-4",
       temperature: 1,
     });
 
@@ -35,25 +38,36 @@ export class LLMAdapter {
       SystemMessagePromptTemplate.fromTemplate(SYSTEM_PROMPT),
       HumanMessagePromptTemplate.fromTemplate(HUMAN_TEMPLATE),
     ]);
+
+    this.chain = this.promptTemplate.pipe(this.model).withConfig({
+      tags: ["concept-extraction"],
+      runName: "Extract Learning Concepts",
+    });
   }
 
   async getConceptsForGoal(goal: Goal): Promise<Concept[]> {
     try {
-      // Create the chain with system prompt
-      const chain = this.promptTemplate.pipe(this.model);
-
-      const response = await chain.invoke({
-        goal: goal.goal,
-      });
+      const response = await this.chain.invoke(
+        {
+          goal: goal.goal,
+        },
+        {
+          metadata: {
+            goal,
+            goalId: goal.id,
+            userId: goal.userId,
+          },
+        }
+      );
 
       // Split response by double newline to separate concepts
       const conceptBlocks = response.text
         .split("\n\n")
-        .map(block => block.trim())
-        .filter(block => block.length > 0);
+        .map((block: string) => block.trim())
+        .filter((block: string) => block.length > 0);
 
       // Parse each concept block into name and description
-      const concepts: Concept[] = conceptBlocks.map((block, index) => {
+      const concepts: Concept[] = conceptBlocks.map((block: string, index: number) => {
         const nameMatch = block.match(/name:\s*(.+)(?:\n|$)/);
         const descriptionMatch = block.match(/description:\s*(.+)(?:\n|$)/);
 
