@@ -52,8 +52,8 @@ export class LLMAdapter {
 
   constructor() {
     this.model = new ChatOpenAI({
-      modelName: "gpt-4",
-      temperature: 1,
+      modelName: "gpt-4o",
+      temperature: 0.7, 
     });
 
     this.promptTemplate = ChatPromptTemplate.fromMessages([
