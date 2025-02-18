@@ -1,8 +1,5 @@
 import { DBAdapter } from "@/core/adapters/dbAdapter";
-import {
-  getGoalForUser,
-  storeGoalForUserInDb,
-} from "@/core/userGoal/userGoalDomain";
+import { getGoalForUser, storeGoalForUserInDb } from "@/core/goal/goalDomain";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -21,7 +18,6 @@ export async function GET() {
   try {
     const dbAdapter = new DBAdapter();
     const storedGoal = await getGoalForUser(dbAdapter, 1);
-    console.log("storedGoal", storedGoal);
     return NextResponse.json({ goal: storedGoal }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Failed to get goal" }, { status: 500 });

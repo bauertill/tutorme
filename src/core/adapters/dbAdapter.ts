@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { Goal } from "../userGoal/types";
+import { Concept, Goal } from "../goal/types";
 import { User } from "../user/types";
 
 export class DBAdapter {
@@ -45,5 +45,12 @@ export class DBAdapter {
       where: { userId },
     });
     return goals.map(goal => Goal.parse(goal));
+  }
+
+  async getConceptsByGoalId(goalId: string): Promise<Concept[]> {
+    const concepts = await this.prisma.concept.findMany({
+      where: { goalId },
+    });
+    return concepts.map(concept => Concept.parse(concept));
   }
 }

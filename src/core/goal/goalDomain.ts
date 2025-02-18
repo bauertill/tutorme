@@ -1,5 +1,5 @@
 import { DBAdapter } from "../adapters/dbAdapter";
-import { UserContext, Concept, Goal } from "./types";
+import { Concept, Goal } from "./types";
 
 export function getRequiredConceptsForGoal(goal: Goal): Concept[] {
   return [];
@@ -21,6 +21,6 @@ export async function storeGoalForUserInDb(
 export async function getGoalForUser(
   dbAdapter: DBAdapter,
   userId: number
-): Promise<Goal> {
-  return await dbAdapter.getGoalByUserId(userId);
+): Promise<Goal[]> {
+  return await dbAdapter.getUserGoals(userId);
 }
