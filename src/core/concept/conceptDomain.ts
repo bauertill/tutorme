@@ -1,6 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { DBAdapter } from "../adapters/dbAdapter";
 import { LLMAdapter } from "../adapters/llmAdapter";
 import { Concept } from "../goal/types";
+import { Quiz } from "./types";
 
 //   async function evaluateKnowledge(concept: Concept): Promise<Question[]> {
 //     try {
@@ -18,22 +19,12 @@ import { Concept } from "../goal/types";
 
 export async function createKnowledgeQuizAndStoreInDB(
   concept: Concept,
-  prisma: PrismaClient,
+  dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter
-) {
+): Promise<Quiz> {
   try {
     const questions = await llmAdapter.createKnowledgeQuiz(concept);
-    const quiz = await prisma.quiz.create({
-      data: {
-        conceptId: concept.id,
-        questions: {
-          create: questions,
-        },
-      },
-      include: {
-        questions: true,
-      },
-    });
+    const quiz = await dbAdapter.createQuiz(questions, concept.id);
     return quiz;
   } catch (error) {
     console.error("Error creating and storing quiz:", error);

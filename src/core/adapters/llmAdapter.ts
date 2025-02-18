@@ -8,7 +8,7 @@ import {
 import { Runnable } from "@langchain/core/runnables";
 import { JsonOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
-import { Question, QuizSchema } from "../concept/types";
+import { Question, Quiz, QuizSchema } from "../concept/types";
 
 const ConceptSchema = z.object({
   concepts: z.array(
@@ -124,8 +124,8 @@ Example response format:
 Make sure questions truly reflect their difficulty level and test deep understanding at advanced levels.`;
 
     const EVALUATION_HUMAN_TEMPLATE = `Please create a quiz to evaluate understanding of the following concept:
-Name: {{conceptName}}
-Description: {{conceptDescription}}`;
+Name: {conceptName}
+Description: {conceptDescription}`;
     const evaluationPromptTemplate = ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(EVALUATION_SYSTEM_PROMPT),
       HumanMessagePromptTemplate.fromTemplate(EVALUATION_HUMAN_TEMPLATE),
@@ -140,10 +140,17 @@ Description: {{conceptDescription}}`;
         runName: "Generate Concept Quiz",
       });
     try {
-      const response = await evaluationChain.invoke({
-        conceptName: concept.name,
-        conceptDescription: concept.description,
-      });
+      const response = await evaluationChain.invoke(
+        {
+          conceptName: concept.name,
+          conceptDescription: concept.description,
+        },
+        {
+          metadata: {
+            conceptId: concept.id,
+          },
+        }
+      );
 
       return response.questions;
     } catch (error) {

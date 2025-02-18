@@ -6,10 +6,9 @@ export async function GET(
   { params }: { params: { conceptId: string } }
 ) {
   try {
+    const { conceptId } = await params;
     const dbAdapter = new DBAdapter();
-    const concept = await dbAdapter.getConceptWithGoalByConceptId(
-      params.conceptId
-    );
+    const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
     return NextResponse.json(concept, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Failed to get goal" }, { status: 500 });

@@ -3,29 +3,26 @@ import { createKnowledgeQuizAndStoreInDB } from "@/core/concept/conceptDomain";
 import { PrismaClient } from "@prisma/client";
 import { LLMAdapter } from "@/core/adapters/llmAdapter";
 import { Concept } from "@/core/goal/types";
+import { DBAdapter } from "@/core/adapters/dbAdapter";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { conceptId: string } }
 ) {
   try {
-    const prisma = new PrismaClient();
+    const { conceptId } = await params;
+    const dbAdapter = new DBAdapter();
     // Get the concept from the database
-    const concept = await prisma.concept.findUnique({
-      where: {
-        id: params.conceptId,
-      },
-    });
+    const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
 
     if (!concept) {
       return NextResponse.json({ error: "Concept not found" }, { status: 404 });
     }
-    const parsedConcept = Concept.parse(concept);
     const llmAdapter = new LLMAdapter();
     // Generate and store the quiz
     const quiz = await createKnowledgeQuizAndStoreInDB(
-      parsedConcept,
-      prisma,
+      concept,
+      dbAdapter,
       llmAdapter
     );
 

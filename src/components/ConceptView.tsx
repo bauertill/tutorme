@@ -1,7 +1,10 @@
 "use client";
 
 import { ConceptWithGoal } from "@/core/goal/types";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Question } from "@/core/concept/types";
+import { QuizView } from "./QuizView";
+import { useState } from "react";
 
 // Create fetch functions (can be moved to a separate api.ts file)
 const fetchConcept = async (conceptId: string): Promise<ConceptWithGoal> => {
@@ -12,7 +15,19 @@ const fetchConcept = async (conceptId: string): Promise<ConceptWithGoal> => {
   return response.json();
 };
 
+const generateQuiz = async (conceptId: string) => {
+  const response = await fetch(`/api/concept/${conceptId}/quiz`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to generate quiz");
+  }
+  return response.json();
+};
+
 export function ConceptView({ conceptId }: { conceptId: string }) {
+  const [quiz, setQuiz] = useState<{ questions: Question[] } | null>(null);
+
   const {
     data: concept,
     isLoading,
@@ -22,12 +37,33 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
     queryFn: () => fetchConcept(conceptId),
   });
 
+  const generateQuizMutation = useMutation({
+    mutationFn: generateQuiz,
+    onSuccess: data => {
+      setQuiz(data);
+    },
+  });
+
+  const handleQuizComplete = (
+    results: { questionIndex: number; answer: string }[]
+  ) => {
+    // TODO: Send results to backend to update mastery level
+    console.log("Quiz completed:", results);
+    setQuiz(null);
+  };
+
   // Handle loading and error states in your JSX
   if (isLoading) return <div>Loading concept...</div>;
   if (error) return <div>Error loading concept</div>;
 
   if (!concept) {
     return <div>Loading...</div>;
+  }
+
+  if (quiz) {
+    return (
+      <QuizView questions={quiz.questions} onComplete={handleQuizComplete} />
+    );
   }
 
   return (
@@ -44,9 +80,12 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
           {concept.masteryLevel === "unknown" && (
             <button
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              onClick={() => console.log("Begin assessment clicked")}
+              onClick={() => generateQuizMutation.mutate(conceptId)}
+              disabled={generateQuizMutation.isPending}
             >
-              Begin Assessment
+              {generateQuizMutation.isPending
+                ? "Generating Quiz..."
+                : "Begin Assessment"}
             </button>
           )}
         </div>

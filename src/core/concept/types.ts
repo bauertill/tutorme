@@ -15,3 +15,10 @@ export const QuizSchema = z.object({
 });
 
 export type QuizSchema = z.infer<typeof QuizSchema>;
+
+export const Quiz = QuizSchema.extend({
+  id: z.string(),
+  conceptId: z.string(),
+});
+
+export type Quiz = z.infer<typeof Quiz>;

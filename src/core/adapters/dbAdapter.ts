@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Concept, ConceptWithGoal, Goal } from "../goal/types";
 import { User } from "../user/types";
+import { Question, Quiz } from "../concept/types";
 
 export class DBAdapter {
   private prisma: PrismaClient;
@@ -66,5 +67,25 @@ export class DBAdapter {
 
   async createConcepts(concepts: Concept[]): Promise<void> {
     await this.prisma.concept.createMany({ data: concepts });
+  }
+
+  async createQuiz(questions: Question[], conceptId: string): Promise<Quiz> {
+    console.log("Creating quiz for concept:", conceptId, questions);
+    const quiz = await this.prisma.quiz.create({
+      data: {
+        conceptId,
+        questions: {
+          create: questions,
+        },
+      },
+      include: {
+        questions: true,
+      },
+    });
+    return {
+      id: quiz.id,
+      conceptId: quiz.conceptId,
+      questions,
+    };
   }
 }
