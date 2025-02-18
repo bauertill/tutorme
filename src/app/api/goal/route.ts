@@ -1,16 +1,28 @@
 import { DBAdapter } from "@/core/adapters/dbAdapter";
-import { getGoalForUser, storeGoalForUserInDb } from "@/core/goal/goalDomain";
+import { getGoalForUser } from "@/core/goal/goalDomain";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { goal } = body;
-    const dbAdapter = new DBAdapter();
-    const storedGoal = await storeGoalForUserInDb(dbAdapter, goal);
-    return NextResponse.json({ goal: storedGoal }, { status: 201 });
+    const { userId, goalText } = await request.json();
+
+    if (!userId || !goalText) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const db = new DBAdapter();
+    const goal = await db.createGoal(userId, goalText);
+
+    return NextResponse.json(goal);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to save goal" }, { status: 500 });
+    console.error("Error creating goal:", error);
+    return NextResponse.json(
+      { error: "Failed to create goal" },
+      { status: 500 }
+    );
   }
 }
 
