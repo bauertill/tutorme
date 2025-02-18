@@ -53,4 +53,7 @@ export class DBAdapter {
     });
     return concepts.map(concept => Concept.parse(concept));
   }
+  async createConcepts(concepts: Concept[]): Promise<void> {
+    await this.prisma.concept.createMany({ data: concepts });
+  }
 }
