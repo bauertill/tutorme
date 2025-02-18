@@ -19,9 +19,9 @@ export default async function LearningGoalPage({
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <main>
       <h1 className="text-3xl font-bold mb-6">{goal.goal}</h1>
       <ConceptsList concepts={concepts} />
-    </div>
+    </main>
   );
 }

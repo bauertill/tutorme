@@ -43,3 +43,13 @@
   }
 }
 
+/* Remove or update these styles since they're now handled in components */
+body {
+  @apply min-h-screen bg-gray-950 text-gray-200;
+}
+
+main {
+  @apply container mx-auto px-4 py-8;
+}
+
+

@@ -45,7 +45,7 @@ const UserGoal = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <main>
       <h1 className="text-2xl font-bold mb-4">Set Your Goal</h1>
       <form onSubmit={handleSubmit} className="max-w-md">
         <div className="mb-4">
@@ -74,7 +74,7 @@ const UserGoal = () => {
           <p className="text-green-500 mt-2">Goal saved successfully!</p>
         )}
       </form>
-    </div>
+    </main>
   );
 };
 

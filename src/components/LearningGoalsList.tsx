@@ -12,9 +12,11 @@ export default function LearningGoalsList({ goals }: LearningGoalsListProps) {
         <Link
           key={goal.id}
           href={`/learning-goals/${goal.id}`}
-          className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+          className="flex items-center p-4 hover:bg-gray-50 transition-colors group"
         >
-          <h2 className="text-xl font-semibold mb-2">{goal.goal}</h2>
+          <h2 className=" dark:text-white group-hover:text-gray-900">
+            {goal.goal}
+          </h2>
         </Link>
       ))}
     </div>
