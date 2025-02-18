@@ -5,17 +5,38 @@ import {
   SystemMessagePromptTemplate,
   HumanMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import { RunnableSequence } from "@langchain/core/runnables";
 import { Runnable } from "@langchain/core/runnables";
+import { JsonOutputParser } from "@langchain/core/output_parsers";
+import { z } from "zod";
+
+const ConceptSchema = z.object({
+  concepts: z.array(
+    z.object({
+      name: z.string().min(1),
+      description: z.string().min(1),
+    })
+  ),
+});
+
+type ConceptOutput = z.infer<typeof ConceptSchema>;
+type ParsedConcept = ConceptOutput["concepts"][number];
 
 const SYSTEM_PROMPT = `You are an expert at breaking down learning goals into fundamental concepts.
 When given a learning goal, analyze it and break it down into a list of core concepts that need to be understood.
-Format each concept as follows:
+You must respond with a JSON object containing an array of concepts.
+Each concept must have a name and description field.
 
-name: <concept name>
-description: <brief 1-2 sentence description of the concept>
+Example response format:
+{{
+  "concepts": [
+    {{
+      "name": "Example Concept",
+      "description": "A brief description of the concept"
+    }}
+  ]
+}}
 
-Separate each concept with a blank line. Be concise and clear.`;
+Be concise and clear in your descriptions.`;
 
 const HUMAN_TEMPLATE = `Please break down the following learning goal into core concepts:
 {goal}`;
@@ -27,6 +48,7 @@ export class LLMAdapter {
   private model: ChatOpenAI;
   private promptTemplate: ChatPromptTemplate;
   private chain: Runnable;
+  private outputParser: JsonOutputParser<ConceptOutput>;
 
   constructor() {
     this.model = new ChatOpenAI({
@@ -39,10 +61,15 @@ export class LLMAdapter {
       HumanMessagePromptTemplate.fromTemplate(HUMAN_TEMPLATE),
     ]);
 
-    this.chain = this.promptTemplate.pipe(this.model).withConfig({
-      tags: ["concept-extraction"],
-      runName: "Extract Learning Concepts",
-    });
+    this.outputParser = new JsonOutputParser<ConceptOutput>();
+
+    this.chain = this.promptTemplate
+      .pipe(this.model)
+      .pipe(this.outputParser)
+      .withConfig({
+        tags: ["concept-extraction"],
+        runName: "Extract Learning Concepts",
+      });
   }
 
   async getConceptsForGoal(goal: Goal): Promise<Concept[]> {
@@ -53,32 +80,20 @@ export class LLMAdapter {
         },
         {
           metadata: {
-            goal,
             goalId: goal.id,
             userId: goal.userId,
           },
         }
       );
 
-      // Split response by double newline to separate concepts
-      const conceptBlocks = response.text
-        .split("\n\n")
-        .map((block: string) => block.trim())
-        .filter((block: string) => block.length > 0);
-
-      // Parse each concept block into name and description
-      const concepts: Concept[] = conceptBlocks.map((block: string, index: number) => {
-        const nameMatch = block.match(/name:\s*(.+)(?:\n|$)/);
-        const descriptionMatch = block.match(/description:\s*(.+)(?:\n|$)/);
-
-        return {
-          id: `${goal.id}-${index}`,
-          name: nameMatch?.[1]?.trim() ?? "Unknown Concept",
-          description: descriptionMatch?.[1]?.trim() ?? "",
-          goalId: goal.id,
-          masteryLevel: "unknown",
-        };
-      });
+      // Map the parsed concepts to our domain model
+      const concepts: Concept[] = response.concepts.map((concept: ParsedConcept, index: number) => ({
+        id: `${goal.id}-${index}`,
+        name: concept.name,
+        description: concept.description,
+        goalId: goal.id,
+        masteryLevel: "unknown",
+      }));
 
       return concepts;
     } catch (error) {
