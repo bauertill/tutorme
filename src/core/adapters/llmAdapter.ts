@@ -8,7 +8,12 @@ import {
 
 const SYSTEM_PROMPT = `You are an expert at breaking down learning goals into fundamental concepts.
 When given a learning goal, analyze it and break it down into a list of core concepts that need to be understood.
-Return only the list of concepts, one per line.`;
+Format each concept as follows:
+
+name: <concept name>
+description: <brief 1-2 sentence description of the concept>
+
+Separate each concept with a blank line. Be concise and clear.`;
 
 const HUMAN_TEMPLATE = `Please break down the following learning goal into core concepts:
 {goal}`;
@@ -38,19 +43,25 @@ export class LLMAdapter {
         goal: goal.goal,
       });
 
-      const conceptNames = response.text
-        .split("\n")
-        .map(concept => concept.trim())
-        .filter(concept => concept.length > 0);
+      // Split response by double newline to separate concepts
+      const conceptBlocks = response.text
+        .split("\n\n")
+        .map(block => block.trim())
+        .filter(block => block.length > 0);
 
-      // Convert concept names into Concept objects with generated IDs
-      const concepts: Concept[] = conceptNames.map((name, index) => ({
-        id: `${goal.id}-${index}`,
-        name: name,
-        goalId: goal.id,
-        description: "",
-        masteryLevel: "unknown",
-      }));
+      // Parse each concept block into name and description
+      const concepts: Concept[] = conceptBlocks.map((block, index) => {
+        const nameMatch = block.match(/name:\s*(.+)(?:\n|$)/);
+        const descriptionMatch = block.match(/description:\s*(.+)(?:\n|$)/);
+
+        return {
+          id: `${goal.id}-${index}`,
+          name: nameMatch?.[1]?.trim() ?? "Unknown Concept",
+          description: descriptionMatch?.[1]?.trim() ?? "",
+          goalId: goal.id,
+          masteryLevel: "unknown",
+        };
+      });
 
       return concepts;
     } catch (error) {
