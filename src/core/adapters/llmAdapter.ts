@@ -88,7 +88,7 @@ export class LLMAdapter {
 
       // Map the parsed concepts to our domain model
       const concepts: Concept[] = response.concepts.map((concept: ParsedConcept, index: number) => ({
-        id: `${goal.id}-${index}`,
+        id: crypto.randomUUID(),
         name: concept.name,
         description: concept.description,
         goalId: goal.id,
