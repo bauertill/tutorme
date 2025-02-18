@@ -71,4 +71,13 @@ export class DBAdapter {
       updatedAt: goal.updatedAt,
     };
   }
+
+  async getUserGoals(userId: number): Promise<Goal[]> {
+    const goals = await this.prisma.goal.findMany({
+      where: {
+        userId: userId,
+      },
+    });
+    return goals.map(goal => Goal.parse(goal));
+  }
 }
