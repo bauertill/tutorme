@@ -26,3 +26,7 @@ export const Concept = z.object({
 });
 
 export type Concept = z.infer<typeof Concept>;
+export const ConceptWithGoal = Concept.extend({
+  goal: Goal,
+});
+export type ConceptWithGoal = z.infer<typeof ConceptWithGoal>;

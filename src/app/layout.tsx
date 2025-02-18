@@ -24,6 +24,12 @@ export default function RootLayout({
   return (
     <QueryClientProvider client={queryClient}>
       <html lang="en">
+        <head>
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap"
+          />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >

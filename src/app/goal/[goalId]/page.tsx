@@ -13,9 +13,11 @@ interface LearningGoalPageProps {
 export default async function LearningGoalPage({
   params,
 }: LearningGoalPageProps) {
+  const { goalId } = await params;
+
   const db = new DBAdapter();
   const llmAdapter = new LLMAdapter();
-  const goal = await db.getGoalById(params.goalId);
+  const goal = await db.getGoalById(goalId);
   const concepts = await getConceptsForGoal(llmAdapter, db, goal);
   if (!goal) {
     notFound();

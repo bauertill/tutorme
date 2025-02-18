@@ -1,16 +1,12 @@
+import Link from "next/link";
 import { Concept } from "@/core/goal/types";
 
-interface ConceptsListProps {
-  concepts: Concept[];
-}
-
-export default function ConceptsList({ concepts }: ConceptsListProps) {
+export default function ConceptsList({ concepts }: { concepts: Concept[] }) {
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-semibold mb-4">Concepts</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {concepts.map(concept => (
-          <div key={concept.id} className="p-4  rounded-lg shadow-md">
+    <div>
+      {concepts.map(concept => (
+        <div key={concept.id} className="p-4  rounded-lg shadow-md">
+          <Link href={`/concept/${concept.id}`}>
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-lg font-semibold">{concept.name}</h3>
@@ -20,9 +16,9 @@ export default function ConceptsList({ concepts }: ConceptsListProps) {
                 {concept.masteryLevel}
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          </Link>
+        </div>
+      ))}
     </div>
   );
 }

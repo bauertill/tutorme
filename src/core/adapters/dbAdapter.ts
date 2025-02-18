@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { Concept, Goal } from "../goal/types";
+import { Concept, ConceptWithGoal, Goal } from "../goal/types";
 import { User } from "../user/types";
 
 export class DBAdapter {
@@ -53,6 +53,17 @@ export class DBAdapter {
     });
     return concepts.map(concept => Concept.parse(concept));
   }
+
+  async getConceptWithGoalByConceptId(id: string): Promise<ConceptWithGoal> {
+    const concept = await this.prisma.concept.findUnique({
+      where: { id },
+      include: {
+        goal: true,
+      },
+    });
+    return ConceptWithGoal.parse(concept);
+  }
+
   async createConcepts(concepts: Concept[]): Promise<void> {
     await this.prisma.concept.createMany({ data: concepts });
   }
