@@ -1,0 +1,6 @@
+[env.production]
+name = "TutorMeGoodDaddy"
+compatibility_date = "2024-02-20"
+
+[build]
+command = "npm run build" 

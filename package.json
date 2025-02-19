@@ -1,12 +1,13 @@
 {
-  "name": "cs_tutor",
+  "name": "TutorMeGoodDaddy",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@langchain/core": "^0.3.40",
