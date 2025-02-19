@@ -2,6 +2,7 @@
 
 import { Question } from "@/core/concept/types";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 interface QuizViewProps {
   questions: Question[];
@@ -9,6 +10,26 @@ interface QuizViewProps {
   conceptId: string;
   quizId: string;
   onComplete: () => void;
+}
+
+interface QuestionResponse {
+  userId: number;
+  questionId: string;
+  answer: string;
+  quizId: string;
+  conceptId: string;
+}
+
+interface QuestionResponseResult {
+  success: boolean;
+  response: {
+    userId: number;
+    questionId: string;
+    answer: string;
+    isCorrect: boolean;
+    quizId: string;
+    conceptId: string;
+  };
 }
 
 export function QuizView({
@@ -23,47 +44,55 @@ export function QuizView({
     { questionIndex: number; answer: string }[]
   >([]);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
-  const handleAnswer = async (answer: string) => {
-    try {
-      setSubmitting(true);
-      const response = await fetch("/api/quiz/response", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-          conceptId,
-          questionId: currentQuestion.id,
-          answer,
-          quizId,
-        }),
-      });
+  const submitAnswer = async (data: QuestionResponse) => {
+    const response = await fetch("/api/quiz/response", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to submit answer");
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to submit answer");
+    }
 
-      const result = await response.json();
+    return response.json();
+  };
 
+  const answerMutation = useMutation<
+    QuestionResponseResult,
+    Error,
+    QuestionResponse
+  >({
+    mutationFn: submitAnswer,
+    onSuccess: (_, variables) => {
       const newAnswers = [
         ...answers,
-        { questionIndex: currentQuestionIndex, answer },
+        { questionIndex: currentQuestionIndex, answer: variables.answer },
       ];
       setAnswers(newAnswers);
       setShowExplanation(true);
-    } catch (error) {
+    },
+    onError: error => {
       console.error("Error submitting answer:", error);
       // TODO: Add error toast or message
-    } finally {
-      setSubmitting(false);
-    }
+    },
+  });
+
+  const handleAnswer = (answer: string) => {
+    answerMutation.mutate({
+      userId,
+      conceptId,
+      questionId: currentQuestion.id,
+      answer,
+      quizId,
+    });
   };
 
   const handleNext = () => {
@@ -98,7 +127,7 @@ export function QuizView({
             <button
               key={index}
               onClick={() => handleAnswer(option)}
-              disabled={showExplanation || submitting}
+              disabled={showExplanation || answerMutation.isPending}
               className={`w-full p-3 text-left rounded-lg transition-colors ${
                 showExplanation
                   ? option === currentQuestion.correctAnswer
@@ -115,7 +144,7 @@ export function QuizView({
 
           <button
             onClick={() => handleAnswer("I don't know")}
-            disabled={showExplanation || submitting}
+            disabled={showExplanation || answerMutation.isPending}
             className={`w-full p-3 text-left rounded-lg transition-colors ${
               showExplanation ? "bg-gray-800" : "bg-gray-800 hover:bg-gray-700"
             } border border-gray-700 text-gray-300`}
