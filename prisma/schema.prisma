@@ -12,6 +12,7 @@ model User {
   email   String   @unique
   name    String?
   goals   Goal[]
+  questionResponses UserQuestionResponse[]
 }
 
 model Goal {
@@ -56,4 +57,20 @@ model Question {
   explanation   String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  userResponses UserQuestionResponse[]
+}
+
+model UserQuestionResponse {
+  id          String    @id @default(cuid())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  questionId  String
+  question    Question  @relation(fields: [questionId], references: [id])
+  answer      String
+  isCorrect   Boolean
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([questionId])
 }
