@@ -70,7 +70,6 @@ export class DBAdapter {
   }
 
   async createQuiz(questions: Question[], conceptId: string): Promise<Quiz> {
-    console.log("Creating quiz for concept:", conceptId, questions);
     const quiz = await this.prisma.quiz.create({
       data: {
         conceptId,

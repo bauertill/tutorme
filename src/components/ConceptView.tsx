@@ -2,7 +2,7 @@
 
 import { ConceptWithGoal } from "@/core/goal/types";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Question } from "@/core/concept/types";
+import { Quiz } from "@/core/concept/types";
 import { QuizView } from "./QuizView";
 import { useState } from "react";
 
@@ -26,7 +26,7 @@ const generateQuiz = async (conceptId: string) => {
 };
 
 export function ConceptView({ conceptId }: { conceptId: string }) {
-  const [quiz, setQuiz] = useState<{ questions: Question[] } | null>(null);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
 
   const {
     data: concept,
@@ -62,7 +62,12 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
 
   if (quiz) {
     return (
-      <QuizView questions={quiz.questions} onComplete={handleQuizComplete} />
+      <QuizView
+        questions={quiz.questions}
+        quizId={quiz.id}
+        userId={concept.goal.userId}
+        conceptId={conceptId}
+      />
     );
   }
 
