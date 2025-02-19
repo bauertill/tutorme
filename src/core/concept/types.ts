@@ -17,7 +17,7 @@ export const Question = QuestionSchema.extend({
 export type Question = z.infer<typeof Question>;
 
 export const QuizSchema = z.object({
-  questions: z.array(QuestionSchema),
+  questions: z.array(Question),
 });
 
 export type QuizSchema = z.infer<typeof QuizSchema>;
@@ -34,6 +34,8 @@ export interface QuestionResponse {
   questionId: string;
   answer: string;
   isCorrect: boolean;
+  quizId: string;
+  conceptId: string;
 }
 
 export interface StoredQuestionResponse extends QuestionResponse {

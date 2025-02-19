@@ -5,32 +5,71 @@ import { useState } from "react";
 
 interface QuizViewProps {
   questions: Question[];
-  onComplete: (results: { questionIndex: number; answer: string }[]) => void;
+  userId: number;
+  conceptId: string;
+  quizId: string;
+  onComplete: () => void;
 }
 
-export function QuizView({ questions, onComplete }: QuizViewProps) {
+export function QuizView({
+  questions,
+  userId,
+  conceptId,
+  quizId,
+  onComplete,
+}: QuizViewProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<
     { questionIndex: number; answer: string }[]
   >([]);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
-  const handleAnswer = (answer: string) => {
-    const newAnswers = [
-      ...answers,
-      { questionIndex: currentQuestionIndex, answer },
-    ];
-    setAnswers(newAnswers);
-    setShowExplanation(true);
+  const handleAnswer = async (answer: string) => {
+    try {
+      setSubmitting(true);
+      const response = await fetch("/api/quiz/response", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          conceptId,
+          questionId: currentQuestion.id,
+          answer,
+          quizId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to submit answer");
+      }
+
+      const result = await response.json();
+
+      const newAnswers = [
+        ...answers,
+        { questionIndex: currentQuestionIndex, answer },
+      ];
+      setAnswers(newAnswers);
+      setShowExplanation(true);
+    } catch (error) {
+      console.error("Error submitting answer:", error);
+      // TODO: Add error toast or message
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleNext = () => {
     setShowExplanation(false);
     if (isLastQuestion) {
-      onComplete(answers);
+      onComplete();
     } else {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
@@ -59,7 +98,7 @@ export function QuizView({ questions, onComplete }: QuizViewProps) {
             <button
               key={index}
               onClick={() => handleAnswer(option)}
-              disabled={showExplanation}
+              disabled={showExplanation || submitting}
               className={`w-full p-3 text-left rounded-lg transition-colors ${
                 showExplanation
                   ? option === currentQuestion.correctAnswer
@@ -76,7 +115,7 @@ export function QuizView({ questions, onComplete }: QuizViewProps) {
 
           <button
             onClick={() => handleAnswer("I don't know")}
-            disabled={showExplanation}
+            disabled={showExplanation || submitting}
             className={`w-full p-3 text-left rounded-lg transition-colors ${
               showExplanation ? "bg-gray-800" : "bg-gray-800 hover:bg-gray-700"
             } border border-gray-700 text-gray-300`}
@@ -92,13 +131,25 @@ export function QuizView({ questions, onComplete }: QuizViewProps) {
           </div>
         )}
 
-        {showExplanation && (
+        {showExplanation && !isLastQuestion && (
           <button
             onClick={handleNext}
             className="mt-6 w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            {isLastQuestion ? "Complete Quiz" : "Next Question"}
+            Next Question
           </button>
+        )}
+
+        {showExplanation && isLastQuestion && (
+          <div className="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+            <h4 className="font-semibold mb-2 text-gray-100">Quiz Complete!</h4>
+            <button
+              onClick={onComplete}
+              className="mt-6 w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Done
+            </button>
+          </div>
         )}
       </div>
     </div>

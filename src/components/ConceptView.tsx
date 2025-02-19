@@ -59,7 +59,15 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
   if (!concept) {
     return <div>Loading...</div>;
   }
-
+  const updateConceptMasteryLevel = async () => {
+    await fetch("/api/quiz", {
+      method: "POST",
+      body: JSON.stringify({
+        userId: concept.goal.userId,
+        conceptId,
+      }),
+    });
+  };
   if (quiz) {
     return (
       <QuizView
@@ -67,6 +75,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
         quizId={quiz.id}
         userId={concept.goal.userId}
         conceptId={conceptId}
+        onComplete={updateConceptMasteryLevel}
       />
     );
   }
