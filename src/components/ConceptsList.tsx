@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Concept } from "@/core/goal/types";
+import { MasteryLevelPill } from "./MasteryLevelPill";
 
 export default function ConceptsList({ concepts }: { concepts: Concept[] }) {
   return (
@@ -17,9 +18,7 @@ export default function ConceptsList({ concepts }: { concepts: Concept[] }) {
                 </h3>
                 <p className="text-gray-400 mt-2">{concept.description}</p>
               </div>
-              <div className="px-3 py-1 rounded-full bg-gray-700 text-gray-200 text-sm">
-                {concept.masteryLevel}
-              </div>
+              <MasteryLevelPill level={concept.masteryLevel} />
             </div>
           </Link>
         </div>
