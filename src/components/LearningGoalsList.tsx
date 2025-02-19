@@ -12,9 +12,9 @@ export default function LearningGoalsList({ goals }: LearningGoalsListProps) {
         <Link
           key={goal.id}
           href={`/goal/${goal.id}`}
-          className="flex items-center p-4 hover:bg-gray-50 transition-colors group"
+          className="flex items-center p-4 bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors group"
         >
-          <h2 className=" dark:text-white group-hover:text-gray-900">
+          <h2 className="text-gray-100 group-hover:text-gray-50">
             {goal.goal}
           </h2>
         </Link>
