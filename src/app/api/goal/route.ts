@@ -17,8 +17,8 @@ export async function POST(request: Request) {
     const goal = await db.createGoal(userId, goalText);
 
     return NextResponse.json(goal);
-  } catch (error) {
-    console.error("Error creating goal:", error);
+  } catch (_error) {
+    console.error("Error creating goal:", _error);
     return NextResponse.json(
       { error: "Failed to create goal" },
       { status: 500 }
@@ -31,7 +31,7 @@ export async function GET() {
     const dbAdapter = new DBAdapter();
     const storedGoal = await getGoalForUser(dbAdapter, 1);
     return NextResponse.json({ goal: storedGoal }, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to get goal" }, { status: 500 });
   }
 }

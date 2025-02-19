@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DBAdapter } from "@/core/adapters/dbAdapter";
-import { Question } from "@/core/concept/types";
 import { updateConceptMasteryLevel } from "@/core/concept/conceptDomain";
 
 interface SubmitQuizPayload {

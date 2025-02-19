@@ -10,7 +10,24 @@ export async function updateConceptMasteryLevel(
 ): Promise<void> {
   const questionResponses =
     await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, conceptId);
-  await dbAdapter.updateConceptMasteryLevel(conceptId, "beginner");
+
+  // Calculate mastery level based on correct answers
+  const correctAnswers = questionResponses.filter(
+    response => response.isCorrect
+  ).length;
+  const totalQuestions = questionResponses.length;
+  const correctPercentage = (correctAnswers / totalQuestions) * 100;
+
+  let masteryLevel = "unknown";
+  if (correctPercentage >= 80) {
+    masteryLevel = "advanced";
+  } else if (correctPercentage >= 60) {
+    masteryLevel = "intermediate";
+  } else {
+    masteryLevel = "beginner";
+  }
+
+  await dbAdapter.updateConceptMasteryLevel(conceptId, masteryLevel);
 }
 
 export async function createKnowledgeQuizAndStoreInDB(

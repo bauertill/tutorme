@@ -6,19 +6,14 @@ import {
   HumanMessagePromptTemplate,
 } from "@langchain/core/prompts";
 import { JsonOutputParser } from "@langchain/core/output_parsers";
-import { z } from "zod";
 import { Question, QuizSchema } from "../concept/types";
 
-const ConceptSchema = z.object({
-  concepts: z.array(
-    z.object({
-      name: z.string().min(1),
-      description: z.string().min(1),
-    })
-  ),
-});
-
-type ConceptOutput = z.infer<typeof ConceptSchema>;
+type ConceptOutput = {
+  concepts: Array<{
+    name: string;
+    description: string;
+  }>;
+};
 type ParsedConcept = ConceptOutput["concepts"][number];
 
 const SYSTEM_PROMPT = `You are an expert at breaking down learning goals into fundamental concepts.
@@ -81,7 +76,7 @@ export class LLMAdapter {
 
       // Map the parsed concepts to our domain model
       const concepts: Concept[] = response.concepts.map(
-        (concept: ParsedConcept, index: number) => ({
+        (concept: ParsedConcept) => ({
           id: crypto.randomUUID(),
           name: concept.name,
           description: concept.description,

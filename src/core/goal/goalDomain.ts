@@ -2,10 +2,6 @@ import { DBAdapter } from "../adapters/dbAdapter";
 import { LLMAdapter } from "../adapters/llmAdapter";
 import { Concept, Goal } from "./types";
 
-export function getRequiredConceptsForGoal(goal: Goal): Concept[] {
-  return [];
-}
-
 export async function getGoalForUser(
   dbAdapter: DBAdapter,
   userId: number

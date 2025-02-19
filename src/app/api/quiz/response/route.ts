@@ -9,7 +9,6 @@ const SingleQuestionResponseSchema = z.object({
   quizId: z.string(),
   conceptId: z.string(),
 });
-type SingleQuestionResponse = z.infer<typeof SingleQuestionResponseSchema>;
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {

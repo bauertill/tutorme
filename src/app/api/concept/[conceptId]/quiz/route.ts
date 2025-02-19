@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createKnowledgeQuizAndStoreInDB } from "@/core/concept/conceptDomain";
 import { PrismaClient } from "@prisma/client";
 import { LLMAdapter } from "@/core/adapters/llmAdapter";
-import { Concept } from "@/core/goal/types";
 import { DBAdapter } from "@/core/adapters/dbAdapter";
 
 export async function POST(

@@ -9,9 +9,9 @@ export async function GET(
   try {
     const { userId } = params;
     const dbAdapter = new DBAdapter();
-    const storedUser = await getUserById(parseInt(userId), dbAdapter );
+    const storedUser = await getUserById(parseInt(userId), dbAdapter);
     return NextResponse.json({ user: storedUser }, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to get user" }, { status: 500 });
   }
-} 
+}

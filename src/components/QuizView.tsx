@@ -140,13 +140,13 @@ export function QuizView({
           ))}
 
           <button
-            onClick={() => handleAnswer("I don't know")}
+            onClick={() => handleAnswer("I don&apos;t know")}
             disabled={showExplanation || answerMutation.isPending}
             className={`w-full p-3 text-left rounded-lg transition-colors ${
               showExplanation ? "bg-gray-800" : "bg-gray-800 hover:bg-gray-700"
             } border border-gray-700 text-gray-300`}
           >
-            I don't know
+            I don&apos;t know
           </button>
         </div>
 

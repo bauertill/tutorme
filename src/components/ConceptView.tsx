@@ -56,7 +56,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
     },
   });
 
-  const { mutate: updateConceptMasteryLevel, isPending } = useMutation({
+  const { mutate: updateConceptMasteryLevel } = useMutation({
     mutationFn: updateConceptMasteryLevelApiRequest,
     onSuccess: data => {
       console.log("Concept mastery level updated:", data);

@@ -11,6 +11,6 @@ export async function GET(
     const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
     return NextResponse.json(concept, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to get goal" }, { status: 500 });
+    return NextResponse.json({ error: JSON.stringify(error) }, { status: 500 });
   }
 }
