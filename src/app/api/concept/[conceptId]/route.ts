@@ -1,10 +1,13 @@
 import { DBAdapter } from "@/core/adapters/dbAdapter";
 import { NextResponse } from "next/server";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { conceptId: string } }
-) {
+type Props = {
+  params: Promise<{
+    conceptId: string;
+  }>;
+};
+
+export async function GET(_: Request, { params }: Props) {
   try {
     const { conceptId } = await params;
     const dbAdapter = new DBAdapter();

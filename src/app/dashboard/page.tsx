@@ -6,7 +6,7 @@ import CreateGoalButton from "@/components/CreateGoalButton";
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: { userId: string };
+  searchParams: Promise<{ userId: string }>;
 }) {
   const { userId } = await searchParams;
   if (!userId) {

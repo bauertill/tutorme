@@ -5,9 +5,9 @@ import { getConceptsForGoal } from "@/core/goal/goalDomain";
 import { notFound } from "next/navigation";
 
 interface LearningGoalPageProps {
-  params: {
+  params: Promise<{
     goalId: string;
-  };
+  }>;
 }
 
 export default async function LearningGoalPage({

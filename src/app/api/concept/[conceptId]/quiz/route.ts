@@ -2,16 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { createKnowledgeQuizAndStoreInDB } from "@/core/concept/conceptDomain";
 import { LLMAdapter } from "@/core/adapters/llmAdapter";
 import { DBAdapter } from "@/core/adapters/dbAdapter";
+import { z } from "zod";
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { conceptId: string } }
-) {
+const QuizCreatePayload = z.object({
+  conceptId: z.string(),
+});
+
+export async function POST(req: NextRequest) {
   try {
-    const { conceptId } = await params;
+    const body = QuizCreatePayload.parse(await req.json());
     const dbAdapter = new DBAdapter();
     // Get the concept from the database
-    const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
+    const concept = await dbAdapter.getConceptWithGoalByConceptId(
+      body.conceptId
+    );
 
     if (!concept) {
       return NextResponse.json({ error: "Concept not found" }, { status: 404 });
