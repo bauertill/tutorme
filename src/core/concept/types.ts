@@ -8,7 +8,13 @@ export const QuestionSchema = z.object({
   explanation: z.string(),
 });
 
-export type Question = z.infer<typeof QuestionSchema>;
+export type QuestionSchema = z.infer<typeof QuestionSchema>;
+
+export const Question = QuestionSchema.extend({
+  id: z.string(),
+});
+
+export type Question = z.infer<typeof Question>;
 
 export const QuizSchema = z.object({
   questions: z.array(QuestionSchema),
@@ -22,3 +28,19 @@ export const Quiz = QuizSchema.extend({
 });
 
 export type Quiz = z.infer<typeof Quiz>;
+
+export interface QuestionResponse {
+  userId: number;
+  questionId: string;
+  answer: string;
+  isCorrect: boolean;
+}
+
+export interface StoredQuestionResponse extends QuestionResponse {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// @TODO separate data types into db and domain
+// Have a generic DBType that extends types with id, createdAt, updatedAt

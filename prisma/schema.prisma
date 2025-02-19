@@ -8,69 +8,77 @@ datasource db {
 }
 
 model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  name    String?
-  goals   Goal[]
+  id                Int                    @id @default(autoincrement())
+  email             String                 @unique
+  name              String?
+  goals             Goal[]
   questionResponses UserQuestionResponse[]
 }
 
 model Goal {
-  id        String   @id @default(uuid())
-  userId    Int   
+  id        String    @id @default(uuid())
+  userId    Int
   goal      String
-  concepts    Concept[]
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  concepts  Concept[]
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Concept {
-  id           String      @id @default(cuid())
-  name         String
-  description  String
-  masteryLevel String      @default("unknown")
-  goalId       String
-  goal         Goal        @relation(fields: [goalId], references: [id])
-  quizzes      Quiz[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id                   String                 @id @default(cuid())
+  name                 String
+  description          String
+  masteryLevel         String                 @default("unknown")
+  goalId               String
+  goal                 Goal                   @relation(fields: [goalId], references: [id])
+  quizzes              Quiz[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  UserQuestionResponse UserQuestionResponse[]
 }
 
 model Quiz {
-  id          String      @id @default(cuid())
-  conceptId   String
-  concept     Concept     @relation(fields: [conceptId], references: [id])
-  questions   Question[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                   String                 @id @default(cuid())
+  conceptId            String
+  concept              Concept                @relation(fields: [conceptId], references: [id])
+  questions            Question[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  UserQuestionResponse UserQuestionResponse[]
 }
 
 model Question {
-  id            String    @id @default(cuid())
+  id            String                 @id @default(cuid())
   quizId        String
-  quiz          Quiz      @relation(fields: [quizId], references: [id])
+  quiz          Quiz                   @relation(fields: [quizId], references: [id])
   question      String
   options       String[]
   correctAnswer String
   difficulty    String
   explanation   String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
   userResponses UserQuestionResponse[]
 }
 
 model UserQuestionResponse {
-  id          String    @id @default(cuid())
-  userId      Int
-  user        User      @relation(fields: [userId], references: [id])
-  questionId  String
-  question    Question  @relation(fields: [questionId], references: [id])
-  answer      String
-  isCorrect   Boolean
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String   @id @default(cuid())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+  quizId     String
+  quiz       Quiz     @relation(fields: [quizId], references: [id])
+  conceptId  String
+  concept    Concept  @relation(fields: [conceptId], references: [id])
+  answer     String
+  isCorrect  Boolean
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([userId])
   @@index([questionId])
+  @@index([quizId])
+  @@index([conceptId])
 }

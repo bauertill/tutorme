@@ -5,10 +5,9 @@ import {
   SystemMessagePromptTemplate,
   HumanMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import { Runnable } from "@langchain/core/runnables";
 import { JsonOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
-import { Question, Quiz, QuizSchema } from "../concept/types";
+import { Question, QuizSchema } from "../concept/types";
 
 const ConceptSchema = z.object({
   concepts: z.array(
@@ -152,7 +151,10 @@ Description: {conceptDescription}`;
         }
       );
 
-      return response.questions;
+      return response.questions.map(question => ({
+        ...question,
+        id: crypto.randomUUID(),
+      }));
     } catch (error) {
       console.error("Error generating concept evaluation:", error);
       throw new Error("Failed to generate concept evaluation");
