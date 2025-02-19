@@ -65,6 +65,7 @@ export function QuizView({
     return response.json();
   };
 
+  //   @ TODO introduce optimistic updates here
   const answerMutation = useMutation<
     QuestionResponseResult,
     Error,
@@ -97,11 +98,7 @@ export function QuizView({
 
   const handleNext = () => {
     setShowExplanation(false);
-    if (isLastQuestion) {
-      onComplete();
-    } else {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
+    setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
 
   if (!currentQuestion) return null;

@@ -25,6 +25,17 @@ const generateQuiz = async (conceptId: string) => {
   return response.json();
 };
 
+const updateConceptMasteryLevelApiRequest = async (payload: {
+  conceptId: string;
+  userId: number;
+}) => {
+  const response = await fetch(`/api/quiz`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return response.json();
+};
+
 export function ConceptView({ conceptId }: { conceptId: string }) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
 
@@ -32,6 +43,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
     data: concept,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["concept", conceptId],
     queryFn: () => fetchConcept(conceptId),
@@ -44,13 +56,13 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
     },
   });
 
-  const handleQuizComplete = (
-    results: { questionIndex: number; answer: string }[]
-  ) => {
-    // TODO: Send results to backend to update mastery level
-    console.log("Quiz completed:", results);
-    setQuiz(null);
-  };
+  const { mutate: updateConceptMasteryLevel, isPending } = useMutation({
+    mutationFn: updateConceptMasteryLevelApiRequest,
+    onSuccess: data => {
+      console.log("Concept mastery level updated:", data);
+      refetch();
+    },
+  });
 
   // Handle loading and error states in your JSX
   if (isLoading) return <div>Loading concept...</div>;
@@ -59,15 +71,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
   if (!concept) {
     return <div>Loading...</div>;
   }
-  const updateConceptMasteryLevel = async () => {
-    await fetch("/api/quiz", {
-      method: "POST",
-      body: JSON.stringify({
-        userId: concept.goal.userId,
-        conceptId,
-      }),
-    });
-  };
+
   if (quiz) {
     return (
       <QuizView
@@ -75,7 +79,13 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
         quizId={quiz.id}
         userId={concept.goal.userId}
         conceptId={conceptId}
-        onComplete={updateConceptMasteryLevel}
+        onComplete={() => {
+          updateConceptMasteryLevel({
+            conceptId,
+            userId: concept.goal.userId,
+          });
+          setQuiz(null);
+        }}
       />
     );
   }

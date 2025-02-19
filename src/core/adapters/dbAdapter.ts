@@ -129,11 +129,10 @@ export class DBAdapter {
   async getQuestionResponsesByUserIdConceptId(
     userId: number,
     conceptId: string
-  ): Promise<Question[]> {
-    const questions = await this.prisma.userQuestionResponse.findMany({
+  ): Promise<QuestionResponse[]> {
+    return await this.prisma.userQuestionResponse.findMany({
       where: { userId, conceptId },
     });
-    return questions.map(question => Question.parse(question));
   }
 
   async createQuestionResponse(response: QuestionResponse) {

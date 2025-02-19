@@ -3,19 +3,15 @@ import { LLMAdapter } from "../adapters/llmAdapter";
 import { Concept } from "../goal/types";
 import { Quiz } from "./types";
 
-//   async function evaluateKnowledge(concept: Concept): Promise<Question[]> {
-//     try {
-//       const response = await this.evaluationChain.invoke({
-//         conceptName: concept.name,
-//         conceptDescription: concept.description,
-//       });
-
-//       return response.questions;
-//     } catch (error) {
-//       console.error("Error generating concept evaluation:", error);
-//       throw new Error("Failed to generate concept evaluation");
-//     }
-//   }
+export async function updateConceptMasteryLevel(
+  userId: number,
+  conceptId: string,
+  dbAdapter: DBAdapter
+): Promise<void> {
+  const questionResponses =
+    await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, conceptId);
+  await dbAdapter.updateConceptMasteryLevel(conceptId, "beginner");
+}
 
 export async function createKnowledgeQuizAndStoreInDB(
   concept: Concept,
