@@ -44,5 +44,15 @@ export interface StoredQuestionResponse extends QuestionResponse {
   updatedAt: Date;
 }
 
+export type QuestionResponseWithQuestion = DBExtendedType<QuestionResponse> & {
+  question: Question;
+};
+
+export type DBExtendedType<T> = T & {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 // @TODO separate data types into db and domain
 // Have a generic DBType that extends types with id, createdAt, updatedAt

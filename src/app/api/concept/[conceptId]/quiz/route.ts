@@ -4,24 +4,18 @@ import { LLMAdapter } from "@/core/adapters/llmAdapter";
 import { DBAdapter } from "@/core/adapters/dbAdapter";
 import { z } from "zod";
 
-const QuizCreatePayload = z.object({
-  conceptId: z.string(),
-});
-
-export async function POST(req: NextRequest) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ conceptId: string }> }
+) {
   try {
-    const body = QuizCreatePayload.parse(await req.json());
+    const { conceptId } = await params;
     const dbAdapter = new DBAdapter();
-    // Get the concept from the database
-    const concept = await dbAdapter.getConceptWithGoalByConceptId(
-      body.conceptId
-    );
-
+    const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
     if (!concept) {
       return NextResponse.json({ error: "Concept not found" }, { status: 404 });
     }
     const llmAdapter = new LLMAdapter();
-    // Generate and store the quiz
     const quiz = await createKnowledgeQuizAndStoreInDB(
       concept,
       dbAdapter,

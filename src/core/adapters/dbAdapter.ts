@@ -1,7 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { Concept, ConceptWithGoal, Goal } from "../goal/types";
 import { User } from "../user/types";
-import { Question, Quiz, QuestionResponse } from "../concept/types";
+import {
+  Question,
+  Quiz,
+  QuestionResponse,
+  DBExtendedType,
+  QuestionResponseWithQuestion,
+} from "../concept/types";
 
 export class DBAdapter {
   private prisma: PrismaClient;
@@ -129,10 +135,17 @@ export class DBAdapter {
   async getQuestionResponsesByUserIdConceptId(
     userId: number,
     conceptId: string
-  ): Promise<QuestionResponse[]> {
-    return await this.prisma.userQuestionResponse.findMany({
+  ): Promise<QuestionResponseWithQuestion[]> {
+    const questionResponses = await this.prisma.userQuestionResponse.findMany({
       where: { userId, conceptId },
+      include: {
+        question: true,
+      },
     });
+    return questionResponses.map(response => ({
+      ...response,
+      question: Question.parse(response.question),
+    }));
   }
 
   async createQuestionResponse(response: QuestionResponse) {

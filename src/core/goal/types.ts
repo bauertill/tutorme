@@ -17,6 +17,7 @@ const MasteryLevel = z.enum([
   "advanced",
   "expert",
 ]);
+export type MasteryLevel = z.infer<typeof MasteryLevel>;
 export const Concept = z.object({
   id: z.string(),
   goalId: z.string(),
