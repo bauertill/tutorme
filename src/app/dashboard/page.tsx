@@ -8,7 +8,7 @@ export default async function DashboardPage({
 }: {
   searchParams: { userId: string };
 }) {
-  const userId = await searchParams.userId;
+  const { userId } = await searchParams;
   if (!userId) {
     notFound();
   }
