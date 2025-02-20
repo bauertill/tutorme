@@ -32,7 +32,7 @@ export function MasteryLevelPill({ level }: MasteryLevelPillProps) {
   const styles = MASTERY_LEVEL_STYLES[level];
   return (
     <span
-      className={`inline-flex items-center justify-center px-3 py-3 rounded-full text-xs font-medium min-w-[80px] ${styles.bg} ${styles.text}`}
+      className={`inline-flex items-center justify-center px-3 py-3 rounded-full text-sm font-medium min-w-[80px] ${styles.bg} ${styles.text}`}
     >
       {level.charAt(0).toUpperCase() + level.slice(1)}
     </span>

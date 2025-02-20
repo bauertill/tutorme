@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Quiz } from "@/core/concept/types";
 import { QuizView } from "./QuizView";
 import { useState } from "react";
+import { MasteryLevelPill } from "./MasteryLevelPill";
 
 // Create fetch functions (can be moved to a separate api.ts file)
 const fetchConcept = async (conceptId: string): Promise<ConceptWithGoal> => {
@@ -98,9 +99,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
 
         <div className="flex items-center gap-4 mb-4">
           <h2 className="text-2xl font-semibold">{concept.name}</h2>
-          <span className="px-3 py-1 bg-gray-600 text-white rounded-full text-base">
-            Skill Level: {concept.masteryLevel}
-          </span>
+          <MasteryLevelPill level={concept.masteryLevel} />
           {concept.masteryLevel === "unknown" && (
             <button
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"

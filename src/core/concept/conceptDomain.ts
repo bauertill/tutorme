@@ -61,7 +61,7 @@ export async function createKnowledgeQuizAndStoreInDB(
   llmAdapter: LLMAdapter
 ): Promise<Quiz> {
   try {
-    const questions = await llmAdapter.createKnowledgeQuiz(concept);
+    const questions = await llmAdapter.createInitialKnowledgeQuiz(concept);
     const quiz = await dbAdapter.createQuiz(questions, concept.id);
     return quiz;
   } catch (error) {
