@@ -2,9 +2,9 @@
 
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import { DBAdapter } from "@/core/adapters/dbAdapter";
 import { CreateGoalButton } from "@/components/CreateGoalButton";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import LearningGoalsList from "@/components/LearningGoalsList";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession({
@@ -32,8 +32,6 @@ export default function DashboardPage() {
     );
   }
 
-  const db = new DBAdapter();
-
   if (!session?.user?.email) {
     redirect("/");
   }
@@ -54,7 +52,7 @@ export default function DashboardPage() {
             </h3>
             <CreateGoalButton email={session.user.email} />
           </div>
-          {/* <LearningGoalsList goals={goals} /> */}
+          <LearningGoalsList email={session.user.email} />
         </div>
       </div>
     </div>
