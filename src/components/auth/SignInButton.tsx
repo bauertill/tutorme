@@ -1,36 +1,22 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export function SignInButton() {
-  const { data: session } = useSession();
+  const { status } = useSession();
+  const router = useRouter();
 
-  if (session) {
-    return (
-      <div className="flex items-center gap-4 p-4">
-        <img
-          src={session.user?.image ?? ""}
-          alt={session.user?.name ?? ""}
-          className="w-10 h-10 rounded-full"
-        />
-        <div>
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {session.user?.name}
-          </p>
-          <button
-            onClick={() => signOut()}
-            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status, router]);
 
   return (
     <button
-      onClick={() => signIn("google")}
+      onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
       className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors"
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24">

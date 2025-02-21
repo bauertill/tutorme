@@ -1,4 +1,4 @@
-import { SignInButton } from "@/components/SignInButton";
+import { SignInButton } from "@/components/auth/SignInButton";
 import "@/app/globals.css";
 
 export default function Home() {
