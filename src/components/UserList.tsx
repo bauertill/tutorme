@@ -9,8 +9,8 @@ export async function UserList() {
     <div className="divide-y divide-gray-700">
       {users.map(user => (
         <Link
-          key={user.id}
-          href={`/dashboard?userId=${user.id}`}
+          key={user.email}
+          href={`/dashboard?userEmail=${encodeURIComponent(user.email)}`}
           className="flex items-center p-4 hover:bg-gray-800 transition-colors group"
         >
           <div className="flex-1">

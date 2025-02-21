@@ -14,10 +14,19 @@ export async function GET(): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const { email, name } = await request.json();
+    
+    if (!email) {
+      return NextResponse.json(
+        { error: "Email is required" },
+        { status: 400 }
+      );
+    }
+
     const dbAdapter = new DBAdapter();
     const user = await dbAdapter.createUser(email, name);
     return NextResponse.json({ user }, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Failed to create user" },
       { status: 500 }

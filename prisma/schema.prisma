@@ -8,8 +8,7 @@ datasource db {
 }
 
 model User {
-  id                Int                    @id @default(autoincrement())
-  email             String                 @unique
+  email             String                 @id
   name              String?
   goals             Goal[]
   questionResponses UserQuestionResponse[]
@@ -17,10 +16,10 @@ model User {
 
 model Goal {
   id        String    @id @default(uuid())
-  userId    Int
+  userEmail String
   goal      String
   concepts  Concept[]
-  user      User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userEmail], references: [email])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -64,8 +63,8 @@ model Question {
 
 model UserQuestionResponse {
   id         String   @id @default(cuid())
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id])
+  userEmail  String
+  user       User     @relation(fields: [userEmail], references: [email])
   questionId String
   question   Question @relation(fields: [questionId], references: [id])
   quizId     String
@@ -77,7 +76,7 @@ model UserQuestionResponse {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@index([userId])
+  @@index([userEmail])
   @@index([questionId])
   @@index([quizId])
   @@index([conceptId])

@@ -20,9 +20,9 @@ export class DBAdapter {
     return await this.prisma.user.findMany();
   }
 
-  async getUserById(id: number): Promise<User | null> {
+  async getUserByEmail(email: string): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
-      where: { id },
+      where: { email },
     });
 
     if (!user) return null;
@@ -42,14 +42,17 @@ export class DBAdapter {
     return Goal.parse(goal);
   }
 
-  async createGoal(userId: number, goalText: string): Promise<Goal> {
-    const data = { userId, goal: goalText };
+  async createGoal(email: string, goalText: string): Promise<Goal> {
+    const data = { 
+      goal: goalText,
+      user: {connect: { email } }
+    };
     return await this.prisma.goal.create({ data });
   }
 
-  async getUserGoals(userId: number): Promise<Goal[]> {
+  async getUserGoals(email: string): Promise<Goal[]> {
     const goals = await this.prisma.goal.findMany({
-      where: { userId },
+      where: { user: {email}  },
     });
     return goals.map(goal => Goal.parse(goal));
   }
@@ -132,12 +135,17 @@ export class DBAdapter {
     }
   }
 
-  async getQuestionResponsesByUserIdConceptId(
-    userId: number,
+  async getQuestionResponsesByUserEmailConceptId(
+    userEmail: string,
     conceptId: string
   ): Promise<QuestionResponseWithQuestion[]> {
     const questionResponses = await this.prisma.userQuestionResponse.findMany({
-      where: { userId, conceptId },
+      where: { 
+        user: {
+          email: userEmail
+        },
+        conceptId 
+      },
       include: {
         question: true,
       },

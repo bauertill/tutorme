@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function CreateGoalButton({ userId }: { userId: number }) {
+export default function CreateGoalButton({ userId }: { userId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [goalText, setGoalText] = useState("");
   const router = useRouter();
