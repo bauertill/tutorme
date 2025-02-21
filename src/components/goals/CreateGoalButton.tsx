@@ -2,36 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { trpc } from "../providers/TrpcProvider";
 
 export function CreateGoalButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [goalText, setGoalText] = useState("");
-  const router = useRouter();
 
-  // @TODO Make this use tRPC
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const response = await fetch("/api/goal", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ goalText }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create goal");
-      }
-
-      setGoalText("");
-      setIsOpen(false);
-      router.refresh();
-    } catch (error) {
-      console.error("Error creating goal:", error);
-    }
-  };
+  const createGoal = trpc.goal.create.useMutation();
 
   return (
     <div>
@@ -46,7 +23,7 @@ export function CreateGoalButton() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-96">
             <h2 className="text-xl font-bold mb-4">Create New Learning Goal</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={() => createGoal.mutate({ goalText })}>
               <textarea
                 value={goalText}
                 onChange={e => setGoalText(e.target.value)}
