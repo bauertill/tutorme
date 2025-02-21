@@ -43,11 +43,24 @@ export class DBAdapter {
   }
 
   async createGoal(email: string, goalText: string): Promise<Goal> {
-    const data = { 
-      goal: goalText,
-      user: {connect: { email } }
-    };
-    return await this.prisma.goal.create({ data });
+    const goal = await this.prisma.goal.create({
+      data: {
+        goal: goalText,
+        user: {
+          connect: {
+            email: email
+          }
+        }
+      }
+    });
+    // @TODO fix this type mismatch. Should be identical to DB. 
+    return Goal.parse({
+      id: goal.id,
+      userEmail: email,
+      goal: goal.goal,
+      createdAt: goal.createdAt,
+      updatedAt: goal.updatedAt
+    });
   }
 
   async getUserGoals(email: string): Promise<Goal[]> {

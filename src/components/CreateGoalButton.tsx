@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function CreateGoalButton({ userId }: { userId: string }) {
+export function CreateGoalButton({ email }: { email: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [goalText, setGoalText] = useState("");
   const router = useRouter();
 
+  // @TODO Make this use tRPC
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -17,7 +18,7 @@ export default function CreateGoalButton({ userId }: { userId: string }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId, goalText }),
+        body: JSON.stringify({ email, goalText }),
       });
 
       if (!response.ok) {

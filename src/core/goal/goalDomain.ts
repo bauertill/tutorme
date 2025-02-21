@@ -4,9 +4,9 @@ import { Concept, Goal } from "./types";
 
 export async function getGoalForUser(
   dbAdapter: DBAdapter,
-  userId: number
+  email: string
 ): Promise<Goal[]> {
-  return await dbAdapter.getUserGoals(userId);
+  return await dbAdapter.getUserGoals(email);
 }
 
 export async function getConceptsForGoal(

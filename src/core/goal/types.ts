@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const Goal = z.object({
   id: z.string(),
-  userId: z.number(),
+  userEmail: z.string(),
   goal: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
