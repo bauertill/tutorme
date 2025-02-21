@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function CreateGoalButton({ email }: { email: string }) {
+export function CreateGoalButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [goalText, setGoalText] = useState("");
   const router = useRouter();
@@ -18,7 +18,7 @@ export function CreateGoalButton({ email }: { email: string }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, goalText }),
+        body: JSON.stringify({ goalText }),
       });
 
       if (!response.ok) {

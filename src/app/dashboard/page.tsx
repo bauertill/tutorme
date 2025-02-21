@@ -2,9 +2,9 @@
 
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import { CreateGoalButton } from "@/components/CreateGoalButton";
-import { SignOutButton } from "@/components/auth/SignOutButton";
-import LearningGoalsList from "@/components/LearningGoalsList";
+import { CreateGoalButton } from "@/components/goals/CreateGoalButton";
+import { UserAndSignOutButton } from "@/components/auth/UserAndSignOutButton";
+import { GoalsList } from "@/components/goals/GoalsList";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession({
@@ -44,15 +44,15 @@ export default function DashboardPage() {
         </h1>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex justify-end gap-4 mb-6">
-            <SignOutButton />
+            <UserAndSignOutButton />
           </div>
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-medium dark:text-white">
               Learning Goals
             </h3>
-            <CreateGoalButton email={session.user.email} />
+            <CreateGoalButton />
           </div>
-          <LearningGoalsList email={session.user.email} />
+          <GoalsList />
         </div>
       </div>
     </div>

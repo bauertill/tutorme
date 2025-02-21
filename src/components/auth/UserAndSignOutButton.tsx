@@ -3,7 +3,7 @@
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 
-export function SignOutButton() {
+export function UserAndSignOutButton() {
   const { data: session, status } = useSession();
   if (status === "authenticated") {
     console.log(session.user?.image);
