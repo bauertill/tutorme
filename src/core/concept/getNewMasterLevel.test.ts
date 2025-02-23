@@ -109,4 +109,32 @@ describe("getNewMasteryLevel", () => {
     ];
     expect(getNewMasteryLevel(responses)).toBe("UNKNOWN");
   });
+
+  it("should return 'INTERMEDIATE' if all questions are answered correctly and there are no 'BEGINNER' questions", () => {
+    const responses = [
+      createMockResponse(true, "INTERMEDIATE", new Date(), "quiz1"),
+      createMockResponse(true, "INTERMEDIATE", new Date(), "quiz1"),
+    ];
+    expect(getNewMasteryLevel(responses)).toBe("UNKNOWN");
+  });
+
+  it("should return 'UNKNOWN' if some 'BEGINNER' questions are answered incorrectly", () => {
+    const responses = [
+      createMockResponse(true, "BEGINNER", new Date(), "quiz1"),
+      createMockResponse(false, "BEGINNER", new Date(), "quiz1"),
+      createMockResponse(true, "INTERMEDIATE", new Date(), "quiz1"),
+      createMockResponse(false, "INTERMEDIATE", new Date(), "quiz1"),
+    ];
+    expect(getNewMasteryLevel(responses)).toBe("UNKNOWN");
+  });
+
+  it("should return 'BEGINNER' if all 'BEGINNER' questions are answered correctly and some 'INTERMEDIATE' questions are answered incorrectly", () => {
+    const responses = [
+      createMockResponse(true, "BEGINNER", new Date(), "quiz1"),
+      createMockResponse(true, "BEGINNER", new Date(), "quiz1"),
+      createMockResponse(true, "INTERMEDIATE", new Date(), "quiz1"),
+      createMockResponse(false, "INTERMEDIATE", new Date(), "quiz1"),
+    ];
+    expect(getNewMasteryLevel(responses)).toBe("BEGINNER");
+  });
 });
