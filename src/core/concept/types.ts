@@ -1,13 +1,18 @@
 import { z } from "zod";
 import { type WithTimestamps } from "../utils";
 
-export const Question = z.object({
-  id: z.string(),
+export const QuestionParams = z.object({
   question: z.string(),
   options: z.array(z.string()),
   correctAnswer: z.string(),
   difficulty: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]),
   explanation: z.string(),
+});
+
+export type QuestionParams = z.infer<typeof QuestionParams>;
+
+export const Question = QuestionParams.extend({
+  id: z.string(),
   quizId: z.string(),
 });
 

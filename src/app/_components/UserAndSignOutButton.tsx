@@ -1,18 +1,18 @@
 "use client";
-import { User } from "lucide-react";
-import { type Session } from "next-auth";
+import type { User } from "@/core/user/types";
+import { User as LucideUser } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 
-export function UserAndSignOutButton({ session }: { session: Session }) {
-  const imageUrl = session.user?.image;
+export function UserAndSignOutButton({ user }: { user: User }) {
+  const imageUrl = user.image;
 
   return (
     <div className="flex items-center gap-4 p-4">
       {imageUrl ? (
         <Image
           src={imageUrl}
-          alt={session.user?.name ?? "User avatar"}
+          alt={user.name ?? "User avatar"}
           width={40}
           height={40}
           className="rounded-full"
@@ -21,12 +21,12 @@ export function UserAndSignOutButton({ session }: { session: Session }) {
         />
       ) : (
         <div className="rounded-full bg-gray-200 w-10 h-10 flex items-center justify-center">
-          <User className="w-6 h-6 text-gray-500" />
+          <LucideUser className="w-6 h-6 text-gray-500" />
         </div>
       )}
       <div>
         <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-          {session.user?.name ?? "User"}
+          {user.name ?? "User"}
         </p>
         <button
           onClick={() => signOut()}

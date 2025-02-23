@@ -10,7 +10,7 @@ export function CreateGoalButton() {
   const utils = api.useUtils();
   const createGoal = api.goal.create.useMutation({
     onSuccess: () => {
-      void utils.goal.getAll.invalidate();
+      void utils.goal.all.invalidate();
       setIsOpen(false);
     },
   });

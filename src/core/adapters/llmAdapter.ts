@@ -125,3 +125,5 @@ export class LLMAdapter {
     }));
   }
 }
+
+export const llmAdapter = new LLMAdapter();

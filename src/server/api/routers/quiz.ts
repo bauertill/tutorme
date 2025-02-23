@@ -10,12 +10,9 @@ export const quizRouter = createTRPCRouter({
   generate: protectedProcedure
     .input(z.object({ conceptId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const concept = await ctx.db.concept.findFirstOrThrow({
-        where: { id: input.conceptId },
-        include: {
-          goal: true,
-        },
-      });
+      const concept = await ctx.dbAdapter.getConceptWithGoalByConceptId(
+        input.conceptId,
+      );
       const quiz = await createKnowledgeQuizAndStoreInDB(
         concept,
         ctx.dbAdapter,
@@ -34,7 +31,7 @@ export const quizRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { quizId, questionId } = input;
-      const question = await ctx.dbAdapter.getQuestionsById(questionId);
+      const question = await ctx.dbAdapter.getQuestionById(questionId);
       if (!question) {
         throw new Error("Question not found");
       }

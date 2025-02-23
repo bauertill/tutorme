@@ -11,7 +11,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
 
   const {
     data: concept,
-    isLoading,
+    isPending,
     error,
     refetch,
   } = api.concept.byId.useQuery(conceptId);
@@ -29,14 +29,6 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
       },
     });
 
-  // Handle loading and error states in your JSX
-  if (isLoading) return <div>Loading concept...</div>;
-  if (error) return <div>Error loading concept</div>;
-
-  if (!concept) {
-    return <div>Loading...</div>;
-  }
-
   if (quiz) {
     return (
       <QuizView
@@ -51,29 +43,43 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
     );
   }
 
+  if (error) return <div>Error loading concept</div>;
+
   return (
     <main>
       <div className="p-4">
-        {/* Goal heading */}
-        <h1 className="text-4xl font-bold mb-6">{concept.goal.name}</h1>
+        {isPending ? (
+          <>
+            <div className="h-8 w-64 bg-gray-200 rounded mb-6 animate-pulse" />
+            <div className="flex items-center gap-4 mb-4">
+              <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+              <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" />
+            </div>
+            <div className="h-20 w-full bg-gray-200 rounded animate-pulse" />
+          </>
+        ) : (
+          <>
+            <h1 className="text-4xl font-bold mb-6">{concept?.goal.name}</h1>
 
-        <div className="flex items-center gap-4 mb-4">
-          <h2 className="text-2xl font-semibold">{concept.name}</h2>
-          <MasteryLevelPill level={concept.masteryLevel} />
-          {concept.masteryLevel === "UNKNOWN" && (
-            <button
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              onClick={() => generateQuizMutation.mutate({ conceptId })}
-              disabled={generateQuizMutation.isPending}
-            >
-              {generateQuizMutation.isPending
-                ? "Generating Quiz..."
-                : "Begin Assessment"}
-            </button>
-          )}
-        </div>
+            <div className="flex items-center gap-4 mb-4">
+              <h2 className="text-2xl font-semibold">{concept?.name}</h2>
+              <MasteryLevelPill level={concept?.masteryLevel} />
+              {concept?.masteryLevel === "UNKNOWN" && (
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  onClick={() => generateQuizMutation.mutate({ conceptId })}
+                  disabled={generateQuizMutation.isPending}
+                >
+                  {generateQuizMutation.isPending
+                    ? "Generating Quiz..."
+                    : "Begin Assessment"}
+                </button>
+              )}
+            </div>
 
-        <p className="mt-4 text-base">{concept.description}</p>
+            <p className="mt-4 text-base">{concept?.description}</p>
+          </>
+        )}
       </div>
     </main>
   );
