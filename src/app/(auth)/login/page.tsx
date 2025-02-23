@@ -1,6 +1,6 @@
 import { SignInButton } from "./_components/SignInButton";
 
-export default function Home() {
+export default function LoginPage() {
   return (
     <main className="min-h-screen p-8">
       <div className="mx-auto max-w-2xl">

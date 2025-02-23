@@ -1,4 +1,3 @@
-import { JsonOutputParser } from "@langchain/core/output_parsers";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
@@ -13,14 +12,6 @@ import {
   EVALUATION_HUMAN_TEMPLATE,
   EVALUATION_SYSTEM_PROMPT,
 } from "./prompts/initialKnowledgeQuiz";
-
-type ConceptOutput = {
-  concepts: Array<{
-    name: string;
-    description: string;
-  }>;
-};
-type ParsedConcept = ConceptOutput["concepts"][number];
 
 export class LLMAdapter {
   private model: ChatOpenAI;
@@ -38,11 +29,17 @@ export class LLMAdapter {
       HumanMessagePromptTemplate.fromTemplate(HUMAN_TEMPLATE),
     ]);
 
-    const outputParser = new JsonOutputParser<ConceptOutput>();
+    const schema = z.object({
+      concepts: z.array(
+        z.object({
+          name: z.string().describe("The name of the concept"),
+          description: z.string().describe("A description of the concept"),
+        }),
+      ),
+    });
 
     const chain = promptTemplate
-      .pipe(this.model)
-      .pipe(outputParser)
+      .pipe(this.model.withStructuredOutput(schema))
       .withConfig({
         tags: ["concept-extraction"],
         runName: "Extract Learning Concepts",
@@ -60,15 +57,13 @@ export class LLMAdapter {
     );
 
     // Map the parsed concepts to our domain model
-    const concepts: Concept[] = response.concepts.map(
-      (concept: ParsedConcept) => ({
-        id: crypto.randomUUID(),
-        name: concept.name,
-        description: concept.description,
-        goalId: goal.id,
-        masteryLevel: "UNKNOWN",
-      }),
-    );
+    const concepts: Concept[] = response.concepts.map((concept) => ({
+      id: crypto.randomUUID(),
+      name: concept.name,
+      description: concept.description,
+      goalId: goal.id,
+      masteryLevel: "UNKNOWN",
+    }));
     return concepts;
   }
 
@@ -84,10 +79,19 @@ export class LLMAdapter {
       SystemMessagePromptTemplate.fromTemplate(EVALUATION_SYSTEM_PROMPT),
       HumanMessagePromptTemplate.fromTemplate(EVALUATION_HUMAN_TEMPLATE),
     ]);
-    const quizOutputParser = new JsonOutputParser();
+    const schema = z.object({
+      questions: z.array(
+        Question.pick({
+          question: true,
+          options: true,
+          correctAnswer: true,
+          difficulty: true,
+          explanation: true,
+        }),
+      ),
+    });
     const evaluationChain = evaluationPromptTemplate
-      .pipe(this.model)
-      .pipe(quizOutputParser)
+      .pipe(this.model.withStructuredOutput(schema))
       .withConfig({
         tags: ["concept-evaluation"],
         runName: "Generate Concept Quiz",
@@ -105,21 +109,7 @@ export class LLMAdapter {
       },
     );
 
-    const questions = z
-      .object({
-        questions: z.array(
-          Question.pick({
-            question: true,
-            options: true,
-            correctAnswer: true,
-            difficulty: true,
-            explanation: true,
-          }),
-        ),
-      })
-      .parse(response).questions;
-
-    return questions.map((question) => ({
+    return response.questions.map((question) => ({
       ...question,
       id: crypto.randomUUID(),
     }));
