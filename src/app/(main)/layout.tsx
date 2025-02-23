@@ -6,5 +6,5 @@ export default async function MainLayout({
   children: React.ReactNode;
 }) {
   await requireSession();
-  return children;
+  return <div className="p-4">{children}</div>;
 }

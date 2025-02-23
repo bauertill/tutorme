@@ -1,4 +1,6 @@
+import { Badge } from "@/components/ui/badge";
 import { type MasteryLevel } from "@/core/goal/types";
+import { cn } from "@/lib/utils";
 
 interface MasteryLevelPillProps {
   level: MasteryLevel;
@@ -31,10 +33,16 @@ const MASTERY_LEVEL_STYLES: Record<MasteryLevel, { bg: string; text: string }> =
 export function MasteryLevelPill({ level }: MasteryLevelPillProps) {
   const styles = MASTERY_LEVEL_STYLES[level];
   return (
-    <span
-      className={`inline-flex items-center justify-center px-3 py-3 rounded-full text-sm font-medium min-w-[80px] ${styles.bg} ${styles.text}`}
+    <Badge
+      variant="secondary"
+      className={cn(
+        "min-w-[80px]",
+        styles.bg,
+        styles.text,
+        "hover:bg-opacity-100", // Prevent hover color change
+      )}
     >
       {level.charAt(0).toUpperCase() + level.slice(1)}
-    </span>
+    </Badge>
   );
 }

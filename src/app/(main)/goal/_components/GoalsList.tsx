@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/react";
 import Link from "next/link";
 
@@ -10,26 +12,22 @@ export function GoalsList() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {isPending
         ? Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="flex items-center p-4 bg-gray-900 rounded-lg animate-pulse"
-            >
-              <div className="h-6 bg-gray-800 rounded w-2/3"></div>
-            </div>
+            <Skeleton key={i} className="h-12 w-full p-4" />
           ))
         : goals?.map((goal) => (
-            <Link
+            <Button
               key={goal.id}
-              href={`/goal/${goal.id}`}
-              className="flex items-center p-4 bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors group"
+              variant="secondary"
+              className="h-auto justify-start p-4"
+              asChild
             >
-              <h2 className="text-gray-100 group-hover:text-gray-50">
-                {goal.name}
-              </h2>
-            </Link>
+              <Link href={`/goal/${goal.id}`}>
+                <h2 className="text-inherit">{goal.name}</h2>
+              </Link>
+            </Button>
           ))}
     </div>
   );

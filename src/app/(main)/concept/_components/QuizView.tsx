@@ -1,6 +1,10 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { type Question } from "@/core/concept/types";
+import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { useState } from "react";
 
@@ -60,80 +64,77 @@ export function QuizView({
   if (!currentQuestion) return null;
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center mb-4">
-        <span className="text-sm text-gray-400">
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">
           Question {currentQuestionIndex + 1} of {questions.length}
         </span>
-        <span className="px-2 py-1 bg-gray-800 rounded text-sm">
-          {currentQuestion.difficulty}
-        </span>
+        <Badge variant="outline">{currentQuestion.difficulty}</Badge>
       </div>
 
-      <div className="bg-gray-900 rounded-lg p-6 shadow-md">
-        <h3 className="text-xl font-semibold mb-4 text-gray-100">
-          {currentQuestion.question}
-        </h3>
+      <Card>
+        <CardHeader>
+          <h3 className="text-xl font-semibold">{currentQuestion.question}</h3>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            {currentQuestion.options.map((option, index) => (
+              <Button
+                key={index}
+                onClick={() => handleAnswer(option)}
+                disabled={showExplanation || answerMutation.isPending}
+                variant="outline"
+                className={cn(
+                  "w-full justify-start",
+                  "disabled:opacity-100",
+                  showExplanation && {
+                    "border-green-600 bg-green-600/20 text-green-900":
+                      option === currentQuestion.correctAnswer,
+                    "border-red-600 bg-red-600/20 text-red-900":
+                      answers[currentQuestionIndex]?.answer === option &&
+                      option !== currentQuestion.correctAnswer,
+                  },
+                )}
+              >
+                {option}
+              </Button>
+            ))}
 
-        <div className="space-y-3">
-          {currentQuestion.options.map((option, index) => (
-            <button
-              key={index}
-              onClick={() => handleAnswer(option)}
+            <Button
+              onClick={() => handleAnswer("I don&apos;t know")}
               disabled={showExplanation || answerMutation.isPending}
-              className={`w-full p-3 text-left rounded-lg transition-colors ${
-                showExplanation
-                  ? option === currentQuestion.correctAnswer
-                    ? "bg-green-900 border-green-500 text-gray-100"
-                    : answers[currentQuestionIndex]?.answer === option
-                      ? "bg-red-900 border-red-500 text-gray-100"
-                      : "bg-gray-800 text-gray-300"
-                  : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-              } border border-gray-700`}
+              variant="outline"
+              className="w-full justify-start disabled:opacity-100"
             >
-              {option}
-            </button>
-          ))}
-
-          <button
-            onClick={() => handleAnswer("I don&apos;t know")}
-            disabled={showExplanation || answerMutation.isPending}
-            className={`w-full p-3 text-left rounded-lg transition-colors ${
-              showExplanation ? "bg-gray-800" : "bg-gray-800 hover:bg-gray-700"
-            } border border-gray-700 text-gray-300`}
-          >
-            I don&apos;t know
-          </button>
-        </div>
-
-        {showExplanation && (
-          <div className="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-            <h4 className="font-semibold mb-2 text-gray-100">Explanation:</h4>
-            <p className="text-gray-300">{currentQuestion.explanation}</p>
+              I don&apos;t know
+            </Button>
           </div>
-        )}
 
-        {showExplanation && !isLastQuestion && (
-          <button
-            onClick={handleNext}
-            className="mt-6 w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Next Question
-          </button>
-        )}
+          {showExplanation && (
+            <>
+              <div className="space-y-2">
+                <h4 className="mb-2 font-semibold">Explanation:</h4>
+                <p className="text-muted-foreground">
+                  {currentQuestion.explanation}
+                </p>
+              </div>
 
-        {showExplanation && isLastQuestion && (
-          <div className="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-            <h4 className="font-semibold mb-2 text-gray-100">Quiz Complete!</h4>
-            <button
-              onClick={onComplete}
-              className="mt-6 w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Done
-            </button>
-          </div>
-        )}
-      </div>
+              {!isLastQuestion ? (
+                <Button onClick={handleNext} className="mt-6 w-full">
+                  Next Question
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <h4 className="mb-2 font-semibold">Quiz Complete!</h4>
+                  <Button onClick={onComplete} className="mt-4 w-full">
+                    Done
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

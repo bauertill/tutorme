@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { type Quiz } from "@/core/concept/types";
 import { api } from "@/trpc/react";
 import { useState } from "react";
@@ -24,9 +26,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
 
   const updateConceptMasteryLevel =
     api.quiz.updateConceptMasteryLevel.useMutation({
-      onSuccess: () => {
-        void refetch();
-      },
+      onSuccess: () => void refetch(),
     });
 
   if (quiz) {
@@ -50,34 +50,33 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
       <div className="p-4">
         {isPending ? (
           <>
-            <div className="h-8 w-64 bg-gray-200 rounded mb-6 animate-pulse" />
-            <div className="flex items-center gap-4 mb-4">
-              <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
-              <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" />
+            <Skeleton className="mb-6 h-8 w-64" />
+            <div className="mb-4 flex items-center gap-4">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-6 w-24" />
             </div>
-            <div className="h-20 w-full bg-gray-200 rounded animate-pulse" />
+            <Skeleton className="h-20 w-full" />
           </>
         ) : (
           <>
-            <h1 className="text-4xl font-bold mb-6">{concept?.goal.name}</h1>
+            <h1 className="mb-6 text-4xl font-bold">{concept.goal.name}</h1>
 
-            <div className="flex items-center gap-4 mb-4">
-              <h2 className="text-2xl font-semibold">{concept?.name}</h2>
-              <MasteryLevelPill level={concept?.masteryLevel} />
-              {concept?.masteryLevel === "UNKNOWN" && (
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            <div className="mb-4 flex items-center gap-4">
+              <h2 className="text-2xl font-semibold">{concept.name}</h2>
+              <MasteryLevelPill level={concept.masteryLevel} />
+              {concept.masteryLevel === "UNKNOWN" && (
+                <Button
                   onClick={() => generateQuizMutation.mutate({ conceptId })}
                   disabled={generateQuizMutation.isPending}
                 >
                   {generateQuizMutation.isPending
                     ? "Generating Quiz..."
                     : "Begin Assessment"}
-                </button>
+                </Button>
               )}
             </div>
 
-            <p className="mt-4 text-base">{concept?.description}</p>
+            <p className="mt-4 text-base">{concept.description}</p>
           </>
         )}
       </div>

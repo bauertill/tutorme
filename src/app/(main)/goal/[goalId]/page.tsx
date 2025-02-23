@@ -17,7 +17,7 @@ export default async function LearningGoalPage({
 
   return (
     <main>
-      <h1 className="text-3xl font-bold mb-6">{goal.name}</h1>
+      <h1 className="mb-6 text-3xl font-bold">{goal.name}</h1>
       <ConceptsList goalId={goalId} />
     </main>
   );

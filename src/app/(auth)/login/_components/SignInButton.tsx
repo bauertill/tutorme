@@ -1,14 +1,16 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
 
 export function SignInButton() {
   return (
-    <button
+    <Button
       onClick={() => void signIn("google", { redirectTo: "/dashboard" })}
-      className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors"
+      variant="default"
+      size="default"
     >
-      <svg className="w-5 h-5" viewBox="0 0 24 24">
+      <svg className="h-5 w-5" viewBox="0 0 24 24">
         <path
           fill="currentColor"
           d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -27,6 +29,6 @@ export function SignInButton() {
         />
       </svg>
       Sign in with Google
-    </button>
+    </Button>
   );
 }
