@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -38,6 +39,9 @@ export function CreateGoalButton() {
         <DialogHeader>
           <DialogTitle>Create New Learning Goal</DialogTitle>
         </DialogHeader>
+        <DialogDescription>
+          Enter your learning goal and we will help you achieve it.
+        </DialogDescription>
 
         <form
           onSubmit={(e) => {
