@@ -14,6 +14,14 @@ export const goalRouter = createTRPCRouter({
       });
     }),
 
+  getAll: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.db.goal.findMany({
+      where: {
+        userId: ctx.session.user.id,
+      },
+    });
+  }),
+
   getLatest: protectedProcedure.query(async ({ ctx }) => {
     const post = await ctx.db.post.findFirst({
       orderBy: { createdAt: "desc" },
