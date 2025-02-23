@@ -1,13 +1,6 @@
-import { DBAdapter } from "../adapters/dbAdapter";
-import { LLMAdapter } from "../adapters/llmAdapter";
-import { Concept, Goal } from "./types";
-
-export async function getGoalsForUser(
-  dbAdapter: DBAdapter,
-  email: string,
-): Promise<Goal[]> {
-  return await dbAdapter.getUserGoals(email);
-}
+import { type DBAdapter } from "../adapters/dbAdapter";
+import { type LLMAdapter } from "../adapters/llmAdapter";
+import { type Concept, type Goal } from "./types";
 
 export async function getConceptsForGoal(
   llmAdapter: LLMAdapter,

@@ -67,9 +67,9 @@ export class DBAdapter {
     };
   }
 
-  async getUserGoals(email: string): Promise<Goal[]> {
+  async getUserGoals(id: string): Promise<Goal[]> {
     const goals = await this.prisma.goal.findMany({
-      where: { user: { email } },
+      where: { user: { id } },
     });
     return goals.map((goal) => goal);
   }
@@ -141,14 +141,14 @@ export class DBAdapter {
     return domainQuestion;
   }
 
-  async getQuestionResponsesByUserEmailConceptId(
-    userEmail: string,
+  async getQuestionResponsesByUserIdConceptId(
+    userId: string,
     conceptId: string,
   ): Promise<QuestionResponseWithQuestion[]> {
     const questionResponses = await this.prisma.userQuestionResponse.findMany({
       where: {
         user: {
-          email: userEmail,
+          id: userId,
         },
         conceptId,
       },

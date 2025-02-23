@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { WithTimestamps } from "../utils";
+import { type WithTimestamps } from "../utils";
 
 export const Question = z.object({
   id: z.string(),

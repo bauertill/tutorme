@@ -1,40 +1,18 @@
 "use client";
 
 import { type Question } from "@/core/concept/types";
-import { useMutation } from "@tanstack/react-query";
+import { api } from "@/trpc/react";
 import { useState } from "react";
 
 interface QuizViewProps {
   questions: Question[];
-  userId: string;
   conceptId: string;
   quizId: string;
   onComplete: () => void;
 }
 
-interface QuestionResponse {
-  userId: string;
-  questionId: string;
-  answer: string;
-  quizId: string;
-  conceptId: string;
-}
-
-interface QuestionResponseResult {
-  success: boolean;
-  response: {
-    userId: string;
-    questionId: string;
-    answer: string;
-    isCorrect: boolean;
-    quizId: string;
-    conceptId: string;
-  };
-}
-
 export function QuizView({
   questions,
-  userId,
   conceptId,
   quizId,
   onComplete,
@@ -48,30 +26,8 @@ export function QuizView({
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
-  const submitAnswer = async (data: QuestionResponse) => {
-    const response = await fetch("/api/quiz/response", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to submit answer");
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return response.json();
-  };
-
   //   @ TODO introduce optimistic updates here
-  const answerMutation = useMutation<
-    QuestionResponseResult,
-    Error,
-    QuestionResponse
-  >({
-    mutationFn: submitAnswer,
+  const answerMutation = api.quiz.addUserResponse.useMutation({
     onSuccess: (_, variables) => {
       const newAnswers = [
         ...answers,
@@ -89,7 +45,6 @@ export function QuizView({
   const handleAnswer = (answer: string) => {
     if (!currentQuestion) return;
     answerMutation.mutate({
-      userId,
       conceptId,
       questionId: currentQuestion.id,
       answer,

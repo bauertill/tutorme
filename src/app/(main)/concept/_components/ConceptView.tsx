@@ -1,22 +1,10 @@
 "use client";
 
-import { Quiz } from "@/core/concept/types";
+import { type Quiz } from "@/core/concept/types";
 import { api } from "@/trpc/react";
-import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { MasteryLevelPill } from "./MasteryLevelPill";
 import { QuizView } from "./QuizView";
-
-const updateConceptMasteryLevelApiRequest = async (payload: {
-  conceptId: string;
-  userId: string;
-}) => {
-  const response = await fetch(`/api/quiz`, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  return Quiz.parse(await response.json());
-};
 
 export function ConceptView({ conceptId }: { conceptId: string }) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -34,13 +22,12 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
     },
   });
 
-  const { mutate: updateConceptMasteryLevel } = useMutation({
-    mutationFn: updateConceptMasteryLevelApiRequest,
-    onSuccess: (data) => {
-      console.log("Concept mastery level updated:", data);
-      void refetch();
-    },
-  });
+  const updateConceptMasteryLevel =
+    api.quiz.updateConceptMasteryLevel.useMutation({
+      onSuccess: () => {
+        void refetch();
+      },
+    });
 
   // Handle loading and error states in your JSX
   if (isLoading) return <div>Loading concept...</div>;
@@ -55,13 +42,9 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
       <QuizView
         questions={quiz.questions}
         quizId={quiz.id}
-        userId={concept.goal.userId}
         conceptId={conceptId}
         onComplete={() => {
-          updateConceptMasteryLevel({
-            conceptId,
-            userId: concept.goal.userId,
-          });
+          updateConceptMasteryLevel.mutate({ conceptId });
           setQuiz(null);
         }}
       />

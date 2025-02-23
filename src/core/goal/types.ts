@@ -9,7 +9,7 @@ export const Goal = z.object({
 });
 export type Goal = z.infer<typeof Goal>;
 
-const MasteryLevel = z.enum([
+export const MasteryLevel = z.enum([
   "UNKNOWN",
   "BEGINNER",
   "INTERMEDIATE",

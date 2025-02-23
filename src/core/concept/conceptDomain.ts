@@ -12,19 +12,17 @@ const masteryLevels: MasteryLevel[] = [
 ];
 
 export async function updateConceptMasteryLevel(
-  userEmail: string,
+  userId: string,
   conceptId: string,
   dbAdapter: DBAdapter,
 ): Promise<void> {
   // @TODO think about LLM based approach here where we can feed all old responses to the LLM and get a new mastery level
   // Let it decide how heavily to weight answers that are older
   const questionResponses =
-    await dbAdapter.getQuestionResponsesByUserEmailConceptId(
-      userEmail,
-      conceptId,
-    );
+    await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, conceptId);
 
   const newMasteryLevel = getNewMasteryLevel(questionResponses);
+  console.log("newMasteryLevel", newMasteryLevel);
   await dbAdapter.updateConceptMasteryLevel(conceptId, newMasteryLevel);
 }
 
