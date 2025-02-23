@@ -1,7 +1,7 @@
-import { DBAdapter } from "../adapters/dbAdapter";
-import { LLMAdapter } from "../adapters/llmAdapter";
-import { Concept, MasteryLevel } from "../goal/types";
-import { QuestionResponseWithQuestion, Quiz } from "./types";
+import { type DBAdapter } from "../adapters/dbAdapter";
+import { type LLMAdapter } from "../adapters/llmAdapter";
+import { type Concept, type MasteryLevel } from "../goal/types";
+import { type QuestionResponseWithQuestion, type Quiz } from "./types";
 
 // TODO: make prisma enum for mastery levels
 const masteryLevels: MasteryLevel[] = [

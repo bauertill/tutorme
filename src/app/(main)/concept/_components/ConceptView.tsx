@@ -1,30 +1,11 @@
 "use client";
 
 import { Quiz } from "@/core/concept/types";
-import { ConceptWithGoal } from "@/core/goal/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { api } from "@/trpc/react";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { MasteryLevelPill } from "./MasteryLevelPill";
 import { QuizView } from "./QuizView";
-
-// Create fetch functions (can be moved to a separate api.ts file)
-const fetchConcept = async (conceptId: string): Promise<ConceptWithGoal> => {
-  const response = await fetch(`/api/concept/${conceptId}`);
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  return ConceptWithGoal.parse(await response.json());
-};
-
-const generateQuiz = async (conceptId: string) => {
-  const response = await fetch(`/api/concept/${conceptId}/quiz`, {
-    method: "POST",
-  });
-  if (!response.ok) {
-    throw new Error("Failed to generate quiz");
-  }
-  return Quiz.parse(response.json());
-};
 
 const updateConceptMasteryLevelApiRequest = async (payload: {
   conceptId: string;
@@ -45,13 +26,9 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
     isLoading,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ["concept", conceptId],
-    queryFn: () => fetchConcept(conceptId),
-  });
+  } = api.concept.byId.useQuery(conceptId);
 
-  const generateQuizMutation = useMutation({
-    mutationFn: generateQuiz,
+  const generateQuizMutation = api.quiz.generate.useMutation({
     onSuccess: (data) => {
       setQuiz(data);
     },
@@ -103,7 +80,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
           {concept.masteryLevel === "UNKNOWN" && (
             <button
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              onClick={() => generateQuizMutation.mutate(conceptId)}
+              onClick={() => generateQuizMutation.mutate({ conceptId })}
               disabled={generateQuizMutation.isPending}
             >
               {generateQuizMutation.isPending

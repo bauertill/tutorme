@@ -11,6 +11,8 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+import { DBAdapter } from "@/core/adapters/dbAdapter";
+import { LLMAdapter } from "@/core/adapters/llmAdapter";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 
@@ -28,10 +30,14 @@ import { db } from "@/server/db";
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth();
+  const dbAdapter = new DBAdapter();
+  const llmAdapter = new LLMAdapter();
 
   return {
     db,
     session,
+    dbAdapter,
+    llmAdapter,
     ...opts,
   };
 };

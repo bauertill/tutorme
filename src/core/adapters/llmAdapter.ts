@@ -106,16 +106,18 @@ export class LLMAdapter {
     );
 
     const questions = z
-      .array(
-        Question.pick({
-          question: true,
-          options: true,
-          correctAnswer: true,
-          difficulty: true,
-          explanation: true,
-        }),
-      )
-      .parse(response);
+      .object({
+        questions: z.array(
+          Question.pick({
+            question: true,
+            options: true,
+            correctAnswer: true,
+            difficulty: true,
+            explanation: true,
+          }),
+        ),
+      })
+      .parse(response).questions;
 
     return questions.map((question) => ({
       ...question,
