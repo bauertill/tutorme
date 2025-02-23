@@ -22,7 +22,6 @@ export async function updateConceptMasteryLevel(
     await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, conceptId);
 
   const newMasteryLevel = getNewMasteryLevel(questionResponses);
-  console.log("newMasteryLevel", newMasteryLevel);
   await dbAdapter.updateConceptMasteryLevel(conceptId, newMasteryLevel);
 }
 
