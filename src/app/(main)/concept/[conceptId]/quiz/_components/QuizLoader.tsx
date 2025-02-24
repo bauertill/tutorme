@@ -4,11 +4,12 @@ import { type Quiz } from "@/core/concept/types";
 import type { Concept } from "@/core/goal/types";
 import { api } from "@/trpc/react";
 import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QuizView } from "./QuizView";
 
 export function QuizLoader({ concept }: { concept: Concept }) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const hasMutated = useRef(false);
 
   const { mutate, isPending, isError } = api.quiz.generate.useMutation({
     onSuccess: (data) => {
@@ -17,7 +18,10 @@ export function QuizLoader({ concept }: { concept: Concept }) {
   });
 
   useEffect(() => {
-    mutate({ conceptId: concept.id });
+    if (!hasMutated.current) {
+      hasMutated.current = true;
+      mutate({ conceptId: concept.id });
+    }
   }, [concept.id, mutate]);
 
   return (
