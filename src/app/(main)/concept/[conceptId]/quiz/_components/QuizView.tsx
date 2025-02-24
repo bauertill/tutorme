@@ -15,12 +15,7 @@ interface QuizViewProps {
   onComplete: () => void;
 }
 
-export function QuizView({
-  questions,
-  conceptId,
-  quizId,
-  onComplete,
-}: QuizViewProps) {
+export function QuizView({ questions, quizId, onComplete }: QuizViewProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<
     { questionIndex: number; answer: string }[]
@@ -49,7 +44,6 @@ export function QuizView({
   const handleAnswer = (answer: string) => {
     if (!currentQuestion) return;
     answerMutation.mutate({
-      conceptId,
       questionId: currentQuestion.id,
       answer,
       quizId,

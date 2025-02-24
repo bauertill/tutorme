@@ -1,3 +1,4 @@
+import assert from "assert";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type Concept, type MasteryLevel } from "../goal/types";
@@ -69,4 +70,28 @@ export async function createKnowledgeQuizAndStoreInDB(
     console.error("Error creating and storing quiz:", error);
     throw new Error("Failed to create and store quiz");
   }
+}
+
+export async function addUserResponseToQuiz(
+  userId: string,
+  quizId: string,
+  questionId: string,
+  answer: string,
+  dbAdapter: DBAdapter,
+) {
+  const question = await dbAdapter.getQuestionById(questionId);
+  const quiz = await dbAdapter.getQuizById(quizId);
+  const concept = await dbAdapter.getConceptWithGoalByConceptId(quiz.conceptId);
+  assert(concept.goal.userId === userId, "User does not own quiz");
+  const isCorrect = answer === question.correctAnswer;
+  const response = await dbAdapter.createQuestionResponse({
+    quizId,
+    questionId,
+    isCorrect,
+    userId,
+    conceptId: quiz.conceptId,
+    answer,
+  });
+  await updateConceptMasteryLevel(userId, quiz.conceptId, dbAdapter);
+  return response;
 }

@@ -1,9 +1,8 @@
 import {
+  addUserResponseToQuiz,
   createKnowledgeQuizAndStoreInDB,
-  updateConceptMasteryLevel,
 } from "@/core/concept/conceptDomain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { randomUUID } from "crypto";
 import { z } from "zod";
 
 export const quizRouter = createTRPCRouter({
@@ -25,33 +24,15 @@ export const quizRouter = createTRPCRouter({
       z.object({
         quizId: z.string(),
         questionId: z.string(),
-        conceptId: z.string(),
         answer: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { quizId, questionId } = input;
-      const question = await ctx.dbAdapter.getQuestionById(questionId);
-      if (!question) {
-        throw new Error("Question not found");
-      }
-      const isCorrect = input.answer === question.correctAnswer;
-      await ctx.dbAdapter.createQuestionResponse({
-        id: randomUUID(),
-        quizId,
-        questionId,
-        isCorrect,
-        userId: ctx.session.user.id,
-        conceptId: input.conceptId,
-        answer: input.answer,
-      });
-    }),
-  updateConceptMasteryLevel: protectedProcedure
-    .input(z.object({ conceptId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      await updateConceptMasteryLevel(
+      await addUserResponseToQuiz(
         ctx.session.user.id,
-        input.conceptId,
+        input.quizId,
+        input.questionId,
+        input.answer,
         ctx.dbAdapter,
       );
     }),

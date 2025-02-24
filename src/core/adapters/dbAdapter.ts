@@ -1,3 +1,4 @@
+import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import type { PrismaClient } from "@prisma/client";
 import type {
@@ -57,8 +58,15 @@ export class DBAdapter {
     });
   }
 
-  async getQuestionById(id: string): Promise<Question | null> {
+  async getQuestionById(id: string): Promise<Question> {
     return this.db.question.findUniqueOrThrow({ where: { id } });
+  }
+
+  async getQuizById(id: string): Promise<Quiz> {
+    return this.db.quiz.findUniqueOrThrow({
+      where: { id },
+      include: { questions: true },
+    });
   }
 
   async getQuestionResponsesByUserIdConceptId(
@@ -71,7 +79,7 @@ export class DBAdapter {
     });
   }
 
-  async createQuestionResponse(response: UserQuestionResponse) {
+  async createQuestionResponse(response: Draft<UserQuestionResponse>) {
     return this.db.userQuestionResponse.create({ data: response });
   }
 

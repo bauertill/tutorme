@@ -25,7 +25,7 @@ export function GoalsList() {
               asChild
             >
               <Link href={`/goal/${goal.id}`}>
-                <h2 className="text-inherit">{goal.name}</h2>
+                <h2 className="truncate text-inherit">{goal.name}</h2>
               </Link>
             </Button>
           ))}
