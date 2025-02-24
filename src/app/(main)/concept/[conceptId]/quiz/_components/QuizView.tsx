@@ -7,7 +7,7 @@ import { type Question } from "@/core/concept/types";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { useState } from "react";
-
+import { toast } from "sonner";
 interface QuizViewProps {
   questions: Question[];
   conceptId: string;
@@ -35,9 +35,8 @@ export function QuizView({ questions, quizId, onComplete }: QuizViewProps) {
       setAnswers(newAnswers);
       setShowExplanation(true);
     },
-    onError: (error) => {
-      console.error("Error submitting answer:", error);
-      // TODO: Add error toast or message
+    onError: () => {
+      toast.error("Failed to submit answer. Please try again.");
     },
   });
 

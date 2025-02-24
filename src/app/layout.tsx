@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "@/trpc/react";
+import { Toaster } from "sonner";
 import { ThemeProvider } from "./_components/ThemeProvider";
 
 export const metadata: Metadata = {
@@ -23,7 +24,10 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <TRPCReactProvider>
+            {children}
+            <Toaster />
+          </TRPCReactProvider>
         </ThemeProvider>
       </body>
     </html>
