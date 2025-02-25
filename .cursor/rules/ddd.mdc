@@ -1,0 +1,10 @@
+---
+description: Structure application logic with domain driven design
+globs: 
+---
+When creating new application logic always follow domain driven desing best practices.
+
+- All domain specific logic lives in the src/core folder
+- Domains are fed with adapters that help it communicate with external resources (db, llm, etc.)
+- The meat of the logic should live here
+- This way domain logic is testable by mocking adapter behavior
