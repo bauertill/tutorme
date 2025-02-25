@@ -1,0 +1,6 @@
+---
+description: Use pnpm for all package management operations
+globs: 
+---
+
+- Use `pnpm i` to install packages instead of npm  
