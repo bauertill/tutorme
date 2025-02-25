@@ -52,6 +52,7 @@ model User {
   sessions              Session[]
   goals                 Goal[]
   userQuestionResponses UserQuestionResponse[]
+  files                 File[]
 }
 
 model VerificationToken {
@@ -156,4 +157,20 @@ model UserQuestionResponse {
   @@index([questionId])
   @@index([quizId])
   @@index([conceptId])
+}
+
+model File {
+  id          String @id @default(cuid())
+  name        String
+  url         String
+  contentType String
+  size        Int
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }

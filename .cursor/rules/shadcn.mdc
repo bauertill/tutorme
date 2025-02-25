@@ -1,0 +1,10 @@
+---
+description: How to create ui components
+globs: 
+---
+
+# Your rule content
+
+- Always use shadcn components found in the src/components/ui folder
+- If a component is not there install it or ask me for help
+- Avoid creating raw html in components as far as possible (obviously simple divs are permitted)

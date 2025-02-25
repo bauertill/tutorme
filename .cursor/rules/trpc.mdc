@@ -1,0 +1,9 @@
+---
+description: Use trpc for server client communication
+globs: 
+---
+
+# Your rule content
+
+- follow the t3 stack best practices for creating backend endpoints using trpc
+- all routes are defined in src/server/api/routers folder. Use examples in that folder as a guide
