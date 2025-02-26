@@ -12,7 +12,7 @@ export default async function QuizPage({
   const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
 
   return (
-    <>
+    <div className="mx-auto max-w-screen-md">
       <Header>
         <Breadcrumbs
           items={[
@@ -27,6 +27,6 @@ export default async function QuizPage({
       <main>
         <QuizLoader concept={concept} />
       </main>
-    </>
+    </div>
   );
 }

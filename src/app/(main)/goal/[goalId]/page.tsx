@@ -18,7 +18,7 @@ export default async function LearningGoalPage({
   const goal = await getGoalById(dbAdapter, goalId);
 
   return (
-    <>
+    <div className="mx-auto max-w-screen-md">
       <Header>
         <Breadcrumbs
           items={[
@@ -31,6 +31,6 @@ export default async function LearningGoalPage({
       <main>
         <ConceptsList goalId={goalId} />
       </main>
-    </>
+    </div>
   );
 }

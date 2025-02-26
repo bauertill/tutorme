@@ -34,6 +34,10 @@ export class DBAdapter {
     return this.db.concept.findMany({ where: { goalId } });
   }
 
+  async getConceptById(id: string): Promise<Concept> {
+    return this.db.concept.findUniqueOrThrow({ where: { id } });
+  }
+
   async getConceptWithGoalByConceptId(id: string): Promise<ConceptWithGoal> {
     return this.db.concept.findUniqueOrThrow({
       where: { id },

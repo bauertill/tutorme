@@ -14,6 +14,7 @@ import { ZodError } from "zod";
 import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { llmAdapter } from "@/core/adapters/llmAdapter";
 import { auth } from "@/server/auth";
+import { youtubeAdapter } from "@/core/adapters/youtubeAdapter";
 
 /**
  * 1. CONTEXT
@@ -34,6 +35,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     session,
     dbAdapter,
     llmAdapter,
+    youtubeAdapter,
     ...opts,
   };
 };

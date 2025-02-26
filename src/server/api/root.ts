@@ -1,6 +1,7 @@
 import { conceptRouter } from "@/server/api/routers/concept";
 import { goalRouter } from "@/server/api/routers/goal";
 import { quizRouter } from "@/server/api/routers/quiz";
+import { learningRouter } from "@/server/api/routers/learning";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
 /**
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   goal: goalRouter,
   concept: conceptRouter,
   quiz: quizRouter,
+  learning: learningRouter,
 });
 
 // export type definition of API
