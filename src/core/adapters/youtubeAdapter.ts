@@ -1,6 +1,7 @@
 import { env } from "@/env";
-import { google, youtube_v3 } from "googleapis";
-import { EducationalVideo } from "../learning/types";
+import type { youtube_v3 } from "googleapis";
+import { google } from "googleapis";
+import type { EducationalVideo } from "../learning/types";
 
 export class YouTubeAdapter {
   private youtube: youtube_v3.Youtube;

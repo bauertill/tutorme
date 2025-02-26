@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EducationalVideo } from "@/core/learning/types";
+import type { EducationalVideo } from "@/core/learning/types";
 import Image from "next/image";
 import { WatchVideo } from "./WatchVideo";
 

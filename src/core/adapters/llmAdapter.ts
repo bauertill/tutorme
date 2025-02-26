@@ -6,8 +6,8 @@ import {
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { Question } from "../concept/types";
-import { type Concept, type Goal } from "../goal/types";
-import { EducationalVideo } from "../learning/types";
+import type { Concept, Goal } from "../goal/types";
+import type { EducationalVideo } from "../learning/types";
 import {
   GENERATE_VIDEO_SEARCH_QUERY_HUMAN_TEMPLATE,
   GENERATE_VIDEO_SEARCH_QUERY_PROMPT,
@@ -154,7 +154,10 @@ export class LLMAdapter {
       },
     );
 
-    return response.content.toString().trim();
+    // Fix the string conversion issue by explicitly calling toString on the content
+    return response.content instanceof Object
+      ? JSON.stringify(response.content)
+      : String(response.content).trim();
   }
 
   /**

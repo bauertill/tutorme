@@ -1,4 +1,4 @@
-import { MasteryLevel } from "@/core/goal/types";
+import type { MasteryLevel } from "@/core/goal/types";
 
 export function MasteryLevelExplanation({
   masteryLevel,

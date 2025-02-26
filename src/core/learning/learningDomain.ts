@@ -1,7 +1,7 @@
-import { DBAdapter } from "../adapters/dbAdapter";
-import { LLMAdapter } from "../adapters/llmAdapter";
-import { YouTubeAdapter } from "../adapters/youtubeAdapter";
-import { EducationalVideo } from "./types";
+import type { DBAdapter } from "../adapters/dbAdapter";
+import type { LLMAdapter } from "../adapters/llmAdapter";
+import type { YouTubeAdapter } from "../adapters/youtubeAdapter";
+import type { EducationalVideo } from "./types";
 
 export async function findEducationalVideo(
   conceptId: string,
