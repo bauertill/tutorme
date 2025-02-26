@@ -8,13 +8,21 @@ Consider these factors when ranking:
 3. Clarity and presentation quality
 4. Comprehensiveness
 5. Engagement factor
+6. Appropriateness for the user's mastery level
 
-Select the single best video that would help someone learn this concept effectively.`;
+The user's mastery level (UNKNOWN, BEGINNER, INTERMEDIATE, ADVANCED, EXPERT) should influence your selection:
+- For UNKNOWN or BEGINNER: Prefer introductory, foundational content that explains basics clearly
+- For INTERMEDIATE: Prefer content that builds on fundamentals and introduces more complex aspects
+- For ADVANCED: Prefer content that covers advanced topics and nuances
+- For EXPERT: Prefer content that discusses cutting-edge developments, edge cases, or specialized applications
+
+Select the single best video that would help someone with this mastery level learn this concept effectively.`;
 
 export const RANK_VIDEOS_HUMAN_TEMPLATE = `Concept: {conceptName}
 Concept Description: {conceptDescription}
+User's Mastery Level: {masteryLevel}
 
 Videos to rank:
 {videosJson}
 
-Analyze these videos and select the best one for learning about this concept. Return the ID of the best video.`; 
+Analyze these videos and select the best one for learning about this concept for someone with a {masteryLevel} mastery level. Return the ID of the best video.`;

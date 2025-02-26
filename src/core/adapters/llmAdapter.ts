@@ -196,6 +196,7 @@ export class LLMAdapter {
       {
         conceptName: concept.name,
         conceptDescription: concept.description,
+        masteryLevel: concept.masteryLevel,
         videosJson: JSON.stringify(videos, null, 2),
       },
       {
