@@ -12,13 +12,15 @@ import {
   EVALUATION_HUMAN_TEMPLATE,
   EVALUATION_SYSTEM_PROMPT,
 } from "./prompts/initialKnowledgeQuiz";
+import { GENERATE_VIDEO_SEARCH_QUERY_PROMPT } from "./prompts/generateVideoSearchQuery";
+import { GENERATE_VIDEO_SEARCH_QUERY_HUMAN_TEMPLATE } from "./prompts/generateVideoSearchQuery";
 
 export class LLMAdapter {
   private model: ChatOpenAI;
 
   constructor() {
     this.model = new ChatOpenAI({
-      modelName: "gpt-4o-mini",
+      modelName: "gpt-4o",
       temperature: 0.7,
     });
   }
@@ -114,6 +116,37 @@ export class LLMAdapter {
       id: crypto.randomUUID(),
     }));
   }
+
+  /**
+   * Generate a good search query for finding educational videos about a concept
+   * @param concept The concept to search for videos about
+   * @returns Promise with recommended search query
+   */
+  async generateVideoSearchQuery(concept: Concept): Promise<string> {
+    // @TODO include goal, skill level, user context 
+
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(GENERATE_VIDEO_SEARCH_QUERY_PROMPT),
+      HumanMessagePromptTemplate.fromTemplate(GENERATE_VIDEO_SEARCH_QUERY_HUMAN_TEMPLATE),
+    ]);
+
+    const chain = promptTemplate.pipe(this.model);
+    const response = await chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+      },
+      {
+        metadata: {
+          conceptId: concept.id,
+        },
+      },
+    );
+
+    return response.content.toString().trim();
+  }
+
+  
 }
 
 export const llmAdapter = new LLMAdapter();
