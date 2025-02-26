@@ -1,7 +1,9 @@
+import { Command } from "@langchain/langgraph";
 import assert from "assert";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type Concept, type MasteryLevel } from "../goal/types";
+import { createAssessmentGraph } from "./assessmentGraph";
 import { type QuestionResponseWithQuestion, type Quiz } from "./types";
 
 // TODO: make prisma enum for mastery levels
@@ -94,4 +96,19 @@ export async function addUserResponseToQuiz(
   });
   await updateConceptMasteryLevel(userId, quiz.conceptId, dbAdapter);
   return response;
+}
+
+export async function invokeAssessmentGraph(
+  llmAdapter: LLMAdapter,
+  userResponse?: string,
+) {
+  const graph = await createAssessmentGraph(llmAdapter);
+  const config = { configurable: { thread_id: "1" } };
+  const inputs = userResponse
+    ? new Command({
+        resume: userResponse,
+      })
+    : null;
+  const result = await graph.invoke(inputs, config);
+  return result;
 }

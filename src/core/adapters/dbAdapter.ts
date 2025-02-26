@@ -96,6 +96,24 @@ export class DBAdapter {
       data: { masteryLevel },
     });
   }
+
+  async createAssessmentLogEntry(data: {
+    userId: string;
+    conceptId: string;
+    question: any;
+    response: string;
+    isCorrect: boolean;
+  }) {
+    return this.db.assessmentLogEntry.create({
+      data: {
+        userId: data.userId,
+        conceptId: data.conceptId,
+        question: data.question,
+        response: data.response,
+        isCorrect: data.isCorrect,
+      },
+    });
+  }
 }
 
 export const dbAdapter = new DBAdapter(db);

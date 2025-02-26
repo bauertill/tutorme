@@ -42,3 +42,19 @@ export type QuestionResponseWithQuestion =
   WithTimestamps<UserQuestionResponse> & {
     question: Question;
   };
+
+export type AssessmentLogEntry = {
+  id: string;
+  question: AssessmentQuestion;
+  response: string;
+  isCorrect: boolean;
+};
+
+export const AssessmentQuestion = z.object({
+  question: z.string(),
+  options: z.array(z.string()),
+  correctAnswer: z.string(),
+  explanation: z.string(),
+});
+
+export type AssessmentQuestion = z.infer<typeof AssessmentQuestion>;

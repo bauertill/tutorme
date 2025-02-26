@@ -23,7 +23,7 @@ import {
 } from "./prompts/rankVideos";
 
 export class LLMAdapter {
-  private model: ChatOpenAI;
+  public model: ChatOpenAI;
 
   constructor() {
     this.model = new ChatOpenAI({

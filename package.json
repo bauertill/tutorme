@@ -24,6 +24,8 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.2",
     "@langchain/core": "^0.3.40",
+    "@langchain/langgraph": "^0.2.49",
+    "@langchain/langgraph-checkpoint-postgres": "^0.0.4",
     "@langchain/openai": "^0.4.4",
     "@prisma/client": "^5.14.0",
     "@radix-ui/react-avatar": "^1.1.3",

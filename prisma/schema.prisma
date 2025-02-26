@@ -52,6 +52,7 @@ model User {
   sessions              Session[]
   goals                 Goal[]
   userQuestionResponses UserQuestionResponse[]
+  assessmentLogEntries  AssessmentLogEntry[]
 }
 
 model VerificationToken {
@@ -96,6 +97,7 @@ model Concept {
 
   quizzes               Quiz[]
   userQuestionResponses UserQuestionResponse[]
+  assessmentLogEntries  AssessmentLogEntry[]
 }
 
 model Quiz {
@@ -156,4 +158,18 @@ model UserQuestionResponse {
   @@index([questionId])
   @@index([quizId])
   @@index([conceptId])
+}
+
+model AssessmentLogEntry {
+  id        String  @id @default(cuid())
+  question  Json
+  response  String
+  isCorrect Boolean
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  conceptId String
+  concept   Concept @relation(fields: [conceptId], references: [id])
+
+  createdAt DateTime @default(now())
 }
