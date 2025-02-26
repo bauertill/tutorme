@@ -1,5 +1,6 @@
 import { Breadcrumbs } from "@/app/_components/Breadcrumbs";
 import { Header } from "@/app/_components/Header";
+import { Textarea } from "@/components/ui/textarea";
 import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { ConceptView } from "../_components/ConceptView";
 
@@ -21,7 +22,8 @@ export default async function ConceptPage({
             { label: concept.name, href: `/concept/${conceptId}` },
           ]}
         />
-        <h1 className="mb-6 text-3xl font-bold">{concept.goal.name}</h1>
+        <h1 className="mb-6 text-3xl font-bold">{concept.name}</h1>
+        <Textarea>{concept.description}</Textarea>
       </Header>
       <main>
         <ConceptView concept={concept} />
