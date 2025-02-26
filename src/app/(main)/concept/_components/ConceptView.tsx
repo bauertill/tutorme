@@ -5,12 +5,11 @@ import type { Concept } from "@/core/goal/types";
 import { api } from "@/trpc/react";
 import Link from "next/link";
 import { MasteryLevelExplanation } from "./MasteryLevelExplanation";
-import { MasteryLevelPill } from "./MasteryLevelPill";
-import { VideoList } from "./VideoList";
+import { VideoCard } from "./VideoCard";
 
 export function ConceptView({ concept }: { concept: Concept }) {
-  const { data: videos, isLoading } =
-    api.learning.searchEducationalVideos.useQuery({
+  const { data: video, isLoading } =
+    api.learning.searchEducationalVideo.useQuery({
       conceptId: concept.id,
     });
 
@@ -26,19 +25,14 @@ export function ConceptView({ concept }: { concept: Concept }) {
       </>
     );
   }
+  // @TODO have this component be Agent controlled.
+  // Should the student watch a video, do an exercise or is he ready for another assessment?
+  // Maybe exercises are done as an assessment... masteryLevel goes up independently.
 
   return (
-    <>
-      <div className="mb-4 flex items-center gap-4">
-        <MasteryLevelPill level={concept.masteryLevel} />
-      </div>
-
-      <p className="mt-4 text-base">{concept.description}</p>
-
-      <div className="mt-6">
-        <h3 className="mb-4 text-xl font-medium">Educational Videos</h3>
-        <VideoList videos={videos || []} isLoading={isLoading} />
-      </div>
-    </>
+    <div className="mt-6 space-y-4">
+      <MasteryLevelExplanation masteryLevel={concept.masteryLevel} />
+      <VideoCard video={video} isLoading={isLoading} />
+    </div>
   );
 }

@@ -1,21 +1,21 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { findEducationalVideos } from "@/core/learning/learningDomain";
+import { findEducationalVideo } from "@/core/learning/learningDomain";
 
 
 export const learningRouter = createTRPCRouter({
   /**
    * Search for educational videos on YouTube
    */
-  searchEducationalVideos: protectedProcedure
+  searchEducationalVideo: protectedProcedure
     .input(
       z.object({
         conceptId: z.string(),
       }),
     )
     .query(async ({ input, ctx }) => {
-      return findEducationalVideos(
+      return findEducationalVideo(
         input.conceptId,
         ctx.dbAdapter,
         ctx.llmAdapter,

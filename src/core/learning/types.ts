@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 export const EducationalVideo = z.object({
+  // @TODO consider adding a youtubeId field instead of id
+  id: z.string(),
   title: z.string(),
   description: z.string(),
   url: z.string(),
