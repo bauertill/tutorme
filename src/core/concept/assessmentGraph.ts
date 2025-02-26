@@ -1,97 +1,131 @@
 import { env } from "@/env";
-import { type BaseMessage } from "@langchain/core/messages";
 import {
+  AIMessage,
+  HumanMessage,
+  SystemMessage,
+  type BaseMessage,
+} from "@langchain/core/messages";
+import {
+  Annotation,
   Command,
+  END,
   interrupt,
-  MessagesAnnotation,
   START,
   StateGraph,
 } from "@langchain/langgraph";
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
+import assert from "assert";
 import { z } from "zod";
 import type { LLMAdapter } from "../adapters/llmAdapter";
+import type { Concept } from "../goal/types";
+import { AssessmentQuestion, type AssessmentLogEntry } from "./types";
 
-export async function createAssessmentGraph(llmAdapter: LLMAdapter) {
+const StateAnnotation = Annotation.Root({
+  question: Annotation<AssessmentQuestion>,
+  userResponse: Annotation<string | undefined>,
+  isCorrect: Annotation<boolean | undefined>,
+  teacherSummary: Annotation<string | undefined>,
+});
+
+export async function createAssessmentGraph(
+  concept: Concept,
+  logEntries: AssessmentLogEntry[],
+  llmAdapter: LLMAdapter,
+) {
   const checkpointer = PostgresSaver.fromConnString(env.DATABASE_URL);
 
-  await checkpointer.setup(); // TODO: Only call this once? Or check if it's already setup?
+  await checkpointer.setup();
 
-  function callLlm(messages: BaseMessage[]) {
-    const outputSchema = z.object({
-      question: z.string().describe("A math question for the user to solve."),
-    });
+  function callLlm<T extends z.ZodSchema>(
+    messages: BaseMessage[],
+    schema: T,
+  ): Promise<z.infer<T>> {
     return llmAdapter.model
-      .withStructuredOutput(outputSchema, { name: "Response" })
+      .withStructuredOutput(schema, { name: "Response" })
       .invoke(messages);
   }
 
   async function evaluateAnswer(
-    state: typeof MessagesAnnotation.State,
+    state: typeof StateAnnotation.State,
   ): Promise<Command> {
     const systemPrompt =
       "You evaluate the user's answer to the question and return a score.";
-    // TODO: only pass the user's answer here, not the whole history
+    assert(state.question, "No question found");
+    assert(state.userResponse, "No user response found");
     const messages = [
-      { role: "system", content: systemPrompt },
-      ...state.messages,
-    ] as BaseMessage[];
-    const response = await callLlm(messages);
-    const aiMsg = {
-      role: "ai",
-      content: response.question,
-      name: "askQuestion",
-    };
-    // conditionally route to askQuestion or finishAssessment
-    return new Command({ goto: "askQuestion", update: { messages: [aiMsg] } });
+      new SystemMessage(systemPrompt),
+      new AIMessage(state.question.question),
+      new HumanMessage(state.userResponse),
+    ];
+    const outputSchema = z.object({
+      isCorrect: z.boolean().describe("Whether the user's answer is correct."),
+    });
+    const response = await callLlm(messages, outputSchema);
+    const update = { isCorrect: response.isCorrect };
+    if (response.isCorrect) {
+      console.log("Correct, finish assessment");
+      return new Command({
+        goto: "finishAssessment",
+        update,
+      });
+    } else {
+      console.log("Incorrect, ask another question");
+      return new Command({
+        goto: "askQuestion",
+        update,
+      });
+    }
   }
 
   async function askQuestion(
-    state: typeof MessagesAnnotation.State,
+    _state: typeof StateAnnotation.State,
   ): Promise<Command> {
-    const systemPrompt =
-      "You ask the user a math question and wait for their response.";
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...state.messages,
-    ] as BaseMessage[];
-    const response = await callLlm(messages);
-    const aiMsg = {
-      role: "ai",
-      content: response.question,
-      name: "askQuestion",
-    };
-    return new Command({ goto: "human", update: { messages: [aiMsg] } });
+    const systemPrompt = `You ask the user a question about ${concept.name} and wait for their response.`;
+    const messages = [new SystemMessage(systemPrompt)];
+    const outputSchema = AssessmentQuestion;
+    const response = await callLlm(messages, outputSchema);
+    return new Command({
+      goto: "human",
+      update: { question: response },
+    });
   }
 
-  function humanNode(_state: typeof MessagesAnnotation.State): Command {
+  function humanNode(_state: typeof StateAnnotation.State): Command {
     const userInput: string = interrupt("Ready for user input.");
+    console.log("Human input", userInput);
     return new Command({
       goto: "evaluateAnswer",
-      update: {
-        messages: [
-          {
-            role: "human",
-            content: userInput,
-          },
-        ],
-      },
+      update: { userResponse: userInput },
     });
   }
 
   async function finishAssessment(
-    state: typeof MessagesAnnotation.State,
+    _state: typeof StateAnnotation.State,
   ): Promise<Command> {
-    const systemPrompt = "You finish the assessment and return a score.";
+    const systemPrompt =
+      "You finish the assessment and return a summary of the assessment.";
+    const logString = logEntries
+      .map(
+        (logEntry) =>
+          `${logEntry.question.question}\n${logEntry.userResponse}\n${logEntry.isCorrect ? "Correct!" : "Incorrect!"}`,
+      )
+      .join("\n");
     const messages = [
-      { role: "system", content: systemPrompt },
-      ...state.messages,
-    ] as BaseMessage[];
-    const response = await callLlm(messages);
-    console.log("finishAssessment", response);
-    return new Command({ goto: "end" });
+      new SystemMessage(systemPrompt),
+      new HumanMessage(logString),
+    ];
+    const outputSchema = z.object({
+      summary: z.string().describe("Teacher's summary of the assessment."),
+    });
+    const response = await callLlm(messages, outputSchema);
+    console.log("Finishing assessment", response.summary);
+    return new Command({
+      goto: END,
+      update: { teacherSummary: response.summary },
+    });
   }
 
-  const builder = new StateGraph(MessagesAnnotation)
+  const builder = new StateGraph(StateAnnotation)
     .addNode("evaluateAnswer", evaluateAnswer, {
       ends: ["askQuestion", "finishAssessment"],
     })
@@ -102,7 +136,7 @@ export async function createAssessmentGraph(llmAdapter: LLMAdapter) {
       ends: ["evaluateAnswer"],
     })
     .addNode("finishAssessment", finishAssessment, {
-      ends: ["end"],
+      ends: [END],
     })
     .addEdge(START, "askQuestion");
 

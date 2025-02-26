@@ -1,10 +1,15 @@
 import { Command } from "@langchain/langgraph";
 import assert from "assert";
-import { type DBAdapter } from "../adapters/dbAdapter";
+import { dbAdapter, type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type Concept, type MasteryLevel } from "../goal/types";
 import { createAssessmentGraph } from "./assessmentGraph";
-import { type QuestionResponseWithQuestion, type Quiz } from "./types";
+import {
+  type AssessmentLogEntry,
+  type AssessmentQuestion,
+  type QuestionResponseWithQuestion,
+  type Quiz,
+} from "./types";
 
 // TODO: make prisma enum for mastery levels
 const masteryLevels: MasteryLevel[] = [
@@ -98,17 +103,70 @@ export async function addUserResponseToQuiz(
   return response;
 }
 
+export async function createAssessment(
+  userId: string,
+  conceptId: string,
+  dbAdapter: DBAdapter,
+  llmAdapter: LLMAdapter,
+) {
+  const assessment = await dbAdapter.createAssessment(userId, conceptId);
+  const result = await invokeAssessmentGraph(
+    llmAdapter,
+    assessment.id,
+    assessment.logEntries,
+  );
+  assert(result.question, "Question is required");
+  return { assessment, question: result.question };
+}
+
+export async function addUserResponseToAssessment(
+  assessmentId: string,
+  userResponse: string,
+  llmAdapter: LLMAdapter,
+  dbAdapter: DBAdapter,
+) {
+  const logEntries = await dbAdapter.getAssessmentLogEntries(assessmentId);
+  const result = await invokeAssessmentGraph(
+    llmAdapter,
+    assessmentId,
+    logEntries,
+    userResponse,
+  );
+  assert(result.question, "Question is required");
+  assert(result.userResponse, "User response is required");
+  assert(result.isCorrect, "Is correct is required");
+  const logEntry = await dbAdapter.createAssessmentLogEntry({
+    assessmentId,
+    question: result.question,
+    userResponse: result.userResponse,
+    isCorrect: result.isCorrect,
+  });
+  return logEntry;
+}
+
 export async function invokeAssessmentGraph(
   llmAdapter: LLMAdapter,
+  assessmentId: string,
+  logEntries: AssessmentLogEntry[],
   userResponse?: string,
-) {
-  const graph = await createAssessmentGraph(llmAdapter);
-  const config = { configurable: { thread_id: "1" } };
-  const inputs = userResponse
-    ? new Command({
-        resume: userResponse,
-      })
-    : null;
+): Promise<{
+  question?: AssessmentQuestion;
+  userResponse?: string;
+  isCorrect?: boolean;
+  teacherSummary?: string;
+}> {
+  const assessment = await dbAdapter.getAssessmentById(assessmentId);
+  const concept = await dbAdapter.getConceptWithGoalByConceptId(
+    assessment.conceptId,
+  );
+  const graph = await createAssessmentGraph(concept, logEntries, llmAdapter);
+  const config = { configurable: { thread_id: assessmentId } };
+  const inputs = userResponse ? new Command({ resume: userResponse }) : {};
   const result = await graph.invoke(inputs, config);
-  return result;
+  return {
+    question: result.question,
+    userResponse: result.userResponse,
+    isCorrect: result.isCorrect,
+    teacherSummary: result.teacherSummary,
+  };
 }

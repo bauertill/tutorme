@@ -43,11 +43,22 @@ export type QuestionResponseWithQuestion =
     question: Question;
   };
 
+export type Assessment = {
+  id: string;
+  userId: string;
+  conceptId: string;
+  logEntries: AssessmentLogEntry[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type AssessmentLogEntry = {
   id: string;
   question: AssessmentQuestion;
-  response: string;
+  userResponse: string;
   isCorrect: boolean;
+  assessmentId: string;
+  createdAt: Date;
 };
 
 export const AssessmentQuestion = z.object({

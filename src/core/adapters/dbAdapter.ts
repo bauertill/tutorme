@@ -1,12 +1,15 @@
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import type { PrismaClient } from "@prisma/client";
-import type {
-  Question,
-  QuestionParams,
-  QuestionResponseWithQuestion,
-  Quiz,
-  UserQuestionResponse,
+import {
+  type Assessment,
+  type AssessmentLogEntry,
+  AssessmentQuestion,
+  type Question,
+  type QuestionParams,
+  type QuestionResponseWithQuestion,
+  type Quiz,
+  type UserQuestionResponse,
 } from "../concept/types";
 import type {
   Concept,
@@ -97,22 +100,56 @@ export class DBAdapter {
     });
   }
 
+  async createAssessment(userId: string, conceptId: string) {
+    const assessment = await this.db.assessment.create({
+      data: { userId, conceptId },
+    });
+    return {
+      ...assessment,
+      logEntries: [],
+    };
+  }
+
   async createAssessmentLogEntry(data: {
-    userId: string;
-    conceptId: string;
-    question: any;
-    response: string;
+    assessmentId: string;
+    question: AssessmentQuestion;
+    userResponse: string;
     isCorrect: boolean;
   }) {
     return this.db.assessmentLogEntry.create({
       data: {
-        userId: data.userId,
-        conceptId: data.conceptId,
+        assessmentId: data.assessmentId,
         question: data.question,
-        response: data.response,
+        userResponse: data.userResponse,
         isCorrect: data.isCorrect,
       },
     });
+  }
+
+  async getAssessmentLogEntries(assessmentId: string) {
+    const logEntries = await this.db.assessmentLogEntry.findMany({
+      where: { assessmentId },
+    });
+    return logEntries.map((logEntry) => ({
+      ...logEntry,
+      question: AssessmentQuestion.parse(logEntry.question),
+    }));
+  }
+
+  async getAssessmentById(id: string): Promise<Assessment> {
+    const assessment = await this.db.assessment.findUniqueOrThrow({
+      where: { id },
+      include: { logEntries: true },
+    });
+    return {
+      ...assessment,
+      logEntries: assessment.logEntries.map(
+        (logEntry): AssessmentLogEntry => ({
+          ...logEntry,
+          question: AssessmentQuestion.parse(logEntry.question),
+        }),
+      ),
+    };
   }
 }
 
