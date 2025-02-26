@@ -5,18 +5,22 @@ import {
 } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
-import { Question } from "../concept/types";
+import { QuestionParams, QuestionResponseWithQuestion } from "../concept/types";
 import type { Concept, Goal } from "../goal/types";
 import type { EducationalVideo } from "../learning/types";
+import {
+  EVALUATION_HUMAN_TEMPLATE,
+  EVALUATION_SYSTEM_PROMPT,
+} from "./prompts/createQuestionForConcept";
+import {
+  FOLLOW_UP_QUESTION_HUMAN_TEMPLATE,
+  FOLLOW_UP_QUESTION_SYSTEM_PROMPT,
+} from "./prompts/followUpQuestion";
 import {
   GENERATE_VIDEO_SEARCH_QUERY_HUMAN_TEMPLATE,
   GENERATE_VIDEO_SEARCH_QUERY_PROMPT,
 } from "./prompts/generateVideoSearchQuery";
 import { HUMAN_TEMPLATE, SYSTEM_PROMPT } from "./prompts/getConceptsForGoal";
-import {
-  EVALUATION_HUMAN_TEMPLATE,
-  EVALUATION_SYSTEM_PROMPT,
-} from "./prompts/initialKnowledgeQuiz";
 import {
   RANK_VIDEOS_HUMAN_TEMPLATE,
   RANK_VIDEOS_SYSTEM_PROMPT,
@@ -76,31 +80,13 @@ export class LLMAdapter {
     return concepts;
   }
 
-  async createInitialKnowledgeQuiz(
-    concept: Concept,
-  ): Promise<
-    Pick<
-      Question,
-      "question" | "options" | "correctAnswer" | "difficulty" | "explanation"
-    >[]
-  > {
+  async createFirstQuestionForQuiz(concept: Concept): Promise<QuestionParams> {
     const evaluationPromptTemplate = ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(EVALUATION_SYSTEM_PROMPT),
       HumanMessagePromptTemplate.fromTemplate(EVALUATION_HUMAN_TEMPLATE),
     ]);
-    const schema = z.object({
-      questions: z.array(
-        Question.pick({
-          question: true,
-          options: true,
-          correctAnswer: true,
-          difficulty: true,
-          explanation: true,
-        }),
-      ),
-    });
     const evaluationChain = evaluationPromptTemplate
-      .pipe(this.model.withStructuredOutput(schema))
+      .pipe(this.model.withStructuredOutput(QuestionParams))
       .withConfig({
         tags: ["concept-evaluation"],
         runName: "Generate Concept Quiz",
@@ -118,10 +104,48 @@ export class LLMAdapter {
       },
     );
 
-    return response.questions.map((question) => ({
-      ...question,
-      id: crypto.randomUUID(),
-    }));
+    return response;
+  }
+
+  async createFollowUpQuestion(
+    concept: Concept,
+    userResponses: QuestionResponseWithQuestion[],
+  ): Promise<QuestionParams> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        FOLLOW_UP_QUESTION_SYSTEM_PROMPT,
+      ),
+      HumanMessagePromptTemplate.fromTemplate(
+        FOLLOW_UP_QUESTION_HUMAN_TEMPLATE,
+      ),
+    ]);
+
+    const chain = promptTemplate
+      .pipe(this.model.withStructuredOutput(QuestionParams))
+      .withConfig({
+        tags: ["concept-evaluation"],
+        runName: "Generate Concept Quiz",
+      });
+
+    const previousQuestionsAndResponses = userResponses.map(
+      (response) =>
+        `question: ${response.question.question}\nresponse: ${response.answer}\n isCorrect: ${response.isCorrect}`,
+    );
+
+    return await chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        previousQuestionsAndResponses,
+        currentMasteryLevel: concept.masteryLevel,
+      },
+      {
+        metadata: {
+          conceptId: concept.id,
+          userId: userResponses[0]?.userId,
+        },
+      },
+    );
   }
 
   /**

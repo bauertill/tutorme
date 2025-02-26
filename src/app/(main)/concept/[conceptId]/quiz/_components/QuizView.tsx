@@ -3,37 +3,30 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { type Question } from "@/core/concept/types";
+import { type Quiz } from "@/core/concept/types";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { useState } from "react";
 import { toast } from "sonner";
 interface QuizViewProps {
-  questions: Question[];
-  conceptId: string;
-  quizId: string;
+  initialQuiz: Quiz;
   onComplete: () => void;
 }
 
-export function QuizView({ questions, quizId, onComplete }: QuizViewProps) {
+export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<
-    { questionIndex: number; answer: string }[]
-  >([]);
+  const [quiz, setQuiz] = useState<Quiz>(initialQuiz);
+  const [answer, setAnswer] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === questions.length - 1;
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  // @TODO make this dependent on the quiz state
+  const isLastQuestion = false;
 
   //   @ TODO introduce optimistic updates here
   const answerMutation = api.quiz.addUserResponse.useMutation({
-    onSuccess: (_, variables) => {
-      const newAnswers = [
-        ...answers,
-        { questionIndex: currentQuestionIndex, answer: variables.answer },
-      ];
-      setAnswers(newAnswers);
-      setShowExplanation(true);
+    onSuccess: (data) => {
+      setQuiz(data);
     },
     onError: () => {
       toast.error("Failed to submit answer. Please try again.");
@@ -42,16 +35,19 @@ export function QuizView({ questions, quizId, onComplete }: QuizViewProps) {
 
   const handleAnswer = (answer: string) => {
     if (!currentQuestion) return;
+    setAnswer(answer);
+    setShowExplanation(true);
     answerMutation.mutate({
       questionId: currentQuestion.id,
       answer,
-      quizId,
+      quizId: quiz.id,
     });
   };
 
   const handleNext = () => {
     setShowExplanation(false);
     setCurrentQuestionIndex(currentQuestionIndex + 1);
+    setAnswer(null);
   };
 
   if (!currentQuestion) return null;
@@ -60,7 +56,7 @@ export function QuizView({ questions, quizId, onComplete }: QuizViewProps) {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="mb-4 flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
-          Question {currentQuestionIndex + 1} of {questions.length}
+          Question {currentQuestionIndex + 1}
         </span>
         <Badge variant="outline">{currentQuestion.difficulty}</Badge>
       </div>
@@ -84,7 +80,7 @@ export function QuizView({ questions, quizId, onComplete }: QuizViewProps) {
                     "border-green-600 bg-green-600/20 text-green-900":
                       option === currentQuestion.correctAnswer,
                     "border-red-600 bg-red-600/20 text-red-900":
-                      answers[currentQuestionIndex]?.answer === option &&
+                      answer === option &&
                       option !== currentQuestion.correctAnswer,
                   },
                 )}

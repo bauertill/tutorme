@@ -5,6 +5,7 @@ import type { Concept } from "@/core/goal/types";
 import { api } from "@/trpc/react";
 import { redirect } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { QuizView } from "./QuizView";
 
 export function QuizLoader({ concept }: { concept: Concept }) {
@@ -14,6 +15,10 @@ export function QuizLoader({ concept }: { concept: Concept }) {
   const { mutate, isPending, isError } = api.quiz.generate.useMutation({
     onSuccess: (data) => {
       setQuiz(data);
+    },
+    onError: (error) => {
+      console.error("Failed to generate quiz", error);
+      toast.error("Failed to generate quiz. Please try again.");
     },
   });
 
@@ -28,9 +33,7 @@ export function QuizLoader({ concept }: { concept: Concept }) {
     <>
       {quiz ? (
         <QuizView
-          questions={quiz.questions}
-          quizId={quiz.id}
-          conceptId={concept.id}
+          initialQuiz={quiz}
           onComplete={() => {
             redirect(`/concept/${concept.id}`);
           }}

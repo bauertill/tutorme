@@ -28,12 +28,14 @@ export const quizRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await addUserResponseToQuiz(
+      const quiz = await addUserResponseToQuiz(
         ctx.session.user.id,
         input.quizId,
         input.questionId,
         input.answer,
         ctx.dbAdapter,
+        ctx.llmAdapter,
       );
+      return quiz;
     }),
 });

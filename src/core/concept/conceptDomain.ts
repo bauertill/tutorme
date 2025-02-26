@@ -63,8 +63,9 @@ export async function createKnowledgeQuizAndStoreInDB(
   llmAdapter: LLMAdapter,
 ): Promise<Quiz> {
   try {
-    const questions = await llmAdapter.createInitialKnowledgeQuiz(concept);
-    const quiz = await dbAdapter.createQuiz(questions, concept.id);
+    const newQuestion = await llmAdapter.createFirstQuestionForQuiz(concept);
+    assert(newQuestion, "No question generated for quiz");
+    const quiz = await dbAdapter.createQuiz([newQuestion], concept.id);
     return quiz;
   } catch (error) {
     console.error("Error creating and storing quiz:", error);
@@ -78,7 +79,8 @@ export async function addUserResponseToQuiz(
   questionId: string,
   answer: string,
   dbAdapter: DBAdapter,
-) {
+  llmAdapter: LLMAdapter,
+): Promise<Quiz> {
   const question = await dbAdapter.getQuestionById(questionId);
   const quiz = await dbAdapter.getQuizById(quizId);
   const concept = await dbAdapter.getConceptWithGoalByConceptId(quiz.conceptId);
@@ -92,6 +94,17 @@ export async function addUserResponseToQuiz(
     conceptId: quiz.conceptId,
     answer,
   });
+  // @TODO add decision whether to continue quiz or not
+  // Update the concept mastery level
   await updateConceptMasteryLevel(userId, quiz.conceptId, dbAdapter);
-  return response;
+  const questionResponses =
+    await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, concept.id);
+
+  // Generate new questions
+  const newQuestion = await llmAdapter.createFollowUpQuestion(
+    concept,
+    questionResponses,
+  );
+  const updatedQuiz = await dbAdapter.appendQuizQuestion(quizId, newQuestion);
+  return updatedQuiz;
 }

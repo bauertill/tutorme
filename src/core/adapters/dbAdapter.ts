@@ -96,6 +96,17 @@ export class DBAdapter {
       data: { masteryLevel },
     });
   }
+
+  async appendQuizQuestion(
+    quizId: string,
+    question: QuestionParams,
+  ): Promise<Quiz> {
+    return this.db.quiz.update({
+      where: { id: quizId },
+      data: { questions: { create: question } },
+      include: { questions: true },
+    });
+  }
 }
 
 export const dbAdapter = new DBAdapter(db);
