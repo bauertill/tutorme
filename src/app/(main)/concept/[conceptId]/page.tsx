@@ -12,7 +12,7 @@ export default async function ConceptPage({
   const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
 
   return (
-    <>
+    <div className="mx-auto max-w-screen-md">
       <Header>
         <Breadcrumbs
           items={[
@@ -26,6 +26,6 @@ export default async function ConceptPage({
       <main>
         <ConceptView concept={concept} />
       </main>
-    </>
+    </div>
   );
 }
