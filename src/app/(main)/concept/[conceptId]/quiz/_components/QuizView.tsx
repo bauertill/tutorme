@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { type Quiz } from "@/core/concept/types";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 interface QuizViewProps {
@@ -21,7 +22,6 @@ export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
   // @TODO make this dependent on the quiz state
-  const isLastQuestion = false;
 
   //   @ TODO introduce optimistic updates here
   const answerMutation = api.quiz.addUserResponse.useMutation({
@@ -50,7 +50,12 @@ export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
     setAnswer(null);
   };
 
-  if (!currentQuestion) return null;
+  if (!currentQuestion)
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -108,7 +113,7 @@ export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
                 </p>
               </div>
 
-              {!isLastQuestion ? (
+              {quiz.status === "active" ? (
                 <Button onClick={handleNext} className="mt-6 w-full">
                   Next Question
                 </Button>

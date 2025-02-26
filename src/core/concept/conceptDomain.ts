@@ -11,7 +11,7 @@ const masteryLevels: MasteryLevel[] = [
   "ADVANCED",
   "EXPERT",
 ];
-
+const MAX_QUESTIONS_PER_QUIZ = 5;
 export async function updateConceptMasteryLevel(
   userId: string,
   conceptId: string,
@@ -95,7 +95,6 @@ export async function addUserResponseToQuiz(
     answer,
   });
   // Update the concept mastery level
-  await updateConceptMasteryLevel(userId, quiz.conceptId, dbAdapter);
   const questionResponses =
     await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, concept.id);
 
@@ -104,8 +103,11 @@ export async function addUserResponseToQuiz(
     concept,
     questionResponses,
   );
-
-  if (decision.action === "finalizeQuiz") {
+  if (
+    decision.action === "finalizeQuiz" ||
+    questionResponses.length >= MAX_QUESTIONS_PER_QUIZ
+  ) {
+    await updateConceptMasteryLevel(userId, quiz.conceptId, dbAdapter);
     return await dbAdapter.updateQuizStatus(quizId, "done");
   }
 
