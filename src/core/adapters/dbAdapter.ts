@@ -107,6 +107,23 @@ export class DBAdapter {
       include: { questions: true },
     });
   }
+
+  /**
+   * Updates the status of a quiz
+   * @param quizId The ID of the quiz to update
+   * @param status The new status for the quiz
+   * @returns The updated quiz
+   */
+  async updateQuizStatus(
+    quizId: string,
+    status: "active" | "done",
+  ): Promise<Quiz> {
+    return this.db.quiz.update({
+      where: { id: quizId },
+      data: { status },
+      include: { questions: true },
+    });
+  }
 }
 
 export const dbAdapter = new DBAdapter(db);

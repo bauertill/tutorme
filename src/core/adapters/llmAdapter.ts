@@ -13,6 +13,10 @@ import {
   EVALUATION_SYSTEM_PROMPT,
 } from "./prompts/createQuestionForConcept";
 import {
+  DECIDE_NEXT_ACTION_HUMAN_TEMPLATE,
+  DECIDE_NEXT_ACTION_SYSTEM_PROMPT,
+} from "./prompts/decideNextAction";
+import {
   FOLLOW_UP_QUESTION_HUMAN_TEMPLATE,
   FOLLOW_UP_QUESTION_SYSTEM_PROMPT,
 } from "./prompts/followUpQuestion";
@@ -138,6 +142,59 @@ export class LLMAdapter {
         conceptDescription: concept.description,
         previousQuestionsAndResponses,
         currentMasteryLevel: concept.masteryLevel,
+      },
+      {
+        metadata: {
+          conceptId: concept.id,
+          userId: userResponses[0]?.userId,
+        },
+      },
+    );
+  }
+
+  /**
+   * Decides whether to continue a quiz or finalize it based on user responses
+   * @param concept The concept being tested
+   * @param userResponses All user responses for this concept
+   * @returns Promise with decision to continue or finalize quiz
+   */
+  async decideNextAction(
+    concept: Concept,
+    userResponses: QuestionResponseWithQuestion[],
+  ): Promise<{ action: "continueQuiz" | "finalizeQuiz"; reason: string }> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        DECIDE_NEXT_ACTION_SYSTEM_PROMPT,
+      ),
+      HumanMessagePromptTemplate.fromTemplate(
+        DECIDE_NEXT_ACTION_HUMAN_TEMPLATE,
+      ),
+    ]);
+
+    const schema = z.object({
+      action: z.enum(["continueQuiz", "finalizeQuiz"]),
+      reason: z.string().describe("Explanation of why this action was chosen"),
+    });
+
+    const chain = promptTemplate
+      .pipe(this.model.withStructuredOutput(schema))
+      .withConfig({
+        tags: ["quiz-decision"],
+        runName: "Decide Next Quiz Action",
+      });
+
+    const questionsAndResponses = userResponses.map(
+      (response) =>
+        `question: ${response.question.question}\ndifficulty: ${response.question.difficulty}\nresponse: ${response.answer}\nisCorrect: ${response.isCorrect}`,
+    );
+
+    return await chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        questionsAndResponses,
+        currentMasteryLevel: concept.masteryLevel,
+        questionCount: userResponses.length,
       },
       {
         metadata: {

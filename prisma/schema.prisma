@@ -107,6 +107,8 @@ model Quiz {
   conceptId String
   concept   Concept @relation(fields: [conceptId], references: [id])
 
+  status String @default("active")
+
   questions             Question[]
   userQuestionResponses UserQuestionResponse[]
 }

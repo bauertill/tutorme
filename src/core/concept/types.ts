@@ -22,6 +22,7 @@ export const Quiz = z.object({
   id: z.string(),
   questions: z.array(Question),
   conceptId: z.string(),
+  status: z.enum(["active", "done"]).default("active"),
 });
 
 export type Quiz = z.infer<typeof Quiz>;

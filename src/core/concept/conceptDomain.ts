@@ -94,11 +94,20 @@ export async function addUserResponseToQuiz(
     conceptId: quiz.conceptId,
     answer,
   });
-  // @TODO add decision whether to continue quiz or not
   // Update the concept mastery level
   await updateConceptMasteryLevel(userId, quiz.conceptId, dbAdapter);
   const questionResponses =
     await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, concept.id);
+
+  // Decide whether to continue the quiz or finalize it
+  const decision = await llmAdapter.decideNextAction(
+    concept,
+    questionResponses,
+  );
+
+  if (decision.action === "finalizeQuiz") {
+    return await dbAdapter.updateQuizStatus(quizId, "done");
+  }
 
   // Generate new questions
   const newQuestion = await llmAdapter.createFollowUpQuestion(
