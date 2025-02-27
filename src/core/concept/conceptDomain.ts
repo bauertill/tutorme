@@ -2,7 +2,11 @@ import assert from "assert";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type Concept, type MasteryLevel } from "../goal/types";
-import { type QuestionResponseWithQuestion, type Quiz } from "./types";
+import {
+  QuizStatus,
+  type QuestionResponseWithQuestion,
+  type Quiz,
+} from "./types";
 
 // TODO: make prisma enum for mastery levels
 const masteryLevels: MasteryLevel[] = [
@@ -93,9 +97,8 @@ export async function addUserResponseToQuiz(
     answer,
   });
   // Update the concept mastery level
-  const questionResponses = await dbAdapter.getQuestionResponsesByQuizId(
-    quizId,
-  );
+  const questionResponses =
+    await dbAdapter.getQuestionResponsesByQuizId(quizId);
 
   // Decide whether to continue the quiz or finalize it
   const decision = await llmAdapter.decideNextAction(
@@ -107,15 +110,19 @@ export async function addUserResponseToQuiz(
     decision.action === "finalizeQuiz" ||
     questionResponses.length >= MAX_QUESTIONS_PER_QUIZ
   ) {
-    await updateConceptMasteryLevel( quiz.conceptId, questionResponses, dbAdapter);
+    await updateConceptMasteryLevel(
+      quiz.conceptId,
+      questionResponses,
+      dbAdapter,
+    );
 
     const teacherReport = await llmAdapter.generateTeacherReport(
       concept,
       questionResponses,
     );
-    
+
     // Update the quiz with the teacher report
-    const updatedQuiz = await dbAdapter.updateQuizStatus(quizId, "done");
+    await dbAdapter.updateQuizStatus(quizId, QuizStatus.Enum.DONE);
     return await dbAdapter.updateQuizWithTeacherReport(quizId, teacherReport);
   }
 

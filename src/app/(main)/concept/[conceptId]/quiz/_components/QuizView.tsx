@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { type Quiz } from "@/core/concept/types";
+import { QuizStatus, type Quiz } from "@/core/concept/types";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
@@ -50,7 +50,7 @@ export function QuizView({ initialQuiz }: QuizViewProps) {
     setAnswer(null);
   };
 
-  if (quiz.status === "done" && quiz.teacherReport) {
+  if (quiz.status === QuizStatus.Enum.DONE && quiz.teacherReport) {
     return (
       <TeacherReport
         teacherReport={quiz.teacherReport}
@@ -127,7 +127,6 @@ export function QuizView({ initialQuiz }: QuizViewProps) {
               <NextQuestionButton
                 handleNext={handleNext}
                 isLoading={answerMutation.isPending}
-                isActiveQuiz={quiz.status === "active"}
               />
             </>
           )}
@@ -140,11 +139,9 @@ export function QuizView({ initialQuiz }: QuizViewProps) {
 export function NextQuestionButton({
   isLoading,
   handleNext,
-  isActiveQuiz,
 }: {
   isLoading: boolean;
   handleNext: () => void;
-  isActiveQuiz: boolean;
 }) {
   if (isLoading)
     return (

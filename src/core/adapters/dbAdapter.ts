@@ -1,12 +1,13 @@
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import type { PrismaClient } from "@prisma/client";
-import type {
-  Question,
-  QuestionParams,
-  QuestionResponseWithQuestion,
-  Quiz,
-  UserQuestionResponse,
+import {
+  QuizStatus,
+  type Question,
+  type QuestionParams,
+  type QuestionResponseWithQuestion,
+  type Quiz,
+  type UserQuestionResponse,
 } from "../concept/types";
 import type {
   Concept,
@@ -57,7 +58,7 @@ export class DBAdapter {
       data: {
         conceptId,
         questions: { create: questions },
-        status: "active",
+        status: QuizStatus.Enum.ACTIVE,
       },
       include: { questions: true },
     });
@@ -113,10 +114,7 @@ export class DBAdapter {
    * @param status The new status for the quiz
    * @returns The updated quiz
    */
-  async updateQuizStatus(
-    quizId: string,
-    status: "active" | "done",
-  ): Promise<Quiz> {
+  async updateQuizStatus(quizId: string, status: QuizStatus): Promise<Quiz> {
     return await this.db.quiz.update({
       where: { id: quizId },
       data: { status },
