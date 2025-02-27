@@ -13,14 +13,12 @@ const masteryLevels: MasteryLevel[] = [
 ];
 const MAX_QUESTIONS_PER_QUIZ = 5;
 export async function updateConceptMasteryLevel(
-  userId: string,
   conceptId: string,
+  questionResponses: QuestionResponseWithQuestion[],
   dbAdapter: DBAdapter,
 ): Promise<void> {
   // @TODO think about LLM based approach here where we can feed all old responses to the LLM and get a new mastery level
   // Let it decide how heavily to weight answers that are older
-  const questionResponses =
-    await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, conceptId);
 
   const newMasteryLevel = getNewMasteryLevel(questionResponses);
   await dbAdapter.updateConceptMasteryLevel(conceptId, newMasteryLevel);
@@ -95,8 +93,9 @@ export async function addUserResponseToQuiz(
     answer,
   });
   // Update the concept mastery level
-  const questionResponses =
-    await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, concept.id);
+  const questionResponses = await dbAdapter.getQuestionResponsesByQuizId(
+    quizId,
+  );
 
   // Decide whether to continue the quiz or finalize it
   const decision = await llmAdapter.decideNextAction(
@@ -107,16 +106,11 @@ export async function addUserResponseToQuiz(
     decision.action === "finalizeQuiz" ||
     questionResponses.length >= MAX_QUESTIONS_PER_QUIZ
   ) {
-    await updateConceptMasteryLevel(userId, quiz.conceptId, dbAdapter);
-    
-    // Generate a teacher report for the completed quiz
-    const quizResponses = questionResponses.filter(
-      (response) => response.quizId === quizId
-    );
-    
+    await updateConceptMasteryLevel( quiz.conceptId, questionResponses, dbAdapter);
+
     const teacherReport = await llmAdapter.generateTeacherReport(
       concept,
-      quizResponses
+      questionResponses,
     );
     
     // Update the quiz with the teacher report

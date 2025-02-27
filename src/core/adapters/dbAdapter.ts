@@ -73,13 +73,11 @@ export class DBAdapter {
       include: { questions: true },
     });
   }
-
-  async getQuestionResponsesByUserIdConceptId(
-    userId: string,
-    conceptId: string,
+  async getQuestionResponsesByQuizId(
+    quizId: string,
   ): Promise<QuestionResponseWithQuestion[]> {
     return this.db.userQuestionResponse.findMany({
-      where: { userId, conceptId },
+      where: { quizId },
       include: { question: true },
     });
   }
