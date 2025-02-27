@@ -7,24 +7,23 @@ import { type Quiz } from "@/core/concept/types";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { TeacherReport } from "../../../_components/TeacherReport";
 
 interface QuizViewProps {
   initialQuiz: Quiz;
-  onComplete: () => void;
 }
 
-export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
+export function QuizView({ initialQuiz }: QuizViewProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [quiz, setQuiz] = useState<Quiz>(initialQuiz);
   const [answer, setAnswer] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
-
+  const router = useRouter();
   const currentQuestion = quiz.questions[currentQuestionIndex];
-  // @TODO make this dependent on the quiz state
 
-  //   @ TODO introduce optimistic updates here
   const answerMutation = api.quiz.addUserResponse.useMutation({
     onSuccess: (data) => {
       setQuiz(data);
@@ -50,6 +49,17 @@ export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
     setCurrentQuestionIndex(currentQuestionIndex + 1);
     setAnswer(null);
   };
+
+  if (quiz.status === "done" && quiz.teacherReport) {
+    return (
+      <TeacherReport
+        teacherReport={quiz.teacherReport}
+        onClose={() => {
+          router.push(`/concept/${quiz.conceptId}`);
+        }}
+      />
+    );
+  }
 
   if (!currentQuestion)
     return (
@@ -117,7 +127,6 @@ export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
               <NextQuestionButton
                 handleNext={handleNext}
                 isLoading={answerMutation.isPending}
-                onComplete={onComplete}
                 isActiveQuiz={quiz.status === "active"}
               />
             </>
@@ -131,25 +140,16 @@ export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
 export function NextQuestionButton({
   isLoading,
   handleNext,
-  onComplete,
   isActiveQuiz,
 }: {
   isLoading: boolean;
   handleNext: () => void;
-  onComplete: () => void;
   isActiveQuiz: boolean;
 }) {
   if (isLoading)
     return (
       <Button disabled className="mt-6 w-full">
         <Loader2 className="h-4 w-4 animate-spin" />
-      </Button>
-    );
-
-  if (!isActiveQuiz)
-    return (
-      <Button onClick={onComplete} className="mt-6 w-full">
-        Done
       </Button>
     );
 

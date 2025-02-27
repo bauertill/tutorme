@@ -3,7 +3,6 @@
 import { type Quiz } from "@/core/concept/types";
 import type { Concept } from "@/core/goal/types";
 import { api } from "@/trpc/react";
-import { redirect } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { QuizView } from "./QuizView";
@@ -32,12 +31,7 @@ export function QuizLoader({ concept }: { concept: Concept }) {
   return (
     <>
       {quiz ? (
-        <QuizView
-          initialQuiz={quiz}
-          onComplete={() => {
-            redirect(`/concept/${concept.id}`);
-          }}
-        />
+        <QuizView initialQuiz={quiz} />
       ) : isPending ? (
         <div className="mt-20 flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
