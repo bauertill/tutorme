@@ -53,10 +53,11 @@ export class DBAdapter {
     questions: QuestionParams[],
     conceptId: string,
   ): Promise<Quiz> {
-    return this.db.quiz.create({
+    return await this.db.quiz.create({
       data: {
         conceptId,
         questions: { create: questions },
+        status: "active",
       },
       include: { questions: true },
     });
@@ -67,7 +68,7 @@ export class DBAdapter {
   }
 
   async getQuizById(id: string): Promise<Quiz> {
-    return this.db.quiz.findUniqueOrThrow({
+    return await this.db.quiz.findUniqueOrThrow({
       where: { id },
       include: { questions: true },
     });
@@ -101,7 +102,7 @@ export class DBAdapter {
     quizId: string,
     question: QuestionParams,
   ): Promise<Quiz> {
-    return this.db.quiz.update({
+    return await this.db.quiz.update({
       where: { id: quizId },
       data: { questions: { create: question } },
       include: { questions: true },
@@ -118,7 +119,7 @@ export class DBAdapter {
     quizId: string,
     status: "active" | "done",
   ): Promise<Quiz> {
-    return this.db.quiz.update({
+    return await this.db.quiz.update({
       where: { id: quizId },
       data: { status },
       include: { questions: true },

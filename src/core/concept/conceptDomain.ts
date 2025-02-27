@@ -86,7 +86,7 @@ export async function addUserResponseToQuiz(
   const concept = await dbAdapter.getConceptWithGoalByConceptId(quiz.conceptId);
   assert(concept.goal.userId === userId, "User does not own quiz");
   const isCorrect = answer === question.correctAnswer;
-  const response = await dbAdapter.createQuestionResponse({
+  await dbAdapter.createQuestionResponse({
     quizId,
     questionId,
     isCorrect,

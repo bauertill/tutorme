@@ -9,6 +9,7 @@ import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
 interface QuizViewProps {
   initialQuiz: Quiz;
   onComplete: () => void;
@@ -32,9 +33,9 @@ export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
       toast.error("Failed to submit answer. Please try again.");
     },
   });
-
   const handleAnswer = (answer: string) => {
     if (!currentQuestion) return;
+
     setAnswer(answer);
     setShowExplanation(true);
     answerMutation.mutate({
@@ -113,22 +114,48 @@ export function QuizView({ initialQuiz, onComplete }: QuizViewProps) {
                 </p>
               </div>
 
-              {quiz.status === "active" ? (
-                <Button onClick={handleNext} className="mt-6 w-full">
-                  Next Question
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <h4 className="mb-2 font-semibold">Quiz Complete!</h4>
-                  <Button onClick={onComplete} className="mt-4 w-full">
-                    Done
-                  </Button>
-                </div>
-              )}
+              <NextQuestionButton
+                handleNext={handleNext}
+                isLoading={answerMutation.isPending}
+                onComplete={onComplete}
+                isActiveQuiz={quiz.status === "active"}
+              />
             </>
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export function NextQuestionButton({
+  isLoading,
+  handleNext,
+  onComplete,
+  isActiveQuiz,
+}: {
+  isLoading: boolean;
+  handleNext: () => void;
+  onComplete: () => void;
+  isActiveQuiz: boolean;
+}) {
+  if (isLoading)
+    return (
+      <Button disabled className="mt-6 w-full">
+        <Loader2 className="h-4 w-4 animate-spin" />
+      </Button>
+    );
+
+  if (!isActiveQuiz)
+    return (
+      <Button onClick={onComplete} className="mt-6 w-full">
+        Done
+      </Button>
+    );
+
+  return (
+    <Button onClick={handleNext} className="mt-6 w-full">
+      Next Question
+    </Button>
   );
 }
