@@ -18,6 +18,8 @@ Rules for deciding:
   * The student's performance is inconsistent
   * The student is showing improvement and might reach a higher mastery level
 
+You should decide optimally to not over-assess the student and risk the student getting bored.
+
 Response format:
 {{
   "action": "continueQuiz" | "finalizeQuiz",
