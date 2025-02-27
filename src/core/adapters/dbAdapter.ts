@@ -125,6 +125,23 @@ export class DBAdapter {
       include: { questions: true },
     });
   }
+
+  /**
+   * Updates a quiz with a teacher report
+   * @param quizId The ID of the quiz to update
+   * @param teacherReport The teacher report to add to the quiz
+   * @returns The updated quiz
+   */
+  async updateQuizWithTeacherReport(
+    quizId: string,
+    teacherReport: string,
+  ): Promise<Quiz> {
+    return await this.db.quiz.update({
+      where: { id: quizId },
+      data: { teacherReport },
+      include: { questions: true },
+    });
+  }
 }
 
 export const dbAdapter = new DBAdapter(db);

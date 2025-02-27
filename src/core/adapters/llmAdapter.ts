@@ -5,7 +5,10 @@ import {
 } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
-import { QuestionParams, QuestionResponseWithQuestion } from "../concept/types";
+import {
+  QuestionParams,
+  QuestionResponseWithQuestion,
+} from "../concept/types";
 import type { Concept, Goal } from "../goal/types";
 import type { EducationalVideo } from "../learning/types";
 import {
@@ -20,6 +23,10 @@ import {
   FOLLOW_UP_QUESTION_HUMAN_TEMPLATE,
   FOLLOW_UP_QUESTION_SYSTEM_PROMPT,
 } from "./prompts/followUpQuestion";
+import {
+  TEACHER_REPORT_HUMAN_TEMPLATE,
+  TEACHER_REPORT_SYSTEM_PROMPT,
+} from "./prompts/generateTeacherReport";
 import {
   GENERATE_VIDEO_SEARCH_QUERY_HUMAN_TEMPLATE,
   GENERATE_VIDEO_SEARCH_QUERY_PROMPT,
@@ -297,6 +304,49 @@ export class LLMAdapter {
       return bestVideo;
     }
     throw new Error("No best video found", { cause: response });
+  }
+
+  /**
+   * Generate a comprehensive teacher report after a quiz is completed
+   * @param concept The concept that was tested in the quiz
+   * @param userResponses All user responses for this quiz
+   * @returns Promise with a teacher report as a string
+   */
+  async generateTeacherReport(
+    concept: Concept,
+    userResponses: QuestionResponseWithQuestion[],
+  ): Promise<string> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(TEACHER_REPORT_SYSTEM_PROMPT),
+      HumanMessagePromptTemplate.fromTemplate(TEACHER_REPORT_HUMAN_TEMPLATE),
+    ]);
+
+    const chain = promptTemplate.pipe(this.model);
+
+    const questionsAndResponses = userResponses
+      .map(
+        (response) =>
+          `question: ${response.question.question}\ndifficulty: ${response.question.difficulty}\nresponse: ${response.answer}\nisCorrect: ${response.isCorrect}\nexplanation: ${response.question.explanation}`,
+      )
+      .join("\n\n");
+
+    const response = await chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        questionsAndResponses,
+      },
+      {
+        metadata: {
+          conceptId: concept.id,
+        },
+      },
+    );
+
+    // Convert the response to a string
+    return response.content instanceof Object
+      ? JSON.stringify(response.content)
+      : String(response.content).trim();
   }
 }
 

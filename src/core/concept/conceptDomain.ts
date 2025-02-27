@@ -108,7 +108,20 @@ export async function addUserResponseToQuiz(
     questionResponses.length >= MAX_QUESTIONS_PER_QUIZ
   ) {
     await updateConceptMasteryLevel(userId, quiz.conceptId, dbAdapter);
-    return await dbAdapter.updateQuizStatus(quizId, "done");
+    
+    // Generate a teacher report for the completed quiz
+    const quizResponses = questionResponses.filter(
+      (response) => response.quizId === quizId
+    );
+    
+    const teacherReport = await llmAdapter.generateTeacherReport(
+      concept,
+      quizResponses
+    );
+    
+    // Update the quiz with the teacher report
+    const updatedQuiz = await dbAdapter.updateQuizStatus(quizId, "done");
+    return await dbAdapter.updateQuizWithTeacherReport(quizId, teacherReport);
   }
 
   // Generate new questions
