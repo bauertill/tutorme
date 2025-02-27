@@ -3,15 +3,20 @@
 import { Button } from "@/components/ui/button";
 import type { Concept } from "@/core/goal/types";
 import { api } from "@/trpc/react";
+import { skipToken } from "@tanstack/react-query";
 import Link from "next/link";
 import { MasteryLevelExplanation } from "./MasteryLevelExplanation";
 import { VideoCard } from "./VideoCard";
 
 export function ConceptView({ concept }: { concept: Concept }) {
   const { data: video, isLoading } =
-    api.learning.searchEducationalVideo.useQuery({
-      conceptId: concept.id,
-    });
+    api.learning.searchEducationalVideo.useQuery(
+      concept.masteryLevel !== "UNKNOWN"
+        ? {
+            conceptId: concept.id,
+          }
+        : skipToken,
+    );
 
   if (concept.masteryLevel === "UNKNOWN") {
     return (
