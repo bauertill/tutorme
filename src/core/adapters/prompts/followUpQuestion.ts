@@ -25,10 +25,10 @@ The question must be multiple choice with 4 options and include:
 Response format:
 {{
   "question": "What is X?",
-  "options": ["A", "B", "C", "D"],
-  "correctAnswer": "A",
+  "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+  "correctAnswer": "Option 1",
   "difficulty": "INTERMEDIATE",
-  "explanation": "A is correct because..."
+  "explanation": "Option 1 is correct because..."
 }}`;
 export const FOLLOW_UP_QUESTION_HUMAN_TEMPLATE = `Generate a follow-up question for:
 Concept: {conceptName}

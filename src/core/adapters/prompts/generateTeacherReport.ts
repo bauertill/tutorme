@@ -6,7 +6,7 @@ Your goal is to provide a comprehensive analysis that:
 3. Recommends targeted learning activities
 4. Presents the information in a structured, machine-readable format
 
-The report should be detailed enough to help both the student understand their progress and to guide future AI systems in personalizing the learning experience.`;
+The report should be detailed enough to help both the student understand their progress.`;
 
 export const TEACHER_REPORT_HUMAN_TEMPLATE = `Generate a comprehensive teacher report for a student who has completed a quiz on the concept: {conceptName}.
 
@@ -22,4 +22,4 @@ Please analyze the student's performance and generate a structured report that i
 4. Recommended next steps for improvement
 5. Suggested learning resources or activities
 
-Format the report in a structured way that will be easy for other AI systems to parse and use for personalized learning recommendations.`;
+Format the report in a human readable format.`;
