@@ -9,10 +9,10 @@ The question must have: question text, options array, correct answer, difficulty
 Example response format:
 {{
   "question": "What is X?",
-  "options": ["A", "B", "C", "D"],
-  "correctAnswer": "A",
+  "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+  "correctAnswer": "Option 1",
   "difficulty": "BEGINNER",
-  "explanation": "A is correct because..."
+  "explanation": "Option 1 is correct because..."
 }}
 
 The difficulty level should be one of: BEGINNER, INTERMEDIATE, ADVANCED, EXPERT
