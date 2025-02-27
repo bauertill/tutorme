@@ -11,7 +11,7 @@ const masteryLevels: MasteryLevel[] = [
   "ADVANCED",
   "EXPERT",
 ];
-const MAX_QUESTIONS_PER_QUIZ = 5;
+const MAX_QUESTIONS_PER_QUIZ = 10;
 export async function updateConceptMasteryLevel(
   conceptId: string,
   questionResponses: QuestionResponseWithQuestion[],
