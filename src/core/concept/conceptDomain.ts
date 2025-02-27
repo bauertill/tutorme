@@ -2,7 +2,11 @@ import assert from "assert";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type Concept, type MasteryLevel } from "../goal/types";
-import { type QuestionResponseWithQuestion, type Quiz } from "./types";
+import {
+  QuizStatus,
+  type QuestionResponseWithQuestion,
+  type Quiz,
+} from "./types";
 
 // TODO: make prisma enum for mastery levels
 const masteryLevels: MasteryLevel[] = [
@@ -11,16 +15,14 @@ const masteryLevels: MasteryLevel[] = [
   "ADVANCED",
   "EXPERT",
 ];
-
+const MAX_QUESTIONS_PER_QUIZ = 10;
 export async function updateConceptMasteryLevel(
-  userId: string,
   conceptId: string,
+  questionResponses: QuestionResponseWithQuestion[],
   dbAdapter: DBAdapter,
 ): Promise<void> {
   // @TODO think about LLM based approach here where we can feed all old responses to the LLM and get a new mastery level
   // Let it decide how heavily to weight answers that are older
-  const questionResponses =
-    await dbAdapter.getQuestionResponsesByUserIdConceptId(userId, conceptId);
 
   const newMasteryLevel = getNewMasteryLevel(questionResponses);
   await dbAdapter.updateConceptMasteryLevel(conceptId, newMasteryLevel);
@@ -63,8 +65,9 @@ export async function createKnowledgeQuizAndStoreInDB(
   llmAdapter: LLMAdapter,
 ): Promise<Quiz> {
   try {
-    const questions = await llmAdapter.createInitialKnowledgeQuiz(concept);
-    const quiz = await dbAdapter.createQuiz(questions, concept.id);
+    const newQuestion = await llmAdapter.createFirstQuestionForQuiz(concept);
+    assert(newQuestion, "No question generated for quiz");
+    const quiz = await dbAdapter.createQuiz([newQuestion], concept.id);
     return quiz;
   } catch (error) {
     console.error("Error creating and storing quiz:", error);
@@ -78,13 +81,14 @@ export async function addUserResponseToQuiz(
   questionId: string,
   answer: string,
   dbAdapter: DBAdapter,
-) {
+  llmAdapter: LLMAdapter,
+): Promise<Quiz> {
   const question = await dbAdapter.getQuestionById(questionId);
   const quiz = await dbAdapter.getQuizById(quizId);
   const concept = await dbAdapter.getConceptWithGoalByConceptId(quiz.conceptId);
   assert(concept.goal.userId === userId, "User does not own quiz");
   const isCorrect = answer === question.correctAnswer;
-  const response = await dbAdapter.createQuestionResponse({
+  await dbAdapter.createQuestionResponse({
     quizId,
     questionId,
     isCorrect,
@@ -92,6 +96,41 @@ export async function addUserResponseToQuiz(
     conceptId: quiz.conceptId,
     answer,
   });
-  await updateConceptMasteryLevel(userId, quiz.conceptId, dbAdapter);
-  return response;
+  // Update the concept mastery level
+  const questionResponses =
+    await dbAdapter.getQuestionResponsesByQuizId(quizId);
+
+  // Decide whether to continue the quiz or finalize it
+  const decision = await llmAdapter.decideNextAction(
+    concept,
+    questionResponses,
+  );
+  console.log("decision", decision);
+  if (
+    decision.action === "finalizeQuiz" ||
+    questionResponses.length >= MAX_QUESTIONS_PER_QUIZ
+  ) {
+    await updateConceptMasteryLevel(
+      quiz.conceptId,
+      questionResponses,
+      dbAdapter,
+    );
+
+    const teacherReport = await llmAdapter.generateTeacherReport(
+      concept,
+      questionResponses,
+    );
+
+    // Update the quiz with the teacher report
+    await dbAdapter.updateQuizStatus(quizId, QuizStatus.Enum.DONE);
+    return await dbAdapter.updateQuizWithTeacherReport(quizId, teacherReport);
+  }
+
+  // Generate new questions
+  const newQuestion = await llmAdapter.createFollowUpQuestion(
+    concept,
+    questionResponses,
+  );
+  const updatedQuiz = await dbAdapter.appendQuizQuestion(quizId, newQuestion);
+  return updatedQuiz;
 }

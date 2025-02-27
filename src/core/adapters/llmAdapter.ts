@@ -5,18 +5,33 @@ import {
 } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
-import { Question } from "../concept/types";
+import {
+  QuestionParams,
+  QuestionResponseWithQuestion,
+} from "../concept/types";
 import type { Concept, Goal } from "../goal/types";
 import type { EducationalVideo } from "../learning/types";
+import {
+  EVALUATION_HUMAN_TEMPLATE,
+  EVALUATION_SYSTEM_PROMPT,
+} from "./prompts/createQuestionForConcept";
+import {
+  DECIDE_NEXT_ACTION_HUMAN_TEMPLATE,
+  DECIDE_NEXT_ACTION_SYSTEM_PROMPT,
+} from "./prompts/decideNextAction";
+import {
+  FOLLOW_UP_QUESTION_HUMAN_TEMPLATE,
+  FOLLOW_UP_QUESTION_SYSTEM_PROMPT,
+} from "./prompts/followUpQuestion";
+import {
+  TEACHER_REPORT_HUMAN_TEMPLATE,
+  TEACHER_REPORT_SYSTEM_PROMPT,
+} from "./prompts/generateTeacherReport";
 import {
   GENERATE_VIDEO_SEARCH_QUERY_HUMAN_TEMPLATE,
   GENERATE_VIDEO_SEARCH_QUERY_PROMPT,
 } from "./prompts/generateVideoSearchQuery";
 import { HUMAN_TEMPLATE, SYSTEM_PROMPT } from "./prompts/getConceptsForGoal";
-import {
-  EVALUATION_HUMAN_TEMPLATE,
-  EVALUATION_SYSTEM_PROMPT,
-} from "./prompts/initialKnowledgeQuiz";
 import {
   RANK_VIDEOS_HUMAN_TEMPLATE,
   RANK_VIDEOS_SYSTEM_PROMPT,
@@ -76,37 +91,19 @@ export class LLMAdapter {
     return concepts;
   }
 
-  async createInitialKnowledgeQuiz(
-    concept: Concept,
-  ): Promise<
-    Pick<
-      Question,
-      "question" | "options" | "correctAnswer" | "difficulty" | "explanation"
-    >[]
-  > {
+  async createFirstQuestionForQuiz(concept: Concept): Promise<QuestionParams> {
     const evaluationPromptTemplate = ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(EVALUATION_SYSTEM_PROMPT),
       HumanMessagePromptTemplate.fromTemplate(EVALUATION_HUMAN_TEMPLATE),
     ]);
-    const schema = z.object({
-      questions: z.array(
-        Question.pick({
-          question: true,
-          options: true,
-          correctAnswer: true,
-          difficulty: true,
-          explanation: true,
-        }),
-      ),
-    });
     const evaluationChain = evaluationPromptTemplate
-      .pipe(this.model.withStructuredOutput(schema))
+      .pipe(this.model.withStructuredOutput(QuestionParams))
       .withConfig({
         tags: ["concept-evaluation"],
         runName: "Generate Concept Quiz",
       });
 
-    const response = await evaluationChain.invoke(
+    return retryUntilValid(() => evaluationChain.invoke(
       {
         conceptName: concept.name,
         conceptDescription: concept.description,
@@ -116,12 +113,100 @@ export class LLMAdapter {
           conceptId: concept.id,
         },
       },
+    ));
+  }
+
+  async createFollowUpQuestion(
+    concept: Concept,
+    userResponses: QuestionResponseWithQuestion[],
+  ): Promise<QuestionParams> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        FOLLOW_UP_QUESTION_SYSTEM_PROMPT,
+      ),
+      HumanMessagePromptTemplate.fromTemplate(
+        FOLLOW_UP_QUESTION_HUMAN_TEMPLATE,
+      ),
+    ]);
+
+    const chain = promptTemplate
+      .pipe(this.model.withStructuredOutput(QuestionParams))
+      .withConfig({
+        tags: ["concept-evaluation"],
+        runName: "Generate Concept Quiz",
+      });
+
+    const previousQuestionsAndResponses = userResponses.map(
+      (response) =>
+        `question: ${response.question.question}\nresponse: ${response.answer}\n isCorrect: ${response.isCorrect}`,
+    );
+    return retryUntilValid(() => chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        previousQuestionsAndResponses,
+        currentMasteryLevel: concept.masteryLevel,
+      },      {
+        metadata: {
+          conceptId: concept.id,
+          userId: userResponses[0]?.userId,
+        },
+      },
+
+    ));
+  }
+
+  /**
+   * Decides whether to continue a quiz or finalize it based on user responses
+   * @param concept The concept being tested
+   * @param userResponses All user responses for this concept
+   * @returns Promise with decision to continue or finalize quiz
+   */
+  async decideNextAction(
+    concept: Concept,
+    userResponses: QuestionResponseWithQuestion[],
+  ): Promise<{ action: "continueQuiz" | "finalizeQuiz"; reason: string }> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        DECIDE_NEXT_ACTION_SYSTEM_PROMPT,
+      ),
+      HumanMessagePromptTemplate.fromTemplate(
+        DECIDE_NEXT_ACTION_HUMAN_TEMPLATE,
+      ),
+    ]);
+
+    const schema = z.object({
+      action: z.enum(["continueQuiz", "finalizeQuiz"]),
+      reason: z.string().describe("Explanation of why this action was chosen"),
+    });
+
+    const chain = promptTemplate
+      .pipe(this.model.withStructuredOutput(schema))
+      .withConfig({
+        tags: ["quiz-decision"],
+        runName: "Decide Next Quiz Action",
+      });
+
+    const questionsAndResponses = userResponses.map(
+      (response) =>
+        `question: ${response.question.question}\ndifficulty: ${response.question.difficulty}\nresponse: ${response.answer}\nisCorrect: ${response.isCorrect}`,
     );
 
-    return response.questions.map((question) => ({
-      ...question,
-      id: crypto.randomUUID(),
-    }));
+    return await chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        questionsAndResponses,
+        currentMasteryLevel: concept.masteryLevel,
+        questionCount: userResponses.length,
+      },
+      {
+        metadata: {
+          conceptId: concept.id,
+          userId: userResponses[0]?.userId,
+        },
+      },
+    );
   }
 
   /**
@@ -217,6 +302,60 @@ export class LLMAdapter {
     }
     throw new Error("No best video found", { cause: response });
   }
+
+  /**
+   * Generate a comprehensive teacher report after a quiz is completed
+   * @param concept The concept that was tested in the quiz
+   * @param userResponses All user responses for this quiz
+   * @returns Promise with a teacher report as a string
+   */
+  async generateTeacherReport(
+    concept: Concept,
+    userResponses: QuestionResponseWithQuestion[],
+  ): Promise<string> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(TEACHER_REPORT_SYSTEM_PROMPT),
+      HumanMessagePromptTemplate.fromTemplate(TEACHER_REPORT_HUMAN_TEMPLATE),
+    ]);
+
+    const chain = promptTemplate.pipe(this.model);
+
+    const questionsAndResponses = userResponses
+      .map(
+        (response) =>
+          `question: ${response.question.question}\ndifficulty: ${response.question.difficulty}\nresponse: ${response.answer}\nisCorrect: ${response.isCorrect}\nexplanation: ${response.question.explanation}`,
+      )
+      .join("\n\n");
+
+    const response = await chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        questionsAndResponses,
+      },
+      {
+        metadata: {
+          conceptId: concept.id,
+        },
+      },
+    );
+
+    // Convert the response to a string
+    return response.content instanceof Object
+      ? JSON.stringify(response.content)
+      : String(response.content).trim();
+  }
 }
 
 export const llmAdapter = new LLMAdapter();
+
+
+async function retryUntilValid(fn: () => Promise<QuestionParams>): Promise<QuestionParams> {
+  for (let i = 0; i < 3; i++) { 
+    const question = await fn();
+    const isValidQuestion = question.options.includes(question.correctAnswer);
+    if (isValidQuestion) 
+      return question;
+  }
+  throw new Error("Failed to generate a valid question");
+}

@@ -98,6 +98,11 @@ model Concept {
   userQuestionResponses UserQuestionResponse[]
 }
 
+enum QuizStatus {
+  ACTIVE
+  DONE
+}
+
 model Quiz {
   id String @id @default(cuid())
 
@@ -106,6 +111,9 @@ model Quiz {
 
   conceptId String
   concept   Concept @relation(fields: [conceptId], references: [id])
+
+  status QuizStatus @default(ACTIVE)
+  teacherReport String? 
 
   questions             Question[]
   userQuestionResponses UserQuestionResponse[]

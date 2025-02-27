@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { type WithTimestamps } from "../utils";
 
+export const QuizStatus = z.enum(["ACTIVE", "DONE"]);
+export type QuizStatus = z.infer<typeof QuizStatus>;
+
 export const QuestionParams = z.object({
   question: z.string().describe("The question to be asked"),
   options: z.array(z.string()).describe("The options to choose from"),
@@ -22,6 +25,8 @@ export const Quiz = z.object({
   id: z.string(),
   questions: z.array(Question),
   conceptId: z.string(),
+  status: QuizStatus,
+  teacherReport: z.string().nullable().optional(),
 });
 
 export type Quiz = z.infer<typeof Quiz>;

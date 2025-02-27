@@ -1,12 +1,13 @@
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import type { PrismaClient } from "@prisma/client";
-import type {
-  Question,
-  QuestionParams,
-  QuestionResponseWithQuestion,
-  Quiz,
-  UserQuestionResponse,
+import {
+  QuizStatus,
+  type Question,
+  type QuestionParams,
+  type QuestionResponseWithQuestion,
+  type Quiz,
+  type UserQuestionResponse,
 } from "../concept/types";
 import type {
   Concept,
@@ -53,10 +54,11 @@ export class DBAdapter {
     questions: QuestionParams[],
     conceptId: string,
   ): Promise<Quiz> {
-    return this.db.quiz.create({
+    return await this.db.quiz.create({
       data: {
         conceptId,
         questions: { create: questions },
+        status: QuizStatus.Enum.ACTIVE,
       },
       include: { questions: true },
     });
@@ -67,18 +69,16 @@ export class DBAdapter {
   }
 
   async getQuizById(id: string): Promise<Quiz> {
-    return this.db.quiz.findUniqueOrThrow({
+    return await this.db.quiz.findUniqueOrThrow({
       where: { id },
       include: { questions: true },
     });
   }
-
-  async getQuestionResponsesByUserIdConceptId(
-    userId: string,
-    conceptId: string,
+  async getQuestionResponsesByQuizId(
+    quizId: string,
   ): Promise<QuestionResponseWithQuestion[]> {
     return this.db.userQuestionResponse.findMany({
-      where: { userId, conceptId },
+      where: { quizId },
       include: { question: true },
     });
   }
@@ -94,6 +94,48 @@ export class DBAdapter {
     return this.db.concept.update({
       where: { id: conceptId },
       data: { masteryLevel },
+    });
+  }
+
+  async appendQuizQuestion(
+    quizId: string,
+    question: QuestionParams,
+  ): Promise<Quiz> {
+    return await this.db.quiz.update({
+      where: { id: quizId },
+      data: { questions: { create: question } },
+      include: { questions: true },
+    });
+  }
+
+  /**
+   * Updates the status of a quiz
+   * @param quizId The ID of the quiz to update
+   * @param status The new status for the quiz
+   * @returns The updated quiz
+   */
+  async updateQuizStatus(quizId: string, status: QuizStatus): Promise<Quiz> {
+    return await this.db.quiz.update({
+      where: { id: quizId },
+      data: { status },
+      include: { questions: true },
+    });
+  }
+
+  /**
+   * Updates a quiz with a teacher report
+   * @param quizId The ID of the quiz to update
+   * @param teacherReport The teacher report to add to the quiz
+   * @returns The updated quiz
+   */
+  async updateQuizWithTeacherReport(
+    quizId: string,
+    teacherReport: string,
+  ): Promise<Quiz> {
+    return await this.db.quiz.update({
+      where: { id: quizId },
+      data: { teacherReport },
+      include: { questions: true },
     });
   }
 }

@@ -3,64 +3,76 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { type Question } from "@/core/concept/types";
+import { QuizStatus, type Quiz } from "@/core/concept/types";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { TeacherReport } from "../../../_components/TeacherReport";
+
 interface QuizViewProps {
-  questions: Question[];
-  conceptId: string;
-  quizId: string;
-  onComplete: () => void;
+  initialQuiz: Quiz;
 }
 
-export function QuizView({ questions, quizId, onComplete }: QuizViewProps) {
+export function QuizView({ initialQuiz }: QuizViewProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<
-    { questionIndex: number; answer: string }[]
-  >([]);
+  const [quiz, setQuiz] = useState<Quiz>(initialQuiz);
+  const [answer, setAnswer] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const router = useRouter();
+  const currentQuestion = quiz.questions[currentQuestionIndex];
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === questions.length - 1;
-
-  //   @ TODO introduce optimistic updates here
   const answerMutation = api.quiz.addUserResponse.useMutation({
-    onSuccess: (_, variables) => {
-      const newAnswers = [
-        ...answers,
-        { questionIndex: currentQuestionIndex, answer: variables.answer },
-      ];
-      setAnswers(newAnswers);
-      setShowExplanation(true);
+    onSuccess: (data) => {
+      setQuiz(data);
     },
     onError: () => {
       toast.error("Failed to submit answer. Please try again.");
     },
   });
-
   const handleAnswer = (answer: string) => {
     if (!currentQuestion) return;
+
+    setAnswer(answer);
+    setShowExplanation(true);
     answerMutation.mutate({
       questionId: currentQuestion.id,
       answer,
-      quizId,
+      quizId: quiz.id,
     });
   };
 
   const handleNext = () => {
     setShowExplanation(false);
     setCurrentQuestionIndex(currentQuestionIndex + 1);
+    setAnswer(null);
   };
 
-  if (!currentQuestion) return null;
+  if (quiz.status === QuizStatus.Enum.DONE && quiz.teacherReport) {
+    return (
+      <TeacherReport
+        teacherReport={quiz.teacherReport}
+        onClose={() => {
+          router.push(`/concept/${quiz.conceptId}`);
+        }}
+      />
+    );
+  }
+
+  if (!currentQuestion)
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="mb-4 flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
-          Question {currentQuestionIndex + 1} of {questions.length}
+          Question {currentQuestionIndex + 1}
         </span>
         <Badge variant="outline">{currentQuestion.difficulty}</Badge>
       </div>
@@ -84,7 +96,7 @@ export function QuizView({ questions, quizId, onComplete }: QuizViewProps) {
                     "border-green-600 bg-green-600/20 text-green-900":
                       option === currentQuestion.correctAnswer,
                     "border-red-600 bg-red-600/20 text-red-900":
-                      answers[currentQuestionIndex]?.answer === option &&
+                      answer === option &&
                       option !== currentQuestion.correctAnswer,
                   },
                 )}
@@ -112,22 +124,35 @@ export function QuizView({ questions, quizId, onComplete }: QuizViewProps) {
                 </p>
               </div>
 
-              {!isLastQuestion ? (
-                <Button onClick={handleNext} className="mt-6 w-full">
-                  Next Question
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <h4 className="mb-2 font-semibold">Quiz Complete!</h4>
-                  <Button onClick={onComplete} className="mt-4 w-full">
-                    Done
-                  </Button>
-                </div>
-              )}
+              <NextQuestionButton
+                handleNext={handleNext}
+                isLoading={answerMutation.isPending}
+              />
             </>
           )}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export function NextQuestionButton({
+  isLoading,
+  handleNext,
+}: {
+  isLoading: boolean;
+  handleNext: () => void;
+}) {
+  if (isLoading)
+    return (
+      <Button disabled className="mt-6 w-full">
+        <Loader2 className="h-4 w-4 animate-spin" />
+      </Button>
+    );
+
+  return (
+    <Button onClick={handleNext} className="mt-6 w-full">
+      Next Question
+    </Button>
   );
 }
