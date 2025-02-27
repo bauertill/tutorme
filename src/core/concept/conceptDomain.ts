@@ -102,6 +102,7 @@ export async function addUserResponseToQuiz(
     concept,
     questionResponses,
   );
+  console.log("decision", decision);
   if (
     decision.action === "finalizeQuiz" ||
     questionResponses.length >= MAX_QUESTIONS_PER_QUIZ
