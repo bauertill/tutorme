@@ -103,7 +103,7 @@ export class LLMAdapter {
         runName: "Generate Concept Quiz",
       });
 
-    const response = await evaluationChain.invoke(
+    return retryUntilValid(() => evaluationChain.invoke(
       {
         conceptName: concept.name,
         conceptDescription: concept.description,
@@ -113,9 +113,7 @@ export class LLMAdapter {
           conceptId: concept.id,
         },
       },
-    );
-
-    return response;
+    ));
   }
 
   async createFollowUpQuestion(
@@ -142,21 +140,20 @@ export class LLMAdapter {
       (response) =>
         `question: ${response.question.question}\nresponse: ${response.answer}\n isCorrect: ${response.isCorrect}`,
     );
-
-    return await chain.invoke(
+    return retryUntilValid(() => chain.invoke(
       {
         conceptName: concept.name,
         conceptDescription: concept.description,
         previousQuestionsAndResponses,
         currentMasteryLevel: concept.masteryLevel,
-      },
-      {
+      },      {
         metadata: {
           conceptId: concept.id,
           userId: userResponses[0]?.userId,
         },
       },
-    );
+
+    ));
   }
 
   /**
@@ -351,3 +348,14 @@ export class LLMAdapter {
 }
 
 export const llmAdapter = new LLMAdapter();
+
+
+async function retryUntilValid(fn: () => Promise<QuestionParams>): Promise<QuestionParams> {
+  for (let i = 0; i < 3; i++) { 
+    const question = await fn();
+    const isValidQuestion = question.options.includes(question.correctAnswer);
+    if (isValidQuestion) 
+      return question;
+  }
+  throw new Error("Failed to generate a valid question");
+}
