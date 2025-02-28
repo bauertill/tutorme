@@ -1,3 +1,14 @@
+-- Drop all existing tables (in correct order due to foreign key constraints)
+DROP TABLE IF EXISTS "UserQuestionResponse" CASCADE;
+DROP TABLE IF EXISTS "Question" CASCADE;
+DROP TABLE IF EXISTS "Quiz" CASCADE;
+DROP TABLE IF EXISTS "Concept" CASCADE;
+DROP TABLE IF EXISTS "Goal" CASCADE;
+DROP TABLE IF EXISTS "Account" CASCADE;
+DROP TABLE IF EXISTS "Session" CASCADE;
+DROP TABLE IF EXISTS "VerificationToken" CASCADE;
+DROP TABLE IF EXISTS "User" CASCADE;
+
 -- CreateEnum
 CREATE TYPE "Mastery" AS ENUM ('UNKNOWN', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT');
 
@@ -85,6 +96,8 @@ CREATE TABLE "Quiz" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "conceptId" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "teacherReport" TEXT,
 
     CONSTRAINT "Quiz_pkey" PRIMARY KEY ("id")
 );
@@ -134,6 +147,31 @@ CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token"
 -- CreateIndex
 CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");
 
+-- CreateIndex
+CREATE INDEX "UserQuestionResponse_userId_idx" ON "UserQuestionResponse"("userId");
+
+-- CreateIndex
+CREATE INDEX "UserQuestionResponse_questionId_idx" ON "UserQuestionResponse"("questionId");
+
+-- CreateIndex
+CREATE INDEX "UserQuestionResponse_quizId_idx" ON "UserQuestionResponse"("quizId");
+
+-- CreateIndex
+CREATE INDEX "UserQuestionResponse_conceptId_idx" ON "UserQuestionResponse"("conceptId");
+
+-- AddForeignKey
+CREATE TABLE "_prisma_migrations" (
+    "id" VARCHAR(36) NOT NULL,
+    "checksum" VARCHAR(64) NOT NULL,
+    "finished_at" TIMESTAMP WITH TIME ZONE,
+    "migration_name" VARCHAR(255) NOT NULL,
+    "logs" TEXT,
+    "rolled_back_at" TIMESTAMP WITH TIME ZONE,
+    "started_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    "applied_steps_count" INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY ("id")
+);
+
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -162,4 +200,4 @@ ALTER TABLE "UserQuestionResponse" ADD CONSTRAINT "UserQuestionResponse_question
 ALTER TABLE "UserQuestionResponse" ADD CONSTRAINT "UserQuestionResponse_quizId_fkey" FOREIGN KEY ("quizId") REFERENCES "Quiz"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserQuestionResponse" ADD CONSTRAINT "UserQuestionResponse_conceptId_fkey" FOREIGN KEY ("conceptId") REFERENCES "Concept"("id") ON DELETE RESTRICT ON UPDATE CASCADE; 
+ALTER TABLE "UserQuestionResponse" ADD CONSTRAINT "UserQuestionResponse_conceptId_fkey" FOREIGN KEY ("conceptId") REFERENCES "Concept"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
