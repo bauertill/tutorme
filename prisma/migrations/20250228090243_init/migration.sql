@@ -1,16 +1,8 @@
--- Drop all existing tables (in correct order due to foreign key constraints)
-DROP TABLE IF EXISTS "UserQuestionResponse" CASCADE;
-DROP TABLE IF EXISTS "Question" CASCADE;
-DROP TABLE IF EXISTS "Quiz" CASCADE;
-DROP TABLE IF EXISTS "Concept" CASCADE;
-DROP TABLE IF EXISTS "Goal" CASCADE;
-DROP TABLE IF EXISTS "Account" CASCADE;
-DROP TABLE IF EXISTS "Session" CASCADE;
-DROP TABLE IF EXISTS "VerificationToken" CASCADE;
-DROP TABLE IF EXISTS "User" CASCADE;
-
 -- CreateEnum
 CREATE TYPE "Mastery" AS ENUM ('UNKNOWN', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT');
+
+-- CreateEnum
+CREATE TYPE "QuizStatus" AS ENUM ('ACTIVE', 'DONE');
 
 -- CreateEnum
 CREATE TYPE "Difficulty" AS ENUM ('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT');
@@ -96,7 +88,7 @@ CREATE TABLE "Quiz" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "conceptId" TEXT NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'active',
+    "status" "QuizStatus" NOT NULL DEFAULT 'ACTIVE',
     "teacherReport" TEXT,
 
     CONSTRAINT "Quiz_pkey" PRIMARY KEY ("id")
@@ -158,19 +150,6 @@ CREATE INDEX "UserQuestionResponse_quizId_idx" ON "UserQuestionResponse"("quizId
 
 -- CreateIndex
 CREATE INDEX "UserQuestionResponse_conceptId_idx" ON "UserQuestionResponse"("conceptId");
-
--- AddForeignKey
-CREATE TABLE "_prisma_migrations" (
-    "id" VARCHAR(36) NOT NULL,
-    "checksum" VARCHAR(64) NOT NULL,
-    "finished_at" TIMESTAMP WITH TIME ZONE,
-    "migration_name" VARCHAR(255) NOT NULL,
-    "logs" TEXT,
-    "rolled_back_at" TIMESTAMP WITH TIME ZONE,
-    "started_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    "applied_steps_count" INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY ("id")
-);
 
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
