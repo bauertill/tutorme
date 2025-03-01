@@ -10,14 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Lesson } from "@/core/learning/types";
+import type { Lesson } from "@/core/learning/types";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function LessonComponent({ conceptId }: { conceptId: string }) {
-  const router = useRouter();
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [userInput, setUserInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -130,7 +128,7 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
         <CardFooter>
           {lesson.status === "DONE" && (
             <div className="w-full text-center font-medium text-green-600">
-              <h4>Congratulations! You've completed the lesson.</h4>
+              <h4>Congratulations! You&apos;ve completed the lesson.</h4>
               <Button
                 variant="outline"
                 className="w-full"

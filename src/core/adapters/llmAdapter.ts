@@ -6,9 +6,9 @@ import {
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import {
-  ConceptWithGoal,
   QuestionParams,
   type Concept,
+  type ConceptWithGoal,
   type QuestionResponseWithQuestion,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
@@ -397,7 +397,7 @@ export class LLMAdapter {
         conceptName: concept.name,
         conceptDescription: concept.description,
         teacherReport:
-          concept.teacherReport || "No previous assessments available.",
+          concept.teacherReport ?? "No previous assessments available.",
       },
       {
         metadata: {
@@ -459,7 +459,7 @@ export class LLMAdapter {
         conceptDescription: concept.description,
         goal: concept.goal.name,
         teacherReport:
-          concept.teacherReport || "No previous assessments available.",
+          concept.teacherReport ?? "No previous assessments available.",
       },
       {
         metadata: {
@@ -508,8 +508,8 @@ export class LLMAdapter {
         .describe("A quick practice exercise (1-2 minutes to complete)"),
     });
 
-    let promptData: Record<string, any>;
-    let metadata: Record<string, any>;
+    let promptData: Record<string, string | undefined>;
+    let metadata: Record<string, string>;
     let runName: string;
 
     // Handle first iteration vs subsequent iterations
@@ -555,7 +555,7 @@ export class LLMAdapter {
         conceptDescription: concept.description,
         goal: concept.goal.name,
         teacherReport:
-          concept.teacherReport || "No previous assessments available.",
+          concept.teacherReport ?? "No previous assessments available.",
       };
 
       metadata = {
@@ -624,10 +624,10 @@ export class LLMAdapter {
     // Find the explanation and exercise turns in the last iteration
     const explanationTurn = lastIteration.turns.find(
       (turn: LessonTurn) => turn.type === "explanation",
-    ) as LessonExplanationTurn;
+    )!;
     const exerciseTurn = lastIteration.turns.find(
       (turn: LessonTurn) => turn.type === "exercise",
-    ) as LessonExerciseTurn;
+    )!;
 
     if (!explanationTurn || !exerciseTurn) {
       throw new Error(

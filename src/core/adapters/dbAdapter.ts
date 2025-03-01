@@ -1,20 +1,20 @@
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import type { PrismaClient } from "@prisma/client";
+import { z } from "zod";
 import {
   QuizStatus,
+  type Concept,
+  type ConceptWithGoal,
+  type MasteryLevel,
   type Question,
   type QuestionParams,
   type QuestionResponseWithQuestion,
   type Quiz,
   type UserQuestionResponse,
-  type Concept,
-  type ConceptWithGoal,
-  type MasteryLevel,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
 import { Lesson, LessonIteration } from "../learning/types";
-import { z } from "zod";
 
 export class DBAdapter {
   constructor(private db: PrismaClient) {}
@@ -165,7 +165,7 @@ export class DBAdapter {
     conceptId: string,
     goalId: string,
     userId: string,
-    lessonIterations: any,
+    lessonIterations: LessonIteration[],
   ): Promise<Lesson> {
     const dbLesson = await this.db.lesson.create({
       data: {
@@ -177,7 +177,7 @@ export class DBAdapter {
         status: "ACTIVE",
       },
     });
-    return Lesson.parse(dbLesson)
+    return Lesson.parse(dbLesson);
   }
 
   /**
@@ -188,9 +188,9 @@ export class DBAdapter {
   async getLessonsByConceptId(conceptId: string): Promise<Lesson[]> {
     const lessons = await this.db.lesson.findMany({
       where: { conceptId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
-    return lessons.map(lesson => ({
+    return lessons.map((lesson) => ({
       ...lesson,
       lessonIterations: z.array(LessonIteration).parse(lesson.lessonIterations),
     }));
@@ -218,10 +218,7 @@ export class DBAdapter {
    * @param status Optional new status for the lesson
    * @returns The updated lesson
    */
-  async updateLesson(
-    lesson: Lesson,
-  ): Promise<Lesson> {
-    
+  async updateLesson(lesson: Lesson): Promise<Lesson> {
     const dbLesson = await this.db.lesson.update({
       where: { id: lesson.id },
       data: lesson,
