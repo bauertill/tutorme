@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { createLesson, findEducationalVideo } from "@/core/learning/learningDomain";
+import { createLesson, findEducationalVideo, addUserInputToLesson } from "@/core/learning/learningDomain";
 
 
 export const learningRouter = createTRPCRouter({
@@ -52,5 +52,24 @@ export const learningRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       return ctx.dbAdapter.getLessonsByConceptId(input.conceptId);
+    }),
+
+  /**
+   * Submit a user response to a lesson exercise
+   */
+  submitLessonResponse: protectedProcedure
+    .input(
+      z.object({
+        lessonId: z.string(),
+        userInput: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      return addUserInputToLesson(
+        input.lessonId,
+        input.userInput,
+        ctx.dbAdapter,
+        ctx.llmAdapter,
+      );
     }),
 }); 

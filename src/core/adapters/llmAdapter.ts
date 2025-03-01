@@ -13,11 +13,15 @@ import {
   ConceptWithGoal,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
-import type { EducationalVideo, LessonTurn, LessonExerciseTurn, LessonExplanationTurn } from "../learning/types";
+import type { EducationalVideo, LessonTurn, LessonExerciseTurn, LessonExplanationTurn, Lesson } from "../learning/types";
 import {
   CREATE_LESSON_ITERATION_HUMAN_TEMPLATE,
   CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
 } from "./prompts/createLessonIteration";
+import {
+  EVALUATE_LESSON_RESPONSE_HUMAN_TEMPLATE,
+  EVALUATE_LESSON_RESPONSE_SYSTEM_PROMPT,
+} from "./prompts/evaluateLessonResponse";
 import {
   EVALUATION_HUMAN_TEMPLATE,
   EVALUATION_SYSTEM_PROMPT,
@@ -422,6 +426,70 @@ export class LLMAdapter {
         type: "explanation",
       },
       lessonGoal: response.lessonGoal,
+    };
+  }
+
+  /**
+   * Evaluates a user's response to a lesson exercise and creates a new lesson iteration
+   * @param lesson The current lesson
+   * @param userInput The user's response to the exercise
+   * @returns Evaluation result with feedback and completion status
+   */
+  async createLessonIteration(
+    lesson: Lesson,
+    userInput: string,
+  ): Promise<{ evaluation: string; isComplete: boolean }> {
+    // Get the last iteration from the lesson
+    if (lesson.lessonIterations.length === 0) {
+      throw new Error("Lesson has no iterations");
+    }
+    
+    const lastIteration = lesson.lessonIterations[lesson.lessonIterations.length - 1]!;
+    
+    // Find the explanation and exercise turns in the last iteration
+    const explanationTurn = lastIteration.turns.find((turn: LessonTurn) => turn.type === "explanation") as LessonExplanationTurn;
+    const exerciseTurn = lastIteration.turns.find((turn: LessonTurn) => turn.type === "exercise") as LessonExerciseTurn;
+
+    if (!explanationTurn || !exerciseTurn) {
+      throw new Error("Last iteration does not contain both explanation and exercise turns");
+    }
+
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(EVALUATE_LESSON_RESPONSE_SYSTEM_PROMPT),
+      HumanMessagePromptTemplate.fromTemplate(EVALUATE_LESSON_RESPONSE_HUMAN_TEMPLATE),
+    ]);
+
+    // Define the schema for structured output
+    const evaluationSchema = z.object({
+      isComplete: z.boolean().describe("Whether the student has achieved the lesson goal"),
+      feedback: z.string().describe("Detailed feedback on the student's response"),
+    });
+
+    const chain = promptTemplate
+      .pipe(this.model.withStructuredOutput(evaluationSchema))
+      .withConfig({
+        tags: ["lesson-evaluation"],
+        runName: "Evaluate Lesson Response",
+      });
+
+    const response = await chain.invoke(
+      {
+        lessonGoal: lesson.lessonGoal,
+        explanation: explanationTurn.text,
+        exercise: exerciseTurn.text,
+        userInput,
+      },
+      {
+        metadata: {
+          lessonId: lesson.id,
+          userId: lesson.userId,
+        },
+      }
+    );
+
+    return { 
+      evaluation: response.feedback, 
+      isComplete: response.isComplete 
     };
   }
 }

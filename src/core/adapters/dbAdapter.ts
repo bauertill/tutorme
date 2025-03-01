@@ -195,6 +195,39 @@ export class DBAdapter {
       lessonIterations: z.array(LessonIteration).parse(lesson.lessonIterations),
     }));
   }
+
+  /**
+   * Gets a lesson by ID
+   * @param lessonId The ID of the lesson to get
+   * @returns The lesson
+   */
+  async getLessonById(lessonId: string): Promise<Lesson> {
+    const lesson = await this.db.lesson.findUniqueOrThrow({
+      where: { id: lessonId },
+    });
+    return {
+      ...lesson,
+      lessonIterations: z.array(LessonIteration).parse(lesson.lessonIterations),
+    };
+  }
+
+  /**
+   * Updates a lesson with new iterations and optionally changes status
+   * @param lessonId The ID of the lesson to update
+   * @param lessonIterations The updated iterations for the lesson
+   * @param status Optional new status for the lesson
+   * @returns The updated lesson
+   */
+  async updateLesson(
+    lesson: Lesson,
+  ): Promise<Lesson> {
+    
+    const dbLesson = await this.db.lesson.update({
+      where: { id: lesson.id },
+      data: lesson,
+    });
+    return Lesson.parse(dbLesson);
+  }
 }
 
 export const dbAdapter = new DBAdapter(db);

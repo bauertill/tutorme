@@ -41,6 +41,51 @@ export async function createLesson(
   );
 }
 
+export async function addUserInputToLesson(
+  lessonId: string,
+  userInput: string,
+  dbAdapter: DBAdapter,
+  llmAdapter: LLMAdapter,
+): Promise<Lesson> {
+  const lesson = await dbAdapter.getLessonById(lessonId);
+  
+  // Ensure the lesson has iterations
+  if (lesson.lessonIterations.length === 0) {
+    throw new Error("Lesson has no iterations");
+  }
+  
+  const {evaluation, isComplete} = await llmAdapter.createLessonIteration(
+    lesson,
+    userInput,
+  );
+  
+  const lastIteration = lesson.lessonIterations[lesson.lessonIterations.length - 1]!;
+  const userInputTurn: LessonTurn = {
+    type: "user_input",
+    text: userInput,
+  };
+  
+  const updatedLastIteration: LessonIteration = {
+    ...lastIteration,
+    turns: [...lastIteration.turns, userInputTurn],
+    evaluation,
+  };
+  
+  const updatedLessonIterations = [
+    ...lesson.lessonIterations.slice(0, -1),
+    updatedLastIteration,
+  ];
+  
+  const updatedLesson = {
+    ...lesson,
+    lessonIterations: updatedLessonIterations,
+    status: isComplete ? "DONE" : lesson.status,
+  };
+  
+  return await dbAdapter.updateLesson(
+    updatedLesson,
+  );
+}
 
 
 

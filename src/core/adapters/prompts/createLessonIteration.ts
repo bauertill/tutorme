@@ -1,3 +1,8 @@
+// @TODO improve this prompt:
+// Split into first defining a lesson goal
+// Then create the first iteration with explanation and exercise -> Make sure this is very short and bringing us closer to the lesson goal
+// Then continue creating iterations in subsequent prompts 
+
 export const CREATE_LESSON_ITERATION_SYSTEM_PROMPT = `You are an expert tutor specializing in explaining complex concepts clearly and creating effective learning exercises.
 Your task is to create a lesson plan for the student. A lesson plan contains a lesson goal and several iterations containing both an explanation and practice exercise tailored to the student's in order to achieve the lesson goal.
 We will start with the first lesson iteration and then continue to create new iterations until the lesson goal is achieved. 
