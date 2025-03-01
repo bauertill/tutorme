@@ -74,6 +74,7 @@ export class DBAdapter {
       include: { questions: true },
     });
   }
+
   async getQuestionResponsesByQuizId(
     quizId: string,
   ): Promise<QuestionResponseWithQuestion[]> {
@@ -123,18 +124,29 @@ export class DBAdapter {
   }
 
   /**
-   * Updates a quiz with a teacher report
-   * @param quizId The ID of the quiz to update
-   * @param teacherReport The teacher report to add to the quiz
-   * @returns The updated quiz
+   * Updates a concept with a teacher report
+   * @param conceptId The ID of the concept to update
+   * @param teacherReport The teacher report to add to the concept
+   * @returns The updated concept
    */
-  async updateQuizWithTeacherReport(
-    quizId: string,
+  async updateConceptWithTeacherReport(
+    conceptId: string,
     teacherReport: string,
-  ): Promise<Quiz> {
-    return await this.db.quiz.update({
-      where: { id: quizId },
+  ): Promise<Concept> {
+    return await this.db.concept.update({
+      where: { id: conceptId },
       data: { teacherReport },
+    });
+  }
+
+  /**
+   * Gets a quiz by ID
+   * @param quizId The ID of the quiz to get
+   * @returns The quiz
+   */
+  async getQuiz(quizId: string): Promise<Quiz> {
+    return await this.db.quiz.findUniqueOrThrow({
+      where: { id: quizId },
       include: { questions: true },
     });
   }

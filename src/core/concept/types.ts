@@ -26,7 +26,6 @@ export const Quiz = z.object({
   questions: z.array(Question),
   conceptId: z.string(),
   status: QuizStatus,
-  teacherReport: z.string().nullable().optional(),
 });
 
 export type Quiz = z.infer<typeof Quiz>;

@@ -121,9 +121,9 @@ export async function addUserResponseToQuiz(
       questionResponses,
     );
 
-    // Update the quiz with the teacher report
-    await dbAdapter.updateQuizStatus(quizId, QuizStatus.Enum.DONE);
-    return await dbAdapter.updateQuizWithTeacherReport(quizId, teacherReport);
+    const updatedQuiz = await dbAdapter.updateQuizStatus(quizId, QuizStatus.Enum.DONE);
+    await dbAdapter.updateConceptWithTeacherReport(updatedQuiz.conceptId, teacherReport);
+    return updatedQuiz;
   }
 
   // Generate new questions

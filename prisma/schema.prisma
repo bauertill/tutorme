@@ -52,6 +52,7 @@ model User {
   sessions              Session[]
   goals                 Goal[]
   userQuestionResponses UserQuestionResponse[]
+  lessons               Lesson[]
 }
 
 model VerificationToken {
@@ -72,6 +73,7 @@ model Goal {
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId   String
   concepts Concept[]
+  lessons  Lesson[]
 }
 
 enum Mastery {
@@ -83,10 +85,11 @@ enum Mastery {
 }
 
 model Concept {
-  id           String  @id @default(cuid())
-  name         String
-  description  String
-  masteryLevel Mastery @default(UNKNOWN)
+  id            String  @id @default(cuid())
+  name          String
+  description   String
+  masteryLevel  Mastery @default(UNKNOWN)
+  teacherReport String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -96,9 +99,15 @@ model Concept {
 
   quizzes               Quiz[]
   userQuestionResponses UserQuestionResponse[]
+  lessons               Lesson[]
 }
 
 enum QuizStatus {
+  ACTIVE
+  DONE
+}
+
+enum LessonStatus {
   ACTIVE
   DONE
 }
@@ -113,7 +122,6 @@ model Quiz {
   concept   Concept @relation(fields: [conceptId], references: [id])
 
   status QuizStatus @default(ACTIVE)
-  teacherReport String? 
 
   questions             Question[]
   userQuestionResponses UserQuestionResponse[]
@@ -164,4 +172,27 @@ model UserQuestionResponse {
   @@index([questionId])
   @@index([quizId])
   @@index([conceptId])
+}
+
+model Lesson {
+  id               String       @id @default(cuid())
+  lessonGoal       String
+  lessonIterations Json
+  status           LessonStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  conceptId String
+  concept   Concept @relation(fields: [conceptId], references: [id])
+
+  goalId String
+  goal   Goal   @relation(fields: [goalId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([conceptId])
+  @@index([goalId])
+  @@index([userId])
 }
