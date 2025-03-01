@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -71,16 +70,14 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
       <Card key={lesson.id}>
         <CardHeader>
           <CardTitle>Lesson: {lesson.lessonGoal}</CardTitle>
-          <CardDescription>Status: {lesson.status}</CardDescription>
         </CardHeader>
         <CardContent>
           {lesson.lessonIterations.map((iteration, idx) => (
             <div key={idx} className="mb-4 space-y-3 border-b pb-4">
-              <h4 className="font-medium">Iteration {idx + 1}</h4>
               {iteration.turns.map((turn, turnIdx) => (
                 <div key={turnIdx} className="my-2 rounded bg-muted p-3">
-                  <p className="mb-1 text-sm font-semibold capitalize">
-                    {turn.type}:
+                  <p className="text-m mb-1 font-semibold capitalize">
+                    {turn.type === "exercise" ? "Your turn!" : ""}
                   </p>
                   <p className="whitespace-pre-wrap">{turn.text}</p>
                 </div>
