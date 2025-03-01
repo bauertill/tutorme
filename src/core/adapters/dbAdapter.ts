@@ -8,13 +8,11 @@ import {
   type QuestionResponseWithQuestion,
   type Quiz,
   type UserQuestionResponse,
+  type Concept,
+  type ConceptWithGoal,
+  type MasteryLevel,
 } from "../concept/types";
-import type {
-  Concept,
-  ConceptWithGoal,
-  Goal,
-  MasteryLevel,
-} from "../goal/types";
+import type { Goal } from "../goal/types";
 
 export class DBAdapter {
   constructor(private db: PrismaClient) {}

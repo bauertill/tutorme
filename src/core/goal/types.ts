@@ -1,13 +1,17 @@
 import { z } from "zod";
+import type { Concept } from "../concept/types";
 
 export const Goal = z.object({
   id: z.string(),
-  userId: z.string(),
   name: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  userId: z.string(),
 });
+
 export type Goal = z.infer<typeof Goal>;
+
+export type GoalWithConcepts = Goal & {
+  concepts: Concept[];
+};
 
 export const MasteryLevel = z.enum([
   "UNKNOWN",
@@ -18,16 +22,3 @@ export const MasteryLevel = z.enum([
 ]);
 export type MasteryLevel = z.infer<typeof MasteryLevel>;
 
-export const Concept = z.object({
-  id: z.string(),
-  goalId: z.string(),
-  name: z.string(),
-  description: z.string(),
-  masteryLevel: MasteryLevel,
-});
-export type Concept = z.infer<typeof Concept>;
-
-export const ConceptWithGoal = Concept.extend({
-  goal: Goal,
-});
-export type ConceptWithGoal = z.infer<typeof ConceptWithGoal>;

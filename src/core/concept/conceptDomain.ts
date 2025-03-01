@@ -1,11 +1,12 @@
 import assert from "assert";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { type Concept, type MasteryLevel } from "../goal/types";
 import {
   QuizStatus,
   type QuestionResponseWithQuestion,
   type Quiz,
+  type Concept,
+  type MasteryLevel,
 } from "./types";
 
 // TODO: make prisma enum for mastery levels
