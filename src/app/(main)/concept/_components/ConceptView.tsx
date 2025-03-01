@@ -4,18 +4,18 @@ import { Button } from "@/components/ui/button";
 import type { Concept } from "@/core/concept/types";
 import { MasteryLevel } from "@/core/goal/types";
 import { api } from "@/trpc/react";
-import { skipToken } from "@tanstack/react-query";
+// import { skipToken } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { LessonComponent } from "./Lesson/LessonComponent";
 
 export function ConceptView({ concept }: { concept: Concept }) {
   const router = useRouter();
-  const { data: video, isLoading } =
-    api.learning.searchEducationalVideo.useQuery(
-      concept.masteryLevel !== MasteryLevel.Enum.UNKNOWN
-        ? { conceptId: concept.id }
-        : skipToken,
-    );
+  // const { data: video, isLoading } =
+  //   api.learning.searchEducationalVideo.useQuery(
+  //     concept.masteryLevel !== MasteryLevel.Enum.UNKNOWN
+  //       ? { conceptId: concept.id }
+  //       : skipToken,
+  //   );
 
   const updateMasteryLevel = api.concept.updateMasteryLevel.useMutation({
     onSuccess: () => {
