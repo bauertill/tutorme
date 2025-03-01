@@ -13,7 +13,8 @@ import {
   type MasteryLevel,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
-import type { Lesson } from "../learning/types";
+import { LessonIteration, type Lesson } from "../learning/types";
+import { z } from "zod";
 
 export class DBAdapter {
   constructor(private db: PrismaClient) {}
@@ -165,8 +166,8 @@ export class DBAdapter {
     goalId: string,
     userId: string,
     lessonIterations: any,
-  ): Promise<Lesson> {
-    return await this.db.lesson.create({
+  ): Promise<void> {
+    await this.db.lesson.create({
       data: {
         lessonGoal,
         conceptId,
@@ -176,6 +177,22 @@ export class DBAdapter {
         status: "ACTIVE",
       },
     });
+  }
+
+  /**
+   * Gets all lessons for a concept
+   * @param conceptId The ID of the concept
+   * @returns The lessons for the concept
+   */
+  async getLessonsByConceptId(conceptId: string): Promise<Lesson[]> {
+    const lessons = await this.db.lesson.findMany({
+      where: { conceptId },
+      orderBy: { createdAt: 'desc' },
+    });
+    return lessons.map(lesson => ({
+      ...lesson,
+      lessonIterations: z.array(LessonIteration).parse(lesson.lessonIterations),
+    }));
   }
 }
 

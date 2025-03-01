@@ -1,12 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { MasteryLevel, type Concept } from "@/core/goal/types";
+import type { Concept } from "@/core/concept/types";
+import { MasteryLevel } from "@/core/goal/types";
 import { api } from "@/trpc/react";
 import { skipToken } from "@tanstack/react-query";
 import Link from "next/link";
+import { LessonComponent } from "./LessonComponent";
 import { MasteryLevelExplanation } from "./MasteryLevelExplanation";
-import { VideoCard } from "./VideoCard";
 
 export function ConceptView({ concept }: { concept: Concept }) {
   const { data: video, isLoading } =
@@ -27,6 +28,7 @@ export function ConceptView({ concept }: { concept: Concept }) {
             <Link href={`/concept/${concept.id}/quiz`}>Begin Assessment</Link>
           </Button>
         </div>
+        <LessonComponent conceptId={concept.id} />
       </>
     );
   }
@@ -35,9 +37,11 @@ export function ConceptView({ concept }: { concept: Concept }) {
   // Maybe exercises are done as an assessment... masteryLevel goes up independently.
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="mt-6 space-y-8">
       <MasteryLevelExplanation masteryLevel={concept.masteryLevel} />
-      <VideoCard video={video} isLoading={isLoading} />
+      {/* <VideoCard video={video} isLoading={isLoading} /> */}
+
+      <LessonComponent conceptId={concept.id} />
     </div>
   );
 }
