@@ -1,8 +1,11 @@
 import { z } from "zod";
 
+import {
+  addUserInputToLesson,
+  createLesson,
+  findEducationalVideo,
+} from "@/core/learning/learningDomain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { createLesson, findEducationalVideo, addUserInputToLesson } from "@/core/learning/learningDomain";
-
 
 export const learningRouter = createTRPCRouter({
   /**
@@ -67,9 +70,10 @@ export const learningRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       return addUserInputToLesson(
         input.lessonId,
+        ctx.session.user.id,
         input.userInput,
         ctx.dbAdapter,
         ctx.llmAdapter,
       );
     }),
-}); 
+});

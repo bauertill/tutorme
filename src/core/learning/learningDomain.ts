@@ -33,6 +33,8 @@ export async function createLesson(
 
   const { exercise, explanation } = await llmAdapter.createNextLessonIteration(
     concept,
+    lessonGoal,
+    [],
     userId,
   );
 
@@ -51,6 +53,7 @@ export async function createLesson(
 
 export async function addUserInputToLesson(
   lessonId: string,
+  userId: string,
   userInput: string,
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
@@ -62,7 +65,7 @@ export async function addUserInputToLesson(
     throw new Error("Lesson has no iterations");
   }
 
-  const { evaluation, isComplete } = await llmAdapter.createLessonIteration(
+  const { evaluation, isComplete } = await llmAdapter.decideNextLessonIteration(
     lesson,
     userInput,
   );
@@ -83,8 +86,14 @@ export async function addUserInputToLesson(
   ];
 
   if (!isComplete) {
+    const concept = await dbAdapter.getConceptById(lesson.conceptId);
     const { explanation, exercise } =
-      await llmAdapter.createNextLessonIteration(lesson, undefined, userInput);
+      await llmAdapter.createNextLessonIteration(
+        concept,
+        lesson.lessonGoal,
+        updatedLessonIterations,
+        userId,
+      );
 
     const newIteration: LessonIteration = {
       turns: [explanation, exercise],

@@ -1,36 +1,33 @@
-// @TODO improve this prompt:
-// Split into first defining a lesson goal
-// Then create the first iteration with explanation and exercise -> Make sure this is very short and bringing us closer to the lesson goal
-// Then continue creating iterations in subsequent prompts 
+export const CREATE_LESSON_ITERATION_SYSTEM_PROMPT = `
+You are an expert educational AI that creates bite-sized, incremental learning experiences for students.
 
-export const CREATE_LESSON_ITERATION_SYSTEM_PROMPT = `You are an expert tutor specializing in explaining complex concepts clearly and creating effective learning exercises.
-Your task is to create a lesson plan for the student. A lesson plan contains a lesson goal and several iterations containing both an explanation and practice exercise tailored to the student's in order to achieve the lesson goal.
-We will start with the first lesson iteration and then continue to create new iterations until the lesson goal is achieved. 
+Your task is to create the next iteration in a personalized lesson sequence.
 
-Follow these guidelines:
-1. Lesson Goal: Define the specific goal for the lesson.
-2. Explanation: Provide a clear, thorough explanation of the concept using simple language, examples, analogies, and visuals where appropriate.
-3. Exercise: Create a hands-on exercise that helps the student apply what they've learned. The exercise should be challenging but achievable.
-4. Consider the teacher's report (if available) which may indicate areas where the student needs more focus.
-5. Ensure the content is specifically targeted to the stated overall goal.
+Each lesson iteration consists of two parts:
+1. A brief explanation that takes no more than 1 minute to read
+2. A practical exercise that can be completed in 1-2 minutes
 
-Your response will be structured as a lesson iteration with explanation and exercise components.`;
+Important guidelines:
+- Make each explanation clear, concise, and focused on ONE small aspect of the concept
+- Build upon previous explanations and exercises in a logical progression
+- Tailor your teaching to the student's demonstrated understanding from previous iterations
+- Exercises should be practical and require active engagement
+- Focus on incrementally building understanding toward the lesson goal
+- For the first iteration, introduce the most fundamental aspect of the concept
+- For subsequent iterations, address any misconceptions and progress toward deeper understanding
+`;
 
-export const CREATE_LESSON_ITERATION_HUMAN_TEMPLATE = `Create a lesson iteration for the concept: {conceptName}
+export const CREATE_LESSON_ITERATION_HUMAN_TEMPLATE = `
+I need to create the next lesson iteration for a student learning about:
 
+Concept: {conceptName}
 Concept Description: {conceptDescription}
+Lesson Goal: {lessonGoal}
 
-Goal: {goal}
+Previous iterations:
+{previousIterations}
 
-Teacher's Report (previous assessments): {teacherReport}
-
-Remember to include both an explanation section that thoroughly teaches the concept and an exercise section that helps the student practice and apply what they've learned.
-
-Your output should be a JSON object in the following format:
-
-{{
-  "lessonGoal": "..."
-  "explanation": "...",
-  "exercise": "...",
-}}
-`; 
+Please provide:
+1. A concise explanation (1 minute reading time) that builds on previous iterations
+2. A practical exercise (1-2 minutes completion time) that helps apply the knowledge
+`;

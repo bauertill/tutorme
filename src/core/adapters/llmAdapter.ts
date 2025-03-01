@@ -8,7 +8,6 @@ import { z } from "zod";
 import {
   QuestionParams,
   type Concept,
-  type ConceptWithGoal,
   type QuestionResponseWithQuestion,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
@@ -17,6 +16,7 @@ import type {
   Lesson,
   LessonExerciseTurn,
   LessonExplanationTurn,
+  LessonIteration,
   LessonTurn,
 } from "../learning/types";
 import {
@@ -422,8 +422,10 @@ export class LLMAdapter {
    * @param userId The ID of the user
    * @returns The first lesson iteration with explanation and exercise
    */
-  async createFirstLessonIteration(
-    concept: ConceptWithGoal,
+  async createNextLessonIteration(
+    concept: Concept,
+    lessonGoal: string,
+    lessonIterations: LessonIteration[],
     userId: string,
   ): Promise<{
     exercise: LessonExerciseTurn;
@@ -438,28 +440,54 @@ export class LLMAdapter {
       ),
     ]);
 
-    // Define the schema for structured output
-    const turnSchema = z.object({
+    // Define schema for structured output
+    const lessonSchema = z.object({
       explanation: z
         .string()
-        .describe("A clear, thorough explanation of the concept"),
-      exercise: z.string().describe("A practice exercise for the student"),
+        .describe(
+          "A clear, concise explanation of the concept targeted at the user's current understanding level. Should take no more than one minute to read.",
+        ),
+      exercise: z
+        .string()
+        .describe(
+          "A practical exercise that helps the user apply the concept. Should be doable in 1-2 minutes.",
+        ),
     });
 
     const chain = promptTemplate
-      .pipe(this.model.withStructuredOutput(turnSchema))
+      .pipe(this.model.withStructuredOutput(lessonSchema))
       .withConfig({
-        tags: ["lesson-generation"],
-        runName: "Generate First Lesson Iteration",
+        tags: ["lesson-iteration-generation"],
+        runName: "Generate Lesson Iteration",
       });
+
+    // Extract previous iteration data to provide context
+    const previousIterationsContext = lessonIterations.map(
+      (iteration, index) => {
+        const explanationTurn = iteration.turns.find(
+          (turn) => turn.type === "explanation",
+        );
+        const exerciseTurn = iteration.turns.find(
+          (turn) => turn.type === "exercise",
+        );
+        const userResponseTurn = iteration.turns.find(
+          (turn) => turn.type === "user_input",
+        );
+
+        return {
+          explanation: explanationTurn?.text || "No explanation provided",
+          exercise: exerciseTurn?.text || "No exercise provided",
+          userResponse: userResponseTurn?.text || "No user response provided",
+        };
+      },
+    );
 
     const response = await chain.invoke(
       {
         conceptName: concept.name,
         conceptDescription: concept.description,
-        goal: concept.goal.name,
-        teacherReport:
-          concept.teacherReport ?? "No previous assessments available.",
+        lessonGoal,
+        previousIterations: JSON.stringify(previousIterationsContext),
       },
       {
         metadata: {
@@ -469,136 +497,15 @@ export class LLMAdapter {
       },
     );
 
+    // Create and return the lesson turns
     return {
-      exercise: {
-        text: response.exercise,
-        type: "exercise",
-      },
       explanation: {
-        text: response.explanation,
         type: "explanation",
+        text: response.explanation,
       },
-    };
-  }
-
-  /**
-   * Creates the next iteration of a lesson based on previous interactions
-   * @param lesson The current lesson or concept for first-time iterations
-   * @param userId The ID of the user (only required for first iterations)
-   * @param previousUserInput The previous user input (if any)
-   * @returns The next lesson iteration with explanation and exercise
-   */
-  async createNextLessonIteration(
-    lessonOrConcept: Lesson | ConceptWithGoal,
-    userId?: string,
-    previousUserInput?: string,
-  ): Promise<{
-    exercise: LessonExerciseTurn;
-    explanation: LessonExplanationTurn;
-  }> {
-    // Define the schema for structured output
-    const turnSchema = z.object({
-      explanation: z
-        .string()
-        .describe(
-          "A concise explanation of the concept (under 1 minute to read)",
-        ),
-      exercise: z
-        .string()
-        .describe("A quick practice exercise (1-2 minutes to complete)"),
-    });
-
-    let promptData: Record<string, string | undefined>;
-    let metadata: Record<string, string>;
-    let runName: string;
-
-    // Handle first iteration vs subsequent iterations
-    if ("lessonIterations" in lessonOrConcept) {
-      // This is a Lesson object for subsequent iterations
-      const lesson = lessonOrConcept;
-
-      if (!previousUserInput) {
-        throw new Error("User input is required for subsequent iterations");
-      }
-
-      // Prepare previous interactions for context
-      const previousInteractions = lesson.lessonIterations.flatMap(
-        (iteration) =>
-          iteration.turns.map((turn) => ({
-            type: turn.type,
-            text: turn.text,
-          })),
-      );
-
-      promptData = {
-        lessonGoal: lesson.lessonGoal,
-        previousInteractions: JSON.stringify(previousInteractions),
-        previousUserInput,
-      };
-
-      metadata = {
-        lessonId: lesson.id,
-        userId: lesson.userId,
-      };
-
-      runName = "Generate Next Lesson Iteration";
-    } else {
-      // This is a ConceptWithGoal object for first iteration
-      const concept = lessonOrConcept;
-
-      if (!userId) {
-        throw new Error("User ID is required for first iterations");
-      }
-
-      promptData = {
-        conceptName: concept.name,
-        conceptDescription: concept.description,
-        goal: concept.goal.name,
-        teacherReport:
-          concept.teacherReport ?? "No previous assessments available.",
-      };
-
-      metadata = {
-        conceptId: concept.id,
-        userId,
-      };
-
-      runName = "Generate First Lesson Iteration";
-    }
-
-    const promptTemplate = ChatPromptTemplate.fromMessages([
-      SystemMessagePromptTemplate.fromTemplate(
-        `You are an expert tutor creating concise educational content. 
-        Your goal is to create bite-sized learning experiences that take less than a minute to read 
-        and only 1-2 minutes to complete exercises.
-        Focus on clarity and brevity while still being effective.`,
-      ),
-      HumanMessagePromptTemplate.fromTemplate(
-        `Create the next learning iteration with a concise explanation and short exercise.
-        
-        ${JSON.stringify(promptData)}
-        
-        Respond with a short explanation and a quick exercise. Both should be very concise.`,
-      ),
-    ]);
-
-    const chain = promptTemplate
-      .pipe(this.model.withStructuredOutput(turnSchema))
-      .withConfig({
-        tags: ["lesson-generation"],
-        runName,
-      });
-
-    const response = await chain.invoke(promptData, { metadata });
-
-    return {
       exercise: {
-        text: response.exercise,
         type: "exercise",
-      },
-      explanation: {
-        text: response.explanation,
-        type: "explanation",
+        text: response.exercise,
       },
     };
   }
@@ -609,7 +516,7 @@ export class LLMAdapter {
    * @param userInput The user's response to the exercise
    * @returns Evaluation result with feedback and completion status
    */
-  async createLessonIteration(
+  async decideNextLessonIteration(
     lesson: Lesson,
     userInput: string,
   ): Promise<{ evaluation: string; isComplete: boolean }> {
