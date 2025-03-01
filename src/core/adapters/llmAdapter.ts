@@ -22,40 +22,43 @@ import type {
 import {
   CREATE_LESSON_GOAL_HUMAN_TEMPLATE,
   CREATE_LESSON_GOAL_SYSTEM_PROMPT,
-} from "./prompts/createLessonGoal";
+} from "./prompts/lesson/createLessonGoal";
 import {
   CREATE_LESSON_ITERATION_HUMAN_TEMPLATE,
   CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
-} from "./prompts/createLessonIteration";
-import {
-  EVALUATION_HUMAN_TEMPLATE,
-  EVALUATION_SYSTEM_PROMPT,
-} from "./prompts/createQuestionForConcept";
-import {
-  DECIDE_NEXT_ACTION_HUMAN_TEMPLATE,
-  DECIDE_NEXT_ACTION_SYSTEM_PROMPT,
-} from "./prompts/decideNextAction";
+} from "./prompts/lesson/createLessonIteration";
 import {
   EVALUATE_LESSON_RESPONSE_HUMAN_TEMPLATE,
   EVALUATE_LESSON_RESPONSE_SYSTEM_PROMPT,
-} from "./prompts/evaluateLessonResponse";
+} from "./prompts/lesson/evaluateLessonResponse";
+import {
+  EVALUATION_HUMAN_TEMPLATE,
+  EVALUATION_SYSTEM_PROMPT,
+} from "./prompts/quiz/createQuestionForConcept";
+import {
+  DECIDE_NEXT_ACTION_HUMAN_TEMPLATE,
+  DECIDE_NEXT_ACTION_SYSTEM_PROMPT,
+} from "./prompts/quiz/decideNextAction";
 import {
   FOLLOW_UP_QUESTION_HUMAN_TEMPLATE,
   FOLLOW_UP_QUESTION_SYSTEM_PROMPT,
-} from "./prompts/followUpQuestion";
+} from "./prompts/quiz/followUpQuestion";
 import {
   TEACHER_REPORT_HUMAN_TEMPLATE,
   TEACHER_REPORT_SYSTEM_PROMPT,
-} from "./prompts/generateTeacherReport";
+} from "./prompts/quiz/generateTeacherReport";
 import {
   GENERATE_VIDEO_SEARCH_QUERY_HUMAN_TEMPLATE,
   GENERATE_VIDEO_SEARCH_QUERY_PROMPT,
-} from "./prompts/generateVideoSearchQuery";
-import { HUMAN_TEMPLATE, SYSTEM_PROMPT } from "./prompts/getConceptsForGoal";
+} from "./prompts/video/generateVideoSearchQuery";
+import {
+  HUMAN_TEMPLATE,
+  SYSTEM_PROMPT,
+} from "./prompts/video/getConceptsForGoal";
 import {
   RANK_VIDEOS_HUMAN_TEMPLATE,
   RANK_VIDEOS_SYSTEM_PROMPT,
-} from "./prompts/rankVideos";
+} from "./prompts/video/rankVideos";
 
 export class LLMAdapter {
   private model: ChatOpenAI;

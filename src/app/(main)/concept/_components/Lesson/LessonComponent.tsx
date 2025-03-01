@@ -18,7 +18,6 @@ import { useState } from "react";
 export function LessonComponent({ conceptId }: { conceptId: string }) {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [userInput, setUserInput] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mutation to create a new lesson
   const { mutate: createLesson, isPending: isCreating } =
@@ -32,22 +31,20 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
     });
 
   // Mutation to submit a lesson response
-  const submitResponseMutation = api.learning.submitLessonResponse.useMutation({
-    onSuccess: (lesson) => {
-      setUserInput("");
-      setLesson(lesson);
-    },
-    onError: (error) => {
-      console.error("Error submitting response:", error);
-      setIsSubmitting(false);
-    },
-  });
+  const { mutate: submitResponse, isPending: isSubmitting } =
+    api.learning.submitLessonResponse.useMutation({
+      onSuccess: (lesson) => {
+        setUserInput("");
+        setLesson(lesson);
+      },
+      onError: (error) => {
+        console.error("Error submitting response:", error);
+      },
+    });
 
   const handleSubmitResponse = (lessonId: string) => {
     if (!userInput.trim()) return;
-
-    setIsSubmitting(true);
-    submitResponseMutation.mutate({
+    submitResponse({
       lessonId,
       userInput: userInput.trim(),
     });
@@ -127,14 +124,17 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
         </CardContent>
         <CardFooter>
           {lesson.status === "DONE" && (
-            <div className="w-full text-center font-medium text-green-600">
+            <div className="flex w-full justify-between gap-2 text-center font-medium">
               <h4>Congratulations! You&apos;ve completed the lesson.</h4>
               <Button
-                variant="outline"
-                className="w-full"
                 onClick={() => createLesson({ conceptId })}
+                disabled={isCreating}
               >
-                Next Lesson
+                {isCreating ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  "Next Lesson"
+                )}
               </Button>
             </div>
           )}
