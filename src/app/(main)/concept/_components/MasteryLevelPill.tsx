@@ -43,7 +43,7 @@ export function MasteryLevelPill({ level }: MasteryLevelPillProps) {
     <Badge
       variant="secondary"
       className={cn(
-        "min-w-[80px]",
+        "min-w-[80px] justify-center",
         styles.bg,
         styles.text,
         "hover:bg-opacity-100", // Prevent hover color change
