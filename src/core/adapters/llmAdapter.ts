@@ -28,6 +28,10 @@ import {
   CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
 } from "./prompts/lesson/createLessonIteration";
 import {
+  LESSON_TEACHER_REPORT_HUMAN_TEMPLATE,
+  LESSON_TEACHER_REPORT_SYSTEM_PROMPT,
+} from "./prompts/lesson/createLessonTeacherReport";
+import {
   EVALUATE_LESSON_RESPONSE_HUMAN_TEMPLATE,
   EVALUATE_LESSON_RESPONSE_SYSTEM_PROMPT,
 } from "./prompts/lesson/evaluateLessonResponse";
@@ -591,6 +595,82 @@ export class LLMAdapter {
       evaluation: response.feedback,
       isComplete: response.isComplete,
     };
+  }
+
+  /**
+   * Creates a teacher report for a lesson that takes into account previous teacher reports and lesson iterations
+   * @param concept The concept to create a lesson goal for
+   * @param lesson The completed lesson with all iterations
+   * @param userId The ID of the user
+   * @returns A teacher report as a string
+   */
+  async createLessonTeacherReport(
+    concept: Concept,
+    lesson: Lesson,
+    userId: string,
+  ): Promise<string> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        LESSON_TEACHER_REPORT_SYSTEM_PROMPT,
+      ),
+      HumanMessagePromptTemplate.fromTemplate(
+        LESSON_TEACHER_REPORT_HUMAN_TEMPLATE,
+      ),
+    ]);
+
+    const chain = promptTemplate.pipe(this.model).withConfig({
+      tags: ["lesson-teacher-report-generation"],
+      runName: "Generate Lesson Teacher Report",
+    });
+
+    // Format lesson iterations for the prompt
+    const lessonIterationsFormatted = lesson.lessonIterations.map(
+      (iteration, index) => {
+        const explanationTurn = iteration.turns.find(
+          (turn) => turn.type === "explanation",
+        );
+        const exerciseTurn = iteration.turns.find(
+          (turn) => turn.type === "exercise",
+        );
+        const userResponseTurn = iteration.turns.find(
+          (turn) => turn.type === "user_input",
+        );
+
+        return {
+          iterationNumber: index + 1,
+          explanation: explanationTurn?.text || "No explanation provided",
+          exercise: exerciseTurn?.text || "No exercise provided",
+          userResponse: userResponseTurn?.text || "No user response provided",
+          evaluation: iteration.evaluation || "No evaluation provided",
+        };
+      },
+    );
+
+    const response = await chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        lessonGoal: lesson.lessonGoal,
+        previousTeacherReport:
+          concept.teacherReport ?? "No previous assessments available.",
+        lessonIterations: JSON.stringify(lessonIterationsFormatted, null, 2),
+      },
+      {
+        metadata: {
+          conceptId: concept.id,
+          lessonId: lesson.id,
+          userId,
+        },
+      },
+    );
+
+    // Extract the teacher report from the response
+    const lessonTeacherReport =
+      response.content instanceof Object
+        ? JSON.stringify(response.content)
+        : String(response.content).trim();
+
+    return lessonTeacherReport;
   }
 }
 

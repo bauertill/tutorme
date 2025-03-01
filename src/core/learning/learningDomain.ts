@@ -85,8 +85,8 @@ export async function addUserInputToLesson(
     updatedLastIteration,
   ];
 
+  const concept = await dbAdapter.getConceptById(lesson.conceptId);
   if (!isComplete) {
-    const concept = await dbAdapter.getConceptById(lesson.conceptId);
     const { explanation, exercise } =
       await llmAdapter.createNextLessonIteration(
         concept,
@@ -102,6 +102,12 @@ export async function addUserInputToLesson(
     updatedLessonIterations.push(newIteration);
   }
 
+  const teacherReport = await llmAdapter.createLessonTeacherReport(
+    concept,
+    lesson,
+    userId,
+  );
+  await dbAdapter.updateConceptWithTeacherReport(concept.id, teacherReport);
   const updatedLesson = {
     ...lesson,
     lessonIterations: updatedLessonIterations,
