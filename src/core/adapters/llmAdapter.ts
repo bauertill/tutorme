@@ -478,25 +478,23 @@ export class LLMAdapter {
       });
 
     // Extract previous iteration data to provide context
-    const previousIterationsContext = lessonIterations.map(
-      (iteration, index) => {
-        const explanationTurn = iteration.turns.find(
-          (turn) => turn.type === "explanation",
-        );
-        const exerciseTurn = iteration.turns.find(
-          (turn) => turn.type === "exercise",
-        );
-        const userResponseTurn = iteration.turns.find(
-          (turn) => turn.type === "user_input",
-        );
+    const previousIterationsContext = lessonIterations.map((iteration) => {
+      const explanationTurn = iteration.turns.find(
+        (turn) => turn.type === "explanation",
+      );
+      const exerciseTurn = iteration.turns.find(
+        (turn) => turn.type === "exercise",
+      );
+      const userResponseTurn = iteration.turns.find(
+        (turn) => turn.type === "user_input",
+      );
 
-        return {
-          explanation: explanationTurn?.text || "No explanation provided",
-          exercise: exerciseTurn?.text || "No exercise provided",
-          userResponse: userResponseTurn?.text || "No user response provided",
-        };
-      },
-    );
+      return {
+        explanation: explanationTurn?.text ?? "No explanation provided",
+        exercise: exerciseTurn?.text ?? "No exercise provided",
+        userResponse: userResponseTurn?.text ?? "No user response provided",
+      };
+    });
 
     const response = await chain.invoke(
       {
@@ -647,10 +645,10 @@ export class LLMAdapter {
 
         return {
           iterationNumber: index + 1,
-          explanation: explanationTurn?.text || "No explanation provided",
-          exercise: exerciseTurn?.text || "No exercise provided",
-          userResponse: userResponseTurn?.text || "No user response provided",
-          evaluation: iteration.evaluation || "No evaluation provided",
+          explanation: explanationTurn?.text ?? "No explanation provided",
+          exercise: exerciseTurn?.text ?? "No exercise provided",
+          userResponse: userResponseTurn?.text ?? "No user response provided",
+          evaluation: iteration.evaluation ?? "No evaluation provided",
         };
       },
     );

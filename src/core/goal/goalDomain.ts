@@ -1,6 +1,6 @@
 import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
-import { Concept } from "../concept/types";
+import { type Concept } from "../concept/types";
 import type { Goal } from "./types";
 
 export async function getGoalById(
