@@ -486,6 +486,7 @@ export class LLMAdapter {
         },
       }
     );
+    console.log("REPSONSE FORM THE LLM", response);
 
     return { 
       evaluation: response.feedback, 

@@ -1,7 +1,12 @@
 import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
 import type { YouTubeAdapter } from "../adapters/youtubeAdapter";
-import type { EducationalVideo, Lesson, LessonIteration, LessonTurn } from "./types";
+import type {
+  EducationalVideo,
+  Lesson,
+  LessonIteration,
+  LessonTurn,
+} from "./types";
 
 export async function findEducationalVideo(
   conceptId: string,
@@ -23,21 +28,19 @@ export async function createLesson(
   llmAdapter: LLMAdapter,
 ): Promise<Lesson> {
   const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
-  const {lessonGoal, exercise, explanation} = await llmAdapter.createFirstLessonIteration(
-    concept,
-    userId,
-  );
+  const { lessonGoal, exercise, explanation } =
+    await llmAdapter.createFirstLessonIteration(concept, userId);
 
   const lessonIteration: LessonIteration = {
     turns: [explanation, exercise],
-  }
+  };
 
   return await dbAdapter.createLesson(
-    lessonGoal,   
+    lessonGoal,
     conceptId,
     concept.goalId,
     userId,
-    [lessonIteration]
+    [lessonIteration],
   );
 }
 
@@ -48,44 +51,39 @@ export async function addUserInputToLesson(
   llmAdapter: LLMAdapter,
 ): Promise<Lesson> {
   const lesson = await dbAdapter.getLessonById(lessonId);
-  
+
   // Ensure the lesson has iterations
   if (lesson.lessonIterations.length === 0) {
     throw new Error("Lesson has no iterations");
   }
-  
-  const {evaluation, isComplete} = await llmAdapter.createLessonIteration(
+
+  const { evaluation, isComplete } = await llmAdapter.createLessonIteration(
     lesson,
     userInput,
   );
-  
-  const lastIteration = lesson.lessonIterations[lesson.lessonIterations.length - 1]!;
+  const lastIteration =
+    lesson.lessonIterations[lesson.lessonIterations.length - 1]!;
   const userInputTurn: LessonTurn = {
     type: "user_input",
     text: userInput,
   };
-  
   const updatedLastIteration: LessonIteration = {
     ...lastIteration,
     turns: [...lastIteration.turns, userInputTurn],
     evaluation,
   };
-  
   const updatedLessonIterations = [
     ...lesson.lessonIterations.slice(0, -1),
     updatedLastIteration,
   ];
-  
+
+  // if (isComplete) {
   const updatedLesson = {
     ...lesson,
     lessonIterations: updatedLessonIterations,
     status: isComplete ? "DONE" : lesson.status,
   };
-  
-  return await dbAdapter.updateLesson(
-    updatedLesson,
-  );
+  return await dbAdapter.updateLesson(updatedLesson);
+  // else
+  // Get more iterations
 }
-
-
-

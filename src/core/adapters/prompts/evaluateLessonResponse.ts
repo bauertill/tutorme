@@ -28,7 +28,7 @@ Student's Response:
 {userInput}
 
 Provide your evaluation in JSON format with the following structure:
-{
+{{
   "isComplete": boolean, // true if the lesson goal was achieved, false otherwise
   "feedback": "your detailed feedback here"
-}`; 
+}}`; 

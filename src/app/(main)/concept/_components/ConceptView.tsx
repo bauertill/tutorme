@@ -6,7 +6,7 @@ import { MasteryLevel } from "@/core/goal/types";
 import { api } from "@/trpc/react";
 import { skipToken } from "@tanstack/react-query";
 import Link from "next/link";
-import { LessonComponent } from "./LessonComponent";
+import { LessonComponent } from "./Lesson/LessonComponent";
 import { MasteryLevelExplanation } from "./MasteryLevelExplanation";
 
 export function ConceptView({ concept }: { concept: Concept }) {
