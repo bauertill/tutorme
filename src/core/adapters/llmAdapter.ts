@@ -13,7 +13,7 @@ import {
   ConceptWithGoal,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
-import type { EducationalVideo, LessonIteration, LessonTurn } from "../learning/types";
+import type { EducationalVideo, LessonTurn, LessonExerciseTurn, LessonExplanationTurn } from "../learning/types";
 import {
   CREATE_LESSON_ITERATION_HUMAN_TEMPLATE,
   CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
@@ -366,7 +366,7 @@ export class LLMAdapter {
   async createFirstLessonIteration(
     concept: ConceptWithGoal,
     userId: string,
-  ): Promise<LessonIteration> {
+  ): Promise<{exercise: LessonExerciseTurn, explanation: LessonExplanationTurn, lessonGoal: string}> {
     const promptTemplate = ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(CREATE_LESSON_ITERATION_SYSTEM_PROMPT),
       HumanMessagePromptTemplate.fromTemplate(CREATE_LESSON_ITERATION_HUMAN_TEMPLATE),
@@ -376,6 +376,7 @@ export class LLMAdapter {
     const turnSchema = z.object({
       explanation: z.string().describe("A clear, thorough explanation of the concept"),
       exercise: z.string().describe("A practice exercise for the student"),
+      lessonGoal: z.string().describe("The specific goal for this lesson"),
     });
 
     const chain = promptTemplate.pipe(this.model.withStructuredOutput(turnSchema))
@@ -412,9 +413,15 @@ export class LLMAdapter {
     ];
 
     return {
-      type: "initial",
-      turns,
-      evaluation: "Not evaluated yet",
+      exercise: {
+        text: response.exercise,
+        type: "exercise",
+      },
+      explanation: {
+        text: response.explanation,
+        type: "explanation",
+      },
+      lessonGoal: response.lessonGoal,
     };
   }
 }

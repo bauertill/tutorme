@@ -40,7 +40,6 @@ const LessonTurn = z.union([
 export type LessonTurn = z.infer<typeof LessonTurn>;
 
 export const LessonIteration = z.object({
-  type: z.string(),
   turns: z.array(LessonTurn),
   evaluation: z.string(),
 });
