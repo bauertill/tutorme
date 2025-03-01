@@ -11,6 +11,7 @@ Follow these guidelines:
 6. Tailor the goal to the student's current level of understanding
 7. The goal should be concise (ideally 10-20 words)
 8. The goal should be achievable in 5-10 minutes of focused learning
+9. IMPORTANT: Avoid repeating previous lesson goals - create something NEW and DIFFERENT
 
 Your output should be a single string containing only the lesson goal.`;
 
@@ -20,4 +21,6 @@ Concept Description: {conceptDescription}
 
 Teacher's Report (previous assessments): {teacherReport}
 
-Provide a single, clear lesson goal that addresses the most important aspect of this concept for the student to learn.`;
+Previous lesson goals for this concept: {previousLessonGoals}
+
+Provide a single, clear lesson goal that addresses the most important aspect of this concept for the student to learn. Your goal MUST be different from any previous goals.`;

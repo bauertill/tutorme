@@ -382,9 +382,14 @@ export class LLMAdapter {
    * Creates a focused lesson goal based on the concept and teacher's report
    * @param concept The concept to create a lesson goal for
    * @param userId The ID of the user
+   * @param previousLessonGoals Previous lesson goals to avoid repetition
    * @returns A focused lesson goal as a string
    */
-  async createLessonGoal(concept: Concept, userId: string): Promise<string> {
+  async createLessonGoal(
+    concept: Concept,
+    userId: string,
+    previousLessonGoals: string[] = [],
+  ): Promise<string> {
     const promptTemplate = ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(
         CREATE_LESSON_GOAL_SYSTEM_PROMPT,
@@ -405,6 +410,10 @@ export class LLMAdapter {
         conceptDescription: concept.description,
         teacherReport:
           concept.teacherReport ?? "No previous assessments available.",
+        previousLessonGoals:
+          previousLessonGoals.length > 0
+            ? JSON.stringify(previousLessonGoals)
+            : "No previous lesson goals available.",
       },
       {
         metadata: {

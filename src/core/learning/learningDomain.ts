@@ -29,7 +29,18 @@ export async function createLesson(
 ): Promise<Lesson> {
   const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
 
-  const lessonGoal = await llmAdapter.createLessonGoal(concept, userId);
+  // Fetch previous lessons for this concept to extract their goals
+  const previousLessons = await dbAdapter.getLessonsByConceptId(conceptId);
+  const previousLessonGoals = previousLessons.map(
+    (lesson) => lesson.lessonGoal,
+  );
+
+  // Pass previous lesson goals to help the LLM generate a new, different goal
+  const lessonGoal = await llmAdapter.createLessonGoal(
+    concept,
+    userId,
+    previousLessonGoals,
+  );
 
   const { exercise, explanation } = await llmAdapter.createNextLessonIteration(
     concept,
