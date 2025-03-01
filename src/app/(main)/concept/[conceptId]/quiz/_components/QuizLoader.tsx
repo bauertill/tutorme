@@ -1,7 +1,7 @@
 "use client";
 
+import type { Concept } from "@/core/concept/types";
 import { type Quiz } from "@/core/concept/types";
-import type { Concept } from "@/core/goal/types";
 import { api } from "@/trpc/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";

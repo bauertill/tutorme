@@ -10,7 +10,6 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { TeacherReport } from "../../../_components/TeacherReport";
 
 interface QuizViewProps {
   initialQuiz: Quiz;
@@ -50,17 +49,14 @@ export function QuizView({ initialQuiz }: QuizViewProps) {
     setAnswer(null);
   };
 
-  if (quiz.status === QuizStatus.Enum.DONE && quiz.teacherReport) {
+  if (quiz.status === QuizStatus.Enum.DONE) {
+    router.push(`/concept/${quiz.conceptId}`);
     return (
-      <TeacherReport
-        teacherReport={quiz.teacherReport}
-        onClose={() => {
-          router.push(`/concept/${quiz.conceptId}`);
-        }}
-      />
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
     );
   }
-
   if (!currentQuestion)
     return (
       <div className="flex h-full items-center justify-center">
