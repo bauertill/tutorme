@@ -17,6 +17,7 @@ export default function DrawingDisplay({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [roomId, setRoomId] = useState<string>("");
   const [isConnected, setIsConnected] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const socketRef = useRef<any>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
 
@@ -45,30 +46,63 @@ export default function DrawingDisplay({
 
     // Initialize Socket.io client
     const socketInitializer = async () => {
-      // Dynamically import socket.io-client to avoid SSR issues
-      const io = (await import("socket.io-client")).io;
-
       try {
-        // Connect to socket server
-        const socket = io(window.location.origin, {
+        console.log("DrawingDisplay: Initializing socket connection...");
+        // Dynamically import socket.io-client to avoid SSR issues
+        const io = (await import("socket.io-client")).io;
+
+        // Use the current origin for the connection
+        const serverUrl = window.location.origin;
+        console.log(
+          `DrawingDisplay: Connecting to socket server at: ${serverUrl}`,
+        );
+
+        // Connect to socket server (using Pages API route)
+        const socket = io(serverUrl, {
           path: "/api/socket",
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          transports: ["websocket", "polling"],
         });
 
         socket.on("connect", () => {
-          console.log("Drawing display connected to socket server");
+          console.log(
+            "DrawingDisplay: Connected to socket server with ID:",
+            socket.id,
+          );
           setIsConnected(true);
+          setErrorMessage("");
 
           // Join drawing room
           socket.emit("join-room", roomId);
+          console.log("DrawingDisplay: Joined room:", roomId);
+        });
+
+        socket.on("connect_error", (err) => {
+          console.error("DrawingDisplay: Socket connection error:", err);
+          setIsConnected(false);
+          setErrorMessage(`Connection error: ${err.message}`);
+        });
+
+        socket.on("disconnect", (reason) => {
+          console.log(
+            "DrawingDisplay: Disconnected from socket server:",
+            reason,
+          );
+          setIsConnected(false);
         });
 
         socket.on("drawing", (data: any) => {
+          console.log("DrawingDisplay: Received drawing data:", data);
           drawOnCanvas(data.x0, data.y0, data.x1, data.y1, data.color);
         });
 
         socketRef.current = socket;
       } catch (error) {
-        console.error("Socket initialization error:", error);
+        console.error("DrawingDisplay: Socket initialization error:", error);
+        setErrorMessage(
+          `Initialization error: ${error instanceof Error ? error.message : String(error)}`,
+        );
         setIsConnected(false);
       }
     };
@@ -93,6 +127,9 @@ export default function DrawingDisplay({
   ) => {
     if (!contextRef.current) return;
 
+    console.log(
+      `DrawingDisplay: Drawing line from (${x0},${y0}) to (${x1},${y1})`,
+    );
     const ctx = contextRef.current;
 
     // Scale coordinates to match canvas dimensions
@@ -134,10 +171,9 @@ export default function DrawingDisplay({
   const getMobileURL = () => {
     if (typeof window === "undefined") return "";
 
-    // run: ifconfig | grep inet to get the local network IP address
-    // Use the server's local network IP address instead of localhost
-    // This allows mobile devices on the same network to connect
-    return `http://192.168.0.149:3000/mobile?roomId=${roomId}`;
+    // Include the IP address directly in the URL for local development
+    // In production, use a domain name
+    return `${window.location.origin}/mobile?roomId=${roomId}`;
   };
 
   return (
@@ -160,6 +196,10 @@ export default function DrawingDisplay({
             {isConnected ? "Connected" : "Disconnected"}
           </span>
         </div>
+
+        {errorMessage && (
+          <div className="mt-1 text-xs text-red-600">{errorMessage}</div>
+        )}
 
         <div className="text-sm font-medium">Room ID: {roomId}</div>
 

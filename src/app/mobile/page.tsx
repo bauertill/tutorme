@@ -8,6 +8,8 @@ export default function MobileDrawingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [roomId, setRoomId] = useState<string>("");
+  const [isConnected, setIsConnected] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const searchParams = useSearchParams();
   const socketRef = useRef<any>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -46,29 +48,55 @@ export default function MobileDrawingPage() {
 
     // Initialize Socket.io client
     const socketInitializer = async () => {
-      // Dynamically import socket.io-client to avoid SSR issues
-      const io = (await import("socket.io-client")).io;
-
       try {
-        // Connect to socket server using the server's IP address
-        // Note: Using hardcoded IP to ensure mobile devices can connect
-        const socket = io("http://192.168.0.149:3000", {
+        console.log("Initializing socket connection...");
+        // Dynamically import socket.io-client to avoid SSR issues
+        const io = (await import("socket.io-client")).io;
+
+        // Use the server's IP address - same as in the URL bar
+        const serverUrl = window.location.origin;
+        console.log(`Connecting to socket server at: ${serverUrl}`);
+
+        // Connect to socket server (using Pages API route)
+        const socket = io(serverUrl, {
           path: "/api/socket",
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          transports: ["websocket", "polling"],
         });
 
         socket.on("connect", () => {
-          console.log("Connected to socket server");
+          console.log("Connected to socket server with ID:", socket.id);
+          setIsConnected(true);
+          setErrorMessage("");
+
           // Join drawing room
           socket.emit("join-room", sessionRoomId);
+          console.log("Joined room:", sessionRoomId);
+        });
+
+        socket.on("connect_error", (err) => {
+          console.error("Socket connection error:", err);
+          setIsConnected(false);
+          setErrorMessage(`Connection error: ${err.message}`);
+        });
+
+        socket.on("disconnect", (reason) => {
+          console.log("Disconnected from socket server:", reason);
+          setIsConnected(false);
         });
 
         socket.on("drawing", (data: any) => {
+          console.log("Received drawing data:", data);
           drawOnCanvas(data.x0, data.y0, data.x1, data.y1, data.color);
         });
 
         socketRef.current = socket;
       } catch (error) {
         console.error("Socket initialization error:", error);
+        setErrorMessage(
+          `Initialization error: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     };
 
@@ -120,14 +148,17 @@ export default function MobileDrawingPage() {
     ctx.stroke();
 
     // Send drawing data to server
-    socketRef.current.emit("drawing", {
+    const drawingData = {
       roomId,
       x0: lastPoint.x,
       y0: lastPoint.y,
       x1: clientX,
       y1: clientY,
       color: ctx.strokeStyle,
-    });
+    };
+
+    console.log("Emitting drawing data:", drawingData);
+    socketRef.current.emit("drawing", drawingData);
 
     // Update last point
     lastPointRef.current = { x: clientX, y: clientY };
@@ -164,7 +195,16 @@ export default function MobileDrawingPage() {
     <div className="h-screen w-screen overflow-hidden bg-white">
       <div className="fixed left-0 top-0 z-10 rounded-br-lg bg-white/80 p-4 text-lg font-bold">
         Room: {roomId}
+        <span
+          className={`ml-2 inline-block h-3 w-3 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+        ></span>
       </div>
+
+      {errorMessage && (
+        <div className="fixed left-0 top-14 z-10 rounded-br-lg bg-red-100 p-2 text-sm text-red-800">
+          {errorMessage}
+        </div>
+      )}
 
       <canvas
         ref={canvasRef}
@@ -176,7 +216,8 @@ export default function MobileDrawingPage() {
 
       <div className="fixed bottom-4 left-0 right-0 flex justify-center">
         <div className="rounded-full bg-white/80 px-4 py-2 text-sm">
-          Drawing on mobile device
+          Drawing on mobile device{" "}
+          {isConnected ? "(Connected)" : "(Disconnected)"}
         </div>
       </div>
     </div>
