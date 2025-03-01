@@ -6,7 +6,10 @@ import { signIn } from "next-auth/react";
 export function SignInButton() {
   return (
     <Button
-      onClick={() => void signIn("google", { redirectTo: "/dashboard" })}
+      onClick={(e) => {
+        e.preventDefault();
+        void signIn("google", { redirectTo: "/dashboard" });
+      }}
       variant="default"
       size="default"
     >
