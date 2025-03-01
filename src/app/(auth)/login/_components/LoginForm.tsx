@@ -11,7 +11,7 @@ export function LoginForm({
         <h1 className="text-2xl font-bold">
           Welcome to
           <br />
-          Tutor Me Good Daddy!
+          Tutor Me Good!
         </h1>
         <p className="text-balance text-justify">
           We use smart AI to create lessons just for you. Learn faster, have

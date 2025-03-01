@@ -8,7 +8,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "./_components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "Tutor Me Good Daddy",
+  title: "Tutor Me Good",
   description: "An app for tutoring",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };

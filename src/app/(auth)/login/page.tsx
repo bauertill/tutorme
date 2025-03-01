@@ -11,7 +11,7 @@ export default function LoginPage() {
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GraduationCap className="size-4" />
             </div>
-            Tutor Me Good Daddy
+            Tutor Me Good
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
