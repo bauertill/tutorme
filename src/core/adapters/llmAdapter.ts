@@ -6,22 +6,27 @@ import {
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import {
-  QuestionParams,
-  type Question,
-  type QuestionResponseWithQuestion,
-  type Concept,
   ConceptWithGoal,
+  QuestionParams,
+  type Concept,
+  type QuestionResponseWithQuestion,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
-import type { EducationalVideo, LessonTurn, LessonExerciseTurn, LessonExplanationTurn, Lesson } from "../learning/types";
+import type {
+  EducationalVideo,
+  Lesson,
+  LessonExerciseTurn,
+  LessonExplanationTurn,
+  LessonTurn,
+} from "../learning/types";
+import {
+  CREATE_LESSON_GOAL_HUMAN_TEMPLATE,
+  CREATE_LESSON_GOAL_SYSTEM_PROMPT,
+} from "./prompts/createLessonGoal";
 import {
   CREATE_LESSON_ITERATION_HUMAN_TEMPLATE,
   CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
 } from "./prompts/createLessonIteration";
-import {
-  EVALUATE_LESSON_RESPONSE_HUMAN_TEMPLATE,
-  EVALUATE_LESSON_RESPONSE_SYSTEM_PROMPT,
-} from "./prompts/evaluateLessonResponse";
 import {
   EVALUATION_HUMAN_TEMPLATE,
   EVALUATION_SYSTEM_PROMPT,
@@ -30,6 +35,10 @@ import {
   DECIDE_NEXT_ACTION_HUMAN_TEMPLATE,
   DECIDE_NEXT_ACTION_SYSTEM_PROMPT,
 } from "./prompts/decideNextAction";
+import {
+  EVALUATE_LESSON_RESPONSE_HUMAN_TEMPLATE,
+  EVALUATE_LESSON_RESPONSE_SYSTEM_PROMPT,
+} from "./prompts/evaluateLessonResponse";
 import {
   FOLLOW_UP_QUESTION_HUMAN_TEMPLATE,
   FOLLOW_UP_QUESTION_SYSTEM_PROMPT,
@@ -115,17 +124,19 @@ export class LLMAdapter {
         runName: "Generate Concept Quiz",
       });
 
-    return retryUntilValid(() => evaluationChain.invoke(
-      {
-        conceptName: concept.name,
-        conceptDescription: concept.description,
-      },
-      {
-        metadata: {
-          conceptId: concept.id,
+    return retryUntilValid(() =>
+      evaluationChain.invoke(
+        {
+          conceptName: concept.name,
+          conceptDescription: concept.description,
         },
-      },
-    ));
+        {
+          metadata: {
+            conceptId: concept.id,
+          },
+        },
+      ),
+    );
   }
 
   async createFollowUpQuestion(
@@ -152,20 +163,22 @@ export class LLMAdapter {
       (response) =>
         `question: ${response.question.question}\nresponse: ${response.answer}\n isCorrect: ${response.isCorrect}`,
     );
-    return retryUntilValid(() => chain.invoke(
-      {
-        conceptName: concept.name,
-        conceptDescription: concept.description,
-        previousQuestionsAndResponses,
-        currentMasteryLevel: concept.masteryLevel,
-      },      {
-        metadata: {
-          conceptId: concept.id,
-          userId: userResponses[0]?.userId,
+    return retryUntilValid(() =>
+      chain.invoke(
+        {
+          conceptName: concept.name,
+          conceptDescription: concept.description,
+          previousQuestionsAndResponses,
+          currentMasteryLevel: concept.masteryLevel,
         },
-      },
-
-    ));
+        {
+          metadata: {
+            conceptId: concept.id,
+            userId: userResponses[0]?.userId,
+          },
+        },
+      ),
+    );
   }
 
   /**
@@ -359,31 +372,82 @@ export class LLMAdapter {
   }
 
   /**
+   * Creates a focused lesson goal based on the concept and teacher's report
+   * @param concept The concept to create a lesson goal for
+   * @param userId The ID of the user
+   * @returns A focused lesson goal as a string
+   */
+  async createLessonGoal(concept: Concept, userId: string): Promise<string> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        CREATE_LESSON_GOAL_SYSTEM_PROMPT,
+      ),
+      HumanMessagePromptTemplate.fromTemplate(
+        CREATE_LESSON_GOAL_HUMAN_TEMPLATE,
+      ),
+    ]);
+
+    const chain = promptTemplate.pipe(this.model).withConfig({
+      tags: ["lesson-goal-generation"],
+      runName: "Generate Lesson Goal",
+    });
+
+    const response = await chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        teacherReport:
+          concept.teacherReport || "No previous assessments available.",
+      },
+      {
+        metadata: {
+          conceptId: concept.id,
+          userId,
+        },
+      },
+    );
+
+    // Extract the lesson goal from the response
+    const lessonGoal =
+      response.content instanceof Object
+        ? JSON.stringify(response.content)
+        : String(response.content).trim();
+
+    return lessonGoal;
+  }
+
+  /**
    * Creates the first iteration of a lesson
-   * @param conceptName The name of the concept
-   * @param conceptDescription The description of the concept
-   * @param teacherReport Optional teacher's report on the concept
-   * @param lessonGoal The specific goal for this lesson
-   * @param conceptId The ID of the concept being taught
+   * @param concept The concept to create a lesson for
+   * @param userId The ID of the user
    * @returns The first lesson iteration with explanation and exercise
    */
   async createFirstLessonIteration(
     concept: ConceptWithGoal,
     userId: string,
-  ): Promise<{exercise: LessonExerciseTurn, explanation: LessonExplanationTurn, lessonGoal: string}> {
+  ): Promise<{
+    exercise: LessonExerciseTurn;
+    explanation: LessonExplanationTurn;
+  }> {
     const promptTemplate = ChatPromptTemplate.fromMessages([
-      SystemMessagePromptTemplate.fromTemplate(CREATE_LESSON_ITERATION_SYSTEM_PROMPT),
-      HumanMessagePromptTemplate.fromTemplate(CREATE_LESSON_ITERATION_HUMAN_TEMPLATE),
+      SystemMessagePromptTemplate.fromTemplate(
+        CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
+      ),
+      HumanMessagePromptTemplate.fromTemplate(
+        CREATE_LESSON_ITERATION_HUMAN_TEMPLATE,
+      ),
     ]);
 
     // Define the schema for structured output
     const turnSchema = z.object({
-      explanation: z.string().describe("A clear, thorough explanation of the concept"),
+      explanation: z
+        .string()
+        .describe("A clear, thorough explanation of the concept"),
       exercise: z.string().describe("A practice exercise for the student"),
-      lessonGoal: z.string().describe("The specific goal for this lesson"),
     });
 
-    const chain = promptTemplate.pipe(this.model.withStructuredOutput(turnSchema))
+    const chain = promptTemplate
+      .pipe(this.model.withStructuredOutput(turnSchema))
       .withConfig({
         tags: ["lesson-generation"],
         runName: "Generate First Lesson Iteration",
@@ -394,27 +458,16 @@ export class LLMAdapter {
         conceptName: concept.name,
         conceptDescription: concept.description,
         goal: concept.goal.name,
-        teacherReport: concept.teacherReport || "No previous assessments available.",
+        teacherReport:
+          concept.teacherReport || "No previous assessments available.",
       },
       {
         metadata: {
           conceptId: concept.id,
           userId,
         },
-      }
-    );
-
-    // Create a properly structured lesson iteration
-    const turns: LessonTurn[] = [
-      {
-        type: "explanation",
-        text: response.explanation,
       },
-      {
-        type: "exercise",
-        text: response.exercise,
-      }
-    ];
+    );
 
     return {
       exercise: {
@@ -425,7 +478,6 @@ export class LLMAdapter {
         text: response.explanation,
         type: "explanation",
       },
-      lessonGoal: response.lessonGoal,
     };
   }
 
@@ -443,26 +495,41 @@ export class LLMAdapter {
     if (lesson.lessonIterations.length === 0) {
       throw new Error("Lesson has no iterations");
     }
-    
-    const lastIteration = lesson.lessonIterations[lesson.lessonIterations.length - 1]!;
-    
+
+    const lastIteration =
+      lesson.lessonIterations[lesson.lessonIterations.length - 1]!;
+
     // Find the explanation and exercise turns in the last iteration
-    const explanationTurn = lastIteration.turns.find((turn: LessonTurn) => turn.type === "explanation") as LessonExplanationTurn;
-    const exerciseTurn = lastIteration.turns.find((turn: LessonTurn) => turn.type === "exercise") as LessonExerciseTurn;
+    const explanationTurn = lastIteration.turns.find(
+      (turn: LessonTurn) => turn.type === "explanation",
+    ) as LessonExplanationTurn;
+    const exerciseTurn = lastIteration.turns.find(
+      (turn: LessonTurn) => turn.type === "exercise",
+    ) as LessonExerciseTurn;
 
     if (!explanationTurn || !exerciseTurn) {
-      throw new Error("Last iteration does not contain both explanation and exercise turns");
+      throw new Error(
+        "Last iteration does not contain both explanation and exercise turns",
+      );
     }
 
     const promptTemplate = ChatPromptTemplate.fromMessages([
-      SystemMessagePromptTemplate.fromTemplate(EVALUATE_LESSON_RESPONSE_SYSTEM_PROMPT),
-      HumanMessagePromptTemplate.fromTemplate(EVALUATE_LESSON_RESPONSE_HUMAN_TEMPLATE),
+      SystemMessagePromptTemplate.fromTemplate(
+        EVALUATE_LESSON_RESPONSE_SYSTEM_PROMPT,
+      ),
+      HumanMessagePromptTemplate.fromTemplate(
+        EVALUATE_LESSON_RESPONSE_HUMAN_TEMPLATE,
+      ),
     ]);
 
     // Define the schema for structured output
     const evaluationSchema = z.object({
-      isComplete: z.boolean().describe("Whether the student has achieved the lesson goal"),
-      feedback: z.string().describe("Detailed feedback on the student's response"),
+      isComplete: z
+        .boolean()
+        .describe("Whether the student has achieved the lesson goal"),
+      feedback: z
+        .string()
+        .describe("Detailed feedback on the student's response"),
     });
 
     const chain = promptTemplate
@@ -484,26 +551,26 @@ export class LLMAdapter {
           lessonId: lesson.id,
           userId: lesson.userId,
         },
-      }
+      },
     );
     console.log("REPSONSE FORM THE LLM", response);
 
-    return { 
-      evaluation: response.feedback, 
-      isComplete: response.isComplete 
+    return {
+      evaluation: response.feedback,
+      isComplete: response.isComplete,
     };
   }
 }
 
 export const llmAdapter = new LLMAdapter();
 
-
-async function retryUntilValid(fn: () => Promise<QuestionParams>): Promise<QuestionParams> {
-  for (let i = 0; i < 3; i++) { 
+async function retryUntilValid(
+  fn: () => Promise<QuestionParams>,
+): Promise<QuestionParams> {
+  for (let i = 0; i < 3; i++) {
     const question = await fn();
     const isValidQuestion = question.options.includes(question.correctAnswer);
-    if (isValidQuestion) 
-      return question;
+    if (isValidQuestion) return question;
   }
   throw new Error("Failed to generate a valid question");
 }

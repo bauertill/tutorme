@@ -28,8 +28,13 @@ export async function createLesson(
   llmAdapter: LLMAdapter,
 ): Promise<Lesson> {
   const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
-  const { lessonGoal, exercise, explanation } =
-    await llmAdapter.createFirstLessonIteration(concept, userId);
+
+  const lessonGoal = await llmAdapter.createLessonGoal(concept, userId);
+
+  const { exercise, explanation } = await llmAdapter.createFirstLessonIteration(
+    concept,
+    userId,
+  );
 
   const lessonIteration: LessonIteration = {
     turns: [explanation, exercise],
