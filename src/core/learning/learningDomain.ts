@@ -22,23 +22,21 @@ export async function createLesson(
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
 ): Promise<Lesson> {
-  // Get the concept and its details
   const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
-  
-  // Generate the first lesson iteration using LLM
-  const firstIteration = await llmAdapter.createFirstLessonIteration(
+  const {lessonGoal, exercise, explanation} = await llmAdapter.createFirstLessonIteration(
     concept,
     userId,
   );
 
-  // Create the lesson in the database
-  // @TODO create a separate lessonGoal
   return await dbAdapter.createLesson(
-    concept.goal.name,   
+    lessonGoal,   
     conceptId,
     concept.goalId,
     userId,
-    [firstIteration]
+    [{
+      exercise: {type: "exercise", text: exercise },
+      explanation: { type: "explanation", text: explanation },
+    }]
   );
 }
 
