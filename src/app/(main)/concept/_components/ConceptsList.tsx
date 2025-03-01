@@ -40,13 +40,11 @@ export default function ConceptsList({ goalId }: { goalId: string }) {
             >
               <Card className="transition-colors">
                 <CardContent className="pt-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold">{concept.name}</h3>
-                      <p className="mt-2">{concept.description}</p>
-                    </div>
+                  <h3 className="flex items-start justify-between text-lg font-semibold">
+                    {concept.name}
                     <MasteryLevelPill level={concept.masteryLevel} />
-                  </div>
+                  </h3>
+                  <p className="mt-2">{concept.description}</p>
                 </CardContent>
               </Card>
             </Link>

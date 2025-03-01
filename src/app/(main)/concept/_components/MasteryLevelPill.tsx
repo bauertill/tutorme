@@ -6,32 +6,39 @@ interface MasteryLevelPillProps {
   level: MasteryLevel;
 }
 
-const MASTERY_LEVEL_STYLES: Record<MasteryLevel, { bg: string; text: string }> =
-  {
-    UNKNOWN: {
-      bg: "bg-gray-100",
-      text: "text-gray-600",
-    },
-    BEGINNER: {
-      bg: "bg-blue-100",
-      text: "text-blue-600",
-    },
-    INTERMEDIATE: {
-      bg: "bg-green-100",
-      text: "text-green-600",
-    },
-    ADVANCED: {
-      bg: "bg-purple-100",
-      text: "text-purple-600",
-    },
-    EXPERT: {
-      bg: "bg-yellow-100",
-      text: "text-yellow-600",
-    },
-  };
+const MASTERY_LEVEL_DEFINITIONS: Record<
+  MasteryLevel,
+  { label: string; bg: string; text: string }
+> = {
+  UNKNOWN: {
+    label: "Unknown Skill",
+    bg: "bg-gray-100",
+    text: "text-gray-600",
+  },
+  BEGINNER: {
+    label: "Beginner",
+    bg: "bg-blue-100",
+    text: "text-blue-600",
+  },
+  INTERMEDIATE: {
+    label: "Intermediate",
+    bg: "bg-green-100",
+    text: "text-green-600",
+  },
+  ADVANCED: {
+    label: "Advanced",
+    bg: "bg-purple-100",
+    text: "text-purple-600",
+  },
+  EXPERT: {
+    label: "Expert",
+    bg: "bg-yellow-100",
+    text: "text-yellow-600",
+  },
+};
 
 export function MasteryLevelPill({ level }: MasteryLevelPillProps) {
-  const styles = MASTERY_LEVEL_STYLES[level];
+  const styles = MASTERY_LEVEL_DEFINITIONS[level];
   return (
     <Badge
       variant="secondary"
@@ -42,7 +49,7 @@ export function MasteryLevelPill({ level }: MasteryLevelPillProps) {
         "hover:bg-opacity-100", // Prevent hover color change
       )}
     >
-      {level.charAt(0).toUpperCase() + level.slice(1)}
+      {MASTERY_LEVEL_DEFINITIONS[level].label}
     </Badge>
   );
 }

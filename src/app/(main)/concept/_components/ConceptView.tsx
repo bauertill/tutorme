@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { Concept } from "@/core/goal/types";
+import { MasteryLevel, type Concept } from "@/core/goal/types";
 import { api } from "@/trpc/react";
 import { skipToken } from "@tanstack/react-query";
 import Link from "next/link";
@@ -18,7 +18,7 @@ export function ConceptView({ concept }: { concept: Concept }) {
         : skipToken,
     );
 
-  if (concept.masteryLevel === "UNKNOWN") {
+  if (concept.masteryLevel === MasteryLevel.Enum.UNKNOWN) {
     return (
       <>
         <div className="mb-4 flex items-center justify-between gap-4">
