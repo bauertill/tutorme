@@ -17,31 +17,31 @@ export async function findEducationalVideo(
 }
 
 export async function createLesson(
-  lessonGoal: string,
   conceptId: string,
   userId: string,
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
 ): Promise<Lesson> {
   // Get the concept and its details
-  const concept = await dbAdapter.getConceptById(conceptId);
+  const concept = await dbAdapter.getConceptWithGoalByConceptId(conceptId);
   
   // Generate the first lesson iteration using LLM
   const firstIteration = await llmAdapter.createFirstLessonIteration(
     concept,
     userId,
-    lessonGoal,
   );
 
   // Create the lesson in the database
+  // @TODO create a separate lessonGoal
   return await dbAdapter.createLesson(
-    lessonGoal,
+    concept.goal.name,   
     conceptId,
     concept.goalId,
     userId,
     [firstIteration]
   );
 }
+
 
 
 

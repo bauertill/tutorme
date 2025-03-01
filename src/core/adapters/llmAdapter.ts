@@ -10,6 +10,7 @@ import {
   type Question,
   type QuestionResponseWithQuestion,
   type Concept,
+  ConceptWithGoal,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
 import type { EducationalVideo, LessonIteration, LessonTurn } from "../learning/types";
@@ -363,9 +364,8 @@ export class LLMAdapter {
    * @returns The first lesson iteration with explanation and exercise
    */
   async createFirstLessonIteration(
-    concept: Concept,
+    concept: ConceptWithGoal,
     userId: string,
-    goal: string,
   ): Promise<LessonIteration> {
     const promptTemplate = ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(CREATE_LESSON_ITERATION_SYSTEM_PROMPT),
@@ -388,7 +388,7 @@ export class LLMAdapter {
       {
         conceptName: concept.name,
         conceptDescription: concept.description,
-        goal,
+        goal: concept.goal.name,
         teacherReport: concept.teacherReport || "No previous assessments available.",
       },
       {
