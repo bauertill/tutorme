@@ -11,17 +11,19 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
 export function CreateGoalButton() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [goalText, setGoalText] = useState("");
 
   const utils = api.useUtils();
   const createGoal = api.goal.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       void utils.goal.all.invalidate();
       setIsOpen(false);
+      router.push(`/goal/${data.id}`);
     },
   });
 
