@@ -13,7 +13,7 @@ import {
   type MasteryLevel,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
-import { LessonIteration, type Lesson } from "../learning/types";
+import { Lesson, LessonIteration } from "../learning/types";
 import { z } from "zod";
 
 export class DBAdapter {
@@ -166,8 +166,8 @@ export class DBAdapter {
     goalId: string,
     userId: string,
     lessonIterations: any,
-  ): Promise<void> {
-    await this.db.lesson.create({
+  ): Promise<Lesson> {
+    const dbLesson = await this.db.lesson.create({
       data: {
         lessonGoal,
         conceptId,
@@ -177,6 +177,7 @@ export class DBAdapter {
         status: "ACTIVE",
       },
     });
+    return Lesson.parse(dbLesson)
   }
 
   /**
