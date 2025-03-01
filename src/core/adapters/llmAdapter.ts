@@ -7,10 +7,16 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import {
   QuestionParams,
-  QuestionResponseWithQuestion,
+  type Question,
+  type QuestionResponseWithQuestion,
+  type Concept,
 } from "../concept/types";
-import type { Concept, Goal } from "../goal/types";
-import type { EducationalVideo } from "../learning/types";
+import type { Goal } from "../goal/types";
+import type { EducationalVideo, LessonIteration, LessonTurn } from "../learning/types";
+import {
+  CREATE_LESSON_ITERATION_HUMAN_TEMPLATE,
+  CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
+} from "./prompts/createLessonIteration";
 import {
   EVALUATION_HUMAN_TEMPLATE,
   EVALUATION_SYSTEM_PROMPT,
@@ -87,6 +93,7 @@ export class LLMAdapter {
       description: concept.description,
       goalId: goal.id,
       masteryLevel: "UNKNOWN",
+      teacherReport: null,
     }));
     return concepts;
   }
@@ -344,6 +351,71 @@ export class LLMAdapter {
     return response.content instanceof Object
       ? JSON.stringify(response.content)
       : String(response.content).trim();
+  }
+
+  /**
+   * Creates the first iteration of a lesson
+   * @param conceptName The name of the concept
+   * @param conceptDescription The description of the concept
+   * @param teacherReport Optional teacher's report on the concept
+   * @param lessonGoal The specific goal for this lesson
+   * @param conceptId The ID of the concept being taught
+   * @returns The first lesson iteration with explanation and exercise
+   */
+  async createFirstLessonIteration(
+    concept: Concept,
+    userId: string,
+    goal: string,
+  ): Promise<LessonIteration> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(CREATE_LESSON_ITERATION_SYSTEM_PROMPT),
+      HumanMessagePromptTemplate.fromTemplate(CREATE_LESSON_ITERATION_HUMAN_TEMPLATE),
+    ]);
+
+    // Define the schema for structured output
+    const turnSchema = z.object({
+      explanation: z.string().describe("A clear, thorough explanation of the concept"),
+      exercise: z.string().describe("A practice exercise for the student"),
+    });
+
+    const chain = promptTemplate.pipe(this.model.withStructuredOutput(turnSchema))
+      .withConfig({
+        tags: ["lesson-generation"],
+        runName: "Generate First Lesson Iteration",
+      });
+
+    const response = await chain.invoke(
+      {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        goal,
+        teacherReport: concept.teacherReport || "No previous assessments available.",
+      },
+      {
+        metadata: {
+          conceptId: concept.id,
+          userId,
+        },
+      }
+    );
+
+    // Create a properly structured lesson iteration
+    const turns: LessonTurn[] = [
+      {
+        type: "explanation",
+        text: response.explanation,
+      },
+      {
+        type: "exercise",
+        text: response.exercise,
+      }
+    ];
+
+    return {
+      type: "initial",
+      turns,
+      evaluation: "Not evaluated yet",
+    };
   }
 }
 

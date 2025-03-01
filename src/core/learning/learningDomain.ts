@@ -1,7 +1,7 @@
 import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
 import type { YouTubeAdapter } from "../adapters/youtubeAdapter";
-import type { EducationalVideo, Lesson } from "./types";
+import type { EducationalVideo, Lesson, LessonIteration } from "./types";
 
 export async function findEducationalVideo(
   conceptId: string,
@@ -16,19 +16,31 @@ export async function findEducationalVideo(
   return bestVideo;
 }
 
-
 export async function createLesson(
-  goal: string,
+  lessonGoal: string,
   conceptId: string,
+  userId: string,
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
 ): Promise<Lesson> {
-  // const lesson = await dbAdapter.createLesson(goal, conceptId);
-  return {
-    id: "1",
-    goal: "Learn about the concept of " + goal,
-    iterations: [],
-  };
+  // Get the concept and its details
+  const concept = await dbAdapter.getConceptById(conceptId);
+  
+  // Generate the first lesson iteration using LLM
+  const firstIteration = await llmAdapter.createFirstLessonIteration(
+    concept,
+    userId,
+    lessonGoal,
+  );
+
+  // Create the lesson in the database
+  return await dbAdapter.createLesson(
+    lessonGoal,
+    conceptId,
+    concept.goalId,
+    userId,
+    [firstIteration]
+  );
 }
 
 

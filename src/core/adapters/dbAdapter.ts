@@ -13,6 +13,7 @@ import {
   type MasteryLevel,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
+import type { Lesson } from "../learning/types";
 
 export class DBAdapter {
   constructor(private db: PrismaClient) {}
@@ -146,6 +147,34 @@ export class DBAdapter {
     return await this.db.quiz.findUniqueOrThrow({
       where: { id: quizId },
       include: { questions: true },
+    });
+  }
+
+  /**
+   * Creates a new lesson
+   * @param lessonGoal The goal of the lesson
+   * @param conceptId The ID of the concept this lesson is for
+   * @param goalId The ID of the parent goal
+   * @param userId The ID of the user
+   * @param lessonIterations The initial iterations for the lesson
+   * @returns The created lesson
+   */
+  async createLesson(
+    lessonGoal: string,
+    conceptId: string,
+    goalId: string,
+    userId: string,
+    lessonIterations: any,
+  ): Promise<Lesson> {
+    return await this.db.lesson.create({
+      data: {
+        lessonGoal,
+        conceptId,
+        goalId,
+        userId,
+        lessonIterations,
+        status: "ACTIVE",
+      },
     });
   }
 }

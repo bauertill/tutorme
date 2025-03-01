@@ -14,8 +14,6 @@ export type EducationalVideo = z.infer<typeof EducationalVideo>;
 
 // @TODO Video detail type
 
-
-
 const LessonExplanationTurn = z.object({
   type: z.literal("explanation"),
   text: z.string(),
@@ -48,10 +46,17 @@ export const LessonIteration = z.object({
 });
 export type LessonIteration = z.infer<typeof LessonIteration>;
 
+export const LessonStatus = z.enum(["ACTIVE", "DONE"]);
+export type LessonStatus = z.infer<typeof LessonStatus>;
+
 export const Lesson = z.object({
   id: z.string(),
-  goal: z.string(),
-  iterations: z.array(LessonIteration),
+  lessonGoal: z.string(),
+  lessonIterations: z.array(LessonIteration),
+  status: LessonStatus,
+  conceptId: z.string(),
+  goalId: z.string(),
+  userId: z.string(),
 });
 export type Lesson = z.infer<typeof Lesson>;
 
