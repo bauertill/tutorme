@@ -26,9 +26,17 @@ export default async function LearningGoalPage({
             { label: goal.name, href: `/goal/${goalId}` },
           ]}
         />
-        <h1 className="mb-6 text-3xl font-bold">{goal.name}</h1>
+        <div className="mb-6">
+          <p className="text-lg text-muted-foreground">Your Goal</p>
+          <h1 className="text-3xl font-bold text-foreground">{goal.name}</h1>
+        </div>
       </Header>
-      <main>
+      <main className="space-y-6">
+        <p className="text-muted-foreground">
+          Here are the key concepts you need to learn to achieve your goal. You
+          can see your progress in each concept. Click on a concept to start
+          learning.
+        </p>
         <ConceptsList goalId={goalId} />
       </main>
     </div>
