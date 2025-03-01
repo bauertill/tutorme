@@ -31,7 +31,7 @@ export async function createLesson(
 
   const lessonGoal = await llmAdapter.createLessonGoal(concept, userId);
 
-  const { exercise, explanation } = await llmAdapter.createFirstLessonIteration(
+  const { exercise, explanation } = await llmAdapter.createNextLessonIteration(
     concept,
     userId,
   );
@@ -82,13 +82,21 @@ export async function addUserInputToLesson(
     updatedLastIteration,
   ];
 
-  // if (isComplete) {
+  if (!isComplete) {
+    const { explanation, exercise } =
+      await llmAdapter.createNextLessonIteration(lesson, undefined, userInput);
+
+    const newIteration: LessonIteration = {
+      turns: [explanation, exercise],
+    };
+
+    updatedLessonIterations.push(newIteration);
+  }
+
   const updatedLesson = {
     ...lesson,
     lessonIterations: updatedLessonIterations,
     status: isComplete ? "DONE" : lesson.status,
   };
   return await dbAdapter.updateLesson(updatedLesson);
-  // else
-  // Get more iterations
 }

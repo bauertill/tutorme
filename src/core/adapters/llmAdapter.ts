@@ -482,6 +482,128 @@ export class LLMAdapter {
   }
 
   /**
+   * Creates the next iteration of a lesson based on previous interactions
+   * @param lesson The current lesson or concept for first-time iterations
+   * @param userId The ID of the user (only required for first iterations)
+   * @param previousUserInput The previous user input (if any)
+   * @returns The next lesson iteration with explanation and exercise
+   */
+  async createNextLessonIteration(
+    lessonOrConcept: Lesson | ConceptWithGoal,
+    userId?: string,
+    previousUserInput?: string,
+  ): Promise<{
+    exercise: LessonExerciseTurn;
+    explanation: LessonExplanationTurn;
+  }> {
+    // Define the schema for structured output
+    const turnSchema = z.object({
+      explanation: z
+        .string()
+        .describe(
+          "A concise explanation of the concept (under 1 minute to read)",
+        ),
+      exercise: z
+        .string()
+        .describe("A quick practice exercise (1-2 minutes to complete)"),
+    });
+
+    let promptData: Record<string, any>;
+    let metadata: Record<string, any>;
+    let runName: string;
+
+    // Handle first iteration vs subsequent iterations
+    if ("lessonIterations" in lessonOrConcept) {
+      // This is a Lesson object for subsequent iterations
+      const lesson = lessonOrConcept;
+
+      if (!previousUserInput) {
+        throw new Error("User input is required for subsequent iterations");
+      }
+
+      // Prepare previous interactions for context
+      const previousInteractions = lesson.lessonIterations.flatMap(
+        (iteration) =>
+          iteration.turns.map((turn) => ({
+            type: turn.type,
+            text: turn.text,
+          })),
+      );
+
+      promptData = {
+        lessonGoal: lesson.lessonGoal,
+        previousInteractions: JSON.stringify(previousInteractions),
+        previousUserInput,
+      };
+
+      metadata = {
+        lessonId: lesson.id,
+        userId: lesson.userId,
+      };
+
+      runName = "Generate Next Lesson Iteration";
+    } else {
+      // This is a ConceptWithGoal object for first iteration
+      const concept = lessonOrConcept;
+
+      if (!userId) {
+        throw new Error("User ID is required for first iterations");
+      }
+
+      promptData = {
+        conceptName: concept.name,
+        conceptDescription: concept.description,
+        goal: concept.goal.name,
+        teacherReport:
+          concept.teacherReport || "No previous assessments available.",
+      };
+
+      metadata = {
+        conceptId: concept.id,
+        userId,
+      };
+
+      runName = "Generate First Lesson Iteration";
+    }
+
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        `You are an expert tutor creating concise educational content. 
+        Your goal is to create bite-sized learning experiences that take less than a minute to read 
+        and only 1-2 minutes to complete exercises.
+        Focus on clarity and brevity while still being effective.`,
+      ),
+      HumanMessagePromptTemplate.fromTemplate(
+        `Create the next learning iteration with a concise explanation and short exercise.
+        
+        ${JSON.stringify(promptData)}
+        
+        Respond with a short explanation and a quick exercise. Both should be very concise.`,
+      ),
+    ]);
+
+    const chain = promptTemplate
+      .pipe(this.model.withStructuredOutput(turnSchema))
+      .withConfig({
+        tags: ["lesson-generation"],
+        runName,
+      });
+
+    const response = await chain.invoke(promptData, { metadata });
+
+    return {
+      exercise: {
+        text: response.exercise,
+        type: "exercise",
+      },
+      explanation: {
+        text: response.explanation,
+        type: "explanation",
+      },
+    };
+  }
+
+  /**
    * Evaluates a user's response to a lesson exercise and creates a new lesson iteration
    * @param lesson The current lesson
    * @param userInput The user's response to the exercise
