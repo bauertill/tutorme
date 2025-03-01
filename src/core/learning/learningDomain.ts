@@ -1,7 +1,7 @@
 import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
 import type { YouTubeAdapter } from "../adapters/youtubeAdapter";
-import type { EducationalVideo, Lesson, LessonIteration } from "./types";
+import type { EducationalVideo, Lesson, LessonIteration, LessonTurn } from "./types";
 
 export async function findEducationalVideo(
   conceptId: string,
@@ -28,15 +28,16 @@ export async function createLesson(
     userId,
   );
 
+  const lessonIteration: LessonIteration = {
+    turns: [explanation, exercise],
+  }
+
   return await dbAdapter.createLesson(
     lessonGoal,   
     conceptId,
     concept.goalId,
     userId,
-    [{
-      exercise: {type: "exercise", text: exercise },
-      explanation: { type: "explanation", text: explanation },
-    }]
+    [lessonIteration]
   );
 }
 

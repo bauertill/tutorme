@@ -41,7 +41,7 @@ export type LessonTurn = z.infer<typeof LessonTurn>;
 
 export const LessonIteration = z.object({
   turns: z.array(LessonTurn),
-  evaluation: z.string(),
+  evaluation: z.string().optional(),
 });
 export type LessonIteration = z.infer<typeof LessonIteration>;
 
