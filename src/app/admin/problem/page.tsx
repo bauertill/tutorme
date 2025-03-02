@@ -1,6 +1,7 @@
 "use client";
 
 import ProblemFileUpload from "./_components/ProblemFileUpload";
+import ProblemUploadList from "./_components/ProblemUploadList";
 import { SearchProblems } from "./_components/SearchProblems";
 
 export default function AdminProblemPage() {
@@ -11,6 +12,11 @@ export default function AdminProblemPage() {
       <div className="mb-8">
         <h2 className="mb-4 text-2xl font-bold">Upload Problems</h2>
         <ProblemFileUpload />
+      </div>
+
+      <div className="mb-8">
+        <h2 className="mb-4 text-2xl font-bold">Uploaded Files</h2>
+        <ProblemUploadList />
       </div>
 
       <div className="mb-8">

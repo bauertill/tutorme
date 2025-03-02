@@ -1,8 +1,16 @@
+import { sortBy } from "lodash-es";
 import type { DBAdapter } from "../adapters/dbAdapter";
 import { Draft, parseCsv } from "../utils";
-import { Problem, ProblemUploadStatus } from "./types";
+import { Problem, type ProblemUpload, ProblemUploadStatus } from "./types";
 
 const UPLOAD_BATCH_SIZE = 128;
+
+class CancelUploadError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CancelUploadError";
+  }
+}
 
 export async function createProblems(
   uploadId: string,
@@ -21,8 +29,7 @@ Solution: ${problem.solution};
     // check if the upload is cancelled
     const uploadStatus = await dbAdapter.getProblemUploadStatusById(uploadId);
     if (uploadStatus === ProblemUploadStatus.Enum.CANCELLED) {
-      console.log("Upload cancelled");
-      return;
+      throw new CancelUploadError("Upload cancelled");
     }
     console.log(
       `Processing ${UPLOAD_BATCH_SIZE} problems (batch ${
@@ -35,28 +42,58 @@ Solution: ${problem.solution};
 }
 
 export async function createProblemsFromCsv(
-  fileName: string,
-  csv: string,
+  data: { fileName: string; csv: string; fileSize: number },
   dbAdapter: DBAdapter,
-) {
-  const problems = await parseCsv(csv, Draft(Problem.strip()));
+): Promise<ProblemUpload> {
+  const problems = await parseCsv(data.csv, Draft(Problem.strip()));
+  const nRecords = problems.length;
   const upload = await dbAdapter.createProblemUpload({
-    fileName,
+    fileName: data.fileName,
+    fileSize: data.fileSize,
+    nRecords,
     status: ProblemUploadStatus.Enum.PENDING,
   });
   try {
     await createProblems(upload.id, problems, dbAdapter);
-  } catch (error) {
     await dbAdapter.updateProblemUploadStatus(upload.id, {
-      status: ProblemUploadStatus.Enum.ERROR,
-      error: error instanceof Error ? error.message : "Unknown error",
+      status: ProblemUploadStatus.Enum.SUCCESS,
     });
+  } catch (error) {
+    if (error instanceof CancelUploadError) {
+      await dbAdapter.updateProblemUploadStatus(upload.id, {
+        status: ProblemUploadStatus.Enum.CANCELLED,
+      });
+    } else {
+      await dbAdapter.updateProblemUploadStatus(upload.id, {
+        status: ProblemUploadStatus.Enum.ERROR,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
   }
-  await dbAdapter.updateProblemUploadStatus(upload.id, {
-    status: ProblemUploadStatus.Enum.SUCCESS,
-  });
+  return await dbAdapter.getProblemUploadById(upload.id);
 }
 
 export async function queryProblems(query: string, dbAdapter: DBAdapter) {
   return dbAdapter.queryProblems(query, 25);
+}
+
+export async function cancelProblemUpload(
+  uploadId: string,
+  dbAdapter: DBAdapter,
+) {
+  await dbAdapter.updateProblemUploadStatus(uploadId, {
+    status: ProblemUploadStatus.Enum.CANCELLED,
+  });
+}
+
+export async function getProblemUploadFiles(dbAdapter: DBAdapter) {
+  const results = await dbAdapter.getProblemUploadFiles();
+  return sortBy(results, (result) => result.createdAt).reverse();
+}
+
+export async function deleteProblemUpload(
+  uploadId: string,
+  dbAdapter: DBAdapter,
+) {
+  await dbAdapter.deleteProblemUpload(uploadId);
 }

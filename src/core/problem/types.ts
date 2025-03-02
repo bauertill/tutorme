@@ -12,6 +12,8 @@ export type ProblemUploadStatus = z.infer<typeof ProblemUploadStatus>;
 export const ProblemUpload = z.object({
   id: z.string(),
   fileName: z.string(),
+  nRecords: z.number(),
+  fileSize: z.number(),
   status: ProblemUploadStatus,
   error: z.string().nullable().optional(),
   createdAt: z.date(),

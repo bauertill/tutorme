@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import assert from "assert";
 import { useCallback, useState } from "react";
@@ -8,71 +7,86 @@ import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
 export default function ProblemFileUpload() {
-  const [fileToUpload, setFileToUpload] = useState<File>();
+  const utils = api.useUtils();
   const { mutate: uploadProblems, isPending } = api.problem.upload.useMutation({
-    onSuccess: () => {
-      toast.success("Problems uploaded successfully");
+    onMutate: () => {
+      setRefetchInterval(1000);
+    },
+    onSuccess: (result) => {
+      if (result.status === "SUCCESS") {
+        toast.success("Problems uploaded successfully");
+      } else if (result.status === "CANCELLED") {
+        toast.info("Upload cancelled");
+      } else {
+        toast.error("Upload failed", {
+          description: result.error,
+        });
+      }
     },
     onError: (error) => {
       toast.error("Upload failed", {
         description: error.message,
       });
     },
+    onSettled: () => {
+      setRefetchInterval(false);
+      void utils.problem.getUploadFiles.invalidate();
+    },
   });
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    // Only accept the first file
-    if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      assert(file, "No file uploaded");
-      if (file.type !== "text/csv") {
-        toast.error("Invalid file type", {
-          description: "Please upload a CSV file",
+  const [refetchInterval, setRefetchInterval] = useState<number | false>(false);
+  api.problem.getUploadFiles.useQuery(undefined, { refetchInterval });
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      // Only accept the first file
+      if (acceptedFiles.length > 0) {
+        const fileToUpload = acceptedFiles[0];
+        assert(fileToUpload, "No file uploaded");
+        if (fileToUpload.type !== "text/csv") {
+          toast.error("Invalid file type", {
+            description: "Please upload a CSV file",
+          });
+          return;
+        }
+        const base64EncodedContents = Buffer.from(
+          await fileToUpload.arrayBuffer(),
+        ).toString("base64");
+        uploadProblems({
+          fileName: fileToUpload.name,
+          fileSize: fileToUpload.size,
+          base64EncodedContents,
         });
-        return;
       }
-      setFileToUpload(file);
-    }
-  }, []);
+    },
+    [uploadProblems],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+    onDrop: (acceptedFiles) => void onDrop(acceptedFiles),
     accept: {
       "text/csv": [".csv"],
     },
     maxFiles: 1,
+    disabled: isPending,
   });
-
-  const handleUpload = async () => {
-    if (!fileToUpload) return;
-
-    const base64EncodedContents = Buffer.from(
-      await fileToUpload.arrayBuffer(),
-    ).toString("base64");
-    uploadProblems({
-      fileName: fileToUpload.name,
-      base64EncodedContents,
-    });
-    setFileToUpload(undefined);
-  };
 
   return (
     <>
       <div
         {...getRootProps()}
         className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-          isDragActive
-            ? "border-primary bg-primary/10"
-            : "border-gray-300 hover:border-primary"
+          isPending
+            ? "border-gray-300"
+            : isDragActive
+              ? "border-primary bg-primary/10"
+              : "border-gray-300 hover:border-primary"
         }`}
       >
         <input {...getInputProps()} />
-        {fileToUpload ? (
+        {isPending ? (
           <div>
-            <p className="text-lg font-medium">{fileToUpload.name}</p>
-            <p className="text-sm text-gray-500">
-              {(fileToUpload.size / 1024).toFixed(2)} KB
-            </p>
+            <p className="text-lg font-medium">Processing...</p>
           </div>
         ) : (
           <div>
@@ -87,14 +101,6 @@ export default function ProblemFileUpload() {
           </div>
         )}
       </div>
-
-      {fileToUpload && (
-        <div className="mt-4 flex justify-end">
-          <Button onClick={handleUpload} disabled={isPending}>
-            {isPending ? "Uploading..." : "Upload Problems"}
-          </Button>
-        </div>
-      )}
     </>
   );
 }

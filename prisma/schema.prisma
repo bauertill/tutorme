@@ -209,6 +209,8 @@ enum ProblemUploadStatus {
 model ProblemUpload {
   id        String              @id @default(cuid())
   fileName  String
+  nRecords  Int
+  fileSize  Int
   status    ProblemUploadStatus @default(PENDING)
   error     String?
   createdAt DateTime            @default(now())
@@ -228,5 +230,5 @@ model Problem {
   createdAt  DateTime                     @default(now())
 
   problemUploadId String
-  problemUpload   ProblemUpload @relation(fields: [problemUploadId], references: [id])
+  problemUpload   ProblemUpload @relation(fields: [problemUploadId], references: [id], onDelete: Cascade)
 }

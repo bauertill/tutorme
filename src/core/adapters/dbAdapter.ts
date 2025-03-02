@@ -342,6 +342,18 @@ export class DBAdapter {
       score: result.score,
     }));
   }
+
+  async getProblemUploadFiles(): Promise<ProblemUpload[]> {
+    return this.db.problemUpload.findMany();
+  }
+
+  async deleteProblemUpload(uploadId: string): Promise<void> {
+    await this.db.problemUpload.delete({ where: { id: uploadId } });
+  }
+
+  async getProblemUploadById(uploadId: string): Promise<ProblemUpload> {
+    return this.db.problemUpload.findUniqueOrThrow({ where: { id: uploadId } });
+  }
 }
 
 export const dbAdapter = new DBAdapter(db);
