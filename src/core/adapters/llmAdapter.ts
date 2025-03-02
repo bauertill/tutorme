@@ -4,6 +4,7 @@ import {
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
+import assert from "assert";
 import { z } from "zod";
 import {
   QuestionParams,
@@ -14,11 +15,15 @@ import type { Goal } from "../goal/types";
 import type {
   EducationalVideo,
   Lesson,
-  LessonExerciseTurn,
   LessonExplanationTurn,
   LessonIteration,
   LessonTurn,
 } from "../learning/types";
+import { type Problem } from "../problem/types";
+import {
+  CHOOSE_PROBLEM_HUMAN_TEMPLATE,
+  CHOOSE_PROBLEM_SYSTEM_PROMPT,
+} from "./prompts/lesson/chooseProblem";
 import {
   CREATE_LESSON_GOAL_HUMAN_TEMPLATE,
   CREATE_LESSON_GOAL_SYSTEM_PROMPT,
@@ -432,6 +437,50 @@ export class LLMAdapter {
     return lessonGoal;
   }
 
+  async chooseProblemForGoal(
+    lessonGoal: string,
+    relevantProblems: Problem[],
+  ): Promise<Problem> {
+    const promptTemplate = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(CHOOSE_PROBLEM_SYSTEM_PROMPT),
+      HumanMessagePromptTemplate.fromTemplate(CHOOSE_PROBLEM_HUMAN_TEMPLATE),
+    ]);
+
+    const schema = z.object({
+      problemIndex: z.number().describe("The index of the problem to choose"),
+    });
+
+    const chain = promptTemplate
+      .pipe(this.model.withStructuredOutput(schema))
+      .withConfig({
+        tags: ["problem-selection"],
+        runName: "Select Problem",
+      });
+
+    const formattedRelevantProblems = relevantProblems.map(
+      (problem, index) => ({
+        index,
+        problem: `Type: ${problem.type}\nLevel: ${problem.level}\nProblem: ${problem.problem}`,
+      }),
+    );
+
+    const response = await chain.invoke(
+      {
+        lessonGoal,
+        problems: JSON.stringify(formattedRelevantProblems, null, 2),
+      },
+      {
+        metadata: {
+          lessonGoal,
+        },
+      },
+    );
+
+    const chosenProblem = relevantProblems[response.problemIndex];
+    assert(chosenProblem, "Chosen problem index is out of bounds");
+    return chosenProblem;
+  }
+
   /**
    * Creates the first iteration of a lesson
    * @param concept The concept to create a lesson for
@@ -443,10 +492,7 @@ export class LLMAdapter {
     lessonGoal: string,
     lessonIterations: LessonIteration[],
     userId: string,
-  ): Promise<{
-    exercise: LessonExerciseTurn;
-    explanation: LessonExplanationTurn;
-  }> {
+  ): Promise<{ explanation: LessonExplanationTurn }> {
     const promptTemplate = ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(
         CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
@@ -462,11 +508,6 @@ export class LLMAdapter {
         .string()
         .describe(
           "A clear, concise explanation of the concept targeted at the user's current understanding level. Should take no more than one minute to read.",
-        ),
-      exercise: z
-        .string()
-        .describe(
-          "A practical exercise that helps the user apply the concept. Should be doable in 1-2 minutes.",
         ),
     });
 
@@ -516,10 +557,6 @@ export class LLMAdapter {
       explanation: {
         type: "explanation",
         text: response.explanation,
-      },
-      exercise: {
-        type: "exercise",
-        text: response.exercise,
       },
     };
   }
@@ -587,6 +624,7 @@ export class LLMAdapter {
         lessonGoal: lesson.lessonGoal,
         explanation: explanationTurn.text,
         exercise: exerciseTurn.text,
+        exerciseSolution: exerciseTurn.solution,
         userInput,
       },
       {

@@ -310,6 +310,7 @@ export class DBAdapter {
   async queryProblems(
     query: string,
     limit: number,
+    problemIdBlackList: string[] = [],
   ): Promise<ProblemQueryResult[]> {
     const queryVector = await this.embedQuery(query);
     const results = await this.db.$queryRaw<
@@ -327,6 +328,7 @@ export class DBAdapter {
         1 - ("vector" <=> ${queryVector}::vector) as "score"
         FROM "Problem"
         WHERE "vector" IS NOT NULL
+        AND "id" NOT IN (${Prisma.join([...problemIdBlackList, "NULL"])})
         ORDER BY "score" DESC
         LIMIT ${limit}`;
     return results.map((result) => ({

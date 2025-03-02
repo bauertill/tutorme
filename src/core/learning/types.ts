@@ -23,6 +23,8 @@ export type LessonExplanationTurn = z.infer<typeof LessonExplanationTurn>;
 const LessonExerciseTurn = z.object({
   type: z.literal("exercise"),
   text: z.string(),
+  solution: z.string(),
+  problemId: z.string(),
 });
 export type LessonExerciseTurn = z.infer<typeof LessonExerciseTurn>;
 
@@ -32,7 +34,7 @@ const LessonUserInputTurn = z.object({
 });
 export type LessonUserInputTurn = z.infer<typeof LessonUserInputTurn>;
 
-const LessonTurn = z.union([
+const LessonTurn = z.discriminatedUnion("type", [
   LessonExplanationTurn,
   LessonExerciseTurn,
   LessonUserInputTurn,
@@ -58,6 +60,3 @@ export const Lesson = z.object({
   userId: z.string(),
 });
 export type Lesson = z.infer<typeof Lesson>;
-
-
-

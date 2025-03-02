@@ -19,16 +19,27 @@ export const EVALUATE_LESSON_RESPONSE_HUMAN_TEMPLATE = `Please evaluate the stud
 Lesson Goal: {lessonGoal}
 
 Explanation provided to student: 
+"""
 {explanation}
+"""
 
 Exercise given to student: 
+"""
 {exercise}
+"""
+
+Exercise Sample Solution:
+"""
+{exerciseSolution}
+"""
 
 Student's Response:
+"""
 {userInput}
+"""
 
 Provide your evaluation in JSON format with the following structure:
 {{
   "isComplete": boolean, // true if the lesson goal was achieved, false otherwise
   "feedback": "your detailed feedback here"
-}}`; 
+}}`;

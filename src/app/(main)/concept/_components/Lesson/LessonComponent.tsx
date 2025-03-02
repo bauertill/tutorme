@@ -1,5 +1,6 @@
 "use client";
 
+import { Latex } from "@/app/_components/Latex";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -79,7 +80,9 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
                   <p className="text-m mb-1 font-semibold capitalize">
                     {turn.type === "exercise" ? "Your turn!" : ""}
                   </p>
-                  <p className="whitespace-pre-wrap">{turn.text}</p>
+                  <p className="whitespace-pre-wrap">
+                    <Latex>{turn.text}</Latex>
+                  </p>
                 </div>
               ))}
               {iteration.evaluation && (

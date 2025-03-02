@@ -73,8 +73,13 @@ export async function createProblemsFromCsv(
   return await dbAdapter.getProblemUploadById(upload.id);
 }
 
-export async function queryProblems(query: string, dbAdapter: DBAdapter) {
-  return dbAdapter.queryProblems(query, 25);
+export async function queryProblems(
+  query: string,
+  nProblems: number,
+  dbAdapter: DBAdapter,
+  problemIdBlackList: string[] = [],
+) {
+  return dbAdapter.queryProblems(query, nProblems, problemIdBlackList);
 }
 
 export async function cancelProblemUpload(
