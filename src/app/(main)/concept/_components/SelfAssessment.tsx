@@ -1,17 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Concept } from "@/core/concept/types";
 import { MasteryLevel } from "@/core/goal/types";
 import { api } from "@/trpc/react";
-import { ArrowRight, Loader2 } from "lucide-react";
 
 function SelfAssessmentCard({
   concept,
@@ -35,9 +27,12 @@ function SelfAssessmentCard({
   };
 
   return (
-    <Card className="w-full">
+    <Card
+      className="w-full hover:cursor-pointer hover:bg-gray-500"
+      onClick={onClick}
+    >
       <CardHeader>
-        <CardTitle>Beginner</CardTitle>
+        <CardTitle>{masteryLevel}</CardTitle>
       </CardHeader>
       <CardContent>
         {masteryLevel === MasteryLevel.Enum.BEGINNER &&
@@ -47,20 +42,6 @@ function SelfAssessmentCard({
         {masteryLevel === MasteryLevel.Enum.EXPERT &&
           "Choose this if you have mastered the subject."}
       </CardContent>
-      <CardFooter className="flex justify-end">
-        <Button
-          variant="outline"
-          onClick={onClick}
-          disabled={updateMasteryLevel.isPending}
-        >
-          I know nothing
-          {updateMasteryLevel.isPending ? (
-            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-          ) : (
-            <ArrowRight className="ml-2 h-4 w-4" />
-          )}
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
