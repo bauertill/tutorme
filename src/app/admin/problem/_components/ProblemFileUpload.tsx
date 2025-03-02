@@ -52,14 +52,6 @@ export default function ProblemFileUpload() {
           return;
         }
 
-        // Check file size (4MB)
-        if (fileToUpload.size > 4 * 1024 * 1024) {
-          toast.error("File too large", {
-            description: "Please upload a file smaller than 1MB",
-          });
-          return;
-        }
-
         const base64EncodedContents = Buffer.from(
           await fileToUpload.arrayBuffer(),
         ).toString("base64");
