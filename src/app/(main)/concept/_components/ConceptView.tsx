@@ -1,15 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import type { Concept } from "@/core/concept/types";
 import { MasteryLevel } from "@/core/goal/types";
-import { api } from "@/trpc/react";
 // import { skipToken } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { api } from "@/trpc/react";
 import { LessonComponent } from "./Lesson/LessonComponent";
+import { SelfAssessment } from "./SelfAssessment";
 
-export function ConceptView({ concept }: { concept: Concept }) {
-  const router = useRouter();
+export function ConceptView({ conceptId }: { conceptId: string }) {
+  const { data: concept } = api.concept.byId.useQuery(conceptId);
+  if (!concept) return null;
   // const { data: video, isLoading } =
   //   api.learning.searchEducationalVideo.useQuery(
   //     concept.masteryLevel !== MasteryLevel.Enum.UNKNOWN
@@ -17,68 +16,8 @@ export function ConceptView({ concept }: { concept: Concept }) {
   //       : skipToken,
   //   );
 
-  const updateMasteryLevel = api.concept.updateMasteryLevel.useMutation({
-    onSuccess: () => {
-      router.refresh();
-    },
-  });
-
-  const onKnowsNothing = () => {
-    updateMasteryLevel.mutate({
-      conceptId: concept.id,
-      masteryLevel: MasteryLevel.Enum.BEGINNER,
-    });
-  };
-
-  const onKnowsSome = () => {
-    updateMasteryLevel.mutate({
-      conceptId: concept.id,
-      masteryLevel: MasteryLevel.Enum.INTERMEDIATE,
-    });
-  };
-
-  const onKnowsAll = () => {
-    updateMasteryLevel.mutate({
-      conceptId: concept.id,
-      masteryLevel: MasteryLevel.Enum.EXPERT,
-    });
-  };
-
   if (concept.masteryLevel === MasteryLevel.Enum.UNKNOWN) {
-    return (
-      <div className="space-y-4">
-        <p>
-          Tell us how much you know about <i>{concept.name}</i>.
-        </p>
-        <div className="flex justify-center gap-2">
-          <Button
-            variant="outline"
-            onClick={onKnowsNothing}
-            disabled={updateMasteryLevel.isPending}
-          >
-            I know nothing
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onKnowsSome}
-            disabled={updateMasteryLevel.isPending}
-          >
-            I know some things
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onKnowsAll}
-            disabled={updateMasteryLevel.isPending}
-          >
-            I know all
-          </Button>
-        </div>
-        {updateMasteryLevel.isPending && (
-          <p className="text-center">Please wait...</p>
-        )}
-        <LessonComponent conceptId={concept.id} />
-      </div>
-    );
+    return <SelfAssessment concept={concept} />;
   }
 
   return (
