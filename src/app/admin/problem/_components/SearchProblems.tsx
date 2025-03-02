@@ -12,20 +12,28 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { api } from "@/trpc/react";
+import { skipToken } from "@tanstack/react-query";
 import { useState } from "react";
+import { useDebounce } from "use-debounce";
 
 export function SearchProblems() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [debouncedQuery, { flush }] = useDebounce(searchQuery, 500, {
+    maxWait: 2000,
+  });
 
-  const { data: problems, isLoading } = api.problem.query.useQuery(
-    { query: debouncedQuery },
-    { enabled: debouncedQuery.length > 0 },
+  const {
+    data: problems,
+    isLoading,
+    isError,
+    error,
+  } = api.problem.query.useQuery(
+    debouncedQuery.length > 0 ? { query: debouncedQuery } : skipToken,
   );
 
-  const handleSearch = () => {
-    setDebouncedQuery(searchQuery);
-  };
+  if (isError) {
+    return <p>Error: {error.message}</p>;
+  }
 
   return (
     <>
@@ -36,18 +44,20 @@ export function SearchProblems() {
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              handleSearch();
+              flush();
             }
           }}
         />
-        <Button onClick={handleSearch}>Search</Button>
+        <Button onClick={() => flush()}>Search</Button>
       </div>
 
-      {isLoading && <p>Loading...</p>}
-
-      {problems && problems.length > 0 ? (
+      {isLoading ? (
+        <p className="py-4 text-center">Loading...</p>
+      ) : debouncedQuery.length > 0 && problems?.length === 0 ? (
+        <p className="py-4 text-center">No problems found</p>
+      ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {problems.map(({ problem, score }) => (
+          {problems?.map(({ problem, score }) => (
             <Card key={problem.id} className="flex flex-col">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
@@ -70,9 +80,6 @@ export function SearchProblems() {
             </Card>
           ))}
         </div>
-      ) : (
-        debouncedQuery.length > 0 &&
-        !isLoading && <p className="py-4 text-center">No problems found</p>
       )}
     </>
   );
