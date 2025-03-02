@@ -1,8 +1,5 @@
 import { type Concept } from "@/core/concept/types";
-import {
-  type LessonExplanationTurn,
-  type LessonIteration,
-} from "@/core/lesson/types";
+import { type LessonIteration } from "@/core/lesson/types";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
@@ -17,6 +14,7 @@ You are an expert educational AI that creates bite-sized, incremental learning e
 Your task is to create the next iteration in a personalized lesson sequence.
 
 Each lesson iteration consists of a brief explanation that takes no more than 2 minutes to read.
+Thereafter, there is also an exercise that takes no more than 2 minutes to complete.
 
 Important guidelines:
 - Make each explanation clear, concise, and focused on ONE small aspect of the concept
@@ -38,6 +36,13 @@ Previous iterations:
 {previousIterations}
 
 Please provide a concise explanation (2 minutes reading time) that builds on previous iterations.
+
+After the explanation, please provide a brief exercise that reinforces the explanation.
+Output format:
+{{
+  "explanation": "<explanation text>",
+  "exercise": "<exercise text>"
+}}
 `;
 
 /**
@@ -51,7 +56,10 @@ export async function createLessonIteration(
   lessonGoal: string,
   lessonIterations: LessonIteration[],
   userId: string,
-): Promise<{ explanation: LessonExplanationTurn }> {
+): Promise<{
+  explanationText: string;
+  exerciseText: string;
+}> {
   const promptTemplate = ChatPromptTemplate.fromMessages([
     SystemMessagePromptTemplate.fromTemplate(
       CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
@@ -63,7 +71,12 @@ export async function createLessonIteration(
 
   // Define schema for structured output
   const lessonSchema = z.object({
-    explanation: z
+    explanationText: z
+      .string()
+      .describe(
+        "A clear, concise explanation of the concept targeted at the user's current understanding level. Should take no more than one minute to read.",
+      ),
+    exerciseText: z
       .string()
       .describe(
         "A clear, concise explanation of the concept targeted at the user's current understanding level. Should take no more than one minute to read.",
@@ -111,11 +124,5 @@ export async function createLessonIteration(
     },
   );
 
-  // Create and return the lesson turns
-  return {
-    explanation: {
-      type: "explanation",
-      text: response.explanation,
-    },
-  };
+  return response;
 }

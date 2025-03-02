@@ -1,6 +1,5 @@
 import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
-import { queryProblems } from "../problem/problemDomain";
 import type {
   Lesson,
   LessonExerciseTurn,
@@ -10,20 +9,22 @@ import type {
 
 async function findRelevantExercise(
   lessonGoal: string,
+  exerciseCandidate: string,
   previousExercises: LessonExerciseTurn[],
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
 ): Promise<LessonExerciseTurn> {
-  const relevantProblems = await queryProblems(
-    lessonGoal,
+  const query = `Lesson goal: ${lessonGoal}\nExercise: ${exerciseCandidate}`;
+  const relevantProblems = await dbAdapter.queryProblems(
+    query,
     10,
-    dbAdapter,
     previousExercises.map((exercise) => exercise.problemId),
   );
   const chosenProblem = await llmAdapter.lesson.chooseProblemForGoal(
     lessonGoal,
     relevantProblems.map((problem) => problem.problem),
   );
+  console.log("chosenProblem", chosenProblem);
   return {
     type: "exercise" as const,
     text: chosenProblem.problem,
@@ -53,22 +54,23 @@ export async function createLesson(
     previousLessonGoals,
   );
 
+  const { explanationText, exerciseText } =
+    await llmAdapter.lesson.createLessonIteration(
+      concept,
+      lessonGoal,
+      [],
+      userId,
+    );
   const exercise = await findRelevantExercise(
     lessonGoal,
+    exerciseText,
     [],
     dbAdapter,
     llmAdapter,
   );
 
-  const { explanation } = await llmAdapter.lesson.createLessonIteration(
-    concept,
-    lessonGoal,
-    [],
-    userId,
-  );
-
   const lessonIteration: LessonIteration = {
-    turns: [explanation, exercise],
+    turns: [{ type: "explanation", text: explanationText }, exercise],
   };
 
   return await dbAdapter.createLesson(
@@ -121,22 +123,24 @@ export async function addUserInputToLesson(
       .filter(
         (exercise): exercise is LessonExerciseTurn => exercise !== undefined,
       );
+
+    const { explanationText, exerciseText } =
+      await llmAdapter.lesson.createLessonIteration(
+        concept,
+        lesson.lessonGoal,
+        updatedLessonIterations,
+        userId,
+      );
     const exercise = await findRelevantExercise(
       lesson.lessonGoal,
+      exerciseText,
       previousExercises,
       dbAdapter,
       llmAdapter,
     );
 
-    const { explanation } = await llmAdapter.lesson.createLessonIteration(
-      concept,
-      lesson.lessonGoal,
-      updatedLessonIterations,
-      userId,
-    );
-
     const newIteration: LessonIteration = {
-      turns: [explanation, exercise],
+      turns: [{ type: "explanation", text: explanationText }, exercise],
     };
 
     updatedLessonIterations.push(newIteration);
