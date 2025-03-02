@@ -11,103 +11,80 @@ import {
 import type { Concept } from "@/core/concept/types";
 import { MasteryLevel } from "@/core/goal/types";
 import { api } from "@/trpc/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
-export function SelfAssessment({ concept }: { concept: Concept }) {
+function SelfAssessmentCard({
+  concept,
+  masteryLevel,
+}: {
+  concept: Concept;
+  masteryLevel: MasteryLevel;
+}) {
   const utils = api.useUtils();
   const updateMasteryLevel = api.concept.updateMasteryLevel.useMutation({
-    onSuccess: () => {
-      void utils.concept.byId.invalidate(concept.id);
+    onSuccess: async () => {
+      await utils.concept.byId.invalidate(concept.id);
       void utils.goal.getConcepts.invalidate();
     },
   });
-
-  const onKnowsNothing = () => {
+  const onClick = () => {
     updateMasteryLevel.mutate({
       conceptId: concept.id,
-      masteryLevel: MasteryLevel.Enum.BEGINNER,
+      masteryLevel: masteryLevel,
     });
   };
 
-  const onKnowsSome = () => {
-    updateMasteryLevel.mutate({
-      conceptId: concept.id,
-      masteryLevel: MasteryLevel.Enum.INTERMEDIATE,
-    });
-  };
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Beginner</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {masteryLevel === MasteryLevel.Enum.BEGINNER &&
+          "Choose this if you're completely new to the subject."}
+        {masteryLevel === MasteryLevel.Enum.INTERMEDIATE &&
+          "Choose this if you have learned some things about the subject, but haven't mastered it yet."}
+        {masteryLevel === MasteryLevel.Enum.EXPERT &&
+          "Choose this if you have mastered the subject."}
+      </CardContent>
+      <CardFooter className="flex justify-end">
+        <Button
+          variant="outline"
+          onClick={onClick}
+          disabled={updateMasteryLevel.isPending}
+        >
+          I know nothing
+          {updateMasteryLevel.isPending ? (
+            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+          ) : (
+            <ArrowRight className="ml-2 h-4 w-4" />
+          )}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
 
-  const onKnowsAll = () => {
-    updateMasteryLevel.mutate({
-      conceptId: concept.id,
-      masteryLevel: MasteryLevel.Enum.EXPERT,
-    });
-  };
-
+export function SelfAssessment({ concept }: { concept: Concept }) {
   return (
     <div className="space-y-4">
       <p>
         Tell us how much you know about <i>{concept.name}</i>.
       </p>
       <div className="space-y-4">
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Beginner</CardTitle>
-          </CardHeader>
-          <CardContent>
-            Choose this if you&apos;re completely new to the subject.
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button
-              variant="outline"
-              onClick={onKnowsNothing}
-              disabled={updateMasteryLevel.isPending}
-            >
-              I know nothing
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </Card>
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Intermediate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            Choose this if you have learned some things about the subject, but
-            haven&apos;t mastered it yet.
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button
-              variant="outline"
-              onClick={onKnowsSome}
-              disabled={updateMasteryLevel.isPending}
-            >
-              I know some things
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </Card>
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Expert</CardTitle>
-          </CardHeader>
-          <CardContent>
-            Choose this if you have mastered the subject.
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button
-              variant="outline"
-              onClick={onKnowsAll}
-              disabled={updateMasteryLevel.isPending}
-            >
-              I know all
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardFooter>
-        </Card>
+        <SelfAssessmentCard
+          concept={concept}
+          masteryLevel={MasteryLevel.Enum.BEGINNER}
+        />
+        <SelfAssessmentCard
+          concept={concept}
+          masteryLevel={MasteryLevel.Enum.INTERMEDIATE}
+        />
+        <SelfAssessmentCard
+          concept={concept}
+          masteryLevel={MasteryLevel.Enum.EXPERT}
+        />
       </div>
-      {updateMasteryLevel.isPending && (
-        <p className="text-center">Please wait...</p>
-      )}
     </div>
   );
 }
