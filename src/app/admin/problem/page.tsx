@@ -1,6 +1,6 @@
 "use client";
 
-import CsvUpload from "./_components/CsvUpload";
+import ProblemFileUpload from "./_components/ProblemFileUpload";
 import { SearchProblems } from "./_components/SearchProblems";
 
 export default function AdminProblemPage() {
@@ -10,7 +10,7 @@ export default function AdminProblemPage() {
 
       <div className="mb-8">
         <h2 className="mb-4 text-2xl font-bold">Upload Problems</h2>
-        <CsvUpload />
+        <ProblemFileUpload />
       </div>
 
       <div className="mb-8">

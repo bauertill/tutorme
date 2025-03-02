@@ -7,7 +7,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
-export default function CsvUpload() {
+export default function ProblemFileUpload() {
   const [fileToUpload, setFileToUpload] = useState<File>();
   const { mutate: uploadProblems, isPending } = api.problem.upload.useMutation({
     onSuccess: () => {
