@@ -29,6 +29,7 @@ export function SearchProblems() {
     error,
   } = api.problem.query.useQuery(
     debouncedQuery.length > 0 ? { query: debouncedQuery } : skipToken,
+    { staleTime: 0 },
   );
 
   if (isError) {

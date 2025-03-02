@@ -43,12 +43,23 @@ export default function ProblemFileUpload() {
       if (acceptedFiles.length > 0) {
         const fileToUpload = acceptedFiles[0];
         assert(fileToUpload, "No file uploaded");
+
+        // Check file type
         if (fileToUpload.type !== "text/csv") {
           toast.error("Invalid file type", {
             description: "Please upload a CSV file",
           });
           return;
         }
+
+        // Check file size (4MB)
+        if (fileToUpload.size > 4 * 1024 * 1024) {
+          toast.error("File too large", {
+            description: "Please upload a file smaller than 1MB",
+          });
+          return;
+        }
+
         const base64EncodedContents = Buffer.from(
           await fileToUpload.arrayBuffer(),
         ).toString("base64");
