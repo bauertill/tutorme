@@ -1,8 +1,16 @@
+import { auth } from "@/server/auth";
 import { GraduationCap } from "lucide-react";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { LoginForm } from "./_components/LoginForm";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await auth();
+
+  if (session) {
+    redirect("/");
+  }
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">

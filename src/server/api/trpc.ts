@@ -13,8 +13,8 @@ import { ZodError } from "zod";
 
 import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { llmAdapter } from "@/core/adapters/llmAdapter";
-import { auth } from "@/server/auth";
 import { youtubeAdapter } from "@/core/adapters/youtubeAdapter";
+import { ADMINS, auth } from "@/server/auth";
 
 /**
  * 1. CONTEXT
@@ -126,6 +126,20 @@ export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next({
+      ctx: {
+        // infers the `session` as non-nullable
+        session: { ...ctx.session, user: ctx.session.user },
+      },
+    });
+  });
+
+export const protectedAdminProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.session || !ADMINS.includes(ctx.session.user.email ?? "")) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
     return next({

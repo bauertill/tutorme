@@ -8,11 +8,22 @@ const { auth: uncachedAuth, handlers, signIn, signOut } = NextAuth(authConfig);
 
 const auth = cache(uncachedAuth);
 
+export const ADMINS = ["max@mxgr.de", "bauertill@gmail.com"];
+
 export const requireSession = async () => {
   const session = await auth();
 
   if (!session?.user) {
     redirect("/login");
+  }
+
+  return session;
+};
+
+export const requireAdminSession = async () => {
+  const session = await requireSession();
+  if (!ADMINS.includes(session.user.email ?? "")) {
+    throw new Error("Unauthorized");
   }
 
   return session;

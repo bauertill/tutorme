@@ -2,11 +2,15 @@ import {
   createProblemsFromCsv,
   queryProblems,
 } from "@/core/problem/problemDomain";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedAdminProcedure,
+  protectedProcedure,
+} from "@/server/api/trpc";
 import { z } from "zod";
 
 export const problemRouter = createTRPCRouter({
-  upload: protectedProcedure
+  upload: protectedAdminProcedure
     .input(z.object({ base64EncodedContents: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const csv = Buffer.from(input.base64EncodedContents, "base64").toString(
