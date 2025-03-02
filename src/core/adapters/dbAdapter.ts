@@ -23,7 +23,7 @@ import {
   type UserQuestionResponse,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
-import { Lesson, LessonIteration } from "../learning/types";
+import { Lesson, LessonIteration } from "../lesson/types";
 
 const EMBEDDING_MODEL = "text-embedding-3-large";
 

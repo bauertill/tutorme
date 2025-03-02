@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import type { Lesson } from "@/core/learning/types";
+import type { Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";

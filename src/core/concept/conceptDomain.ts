@@ -3,10 +3,10 @@ import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import {
   QuizStatus,
-  type QuestionResponseWithQuestion,
-  type Quiz,
   type Concept,
   type MasteryLevel,
+  type QuestionResponseWithQuestion,
+  type Quiz,
 } from "./types";
 
 // TODO: make prisma enum for mastery levels
@@ -66,7 +66,7 @@ export async function createKnowledgeQuizAndStoreInDB(
   llmAdapter: LLMAdapter,
 ): Promise<Quiz> {
   try {
-    const newQuestion = await llmAdapter.createFirstQuestionForQuiz(concept);
+    const newQuestion = await llmAdapter.quiz.createQuestionForConcept(concept);
     assert(newQuestion, "No question generated for quiz");
     const quiz = await dbAdapter.createQuiz([newQuestion], concept.id);
     return quiz;
@@ -102,7 +102,7 @@ export async function addUserResponseToQuiz(
     await dbAdapter.getQuestionResponsesByQuizId(quizId);
 
   // Decide whether to continue the quiz or finalize it
-  const decision = await llmAdapter.decideNextAction(
+  const decision = await llmAdapter.quiz.decideNextAction(
     concept,
     questionResponses,
   );
@@ -117,18 +117,24 @@ export async function addUserResponseToQuiz(
       dbAdapter,
     );
 
-    const teacherReport = await llmAdapter.generateTeacherReport(
+    const teacherReport = await llmAdapter.quiz.generateTeacherReport(
       concept,
       questionResponses,
     );
 
-    const updatedQuiz = await dbAdapter.updateQuizStatus(quizId, QuizStatus.Enum.DONE);
-    await dbAdapter.updateConceptWithTeacherReport(updatedQuiz.conceptId, teacherReport);
+    const updatedQuiz = await dbAdapter.updateQuizStatus(
+      quizId,
+      QuizStatus.Enum.DONE,
+    );
+    await dbAdapter.updateConceptWithTeacherReport(
+      updatedQuiz.conceptId,
+      teacherReport,
+    );
     return updatedQuiz;
   }
 
   // Generate new questions
-  const newQuestion = await llmAdapter.createFollowUpQuestion(
+  const newQuestion = await llmAdapter.quiz.createFollowUpQuestion(
     concept,
     questionResponses,
   );

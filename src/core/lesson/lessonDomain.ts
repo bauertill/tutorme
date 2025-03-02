@@ -1,27 +1,12 @@
 import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
-import type { YouTubeAdapter } from "../adapters/youtubeAdapter";
 import { queryProblems } from "../problem/problemDomain";
 import type {
-  EducationalVideo,
   Lesson,
   LessonExerciseTurn,
   LessonIteration,
   LessonTurn,
 } from "./types";
-
-export async function findEducationalVideo(
-  conceptId: string,
-  dbAdapter: DBAdapter,
-  llmAdapter: LLMAdapter,
-  youtubeAdapter: YouTubeAdapter,
-): Promise<EducationalVideo> {
-  const concept = await dbAdapter.getConceptById(conceptId);
-  const searchQuery = await llmAdapter.generateVideoSearchQuery(concept);
-  const videos = await youtubeAdapter.searchEducationalVideos(searchQuery);
-  const bestVideo = await llmAdapter.rankVideos(videos, concept);
-  return bestVideo;
-}
 
 async function findRelevantExercise(
   lessonGoal: string,
@@ -35,7 +20,7 @@ async function findRelevantExercise(
     dbAdapter,
     previousExercises.map((exercise) => exercise.problemId),
   );
-  const chosenProblem = await llmAdapter.chooseProblemForGoal(
+  const chosenProblem = await llmAdapter.lesson.chooseProblemForGoal(
     lessonGoal,
     relevantProblems.map((problem) => problem.problem),
   );
@@ -62,7 +47,7 @@ export async function createLesson(
   );
 
   // Pass previous lesson goals to help the LLM generate a new, different goal
-  const lessonGoal = await llmAdapter.createLessonGoal(
+  const lessonGoal = await llmAdapter.lesson.createLessonGoal(
     concept,
     userId,
     previousLessonGoals,
@@ -75,7 +60,7 @@ export async function createLesson(
     llmAdapter,
   );
 
-  const { explanation } = await llmAdapter.createNextLessonIteration(
+  const { explanation } = await llmAdapter.lesson.createLessonIteration(
     concept,
     lessonGoal,
     [],
@@ -109,10 +94,8 @@ export async function addUserInputToLesson(
     throw new Error("Lesson has no iterations");
   }
 
-  const { evaluation, isComplete } = await llmAdapter.decideNextLessonIteration(
-    lesson,
-    userInput,
-  );
+  const { evaluation, isComplete } =
+    await llmAdapter.lesson.evaluateLessonResponse(lesson, userInput);
   const lastIteration =
     lesson.lessonIterations[lesson.lessonIterations.length - 1]!;
   const userInputTurn: LessonTurn = {
@@ -145,7 +128,7 @@ export async function addUserInputToLesson(
       llmAdapter,
     );
 
-    const { explanation } = await llmAdapter.createNextLessonIteration(
+    const { explanation } = await llmAdapter.lesson.createLessonIteration(
       concept,
       lesson.lessonGoal,
       updatedLessonIterations,
@@ -159,7 +142,7 @@ export async function addUserInputToLesson(
     updatedLessonIterations.push(newIteration);
   }
 
-  const teacherReport = await llmAdapter.createLessonTeacherReport(
+  const teacherReport = await llmAdapter.lesson.createLessonTeacherReport(
     concept,
     lesson,
     userId,

@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { EducationalVideo } from "@/core/learning/types";
+import type { EducationalVideo } from "@/core/video/types";
 import { ExternalLink } from "lucide-react";
 import { useState } from "react";
 

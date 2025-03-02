@@ -1,10 +1,7 @@
 import { z } from "zod";
 
-import {
-  addUserInputToLesson,
-  createLesson,
-  findEducationalVideo,
-} from "@/core/learning/learningDomain";
+import { addUserInputToLesson, createLesson } from "@/core/lesson/lessonDomain";
+import { findEducationalVideo } from "@/core/video/videoDomain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const learningRouter = createTRPCRouter({

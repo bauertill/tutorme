@@ -19,7 +19,7 @@ export async function getConceptsForGoal(
   if (existingConcepts.length > 0) {
     return existingConcepts;
   }
-  const newConcepts = await llmAdapter.getConceptsForGoal(goal);
+  const newConcepts = await llmAdapter.concept.getConceptsForGoal(goal);
   await dbAdapter.createConcepts(newConcepts);
   return newConcepts;
 }
