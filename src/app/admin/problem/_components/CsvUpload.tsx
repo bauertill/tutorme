@@ -8,9 +8,8 @@ import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
 export default function CsvUpload() {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const { mutate: uploadProblems } = api.problem.upload.useMutation({
+  const [fileToUpload, setFileToUpload] = useState<File>();
+  const { mutate: uploadProblems, isPending } = api.problem.upload.useMutation({
     onSuccess: () => {
       toast.success("Problems uploaded successfully");
     },
@@ -32,7 +31,7 @@ export default function CsvUpload() {
         });
         return;
       }
-      setUploadedFile(file);
+      setFileToUpload(file);
     }
   }, []);
 
@@ -45,27 +44,13 @@ export default function CsvUpload() {
   });
 
   const handleUpload = async () => {
-    if (!uploadedFile) return;
+    if (!fileToUpload) return;
 
-    setIsUploading(true);
-    try {
-      const file = uploadedFile;
-      assert(file, "No file uploaded");
-      const base64EncodedContents = Buffer.from(
-        await file.arrayBuffer(),
-      ).toString("base64");
-      uploadProblems({ base64EncodedContents });
-
-      setUploadedFile(null);
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Upload failed", {
-        description:
-          error instanceof Error ? error.message : "An unknown error occurred",
-      });
-    } finally {
-      setIsUploading(false);
-    }
+    const base64EncodedContents = Buffer.from(
+      await fileToUpload.arrayBuffer(),
+    ).toString("base64");
+    uploadProblems({ base64EncodedContents });
+    setFileToUpload(undefined);
   };
 
   return (
@@ -79,11 +64,11 @@ export default function CsvUpload() {
         }`}
       >
         <input {...getInputProps()} />
-        {uploadedFile ? (
+        {fileToUpload ? (
           <div>
-            <p className="text-lg font-medium">{uploadedFile.name}</p>
+            <p className="text-lg font-medium">{fileToUpload.name}</p>
             <p className="text-sm text-gray-500">
-              {(uploadedFile.size / 1024).toFixed(2)} KB
+              {(fileToUpload.size / 1024).toFixed(2)} KB
             </p>
           </div>
         ) : (
@@ -100,10 +85,10 @@ export default function CsvUpload() {
         )}
       </div>
 
-      {uploadedFile && (
+      {fileToUpload && (
         <div className="mt-4 flex justify-end">
-          <Button onClick={handleUpload} disabled={isUploading}>
-            {isUploading ? "Uploading..." : "Upload Problems"}
+          <Button onClick={handleUpload} disabled={isPending}>
+            {isPending ? "Uploading..." : "Upload Problems"}
           </Button>
         </div>
       )}
