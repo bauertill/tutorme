@@ -57,4 +57,4 @@ docker run -d \
   -e POSTGRES_PASSWORD="$DB_PASSWORD" \
   -e POSTGRES_DB=tutor-me-good \
   -p "$DB_PORT":5432 \
-  ankane/pgvector && echo "Database container '$DB_CONTAINER_NAME' was successfully created"
+  pgvector/pgvector:pg17 && echo "Database container '$DB_CONTAINER_NAME' was successfully created"
