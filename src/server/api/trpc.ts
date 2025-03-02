@@ -105,6 +105,19 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   return result;
 });
 
+const loggingMiddleware = t.middleware(async (opts) => {
+  const result = await opts.next();
+
+  const meta = { path: opts.path, type: opts.type };
+
+  if (!result.ok) {
+    console.error("Non-OK request", meta);
+    console.error(result.error);
+  }
+
+  return result;
+});
+
 /**
  * Public (unauthenticated) procedure
  *
@@ -112,7 +125,9 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure.use(timingMiddleware);
+export const publicProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(loggingMiddleware);
 
 /**
  * Protected (authenticated) procedure
@@ -124,6 +139,7 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  */
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
+  .use(loggingMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -138,6 +154,7 @@ export const protectedProcedure = t.procedure
 
 export const protectedAdminProcedure = t.procedure
   .use(timingMiddleware)
+  .use(loggingMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session || !ADMINS.includes(ctx.session.user.email ?? "")) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
