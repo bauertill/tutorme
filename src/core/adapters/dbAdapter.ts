@@ -1,4 +1,9 @@
-import type { Problem, ProblemQueryResult } from "@/core/problem/types";
+import type {
+  Problem,
+  ProblemQueryResult,
+  ProblemUpload,
+  ProblemUploadStatus,
+} from "@/core/problem/types";
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
@@ -246,7 +251,36 @@ export class DBAdapter {
     return Lesson.parse(dbLesson);
   }
 
+  async createProblemUpload(
+    upload: Draft<ProblemUpload>,
+  ): Promise<ProblemUpload> {
+    const dbUpload = await this.db.problemUpload.create({ data: upload });
+    return dbUpload;
+  }
+
+  async updateProblemUploadStatus(
+    uploadId: string,
+    data: {
+      status: ProblemUploadStatus;
+      error?: string;
+    },
+  ): Promise<ProblemUpload> {
+    const dbUpload = await this.db.problemUpload.update({
+      where: { id: uploadId },
+      data,
+    });
+    return dbUpload;
+  }
+
+  async getProblemUploadStatusById(id: string): Promise<ProblemUploadStatus> {
+    const dbUpload = await this.db.problemUpload.findUniqueOrThrow({
+      where: { id },
+    });
+    return dbUpload.status;
+  }
+
   async createProblems(
+    problemUploadId: string,
     problems: Draft<Problem>[],
     searchStringFn: (problem: Draft<Problem>) => string,
   ): Promise<void> {
@@ -263,11 +297,11 @@ export class DBAdapter {
     }));
 
     await this.db.$executeRaw`INSERT INTO "Problem"
-    ("id", "dataset", "problem", "solution", "level", "type", "vector") VALUES
+    ("id", "problemUploadId", "dataSource", "problem", "solution", "level", "type", "vector") VALUES
     ${Prisma.join(
       problemsWithVectors.map(
         (problem) =>
-          Prisma.sql`(${createId()}, ${problem.dataset}, ${problem.problem}, ${problem.solution},
+          Prisma.sql`(${createId()}, ${problemUploadId}, ${problem.dataSource}, ${problem.problem}, ${problem.solution},
           ${problem.level}, ${problem.type}, ${JSON.stringify(problem.vector)}::vector)`,
       ),
     )}`;
@@ -281,14 +315,15 @@ export class DBAdapter {
     const results = await this.db.$queryRaw<
       {
         id: string;
-        dataset: string;
+        dataSource: string;
         problem: string;
         solution: string;
         level: string;
         type: string;
+        createdAt: Date;
         score: number;
       }[]
-    >`SELECT id, dataset, problem, solution, level, type,
+    >`SELECT "id", "dataSource", "problem", "solution", "level", "type", "createdAt",
         1 - ("vector" <=> ${queryVector}::vector) as "score"
         FROM "Problem"
         WHERE "vector" IS NOT NULL
@@ -297,11 +332,12 @@ export class DBAdapter {
     return results.map((result) => ({
       problem: {
         id: result.id,
-        dataset: result.dataset,
+        dataSource: result.dataSource,
         problem: result.problem,
         solution: result.solution,
         level: result.level,
         type: result.type,
+        createdAt: result.createdAt,
       },
       score: result.score,
     }));

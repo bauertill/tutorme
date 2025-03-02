@@ -49,7 +49,10 @@ export default function CsvUpload() {
     const base64EncodedContents = Buffer.from(
       await fileToUpload.arrayBuffer(),
     ).toString("base64");
-    uploadProblems({ base64EncodedContents });
+    uploadProblems({
+      fileName: fileToUpload.name,
+      base64EncodedContents,
+    });
     setFileToUpload(undefined);
   };
 

@@ -199,12 +199,34 @@ model Lesson {
   @@index([userId])
 }
 
+enum ProblemUploadStatus {
+  PENDING
+  SUCCESS
+  ERROR
+  CANCELLED
+}
+
+model ProblemUpload {
+  id        String              @id @default(cuid())
+  fileName  String
+  status    ProblemUploadStatus @default(PENDING)
+  error     String?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  problems Problem[]
+}
+
 model Problem {
-  id       String                       @id @default(cuid())
-  dataset  String
-  problem  String
-  solution String
-  level    String
-  type     String
-  vector   Unsupported("vector(3072)")?
+  id         String                       @id @default(cuid())
+  dataSource String
+  problem    String
+  solution   String
+  level      String
+  type       String
+  vector     Unsupported("vector(3072)")?
+  createdAt  DateTime                     @default(now())
+
+  problemUploadId String
+  problemUpload   ProblemUpload @relation(fields: [problemUploadId], references: [id])
 }

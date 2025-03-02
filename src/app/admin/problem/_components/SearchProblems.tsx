@@ -62,7 +62,7 @@ export function SearchProblems() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="">
-                    {problem.dataset} | {problem.level} | {problem.type}
+                    {problem.dataSource} | {problem.level} | {problem.type}
                   </CardTitle>
                   <Badge variant="outline">{score.toFixed(2)}</Badge>
                 </div>
