@@ -10,65 +10,26 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { Lesson } from "@/core/lesson/types";
-import { api } from "@/trpc/react";
-import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { LessonExercise } from "./LessonExercise";
 import { LessonExplanation } from "./LessonExplanation";
-import { LessonSkeleton } from "./LessonSkeleton";
 
-export function LessonComponent({ conceptId }: { conceptId: string }) {
-  const [lesson, setLesson] = useState<Lesson | null>(null);
+export function ActiveLessonComponent({
+  lesson,
+  handleUserResponse,
+  isSubmitting,
+  goBack,
+}: {
+  lesson: Lesson;
+  handleUserResponse: (userInput: string, lessonId: string) => void;
+  isSubmitting: boolean;
+  goBack: () => void;
+}) {
   const [userInput, setUserInput] = useState("");
 
-  // Mutation to create a new lesson
-  const { mutate: createLesson, isPending: isCreating } =
-    api.learning.createLesson.useMutation({
-      onSuccess: (lesson) => {
-        setLesson(lesson);
-      },
-      onError: (error) => {
-        console.error("Error creating lesson:", error);
-      },
-    });
-
-  // Mutation to submit a lesson response
-  const { mutate: submitResponse, isPending: isSubmitting } =
-    api.learning.submitLessonResponse.useMutation({
-      onSuccess: (lesson) => {
-        setUserInput("");
-        setLesson(lesson);
-      },
-      onError: (error) => {
-        console.error("Error submitting response:", error);
-      },
-    });
-
   const handleSubmitResponse = (lessonId: string) => {
-    if (!userInput.trim()) return;
-    submitResponse({
-      lessonId,
-      userInput: userInput.trim(),
-    });
+    handleUserResponse(userInput, lessonId);
   };
-
-  if (isCreating) {
-    return <LessonSkeleton />;
-  }
-
-  if (!lesson) {
-    return (
-      <div className="mt-6 flex flex-row items-center justify-between gap-4">
-        <h3 className="text-xl font-semibold">Lesson</h3>
-        <Button
-          onClick={() => createLesson({ conceptId })}
-          disabled={isCreating}
-        >
-          {isCreating ? <Loader2 className="animate-spin" /> : "Create Lesson"}
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <div className="mt-6 space-y-4">
@@ -106,7 +67,7 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
               <div className="flex justify-end gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setLesson(null)}
+                  onClick={goBack}
                   disabled={isSubmitting}
                 >
                   Cancel
@@ -126,16 +87,6 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
           {lesson.status !== "ACTIVE" && (
             <div className="flex w-full justify-between gap-2 text-center font-medium">
               <h4>Congratulations! You&apos;ve completed the lesson.</h4>
-              <Button
-                onClick={() => createLesson({ conceptId })}
-                disabled={isCreating}
-              >
-                {isCreating ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  "Next Lesson"
-                )}
-              </Button>
             </div>
           )}
         </CardFooter>
