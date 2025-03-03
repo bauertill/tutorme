@@ -1,0 +1,5 @@
+# Prisma Migrate
+# Please do not manually edit this file.
+
+migration_name = "20250303094028_add_supabase_extensions"
+version = "5.11.0" 
