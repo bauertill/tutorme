@@ -1,5 +1,5 @@
 import { type Concept } from "@/core/concept/types";
-import { type LessonIteration } from "@/core/lesson/types";
+import { type LessonTurn } from "@/core/lesson/types";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
@@ -32,8 +32,6 @@ Concept: {conceptName}
 Concept Description: {conceptDescription}
 Lesson Goal: {lessonGoal}
 
-Previous iterations:
-{previousIterations}
 
 Please provide a concise explanation (2 minutes reading time) that builds on previous iterations.
 
@@ -54,7 +52,7 @@ Output format:
 export async function createLessonIteration(
   concept: Concept,
   lessonGoal: string,
-  lessonIterations: LessonIteration[],
+  lessonTurns: LessonTurn[],
   userId: string,
 ): Promise<{
   explanationText: string;
@@ -90,31 +88,11 @@ export async function createLessonIteration(
       runName: "Generate Lesson Iteration",
     });
 
-  // Extract previous iteration data to provide context
-  const previousIterationsContext = lessonIterations.map((iteration) => {
-    const explanationTurn = iteration.turns.find(
-      (turn) => turn.type === "explanation",
-    );
-    const exerciseTurn = iteration.turns.find(
-      (turn) => turn.type === "exercise",
-    );
-    const userResponseTurn = iteration.turns.find(
-      (turn) => turn.type === "user_input",
-    );
-
-    return {
-      explanation: explanationTurn?.text ?? "No explanation provided",
-      exercise: exerciseTurn?.text ?? "No exercise provided",
-      userResponse: userResponseTurn?.text ?? "No user response provided",
-    };
-  });
-
   const response = await chain.invoke(
     {
       conceptName: concept.name,
       conceptDescription: concept.description,
       lessonGoal,
-      previousIterations: JSON.stringify(previousIterationsContext),
     },
     {
       metadata: {

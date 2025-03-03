@@ -64,18 +64,15 @@ export async function evaluateLessonResponse(
   userInput: string,
 ): Promise<{ evaluation: string; isComplete: boolean }> {
   // Get the last iteration from the lesson
-  if (lesson.lessonIterations.length === 0) {
+  if (lesson.turns.length === 0) {
     throw new Error("Lesson has no iterations");
   }
 
-  const lastIteration =
-    lesson.lessonIterations[lesson.lessonIterations.length - 1]!;
-
   // Find the explanation and exercise turns in the last iteration
-  const explanationTurn = lastIteration.turns.find(
+  const explanationTurn = lesson.turns.find(
     (turn: LessonTurn) => turn.type === "explanation",
   )!;
-  const exerciseTurn = lastIteration.turns.find(
+  const exerciseTurn = lesson.turns.find(
     (turn: LessonTurn) => turn.type === "exercise",
   )!;
 

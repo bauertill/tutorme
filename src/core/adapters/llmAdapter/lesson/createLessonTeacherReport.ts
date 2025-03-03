@@ -64,29 +64,6 @@ export async function createLessonTeacherReport(
     runName: "Generate Lesson Teacher Report",
   });
 
-  // Format lesson iterations for the prompt
-  const lessonIterationsFormatted = lesson.lessonIterations.map(
-    (iteration, index) => {
-      const explanationTurn = iteration.turns.find(
-        (turn) => turn.type === "explanation",
-      );
-      const exerciseTurn = iteration.turns.find(
-        (turn) => turn.type === "exercise",
-      );
-      const userResponseTurn = iteration.turns.find(
-        (turn) => turn.type === "user_input",
-      );
-
-      return {
-        iterationNumber: index + 1,
-        explanation: explanationTurn?.text ?? "No explanation provided",
-        exercise: exerciseTurn?.text ?? "No exercise provided",
-        userResponse: userResponseTurn?.text ?? "No user response provided",
-        evaluation: iteration.evaluation ?? "No evaluation provided",
-      };
-    },
-  );
-
   const response = await chain.invoke(
     {
       conceptName: concept.name,
@@ -94,7 +71,7 @@ export async function createLessonTeacherReport(
       lessonGoal: lesson.lessonGoal,
       previousTeacherReport:
         concept.teacherReport ?? "No previous assessments available.",
-      lessonIterations: JSON.stringify(lessonIterationsFormatted, null, 2),
+      lessonIterations: JSON.stringify(lesson.turns, null, 2),
     },
     {
       metadata: {

@@ -10,7 +10,6 @@ const LessonExerciseTurn = z.object({
   type: z.literal("exercise"),
   text: z.string(),
   solution: z.string(),
-  problemId: z.string(),
 });
 export type LessonExerciseTurn = z.infer<typeof LessonExerciseTurn>;
 
@@ -20,29 +19,29 @@ const LessonUserInputTurn = z.object({
 });
 export type LessonUserInputTurn = z.infer<typeof LessonUserInputTurn>;
 
-const LessonTurn = z.discriminatedUnion("type", [
+export const LessonTurn = z.discriminatedUnion("type", [
   LessonExplanationTurn,
   LessonExerciseTurn,
   LessonUserInputTurn,
 ]);
 export type LessonTurn = z.infer<typeof LessonTurn>;
 
-export const LessonIteration = z.object({
-  turns: z.array(LessonTurn),
-  evaluation: z.string().optional(),
-});
-export type LessonIteration = z.infer<typeof LessonIteration>;
-
-export const LessonStatus = z.enum(["ACTIVE", "DONE"]);
+export const LessonStatus = z.enum([
+  "ACTIVE",
+  "PAUSED",
+  "DONE_WITH_HELP",
+  "DONE",
+]);
 export type LessonStatus = z.infer<typeof LessonStatus>;
 
 export const Lesson = z.object({
   id: z.string(),
   lessonGoal: z.string(),
-  lessonIterations: z.array(LessonIteration),
+  turns: z.array(LessonTurn),
   status: LessonStatus,
   conceptId: z.string(),
   goalId: z.string(),
   userId: z.string(),
+  problemId: z.string(),
 });
 export type Lesson = z.infer<typeof Lesson>;

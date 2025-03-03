@@ -23,7 +23,7 @@ import {
   type UserQuestionResponse,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
-import { Lesson, LessonIteration } from "../lesson/types";
+import { Lesson, LessonTurn } from "../lesson/types";
 
 const EMBEDDING_MODEL = "text-embedding-3-large";
 
@@ -190,7 +190,8 @@ export class DBAdapter {
     conceptId: string,
     goalId: string,
     userId: string,
-    lessonIterations: LessonIteration[],
+    problemId: string,
+    turns: LessonTurn[],
   ): Promise<Lesson> {
     const dbLesson = await this.db.lesson.create({
       data: {
@@ -198,7 +199,8 @@ export class DBAdapter {
         conceptId,
         goalId,
         userId,
-        lessonIterations,
+        problemId,
+        turns,
         status: "ACTIVE",
       },
     });
@@ -217,7 +219,7 @@ export class DBAdapter {
     });
     return lessons.map((lesson) => ({
       ...lesson,
-      lessonIterations: z.array(LessonIteration).parse(lesson.lessonIterations),
+      turns: z.array(LessonTurn).parse(lesson.turns),
     }));
   }
 
@@ -232,7 +234,7 @@ export class DBAdapter {
     });
     return {
       ...lesson,
-      lessonIterations: z.array(LessonIteration).parse(lesson.lessonIterations),
+      turns: z.array(LessonTurn).parse(lesson.turns),
     };
   }
 

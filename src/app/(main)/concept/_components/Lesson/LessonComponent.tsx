@@ -73,24 +73,14 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
           <CardTitle>Lesson: {lesson.lessonGoal}</CardTitle>
         </CardHeader>
         <CardContent>
-          {lesson.lessonIterations.map((iteration, idx) => (
-            <div key={idx} className="mb-4 space-y-3 border-b pb-4">
-              {iteration.turns.map((turn, turnIdx) => (
-                <div key={turnIdx} className="my-2 rounded bg-muted p-3">
-                  <p className="text-m mb-1 font-semibold capitalize">
-                    {turn.type === "exercise" ? "Your turn!" : ""}
-                  </p>
-                  <p className="whitespace-pre-wrap">
-                    <Latex>{turn.text}</Latex>
-                  </p>
-                </div>
-              ))}
-              {iteration.evaluation && (
-                <div className="my-2 rounded border-l-4 border-primary bg-muted p-3">
-                  <p className="mb-1 text-sm font-semibold">Evaluation:</p>
-                  <p className="whitespace-pre-wrap">{iteration.evaluation}</p>
-                </div>
-              )}
+          {lesson.turns.map((turn, turnIdx) => (
+            <div key={turnIdx} className="my-2 rounded bg-muted p-3">
+              <p className="text-m mb-1 font-semibold capitalize">
+                {turn.type === "exercise" ? "Your turn!" : ""}
+              </p>
+              <p className="whitespace-pre-wrap">
+                <Latex>{turn.text}</Latex>
+              </p>
             </div>
           ))}
 
