@@ -111,6 +111,8 @@ enum QuizStatus {
 
 enum LessonStatus {
   ACTIVE
+  PAUSED
+  DONE_WITH_HELP
   DONE
 }
 
@@ -177,10 +179,10 @@ model UserQuestionResponse {
 }
 
 model Lesson {
-  id               String       @id @default(cuid())
-  lessonGoal       String
-  lessonIterations Json
-  status           LessonStatus @default(ACTIVE)
+  id         String       @id @default(cuid())
+  lessonGoal String
+  turns      Json
+  status     LessonStatus @default(ACTIVE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -194,9 +196,13 @@ model Lesson {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
+  problemId String
+  problem   Problem @relation(fields: [problemId], references: [id])
+
   @@index([conceptId])
   @@index([goalId])
   @@index([userId])
+  @@index([problemId])
 }
 
 enum ProblemUploadStatus {
@@ -231,4 +237,5 @@ model Problem {
 
   problemUploadId String
   problemUpload   ProblemUpload @relation(fields: [problemUploadId], references: [id], onDelete: Cascade)
+  Lesson          Lesson[]
 }
