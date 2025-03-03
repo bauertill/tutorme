@@ -2,6 +2,7 @@ import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
 import { createLessonFromProblem } from "../adapters/llmAdapter/lesson";
 import { NextLessonAction } from "../adapters/llmAdapter/lesson/decideNextLessonAction";
+import { updateConceptMasteryLevelAndTeacherReport } from "../concept/conceptDomain";
 import { Concept } from "../concept/types";
 import { Problem } from "../problem/types";
 import type { Lesson, LessonStatus, LessonTurn } from "./types";
@@ -103,20 +104,19 @@ export async function addUserInputToLesson(
     nextLessonAction.action === "end_lesson" ||
     nextLessonAction.action === "pause_lesson"
   ) {
-    const lessonTeacherReport =
-      await llmAdapter.lesson.createLessonTeacherReport(
-        concept,
-        lesson,
-        userId,
-      );
-    dbAdapter.updateConceptWithTeacherReport(concept.id, lessonTeacherReport);
-
     const updatedLesson: Lesson = {
       ...lesson,
       turns: [...lesson.turns, { type: "user_input", text: userInput }],
       status: getNewStatus(lesson, nextLessonAction.action),
     };
-    return await dbAdapter.updateLesson(updatedLesson);
+    await dbAdapter.updateLesson(updatedLesson);
+    await updateConceptMasteryLevelAndTeacherReport(
+      userId,
+      concept,
+      dbAdapter,
+      llmAdapter,
+    );
+    return updatedLesson;
   }
 
   const updatedLesson: Lesson = {

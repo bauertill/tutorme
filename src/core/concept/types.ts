@@ -1,8 +1,14 @@
 import { z } from "zod";
-import { type WithTimestamps } from "../utils";
 import { Goal } from "../goal/types";
+import { type WithTimestamps } from "../utils";
 
-export const MasteryLevel = z.enum(["UNKNOWN", "BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]);
+export const MasteryLevel = z.enum([
+  "UNKNOWN",
+  "BEGINNER",
+  "INTERMEDIATE",
+  "ADVANCED",
+  "EXPERT",
+]);
 export type MasteryLevel = z.infer<typeof MasteryLevel>;
 
 export const QuizStatus = z.enum(["ACTIVE", "DONE"]);

@@ -2,7 +2,6 @@ import { conceptRouter } from "@/server/api/routers/concept";
 import { goalRouter } from "@/server/api/routers/goal";
 import { learningRouter } from "@/server/api/routers/learning";
 import { problemRouter } from "@/server/api/routers/problem";
-import { quizRouter } from "@/server/api/routers/quiz";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
 /**
@@ -13,7 +12,6 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 export const appRouter = createTRPCRouter({
   goal: goalRouter,
   concept: conceptRouter,
-  quiz: quizRouter,
   learning: learningRouter,
   problem: problemRouter,
 });

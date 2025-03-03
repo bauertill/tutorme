@@ -112,7 +112,6 @@ export class DBAdapter {
   async createQuestionResponse(response: Draft<UserQuestionResponse>) {
     return this.db.userQuestionResponse.create({ data: response });
   }
-
   async updateConceptMasteryLevel(
     conceptId: string,
     masteryLevel: MasteryLevel,
@@ -120,6 +119,17 @@ export class DBAdapter {
     return this.db.concept.update({
       where: { id: conceptId },
       data: { masteryLevel },
+    });
+  }
+
+  async updateConceptMasteryLevelAndTeacherReport(
+    conceptId: string,
+    masteryLevel: MasteryLevel,
+    teacherReport: string,
+  ) {
+    return this.db.concept.update({
+      where: { id: conceptId },
+      data: { masteryLevel, teacherReport },
     });
   }
 
@@ -145,22 +155,6 @@ export class DBAdapter {
       where: { id: quizId },
       data: { status },
       include: { questions: true },
-    });
-  }
-
-  /**
-   * Updates a concept with a teacher report
-   * @param conceptId The ID of the concept to update
-   * @param teacherReport The teacher report to add to the concept
-   * @returns The updated concept
-   */
-  async updateConceptWithTeacherReport(
-    conceptId: string,
-    teacherReport: string,
-  ): Promise<Concept> {
-    return await this.db.concept.update({
-      where: { id: conceptId },
-      data: { teacherReport },
     });
   }
 
