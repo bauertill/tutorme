@@ -87,6 +87,7 @@ export function ActiveLessonComponent({
           {lesson.status !== "ACTIVE" && (
             <div className="flex w-full justify-between gap-2 text-center font-medium">
               <h4>Congratulations! You&apos;ve completed the lesson.</h4>
+              <Button onClick={goBack}>Next Lesson</Button>
             </div>
           )}
         </CardFooter>
