@@ -1,11 +1,13 @@
 import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
 import { createLessonFromProblem } from "../adapters/llmAdapter/lesson";
+import { NextLessonAction } from "../adapters/llmAdapter/lesson/decideNextLessonAction";
 import { Concept } from "../concept/types";
 import { Problem } from "../problem/types";
-import type { Lesson, LessonTurn } from "./types";
+import type { Lesson, LessonStatus, LessonTurn } from "./types";
 
-const CUTOFF_SCORE = 0.5;
+// @TODO understand why scores are so low :/
+const CUTOFF_SCORE = 0;
 
 async function chooseNextProblemForConcept(
   concept: Concept,
@@ -21,20 +23,14 @@ async function chooseNextProblemForConcept(
 
   // @TODO make this a single function
   // Pass previous lesson goals to help the LLM generate a new, different goal
-  const lessonGoal = await llmAdapter.lesson.createLessonGoal(
-    concept,
-    userId,
-    previousLessonGoals,
-  );
-
-  const { explanationText, exerciseText } =
-    await llmAdapter.lesson.createLessonIteration(
+  const { lessonGoal, exercise } =
+    await llmAdapter.lesson.createLessonGoalAndDummyExercise(
       concept,
-      lessonGoal,
-      [],
       userId,
+      previousLessonGoals,
     );
-  const query = `Lesson goal: ${lessonGoal}\nExercise: ${exerciseText}`;
+
+  const query = `Lesson goal: ${lessonGoal}\nExercise: ${exercise}`;
   const blackListProblemIds = previousLessons.map((lesson) => lesson.problemId);
   const relevantProblems = await dbAdapter.queryProblems(
     query,
@@ -93,73 +89,61 @@ export async function addUserInputToLesson(
   llmAdapter: LLMAdapter,
 ): Promise<Lesson> {
   const lesson = await dbAdapter.getLessonById(lessonId);
-
+  const concept = await dbAdapter.getConceptById(lesson.conceptId);
   // Ensure the lesson has turns
   if (lesson.turns.length === 0) {
     throw new Error("Lesson has no turns");
   }
-  return lesson;
 
-  // const { evaluation, isComplete } =
-  //   await llmAdapter.lesson.evaluateLessonResponse(lesson, userInput);
-  // const lastIteration =
-  //   lesson.lessonIterations[lesson.lessonIterations.length - 1]!;
-  // const userInputTurn: LessonTurn = {
-  //   type: "user_input",
-  //   text: userInput,
-  // };
-  // const updatedLastIteration: LessonIteration = {
-  //   ...lastIteration,
-  //   turns: [...lastIteration.turns, userInputTurn],
-  //   evaluation,
-  // };
-  // const updatedLessonIterations = [
-  //   ...lesson.lessonIterations.slice(0, -1),
-  //   updatedLastIteration,
-  // ];
+  const nextLessonAction = await llmAdapter.lesson.decideNextLessonAction(
+    lesson,
+    userInput,
+  );
+  if (
+    nextLessonAction.action === "end_lesson" ||
+    nextLessonAction.action === "pause_lesson"
+  ) {
+    const lessonTeacherReport =
+      await llmAdapter.lesson.createLessonTeacherReport(
+        concept,
+        lesson,
+        userId,
+      );
+    dbAdapter.updateConceptWithTeacherReport(concept.id, lessonTeacherReport);
 
-  // const concept = await dbAdapter.getConceptById(lesson.conceptId);
-  // if (!isComplete) {
-  //   const previousExercises = updatedLessonIterations
-  //     .map((iteration) =>
-  //       iteration.turns.find((turn) => turn.type === "exercise"),
-  //     )
-  //     .filter(
-  //       (exercise): exercise is LessonExerciseTurn => exercise !== undefined,
-  //     );
+    const updatedLesson: Lesson = {
+      ...lesson,
+      turns: [...lesson.turns, { type: "user_input", text: userInput }],
+      status: getNewStatus(lesson, nextLessonAction.action),
+    };
+    return await dbAdapter.updateLesson(updatedLesson);
+  }
 
-  //   const { explanationText, exerciseText } =
-  //     await llmAdapter.lesson.createLessonIteration(
-  //       concept,
-  //       lesson.lessonGoal,
-  //       updatedLessonIterations,
-  //       userId,
-  //     );
-  //   const exercise = await findRelevantExercise(
-  //     lesson.lessonGoal,
-  //     exerciseText,
-  //     previousExercises,
-  //     dbAdapter,
-  //     llmAdapter,
-  //   );
+  const updatedLesson: Lesson = {
+    ...lesson,
+    turns: [
+      ...lesson.turns,
+      {
+        type: "user_input",
+        text: userInput,
+      },
+      { type: "explanation", text: nextLessonAction.hint },
+    ],
+  };
+  return await dbAdapter.updateLesson(updatedLesson);
+}
 
-  //   const newIteration: LessonIteration = {
-  //     turns: [{ type: "explanation", text: explanationText }, exercise],
-  //   };
-
-  //   updatedLessonIterations.push(newIteration);
-  // }
-
-  // const teacherReport = await llmAdapter.lesson.createLessonTeacherReport(
-  //   concept,
-  //   lesson,
-  //   userId,
-  // );
-  // await dbAdapter.updateConceptWithTeacherReport(concept.id, teacherReport);
-  // const updatedLesson = {
-  //   ...lesson,
-  //   lessonIterations: updatedLessonIterations,
-  //   status: isComplete ? "DONE" : lesson.status,
-  // };
-  // return await dbAdapter.updateLesson(updatedLesson);
+function getNewStatus(
+  lesson: Lesson,
+  nextLessonAction: NextLessonAction["action"],
+): LessonStatus {
+  if (nextLessonAction === "end_lesson") {
+    const hasMultipleExplanationTurns =
+      lesson.turns.filter((l) => l.type === "explanation").length > 1;
+    if (hasMultipleExplanationTurns) {
+      return "DONE_WITH_HELP";
+    }
+    return "DONE";
+  }
+  return "PAUSED";
 }

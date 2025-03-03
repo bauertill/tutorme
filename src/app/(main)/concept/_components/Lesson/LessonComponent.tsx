@@ -84,7 +84,7 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
             </div>
           ))}
 
-          {lesson.status !== "DONE" && (
+          {lesson.status === "ACTIVE" && (
             <div className="mt-4 space-y-3">
               <h4 className="font-medium">Your Response</h4>
               <Textarea
@@ -113,7 +113,7 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
           )}
         </CardContent>
         <CardFooter>
-          {lesson.status === "DONE" && (
+          {lesson.status !== "ACTIVE" && (
             <div className="flex w-full justify-between gap-2 text-center font-medium">
               <h4>Congratulations! You&apos;ve completed the lesson.</h4>
               <Button

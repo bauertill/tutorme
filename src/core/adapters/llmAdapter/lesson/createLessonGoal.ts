@@ -4,6 +4,7 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
+import { z } from "zod";
 import { model } from "../model";
 
 export const CREATE_LESSON_GOAL_SYSTEM_PROMPT = `You are an expert educational content designer specializing in creating focused, achievable learning goals.
@@ -31,7 +32,25 @@ Teacher's Report (previous assessments): {teacherReport}
 
 Previous lesson goals for this concept: {previousLessonGoals}
 
-Provide a single, clear lesson goal that addresses the most important aspect of this concept for the student to learn. Your goal MUST be different from any previous goals.`;
+Provide a single, clear lesson goal that addresses the most important aspect of this concept for the student to learn. Your goal MUST be different from any previous goals.
+
+Also provide a short exercise that reinforces the lesson goal and is in line with the concept name and description as well as the teacher's report.
+DO NOT make the exercise too easy or too hard.
+
+Output format:
+{{
+  "lessonGoal": "string",
+  "exercise": "string"
+}}
+`;
+
+const LessonGoalAndDummyExercise = z.object({
+  lessonGoal: z.string(),
+  exercise: z.string(),
+});
+export type LessonGoalAndDummyExercise = z.infer<
+  typeof LessonGoalAndDummyExercise
+>;
 
 /**
  * Creates a focused lesson goal based on the concept and teacher's report
@@ -40,22 +59,24 @@ Provide a single, clear lesson goal that addresses the most important aspect of 
  * @param previousLessonGoals Previous lesson goals to avoid repetition
  * @returns A focused lesson goal as a string
  */
-export async function createLessonGoal(
+export async function createLessonGoalAndDummyExercise(
   concept: Concept,
   userId: string,
   previousLessonGoals: string[] = [],
-): Promise<string> {
+): Promise<LessonGoalAndDummyExercise> {
   const promptTemplate = ChatPromptTemplate.fromMessages([
     SystemMessagePromptTemplate.fromTemplate(CREATE_LESSON_GOAL_SYSTEM_PROMPT),
     HumanMessagePromptTemplate.fromTemplate(CREATE_LESSON_GOAL_HUMAN_TEMPLATE),
   ]);
 
-  const chain = promptTemplate.pipe(model).withConfig({
-    tags: ["lesson-goal-generation"],
-    runName: "Generate Lesson Goal",
-  });
+  const chain = promptTemplate
+    .pipe(model.withStructuredOutput(LessonGoalAndDummyExercise))
+    .withConfig({
+      tags: ["lesson-goal-generation"],
+      runName: "Generate Lesson Goal",
+    });
 
-  const response = await chain.invoke(
+  return await chain.invoke(
     {
       conceptName: concept.name,
       conceptDescription: concept.description,
@@ -73,12 +94,4 @@ export async function createLessonGoal(
       },
     },
   );
-
-  // Extract the lesson goal from the response
-  const lessonGoal =
-    response.content instanceof Object
-      ? JSON.stringify(response.content)
-      : String(response.content).trim();
-
-  return lessonGoal;
 }
