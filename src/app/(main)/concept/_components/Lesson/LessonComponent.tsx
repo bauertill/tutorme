@@ -1,6 +1,5 @@
 "use client";
 
-import { Latex } from "@/app/_components/Latex";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +13,9 @@ import type { Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { LessonExercise } from "./LessonExercise";
+import { LessonExplanation } from "./LessonExplanation";
+import { LessonSkeleton } from "./LessonSkeleton";
 
 export function LessonComponent({ conceptId }: { conceptId: string }) {
   const [lesson, setLesson] = useState<Lesson | null>(null);
@@ -50,6 +52,10 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
     });
   };
 
+  if (isCreating) {
+    return <LessonSkeleton />;
+  }
+
   if (!lesson) {
     return (
       <div className="mt-6 flex flex-row items-center justify-between gap-4">
@@ -73,16 +79,19 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
           <CardTitle>Lesson: {lesson.lessonGoal}</CardTitle>
         </CardHeader>
         <CardContent>
-          {lesson.turns.map((turn, turnIdx) => (
-            <div key={turnIdx} className="my-2 rounded bg-muted p-3">
-              <p className="text-m mb-1 font-semibold capitalize">
-                {turn.type === "exercise" ? "Your turn!" : ""}
-              </p>
-              <p className="whitespace-pre-wrap">
-                <Latex>{turn.text}</Latex>
-              </p>
-            </div>
-          ))}
+          {lesson.turns.map((turn, turnIdx) => {
+            if (turn.type === "explanation") {
+              return <LessonExplanation key={turnIdx} explanation={turn} />;
+            }
+            if (turn.type === "exercise") {
+              return <LessonExercise key={turnIdx} exercise={turn} />;
+            }
+            return (
+              <div key={turnIdx} className="my-2 rounded bg-muted p-3">
+                <p className="whitespace-pre-wrap">{turn.text}</p>
+              </div>
+            );
+          })}
 
           {lesson.status === "ACTIVE" && (
             <div className="mt-4 space-y-3">
@@ -112,6 +121,7 @@ export function LessonComponent({ conceptId }: { conceptId: string }) {
             </div>
           )}
         </CardContent>
+        {/* @TODO add give up button */}
         <CardFooter>
           {lesson.status !== "ACTIVE" && (
             <div className="flex w-full justify-between gap-2 text-center font-medium">
