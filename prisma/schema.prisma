@@ -6,28 +6,26 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [pgvector(map: "vector")]
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions"), vector]
 }
 
-// Necessary for Next auth
 model Account {
-  id                       String  @id @default(cuid())
+  id                       String   @id @default(cuid())
   userId                   String
   type                     String
   provider                 String
   providerAccountId        String
-  refresh_token            String? // @db.Text
-  access_token             String? // @db.Text
+  refresh_token            String?
+  access_token             String?
   expires_at               Int?
   token_type               String?
   scope                    String?
-  id_token                 String? // @db.Text
+  id_token                 String?
   session_state            String?
-  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   refresh_token_expires_in Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -41,20 +39,18 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                    String                 @id @default(cuid())
+  name                  String?
+  email                 String?                @unique
+  emailVerified         DateTime?
+  image                 String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
   accounts              Account[]
-  sessions              Session[]
   goals                 Goal[]
-  userQuestionResponses UserQuestionResponse[]
   lessons               Lesson[]
+  sessions              Session[]
+  userQuestionResponses UserQuestionResponse[]
 }
 
 model VerificationToken {
@@ -66,16 +62,120 @@ model VerificationToken {
 }
 
 model Goal {
-  id   String @id @default(cuid())
-  name String
+  id        String    @id @default(cuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  userId    String
+  concepts  Concept[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Concept {
+  id                    String                 @id @default(cuid())
+  name                  String
+  description           String
+  masteryLevel          Mastery                @default(UNKNOWN)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  goalId                String
+  teacherReport         String?
+  goal                  Goal                   @relation(fields: [goalId], references: [id])
+  lessons               Lesson[]
+  quizzes               Quiz[]
+  userQuestionResponses UserQuestionResponse[]
+}
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   String
-  concepts Concept[]
-  lessons  Lesson[]
+model Quiz {
+  id                    String                 @id @default(cuid())
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  conceptId             String
+  status                QuizStatus             @default(ACTIVE)
+  questions             Question[]
+  concept               Concept                @relation(fields: [conceptId], references: [id])
+  userQuestionResponses UserQuestionResponse[]
+}
+
+model Question {
+  id            String                 @id @default(cuid())
+  question      String
+  options       String[]
+  correctAnswer String
+  difficulty    Difficulty
+  explanation   String
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  quizId        String
+  quiz          Quiz                   @relation(fields: [quizId], references: [id])
+  userResponses UserQuestionResponse[]
+}
+
+model UserQuestionResponse {
+  id         String   @id @default(cuid())
+  answer     String
+  isCorrect  Boolean
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+  questionId String
+  quizId     String
+  conceptId  String
+  concept    Concept  @relation(fields: [conceptId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id])
+  quiz       Quiz     @relation(fields: [quizId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([quizId])
+  @@index([conceptId])
+}
+
+model Lesson {
+  id               String       @id @default(cuid())
+  lessonGoal       String
+  lessonIterations Json
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  conceptId        String
+  goalId           String
+  userId           String
+  status           LessonStatus @default(ACTIVE)
+  concept          Concept      @relation(fields: [conceptId], references: [id])
+  goal             Goal         @relation(fields: [goalId], references: [id])
+  user             User         @relation(fields: [userId], references: [id])
+
+  @@index([conceptId])
+  @@index([goalId])
+  @@index([userId])
+}
+
+model ProblemUpload {
+  id        String              @id @default(cuid())
+  fileName  String
+  nRecords  Int
+  fileSize  Int
+  status    ProblemUploadStatus @default(PENDING)
+  error     String?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  problems  Problem[]
+}
+
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model Problem {
+  id              String                 @id @default(cuid())
+  problem         String
+  solution        String
+  level           String
+  type            String
+  vector          Unsupported("vector")?
+  createdAt       DateTime               @default(now())
+  dataSource      String
+  problemUploadId String
+  problemUpload   ProblemUpload          @relation(fields: [problemUploadId], references: [id], onDelete: Cascade)
 }
 
 enum Mastery {
@@ -84,24 +184,6 @@ enum Mastery {
   INTERMEDIATE
   ADVANCED
   EXPERT
-}
-
-model Concept {
-  id            String  @id @default(cuid())
-  name          String
-  description   String
-  masteryLevel  Mastery @default(UNKNOWN)
-  teacherReport String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  goalId String
-  goal   Goal   @relation(fields: [goalId], references: [id])
-
-  quizzes               Quiz[]
-  userQuestionResponses UserQuestionResponse[]
-  lessons               Lesson[]
 }
 
 enum QuizStatus {
@@ -114,21 +196,6 @@ enum LessonStatus {
   DONE
 }
 
-model Quiz {
-  id String @id @default(cuid())
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  conceptId String
-  concept   Concept @relation(fields: [conceptId], references: [id])
-
-  status QuizStatus @default(ACTIVE)
-
-  questions             Question[]
-  userQuestionResponses UserQuestionResponse[]
-}
-
 enum Difficulty {
   BEGINNER
   INTERMEDIATE
@@ -136,99 +203,9 @@ enum Difficulty {
   EXPERT
 }
 
-model Question {
-  id            String     @id @default(cuid())
-  question      String
-  options       String[]
-  correctAnswer String
-  difficulty    Difficulty
-  explanation   String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  quizId String
-  quiz   Quiz   @relation(fields: [quizId], references: [id])
-
-  userResponses UserQuestionResponse[]
-}
-
-model UserQuestionResponse {
-  id        String  @id @default(cuid())
-  answer    String
-  isCorrect Boolean
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  questionId String
-  question   Question @relation(fields: [questionId], references: [id])
-  quizId     String
-  quiz       Quiz     @relation(fields: [quizId], references: [id])
-  conceptId  String
-  concept    Concept  @relation(fields: [conceptId], references: [id])
-
-  @@index([userId])
-  @@index([questionId])
-  @@index([quizId])
-  @@index([conceptId])
-}
-
-model Lesson {
-  id               String       @id @default(cuid())
-  lessonGoal       String
-  lessonIterations Json
-  status           LessonStatus @default(ACTIVE)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  conceptId String
-  concept   Concept @relation(fields: [conceptId], references: [id])
-
-  goalId String
-  goal   Goal   @relation(fields: [goalId], references: [id])
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  @@index([conceptId])
-  @@index([goalId])
-  @@index([userId])
-}
-
 enum ProblemUploadStatus {
   PENDING
   SUCCESS
   ERROR
   CANCELLED
-}
-
-model ProblemUpload {
-  id        String              @id @default(cuid())
-  fileName  String
-  nRecords  Int
-  fileSize  Int
-  status    ProblemUploadStatus @default(PENDING)
-  error     String?
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-
-  problems Problem[]
-}
-
-model Problem {
-  id         String                       @id @default(cuid())
-  dataSource String
-  problem    String
-  solution   String
-  level      String
-  type       String
-  vector     Unsupported("vector(3072)")?
-  createdAt  DateTime                     @default(now())
-
-  problemUploadId String
-  problemUpload   ProblemUpload @relation(fields: [problemUploadId], references: [id], onDelete: Cascade)
 }
