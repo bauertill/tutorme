@@ -1,7 +1,20 @@
 import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
-import { type Concept } from "../concept/types";
-import type { Goal } from "./types";
+import { type PubSubAdapter } from "../adapters/pubsubAdapter";
+import { generateConceptsForGoal } from "../concept/conceptDomain";
+import type { Goal, GoalWithConcepts } from "./types";
+
+export async function createGoal(
+  dbAdapter: DBAdapter,
+  userId: string,
+  name: string,
+  llmAdapter: LLMAdapter,
+  pubSubAdapter: PubSubAdapter,
+): Promise<Goal> {
+  const goal = await dbAdapter.createGoal(userId, name);
+  void generateConceptsForGoal(goal, llmAdapter, dbAdapter, pubSubAdapter);
+  return goal;
+}
 
 export async function getGoalById(
   dbAdapter: DBAdapter,
@@ -10,16 +23,9 @@ export async function getGoalById(
   return dbAdapter.getGoalById(goalId);
 }
 
-export async function getConceptsForGoal(
-  llmAdapter: LLMAdapter,
+export async function getGoalByIdIncludeConcepts(
   dbAdapter: DBAdapter,
-  goal: Goal,
-): Promise<Concept[]> {
-  const existingConcepts = await dbAdapter.getConceptsByGoalId(goal.id);
-  if (existingConcepts.length > 0) {
-    return existingConcepts;
-  }
-  const newConcepts = await llmAdapter.concept.getConceptsForGoal(goal);
-  await dbAdapter.createConcepts(newConcepts);
-  return newConcepts;
+  goalId: string,
+): Promise<GoalWithConcepts> {
+  return dbAdapter.getGoalByIdIncludeConcepts(goalId);
 }

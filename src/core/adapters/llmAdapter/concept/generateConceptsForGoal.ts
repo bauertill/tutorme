@@ -28,7 +28,9 @@ Be concise and clear in your descriptions.`;
 export const HUMAN_TEMPLATE = `Please break down the following learning goal into core concepts:
 {goal}`;
 
-export async function getConceptsForGoal(goal: Goal): Promise<Concept[]> {
+export async function* generateConceptsForGoal(
+  goal: Goal,
+): AsyncIterable<Concept> {
   const promptTemplate = ChatPromptTemplate.fromMessages([
     SystemMessagePromptTemplate.fromTemplate(SYSTEM_PROMPT),
     HumanMessagePromptTemplate.fromTemplate(HUMAN_TEMPLATE),
@@ -69,6 +71,10 @@ export async function getConceptsForGoal(goal: Goal): Promise<Concept[]> {
     goalId: goal.id,
     masteryLevel: "UNKNOWN",
     teacherReport: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }));
-  return concepts;
+  for (const concept of concepts) {
+    yield concept;
+  }
 }

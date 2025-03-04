@@ -1,2 +1,2 @@
 export { evaluateStudentConceptUnderstanding } from "./evaluateStudentConceptUnderstanding";
-export { getConceptsForGoal } from "./getConceptsForGoal";
+export { generateConceptsForGoal } from "./generateConceptsForGoal";
