@@ -12,15 +12,9 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 import assert from "assert";
 import { z } from "zod";
 import {
-  QuizStatus,
   type Concept,
   type ConceptWithGoal,
   type MasteryLevel,
-  type Question,
-  type QuestionParams,
-  type QuestionResponseWithQuestion,
-  type Quiz,
-  type UserQuestionResponse,
 } from "../concept/types";
 import type { Goal } from "../goal/types";
 import { Lesson, LessonTurn } from "../lesson/types";
@@ -75,53 +69,6 @@ export class DBAdapter {
     await this.db.concept.createMany({ data: concepts });
   }
 
-  async createQuiz(
-    questions: QuestionParams[],
-    conceptId: string,
-  ): Promise<Quiz> {
-    return await this.db.quiz.create({
-      data: {
-        conceptId,
-        questions: { create: questions },
-        status: QuizStatus.Enum.ACTIVE,
-      },
-      include: { questions: true },
-    });
-  }
-
-  async getQuestionById(id: string): Promise<Question> {
-    return this.db.question.findUniqueOrThrow({ where: { id } });
-  }
-
-  async getQuizById(id: string): Promise<Quiz> {
-    return await this.db.quiz.findUniqueOrThrow({
-      where: { id },
-      include: { questions: true },
-    });
-  }
-
-  async getQuestionResponsesByQuizId(
-    quizId: string,
-  ): Promise<QuestionResponseWithQuestion[]> {
-    return this.db.userQuestionResponse.findMany({
-      where: { quizId },
-      include: { question: true },
-    });
-  }
-
-  async createQuestionResponse(response: Draft<UserQuestionResponse>) {
-    return this.db.userQuestionResponse.create({ data: response });
-  }
-  async updateConceptMasteryLevel(
-    conceptId: string,
-    masteryLevel: MasteryLevel,
-  ) {
-    return this.db.concept.update({
-      where: { id: conceptId },
-      data: { masteryLevel },
-    });
-  }
-
   async updateConceptMasteryLevelAndTeacherReport(
     conceptId: string,
     masteryLevel: MasteryLevel,
@@ -130,43 +77,6 @@ export class DBAdapter {
     return this.db.concept.update({
       where: { id: conceptId },
       data: { masteryLevel, teacherReport },
-    });
-  }
-
-  async appendQuizQuestion(
-    quizId: string,
-    question: QuestionParams,
-  ): Promise<Quiz> {
-    return await this.db.quiz.update({
-      where: { id: quizId },
-      data: { questions: { create: question } },
-      include: { questions: true },
-    });
-  }
-
-  /**
-   * Updates the status of a quiz
-   * @param quizId The ID of the quiz to update
-   * @param status The new status for the quiz
-   * @returns The updated quiz
-   */
-  async updateQuizStatus(quizId: string, status: QuizStatus): Promise<Quiz> {
-    return await this.db.quiz.update({
-      where: { id: quizId },
-      data: { status },
-      include: { questions: true },
-    });
-  }
-
-  /**
-   * Gets a quiz by ID
-   * @param quizId The ID of the quiz to get
-   * @returns The quiz
-   */
-  async getQuiz(quizId: string): Promise<Quiz> {
-    return await this.db.quiz.findUniqueOrThrow({
-      where: { id: quizId },
-      include: { questions: true },
     });
   }
 

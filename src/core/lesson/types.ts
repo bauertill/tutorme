@@ -28,6 +28,7 @@ export const LessonTurn = z.discriminatedUnion("type", [
 export type LessonTurn = z.infer<typeof LessonTurn>;
 
 export const LessonStatus = z.enum([
+  "TODO",
   "ACTIVE",
   "PAUSED",
   "DONE_WITH_HELP",
