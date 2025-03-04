@@ -53,7 +53,6 @@ model User {
   accounts              Account[]
   sessions              Session[]
   goals                 Goal[]
-  userQuestionResponses UserQuestionResponse[]
   lessons               Lesson[]
 }
 
@@ -99,8 +98,6 @@ model Concept {
   goalId String
   goal   Goal   @relation(fields: [goalId], references: [id])
 
-  quizzes               Quiz[]
-  userQuestionResponses UserQuestionResponse[]
   lessons               Lesson[]
 }
 
@@ -110,26 +107,13 @@ enum QuizStatus {
 }
 
 enum LessonStatus {
+  TODO
   ACTIVE
   PAUSED
   DONE_WITH_HELP
   DONE
 }
 
-model Quiz {
-  id String @id @default(cuid())
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  conceptId String
-  concept   Concept @relation(fields: [conceptId], references: [id])
-
-  status QuizStatus @default(ACTIVE)
-
-  questions             Question[]
-  userQuestionResponses UserQuestionResponse[]
-}
 
 enum Difficulty {
   BEGINNER
@@ -138,45 +122,7 @@ enum Difficulty {
   EXPERT
 }
 
-model Question {
-  id            String     @id @default(cuid())
-  question      String
-  options       String[]
-  correctAnswer String
-  difficulty    Difficulty
-  explanation   String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  quizId String
-  quiz   Quiz   @relation(fields: [quizId], references: [id])
-
-  userResponses UserQuestionResponse[]
-}
-
-model UserQuestionResponse {
-  id        String  @id @default(cuid())
-  answer    String
-  isCorrect Boolean
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  questionId String
-  question   Question @relation(fields: [questionId], references: [id])
-  quizId     String
-  quiz       Quiz     @relation(fields: [quizId], references: [id])
-  conceptId  String
-  concept    Concept  @relation(fields: [conceptId], references: [id])
-
-  @@index([userId])
-  @@index([questionId])
-  @@index([quizId])
-  @@index([conceptId])
-}
 
 model Lesson {
   id         String       @id @default(cuid())
