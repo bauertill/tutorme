@@ -1,11 +1,9 @@
 "use client";
 
 // import { skipToken } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
-import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ActiveLessonComponent } from "./ActiveLessonComponent";
 import { LessonListItem } from "./LessonListItem";
@@ -13,17 +11,6 @@ import { LessonSkeleton } from "./LessonSkeleton";
 
 export function LessonController({ conceptId }: { conceptId: string }) {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-
-  // Mutation to create a new lesson
-  const { mutate: createLesson, isPending: isCreating } =
-    api.learning.createLesson.useMutation({
-      onSuccess: (lesson) => {
-        setActiveLesson(lesson);
-      },
-      onError: (error) => {
-        console.error("Error creating lesson:", error);
-      },
-    });
 
   const {
     mutate: createLessonsForConcept,
@@ -90,20 +77,7 @@ export function LessonController({ conceptId }: { conceptId: string }) {
   return (
     <div className="mt-6 space-y-8">
       <Card>
-        <CardHeader>
-          <div className="flex flex-row items-center justify-between">
-            <Button
-              onClick={() => createLesson({ conceptId })}
-              disabled={isCreating}
-            >
-              {isCreating ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                "Create Lesson"
-              )}
-            </Button>
-          </div>
-        </CardHeader>
+        <CardHeader></CardHeader>
         <CardContent>
           <div className="space-y-6">
             {lessons?.map((lesson, index) => (

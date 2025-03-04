@@ -7,8 +7,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { EducationalVideo } from "@/core/video/types";
+import { api } from "@/trpc/react";
 import Image from "next/image";
+import { useState } from "react";
 import { WatchVideo } from "./WatchVideo";
 
 function formatDuration(seconds: number): string {
@@ -18,20 +19,40 @@ function formatDuration(seconds: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
-interface VideoCardProps {
-  video?: EducationalVideo;
-  isLoading?: boolean;
+interface VideoControllerProps {
+  conceptId: string;
+  onVideoComplete: () => void;
 }
-export function VideoCard({ video, isLoading }: VideoCardProps) {
+export function VideoController({
+  conceptId,
+  onVideoComplete,
+}: VideoControllerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  // @TODO store videos in DB
+  // @TODO cache where in the video the user was
+
+  // @TODO add a "watched" flag to the video upon completion
+  // @TODO Store user preferences for videos -> Ask for feedback
+  // whether he likes the video or not
+  // Use this in the search video prompt
+
+  const { data: video, isLoading } =
+    api.learning.searchEducationalVideo.useQuery({
+      conceptId,
+    });
   if (isLoading) {
     return <VideoCardSkeleton />;
   }
   if (!video) {
-    return <p> ERROR: No video found</p>;
+    console.error("No video found");
+    return null;
   }
 
   return (
-    <Card className="mb-4 overflow-hidden transition-shadow hover:shadow-md">
+    <Card
+      className="mb-4 overflow-hidden transition-shadow hover:cursor-pointer hover:bg-accent-hover hover:shadow-md"
+      onClick={() => setIsOpen(true)}
+    >
       <div className="flex flex-col sm:flex-row">
         <div className="relative h-48 sm:h-auto sm:w-1/3">
           {video.thumbnailUrl && (
@@ -62,7 +83,15 @@ export function VideoCard({ video, isLoading }: VideoCardProps) {
           </CardContent>
           <CardFooter className="mt-auto">
             <div className="ml-auto">
-              <WatchVideo video={video} />
+              <WatchVideo
+                video={video}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                onComplete={() => {
+                  setIsOpen(false);
+                  onVideoComplete();
+                }}
+              />
             </div>
           </CardFooter>
         </div>

@@ -1,95 +1,65 @@
 "use client";
 
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MasteryLevel } from "@/core/goal/types";
-// import { skipToken } from "@tanstack/react-query";
-import { Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
+import { BookOpenIcon, VideoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ActiveLessonComponent } from "./Lesson/ActiveLessonComponent";
 import { LessonController } from "./Lesson/LessonController";
 import { SelfAssessment } from "./SelfAssessment";
+import { VideoController } from "./Video/VideoCard";
 
 export function ConceptView({ conceptId }: { conceptId: string }) {
   const { data: concept } = api.concept.byId.useQuery(conceptId);
-  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-
-  // Mutation to create a new lesson
-  const { mutate: createLesson, isPending: isCreating } =
-    api.learning.createLesson.useMutation({
-      onSuccess: (lesson) => {
-        setActiveLesson(lesson);
-      },
-      onError: (error) => {
-        console.error("Error creating lesson:", error);
-      },
-    });
-
-  const {
-    mutate: createLessonsForConcept,
-    isPending: isCreatingLessons,
-    data: newLessons,
-  } = api.learning.createLessonsForConcept.useMutation({});
-  // Mutation to submit a lesson response
-  const { mutate: submitResponse, isPending: isSubmitting } =
-    api.learning.submitLessonResponse.useMutation({
-      onSuccess: (lesson) => {
-        setActiveLesson(lesson);
-      },
-      onError: (error) => {
-        console.error("Error submitting response:", error);
-      },
-    });
-
-  const {
-    data: existingLessons,
-    refetch: refetchLessons,
-    isSuccess: existingLessonsSuccess,
-  } = api.learning.getLessonsByConceptId.useQuery({
-    conceptId,
-  });
-
-  // If there are no lessons, create them in bulk and save :D
+  const [learningMode, setLearningMode] = useState<
+    "lesson" | "video" | undefined
+  >();
   useEffect(() => {
-    if (existingLessonsSuccess && existingLessons?.length === 0) {
-      console.log("Creating lessons for concept");
-      createLessonsForConcept({ conceptId });
+    if (concept?.masteryLevel === MasteryLevel.Enum.BEGINNER) {
+      setLearningMode("video");
     }
-  }, [
-    existingLessons,
-    existingLessonsSuccess,
-    conceptId,
-    createLessonsForConcept,
-  ]);
+  }, [concept]);
 
-  const lessons: Lesson[] = existingLessons?.length
-    ? existingLessons
-    : (newLessons ?? []);
-
-  console.log(lessons);
   if (!concept) return null;
-
-  if (concept.masteryLevel === MasteryLevel.Enum.UNKNOWN) {
+  if (concept.masteryLevel === "UNKNOWN")
     return <SelfAssessment concept={concept} />;
-  }
-  if (activeLesson) {
-    return (
-      <ActiveLessonComponent
-        lesson={activeLesson}
-        handleUserResponse={(userInput, lessonId) =>
-          submitResponse({ lessonId, userInput })
-        }
-        isSubmitting={isSubmitting}
-        goBack={() => {
-          refetchLessons();
-          setActiveLesson(null);
-        }}
-      />
-    );
-  }
 
   return (
-    <div className="mt-6 space-y-8">
-      <LessonController conceptId={conceptId} />
+    <div className="mt-8 space-y-8">
+      <div className="flex justify-center">
+        <ToggleGroup
+          type="single"
+          value={learningMode}
+          onValueChange={(value: string | undefined) =>
+            setLearningMode(value as "video" | "lesson")
+          }
+          className="flex gap-4"
+        >
+          <ToggleGroupItem
+            value="video"
+            aria-label="Toggle video mode"
+            className="flex items-center gap-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          >
+            <VideoIcon className="h-4 w-4" />
+            <span>Video</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="lesson"
+            aria-label="Toggle lesson mode"
+            className="flex items-center gap-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          >
+            <BookOpenIcon className="h-4 w-4" />
+            <span>Lesson</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+      {learningMode === "video" && (
+        <VideoController
+          conceptId={conceptId}
+          onVideoComplete={() => setLearningMode("lesson")}
+        />
+      )}
+      {learningMode === "lesson" && <LessonController conceptId={conceptId} />}
     </div>
   );
 }

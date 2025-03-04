@@ -9,14 +9,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { EducationalVideo } from "@/core/video/types";
-import { ExternalLink } from "lucide-react";
-import { useState } from "react";
 
-export function WatchVideo({ video }: { video: EducationalVideo }) {
-  const [isOpen, setIsOpen] = useState(false);
-
+export function WatchVideo({
+  video,
+  isOpen,
+  setIsOpen,
+  onComplete,
+}: {
+  video: EducationalVideo;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  onComplete: () => void;
+}) {
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => setIsOpen(!open)}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="flex items-center gap-1">
           Watch
@@ -40,15 +46,8 @@ export function WatchVideo({ video }: { video: EducationalVideo }) {
           <div className="text-sm text-muted-foreground">
             {video.channelTitle}
           </div>
-          <Button asChild variant="outline" size="sm">
-            <a
-              href={video.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1"
-            >
-              Open in YouTube <ExternalLink size={14} />
-            </a>
+          <Button variant="outline" size="sm" onClick={onComplete}>
+            Got it!
           </Button>
         </div>
       </DialogContent>
