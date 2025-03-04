@@ -6,6 +6,7 @@ import { api } from "@/trpc/react";
 import { skipToken } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { MasteryLevelPill } from "./MasteryLevelPill";
 
 export default function ConceptsList({ goalId }: { goalId: string }) {
@@ -24,18 +25,14 @@ export default function ConceptsList({ goalId }: { goalId: string }) {
     isCompletelyGenerated ? skipToken : { goalId },
     {
       onData: (data) => {
-        console.log("data", data);
         setGeneratedConcepts((prev) => [...prev, data]);
       },
       onComplete: () => {
-        console.log("complete");
         void utils.goal.byIdIncludeConcepts.invalidate(goalId);
       },
-      onStarted: () => {
-        console.log("started");
-      },
       onError: (error) => {
-        console.error("error", error);
+        console.error(error);
+        toast.error("Error generating goal concepts");
       },
     },
   );

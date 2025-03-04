@@ -5,6 +5,9 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
+import assert from "assert";
+import { differenceBy } from "lodash-es";
+import { Allow, parse } from "partial-json";
 import { z } from "zod";
 import { model } from "../model";
 
@@ -46,12 +49,22 @@ export async function* generateConceptsForGoal(
   });
 
   const chain = promptTemplate
-    .pipe(model.withStructuredOutput(schema))
+    .pipe(
+      model.bind({
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "concepts",
+            schema: schema,
+          },
+        },
+      }),
+    )
     .withConfig({
       tags: ["concept-extraction"],
       runName: "Extract Learning Concepts",
     });
-  const response = await chain.invoke(
+  const stream = await chain.stream(
     {
       goal: goal.name,
     },
@@ -63,18 +76,33 @@ export async function* generateConceptsForGoal(
     },
   );
 
-  // Map the parsed concepts to our domain model
-  const concepts: Concept[] = response.concepts.map((concept) => ({
-    id: crypto.randomUUID(),
-    name: concept.name,
-    description: concept.description,
-    goalId: goal.id,
-    masteryLevel: "UNKNOWN",
-    teacherReport: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }));
-  for (const concept of concepts) {
-    yield concept;
+  let partialResult = "";
+  let partialParsed: z.infer<typeof schema> = { concepts: [] };
+  for await (const chunk of stream) {
+    assert(typeof chunk.content === "string");
+    partialResult += chunk.content;
+    try {
+      const parsed = schema.parse(
+        parse(partialResult, Allow.ARR | Allow.OBJ) as unknown,
+      );
+      const newConcepts = differenceBy(
+        parsed.concepts,
+        partialParsed?.concepts ?? [],
+        "name",
+      );
+      for (const concept of newConcepts) {
+        yield {
+          id: crypto.randomUUID(),
+          name: concept.name,
+          description: concept.description,
+          goalId: goal.id,
+          masteryLevel: "UNKNOWN",
+          teacherReport: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
+      partialParsed = parsed;
+    } catch {}
   }
 }

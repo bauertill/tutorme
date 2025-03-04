@@ -52,6 +52,7 @@
     "next": "^15.0.1",
     "next-auth": "5.0.0-beta.25",
     "next-themes": "^0.4.4",
+    "partial-json": "^0.1.7",
     "pretty-bytes": "^6.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
