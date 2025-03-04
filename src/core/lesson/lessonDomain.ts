@@ -171,7 +171,6 @@ export async function createLessonsForConcept(
     concept,
     userId,
   );
-  console.log({ dummyExercises });
   const problemQueries: Promise<ProblemQueryResult[]>[] = [];
   for (const level of ["beginner", "intermediate", "advanced"] as const) {
     dummyExercises[level].map((exercise) => {

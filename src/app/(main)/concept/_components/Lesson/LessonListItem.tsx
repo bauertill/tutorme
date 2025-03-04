@@ -2,7 +2,7 @@
 
 import type { Lesson } from "@/core/lesson/types";
 
-export function LessonListComponent({
+export function LessonListItem({
   lesson,
   setActiveLesson,
 }: {

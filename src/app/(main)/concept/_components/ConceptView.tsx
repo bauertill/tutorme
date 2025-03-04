@@ -10,9 +10,8 @@ import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ActiveLessonComponent } from "./Lesson/ActiveLessonComponent";
-import { LessonListComponent } from "./Lesson/LessonListComponent";
+import { LessonListItem } from "./Lesson/LessonListItem";
 import { SelfAssessment } from "./SelfAssessment";
-
 export function ConceptView({ conceptId }: { conceptId: string }) {
   const { data: concept } = api.concept.byId.useQuery(conceptId);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
@@ -27,6 +26,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
         console.error("Error creating lesson:", error);
       },
     });
+
   const {
     mutate: createLessonsForConcept,
     isPending: isCreatingLessons,
@@ -113,7 +113,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
             {lessons?.map((lesson, index) => (
               <div key={lesson.id}>
                 {index > 0 && <Separator className="my-4" />}
-                <LessonListComponent
+                <LessonListItem
                   lesson={lesson}
                   setActiveLesson={setActiveLesson}
                 />
@@ -124,17 +124,4 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
       </Card>
     </div>
   );
-}
-
-function getFallbackText(masteryLevel: MasteryLevel) {
-  switch (masteryLevel) {
-    case MasteryLevel.Enum.BEGINNER:
-      return "You're at the beginning of your journey.";
-    case MasteryLevel.Enum.INTERMEDIATE:
-      return "You're making progress and understand some basics. Let's focus on the complex questions to master this concept.";
-    case MasteryLevel.Enum.ADVANCED:
-      return "You're starting to master the complicated questions, with some practice you will be an expert soon.";
-    case MasteryLevel.Enum.EXPERT:
-      return "You're officially an expert on this topic!";
-  }
 }
