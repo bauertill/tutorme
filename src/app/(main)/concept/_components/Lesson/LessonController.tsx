@@ -9,9 +9,9 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ActiveLessonComponent } from "./ActiveLessonComponent";
 import { LessonListItem } from "./LessonListItem";
+import { LessonSkeleton } from "./LessonSkeleton";
 
-export function LessonList({ conceptId }: { conceptId: string }) {
-  const { data: concept } = api.concept.byId.useQuery(conceptId);
+export function LessonController({ conceptId }: { conceptId: string }) {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
 
   // Mutation to create a new lesson
@@ -45,6 +45,7 @@ export function LessonList({ conceptId }: { conceptId: string }) {
     data: existingLessons,
     refetch: refetchLessons,
     isSuccess: existingLessonsSuccess,
+    isLoading: isFetchingLessons,
   } = api.learning.getLessonsByConceptId.useQuery({
     conceptId,
   });
@@ -66,7 +67,9 @@ export function LessonList({ conceptId }: { conceptId: string }) {
     ? existingLessons
     : (newLessons ?? []);
 
-  if (!concept) return null;
+  if (isFetchingLessons || isCreatingLessons) {
+    return <LessonSkeleton />;
+  }
 
   if (activeLesson) {
     return (

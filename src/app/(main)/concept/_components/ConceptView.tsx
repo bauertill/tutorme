@@ -6,7 +6,7 @@ import { Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
 import { ActiveLessonComponent } from "./Lesson/ActiveLessonComponent";
-import { LessonList } from "./Lesson/LessonList";
+import { LessonController } from "./Lesson/LessonController";
 import { SelfAssessment } from "./SelfAssessment";
 
 export function ConceptView({ conceptId }: { conceptId: string }) {
@@ -89,7 +89,7 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
 
   return (
     <div className="mt-6 space-y-8">
-      <LessonList conceptId={conceptId} />
+      <LessonController conceptId={conceptId} />
     </div>
   );
 }
