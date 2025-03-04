@@ -41,9 +41,9 @@ const Exercise = z.object({
 });
 
 const ExerciseSet = z.object({
-  beginner: z.array(Exercise).length(10),
-  intermediate: z.array(Exercise).length(10),
-  advanced: z.array(Exercise).length(10),
+  beginner: z.array(Exercise),
+  intermediate: z.array(Exercise),
+  advanced: z.array(Exercise),
 });
 
 export type Exercise = z.infer<typeof Exercise>;

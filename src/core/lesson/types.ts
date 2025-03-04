@@ -43,5 +43,14 @@ export const Lesson = z.object({
   goalId: z.string(),
   userId: z.string(),
   problemId: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 export type Lesson = z.infer<typeof Lesson>;
+
+const DraftLesson = Lesson.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type DraftLesson = z.infer<typeof DraftLesson>;

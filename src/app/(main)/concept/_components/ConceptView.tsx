@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActiveLessonComponent } from "./Lesson/ActiveLessonComponent";
 import { LessonListComponent } from "./Lesson/LessonListComponent";
 import { SelfAssessment } from "./SelfAssessment";
@@ -27,6 +27,11 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
         console.error("Error creating lesson:", error);
       },
     });
+  const {
+    mutate: createLessonsForConcept,
+    isPending: isCreatingLessons,
+    data: newLessons,
+  } = api.learning.createLessonsForConcept.useMutation({});
   // Mutation to submit a lesson response
   const { mutate: submitResponse, isPending: isSubmitting } =
     api.learning.submitLessonResponse.useMutation({
@@ -38,12 +43,33 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
       },
     });
 
-  if (!concept) return null;
+  const {
+    data: existingLessons,
+    refetch: refetchLessons,
+    isSuccess: existingLessonsSuccess,
+  } = api.learning.getLessonsByConceptId.useQuery({
+    conceptId,
+  });
 
-  const { data: lessons, refetch: refetchLessons } =
-    api.learning.getLessonsByConceptId.useQuery({
-      conceptId,
-    });
+  // If there are no lessons, create them in bulk and save :D
+  useEffect(() => {
+    if (existingLessonsSuccess && existingLessons?.length === 0) {
+      console.log("Creating lessons for concept");
+      createLessonsForConcept({ conceptId });
+    }
+  }, [
+    existingLessons,
+    existingLessonsSuccess,
+    conceptId,
+    createLessonsForConcept,
+  ]);
+
+  const lessons: Lesson[] = existingLessons?.length
+    ? existingLessons
+    : (newLessons ?? []);
+
+  console.log(lessons);
+  if (!concept) return null;
 
   if (concept.masteryLevel === MasteryLevel.Enum.UNKNOWN) {
     return <SelfAssessment concept={concept} />;

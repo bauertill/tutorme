@@ -4,7 +4,7 @@ import { createLessonFromProblem } from "../adapters/llmAdapter/lesson";
 import { NextLessonAction } from "../adapters/llmAdapter/lesson/decideNextLessonAction";
 import { updateConceptMasteryLevelAndTeacherReport } from "../concept/conceptDomain";
 import { Concept, MasteryLevel } from "../concept/types";
-import { Problem } from "../problem/types";
+import { Problem, ProblemQueryResult } from "../problem/types";
 import type { Lesson, LessonStatus, LessonTurn } from "./types";
 
 // @TODO understand why scores are so low :/
@@ -68,7 +68,11 @@ export async function createLesson(
     dbAdapter,
     llmAdapter,
   );
-  const lessonText = await createLessonFromProblem(concept, problem, userId);
+  const { lessonText } = await createLessonFromProblem(
+    concept,
+    problem,
+    userId,
+  );
   const turns: LessonTurn[] = [
     {
       type: "explanation",
@@ -155,4 +159,82 @@ function getNewStatus(
     return "DONE";
   }
   return "PAUSED";
+}
+/**
+ * This method creates a series of lessons for a concept. It creates
+ * dummy exercises for each level of difficulty and then finds real problems
+ * that are similar to the dummy exercises. It then creates a lesson for each
+ * real problem.
+ */
+export async function createLessonsForConcept(
+  conceptId: string,
+  userId: string,
+  dbAdapter: DBAdapter,
+  llmAdapter: LLMAdapter,
+): Promise<Lesson[]> {
+  const concept = await dbAdapter.getConceptById(conceptId);
+  const dummyExercises = await llmAdapter.lesson.createDummyExercises(
+    concept,
+    userId,
+  );
+  console.log({ dummyExercises });
+  const problemQueries: Promise<ProblemQueryResult[]>[] = [];
+  for (const level of ["beginner", "intermediate", "advanced"] as const) {
+    dummyExercises[level].map((exercise) => {
+      const queryString = `Problem: ${exercise.problem}\nSolution: ${exercise.solution}`;
+      const queryLevel =
+        level === "beginner"
+          ? "Level 1"
+          : level === "intermediate"
+            ? "Level 2"
+            : "Level 3";
+      problemQueries.push(
+        dbAdapter.queryProblems(queryString, 10, [], queryLevel),
+      );
+    });
+  }
+  const problemResults2D: ProblemQueryResult[][] =
+    await Promise.all(problemQueries);
+  const uniqueProblems: Problem[] = [];
+  for (const problemResults of problemResults2D) {
+    for (const { problem } of problemResults) {
+      // @TODO decide what to do with score
+      const isUnique = !uniqueProblems.find((p) => p.id === problem.id);
+      if (isUnique) {
+        uniqueProblems.push(problem);
+        break;
+      }
+    }
+  }
+
+  const lessons: Lesson[] = await Promise.all(
+    uniqueProblems.map(async (problem) => {
+      const { lessonText, lessonSummary } = await createLessonFromProblem(
+        concept,
+        problem,
+        userId,
+      );
+      const turns: LessonTurn[] = [
+        {
+          type: "explanation",
+          text: lessonText,
+        },
+        {
+          type: "exercise",
+          text: problem.problem,
+          solution: problem.solution,
+        },
+      ];
+      const lesson = await dbAdapter.createLesson(
+        lessonSummary,
+        concept.id,
+        concept.goalId,
+        userId,
+        problem.id,
+        turns,
+      );
+      return lesson;
+    }),
+  );
+  return lessons;
 }

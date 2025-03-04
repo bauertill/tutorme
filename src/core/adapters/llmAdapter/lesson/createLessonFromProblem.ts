@@ -5,6 +5,7 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
+import { z } from "zod";
 import { model } from "../model";
 
 export const CREATE_LESSON_ITERATION_SYSTEM_PROMPT = `
@@ -16,6 +17,7 @@ Each lesson is focussed on solving one exercise problem. You are given this prob
 Your goal is to come up with lesson text which explains the concepts that are necessary for solving the problem. 
 
 Your lesson should be brief and take no more than 2 minutes to read.
+Your lesson should have a single summary text which is a single sentence that captures the main idea of the lesson.
 `;
 
 export const CREATE_LESSON_ITERATION_HUMAN_TEMPLATE = `
@@ -29,7 +31,19 @@ Problem: {problem}
 Solution: {solution}
 
 DO NOT disclose the solution to the user. 
+
+Output the lesson text in the following JSON format:
+{{
+  "lessonText": "<lesson text>",
+  "lessonSummary": "<lesson summary>"
+}}
 `;
+
+const outputFormat = z.object({
+  lessonText: z.string(),
+  lessonSummary: z.string(),
+});
+type LessonOutput = z.infer<typeof outputFormat>;
 
 /**
  * Creates the first iteration of a lesson
@@ -41,7 +55,7 @@ export async function createLessonFromProblem(
   concept: Concept,
   problem: Problem,
   userId: string,
-): Promise<string> {
+): Promise<LessonOutput> {
   const promptTemplate = ChatPromptTemplate.fromMessages([
     SystemMessagePromptTemplate.fromTemplate(
       CREATE_LESSON_ITERATION_SYSTEM_PROMPT,
@@ -51,12 +65,14 @@ export async function createLessonFromProblem(
     ),
   ]);
 
-  const chain = promptTemplate.pipe(model).withConfig({
-    tags: ["lesson-iteration-generation"],
-    runName: "Generate Lesson Iteration",
-  });
+  const chain = promptTemplate
+    .pipe(model.withStructuredOutput(outputFormat))
+    .withConfig({
+      tags: ["lesson-iteration-generation"],
+      runName: "Generate Lesson Iteration",
+    });
 
-  const response = await chain.invoke(
+  return await chain.invoke(
     {
       conceptName: concept.name,
       conceptDescription: concept.description,
@@ -70,9 +86,4 @@ export async function createLessonFromProblem(
       },
     },
   );
-  const lessonContent =
-    response.content instanceof Object
-      ? JSON.stringify(response.content)
-      : String(response.content).trim();
-  return lessonContent;
 }

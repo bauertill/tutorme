@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { addUserInputToLesson, createLesson } from "@/core/lesson/lessonDomain";
+import {
+  addUserInputToLesson,
+  createLesson,
+  createLessonsForConcept,
+} from "@/core/lesson/lessonDomain";
 import { findEducationalVideo } from "@/core/video/videoDomain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
@@ -41,6 +45,19 @@ export const learningRouter = createTRPCRouter({
       );
     }),
 
+  /**
+   * Create lessons for a concept
+   */
+  createLessonsForConcept: protectedProcedure
+    .input(z.object({ conceptId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      return createLessonsForConcept(
+        input.conceptId,
+        ctx.session.user.id,
+        ctx.dbAdapter,
+        ctx.llmAdapter,
+      );
+    }),
   /**
    * Get all lessons for a concept
    */
