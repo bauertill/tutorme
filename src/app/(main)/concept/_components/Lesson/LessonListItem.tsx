@@ -15,7 +15,7 @@ export function LessonListItem({
       onClick={() => setActiveLesson(lesson)}
     >
       <h3 className="text-l flex flex-row items-center gap-2">
-        {lesson.lessonGoal}
+        {lesson.difficulty}
       </h3>
       <div className="flex flex-row items-center gap-2">
         <div

@@ -1,15 +1,16 @@
 "use client";
 
-import { MasteryLevel } from "@/core/goal/types";
 // import { skipToken } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ActiveLessonComponent } from "./Lesson/ActiveLessonComponent";
-import { LessonList } from "./Lesson/LessonList";
-import { SelfAssessment } from "./SelfAssessment";
+import { ActiveLessonComponent } from "./ActiveLessonComponent";
+import { LessonListItem } from "./LessonListItem";
 
-export function ConceptView({ conceptId }: { conceptId: string }) {
+export function LessonList({ conceptId }: { conceptId: string }) {
   const { data: concept } = api.concept.byId.useQuery(conceptId);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
 
@@ -65,12 +66,8 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
     ? existingLessons
     : (newLessons ?? []);
 
-  console.log(lessons);
   if (!concept) return null;
 
-  if (concept.masteryLevel === MasteryLevel.Enum.UNKNOWN) {
-    return <SelfAssessment concept={concept} />;
-  }
   if (activeLesson) {
     return (
       <ActiveLessonComponent
@@ -89,7 +86,34 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
 
   return (
     <div className="mt-6 space-y-8">
-      <LessonList conceptId={conceptId} />
+      <Card>
+        <CardHeader>
+          <div className="flex flex-row items-center justify-between">
+            <Button
+              onClick={() => createLesson({ conceptId })}
+              disabled={isCreating}
+            >
+              {isCreating ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                "Create Lesson"
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {lessons?.map((lesson, index) => (
+              <div key={lesson.id}>
+                <LessonListItem
+                  lesson={lesson}
+                  setActiveLesson={setActiveLesson}
+                />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
