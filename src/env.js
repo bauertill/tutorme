@@ -20,6 +20,7 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     NEXTAUTH_URL: z.string().url(),
+    REDIS_URL: z.string().url(),
   },
 
   /**
@@ -44,6 +45,7 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    REDIS_URL: process.env.REDIS_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

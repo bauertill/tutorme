@@ -13,6 +13,7 @@ import { ZodError } from "zod";
 
 import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { llmAdapter } from "@/core/adapters/llmAdapter";
+import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
 import { youtubeAdapter } from "@/core/adapters/youtubeAdapter";
 import { ADMINS, auth } from "@/server/auth";
 
@@ -36,6 +37,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     dbAdapter,
     llmAdapter,
     youtubeAdapter,
+    pubsubAdapter,
     ...opts,
   };
 };

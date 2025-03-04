@@ -1,16 +1,41 @@
 "use client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { type Concept } from "@/core/concept/types";
 import { api } from "@/trpc/react";
+import { skipToken } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 import { MasteryLevelPill } from "./MasteryLevelPill";
 
 export default function ConceptsList({ goalId }: { goalId: string }) {
-  const {
-    data: concepts,
-    isPending,
-    isError,
-  } = api.goal.getConcepts.useQuery(goalId);
+  const utils = api.useUtils();
+  const { data: goalWithConcepts, isError } =
+    api.goal.byIdIncludeConcepts.useQuery(goalId);
+
+  const isCompletelyGenerated =
+    goalWithConcepts?.generationStatus === "COMPLETED";
+
+  const [generatedConcepts, setGeneratedConcepts] = useState<Concept[]>([]);
+  const concepts = isCompletelyGenerated
+    ? (goalWithConcepts?.concepts ?? [])
+    : generatedConcepts;
+  const conceptsSubscription = api.goal.onConceptGenerated.useSubscription(
+    isCompletelyGenerated ? skipToken : { goalId },
+    {
+      onData: (data) => {
+        setGeneratedConcepts((prev) => [...prev, data]);
+      },
+      onComplete: () => {
+        void utils.goal.byIdIncludeConcepts.invalidate(goalId);
+      },
+      onError: (error) => {
+        console.error(error);
+        toast.error("Error generating goal concepts");
+      },
+    },
+  );
 
   if (isError) {
     return <div>Error loading concepts</div>;
@@ -18,7 +43,7 @@ export default function ConceptsList({ goalId }: { goalId: string }) {
 
   return (
     <div className="space-y-4">
-      {isPending
+      {conceptsSubscription.status === "connecting"
         ? Array.from({ length: 3 }).map((_, i) => (
             <Card key={i}>
               <CardContent className="pt-6">

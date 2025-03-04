@@ -16,7 +16,8 @@ import {
   type ConceptWithGoal,
   type MasteryLevel,
 } from "../concept/types";
-import type { Goal } from "../goal/types";
+import type { Goal, GoalWithConcepts } from "../goal/types";
+import { type GenerationStatus } from "../index";
 import { Lesson, LessonTurn } from "../lesson/types";
 
 const EMBEDDING_MODEL = "text-embedding-3-large";
@@ -42,6 +43,13 @@ export class DBAdapter {
     return this.db.goal.findUniqueOrThrow({ where: { id } });
   }
 
+  async getGoalByIdIncludeConcepts(id: string): Promise<GoalWithConcepts> {
+    return this.db.goal.findUniqueOrThrow({
+      where: { id },
+      include: { concepts: true },
+    });
+  }
+
   async createGoal(userId: string, goalText: string): Promise<Goal> {
     return this.db.goal.create({ data: { name: goalText, userId } });
   }
@@ -63,6 +71,10 @@ export class DBAdapter {
       where: { id },
       include: { goal: true },
     });
+  }
+
+  async createConcept(concepts: Concept): Promise<Concept> {
+    return await this.db.concept.create({ data: concepts });
   }
 
   async createConcepts(concepts: Concept[]): Promise<void> {
@@ -274,6 +286,16 @@ export class DBAdapter {
 
   async getProblemUploadById(uploadId: string): Promise<ProblemUpload> {
     return this.db.problemUpload.findUniqueOrThrow({ where: { id: uploadId } });
+  }
+
+  async updateGoalGenerationStatus(
+    goalId: string,
+    status: GenerationStatus,
+  ): Promise<void> {
+    await this.db.goal.update({
+      where: { id: goalId },
+      data: { generationStatus: status },
+    });
   }
 }
 

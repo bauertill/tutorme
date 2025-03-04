@@ -64,9 +64,16 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+enum GenerationStatus {
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
 model Goal {
-  id   String @id @default(cuid())
-  name String
+  id               String           @id @default(cuid())
+  name             String
+  generationStatus GenerationStatus @default(GENERATING)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -101,10 +108,6 @@ model Concept {
   lessons               Lesson[]
 }
 
-enum QuizStatus {
-  ACTIVE
-  DONE
-}
 
 enum LessonStatus {
   TODO

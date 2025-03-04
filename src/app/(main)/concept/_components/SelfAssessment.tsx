@@ -16,7 +16,7 @@ function SelfAssessmentCard({
   const updateMasteryLevel = api.concept.updateMasteryLevel.useMutation({
     onSuccess: async () => {
       await utils.concept.byId.invalidate(concept.id);
-      void utils.goal.getConcepts.invalidate();
+      void utils.goal.byIdIncludeConcepts.invalidate();
     },
   });
   const onClick = () => {

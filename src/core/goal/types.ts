@@ -1,10 +1,12 @@
 import { z } from "zod";
 import type { Concept } from "../concept/types";
+import { GenerationStatus } from "../index";
 
 export const Goal = z.object({
   id: z.string(),
   name: z.string(),
   userId: z.string(),
+  generationStatus: GenerationStatus,
 });
 
 export type Goal = z.infer<typeof Goal>;
@@ -21,4 +23,3 @@ export const MasteryLevel = z.enum([
   "EXPERT",
 ]);
 export type MasteryLevel = z.infer<typeof MasteryLevel>;
-

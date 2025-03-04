@@ -48,6 +48,8 @@ export const Concept = z.object({
   description: z.string(),
   masteryLevel: MasteryLevel,
   teacherReport: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export type Concept = z.infer<typeof Concept>;

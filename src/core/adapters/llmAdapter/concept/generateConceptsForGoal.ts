@@ -5,6 +5,9 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
+import assert from "assert";
+import { differenceBy } from "lodash-es";
+import { Allow, parse } from "partial-json";
 import { z } from "zod";
 import { model } from "../model";
 
@@ -28,7 +31,9 @@ Be concise and clear in your descriptions.`;
 export const HUMAN_TEMPLATE = `Please break down the following learning goal into core concepts:
 {goal}`;
 
-export async function getConceptsForGoal(goal: Goal): Promise<Concept[]> {
+export async function* generateConceptsForGoal(
+  goal: Goal,
+): AsyncIterable<Concept> {
   const promptTemplate = ChatPromptTemplate.fromMessages([
     SystemMessagePromptTemplate.fromTemplate(SYSTEM_PROMPT),
     HumanMessagePromptTemplate.fromTemplate(HUMAN_TEMPLATE),
@@ -44,12 +49,22 @@ export async function getConceptsForGoal(goal: Goal): Promise<Concept[]> {
   });
 
   const chain = promptTemplate
-    .pipe(model.withStructuredOutput(schema))
+    .pipe(
+      model.bind({
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "concepts",
+            schema: schema,
+          },
+        },
+      }),
+    )
     .withConfig({
       tags: ["concept-extraction"],
       runName: "Extract Learning Concepts",
     });
-  const response = await chain.invoke(
+  const stream = await chain.stream(
     {
       goal: goal.name,
     },
@@ -61,14 +76,33 @@ export async function getConceptsForGoal(goal: Goal): Promise<Concept[]> {
     },
   );
 
-  // Map the parsed concepts to our domain model
-  const concepts: Concept[] = response.concepts.map((concept) => ({
-    id: crypto.randomUUID(),
-    name: concept.name,
-    description: concept.description,
-    goalId: goal.id,
-    masteryLevel: "UNKNOWN",
-    teacherReport: null,
-  }));
-  return concepts;
+  let partialResult = "";
+  let partialParsed: z.infer<typeof schema> = { concepts: [] };
+  for await (const chunk of stream) {
+    assert(typeof chunk.content === "string");
+    partialResult += chunk.content;
+    try {
+      const parsed = schema.parse(
+        parse(partialResult, Allow.ARR | Allow.OBJ) as unknown,
+      );
+      const newConcepts = differenceBy(
+        parsed.concepts,
+        partialParsed?.concepts ?? [],
+        "name",
+      );
+      for (const concept of newConcepts) {
+        yield {
+          id: crypto.randomUUID(),
+          name: concept.name,
+          description: concept.description,
+          goalId: goal.id,
+          masteryLevel: "UNKNOWN",
+          teacherReport: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
+      partialParsed = parsed;
+    } catch {}
+  }
 }
