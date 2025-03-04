@@ -307,6 +307,7 @@ export class DBAdapter {
     query: string,
     limit: number,
     problemIdBlackList: string[] = [],
+    level?: string,
   ): Promise<ProblemQueryResult[]> {
     const queryVector = await this.embedQuery(query);
     const results = await this.db.$queryRaw<
@@ -325,6 +326,7 @@ export class DBAdapter {
         FROM "Problem"
         WHERE "vector" IS NOT NULL
         AND "id" NOT IN (${Prisma.join([...problemIdBlackList, "NULL"])})
+        ${level ? Prisma.sql`AND "level" = ${level}` : Prisma.empty}
         ORDER BY "score" DESC
         LIMIT ${limit}`;
     return results.map((result) => ({

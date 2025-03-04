@@ -3,12 +3,19 @@ import type { LLMAdapter } from "../adapters/llmAdapter";
 import { createLessonFromProblem } from "../adapters/llmAdapter/lesson";
 import { NextLessonAction } from "../adapters/llmAdapter/lesson/decideNextLessonAction";
 import { updateConceptMasteryLevelAndTeacherReport } from "../concept/conceptDomain";
-import { Concept } from "../concept/types";
+import { Concept, MasteryLevel } from "../concept/types";
 import { Problem } from "../problem/types";
 import type { Lesson, LessonStatus, LessonTurn } from "./types";
 
 // @TODO understand why scores are so low :/
 const CUTOFF_SCORE = 0;
+const MASTERY_LEVEL_TO_DIFFICULTY = {
+  [MasteryLevel.Enum.UNKNOWN]: "Level 1",
+  [MasteryLevel.Enum.BEGINNER]: "Level 1",
+  [MasteryLevel.Enum.INTERMEDIATE]: "Level 2",
+  [MasteryLevel.Enum.ADVANCED]: "Level 3",
+  [MasteryLevel.Enum.EXPERT]: "Level 4",
+};
 
 async function chooseNextProblemForConcept(
   concept: Concept,
@@ -33,10 +40,12 @@ async function chooseNextProblemForConcept(
 
   const query = `Lesson goal: ${lessonGoal}\nExercise: ${exercise}`;
   const blackListProblemIds = previousLessons.map((lesson) => lesson.problemId);
+  const difficulty = MASTERY_LEVEL_TO_DIFFICULTY[concept.masteryLevel];
   const relevantProblems = await dbAdapter.queryProblems(
     query,
     10,
     blackListProblemIds,
+    difficulty,
   );
   const topProblem = relevantProblems[0];
   if (!topProblem) throw new Error("No problem found for query");
