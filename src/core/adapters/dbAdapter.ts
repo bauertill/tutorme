@@ -8,7 +8,7 @@ import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
-import { Prisma, type PrismaClient } from "@prisma/client";
+import { Difficulty, Prisma, type PrismaClient } from "@prisma/client";
 import assert from "assert";
 import { z } from "zod";
 import {
@@ -96,6 +96,7 @@ export class DBAdapter {
     userId: string,
     problemId: string,
     turns: LessonTurn[],
+    difficulty: Difficulty,
   ): Promise<Lesson> {
     const dbLesson = await this.db.lesson.create({
       data: {
@@ -105,7 +106,8 @@ export class DBAdapter {
         userId,
         problemId,
         turns,
-        status: "ACTIVE",
+        status: "TODO",
+        difficulty,
       },
     });
     return Lesson.parse(dbLesson);

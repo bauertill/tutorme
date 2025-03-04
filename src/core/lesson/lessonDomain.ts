@@ -3,7 +3,7 @@ import type { LLMAdapter } from "../adapters/llmAdapter";
 import { createLessonFromProblem } from "../adapters/llmAdapter/lesson";
 import { NextLessonAction } from "../adapters/llmAdapter/lesson/decideNextLessonAction";
 import { updateConceptMasteryLevelAndTeacherReport } from "../concept/conceptDomain";
-import { Concept, MasteryLevel } from "../concept/types";
+import { Concept, Difficulty, MasteryLevel } from "../concept/types";
 import { Problem, ProblemQueryResult } from "../problem/types";
 import type { Lesson, LessonStatus, LessonTurn } from "./types";
 
@@ -15,6 +15,13 @@ const MASTERY_LEVEL_TO_DIFFICULTY = {
   [MasteryLevel.Enum.INTERMEDIATE]: "Level 2",
   [MasteryLevel.Enum.ADVANCED]: "Level 3",
   [MasteryLevel.Enum.EXPERT]: "Level 4",
+};
+
+const LEVEL_TO_DIFFICULTY: Record<string, Difficulty> = {
+  "Level 1": "BEGINNER",
+  "Level 2": "INTERMEDIATE",
+  "Level 3": "ADVANCED",
+  "Level 4": "EXPERT",
 };
 
 async function chooseNextProblemForConcept(
@@ -92,6 +99,7 @@ export async function createLesson(
     userId,
     problem.id,
     turns,
+    getDifficultyFromLevel(problem.level),
   );
 }
 
@@ -146,20 +154,6 @@ export async function addUserInputToLesson(
   return await dbAdapter.updateLesson(updatedLesson);
 }
 
-function getNewStatus(
-  lesson: Lesson,
-  nextLessonAction: NextLessonAction["action"],
-): LessonStatus {
-  if (nextLessonAction === "end_lesson") {
-    const hasMultipleExplanationTurns =
-      lesson.turns.filter((l) => l.type === "explanation").length > 1;
-    if (hasMultipleExplanationTurns) {
-      return "DONE_WITH_HELP";
-    }
-    return "DONE";
-  }
-  return "PAUSED";
-}
 /**
  * This method creates a series of lessons for a concept. It creates
  * dummy exercises for each level of difficulty and then finds real problems
@@ -225,6 +219,7 @@ export async function createLessonsForConcept(
           solution: problem.solution,
         },
       ];
+
       const lesson = await dbAdapter.createLesson(
         lessonSummary,
         concept.id,
@@ -232,9 +227,34 @@ export async function createLessonsForConcept(
         userId,
         problem.id,
         turns,
+        getDifficultyFromLevel(problem.level),
       );
       return lesson;
     }),
   );
   return lessons;
+}
+
+function getNewStatus(
+  lesson: Lesson,
+  nextLessonAction: NextLessonAction["action"],
+): LessonStatus {
+  if (nextLessonAction === "end_lesson") {
+    const hasMultipleExplanationTurns =
+      lesson.turns.filter((l) => l.type === "explanation").length > 1;
+    if (hasMultipleExplanationTurns) {
+      return "DONE_WITH_HELP";
+    }
+    return "DONE";
+  }
+  return "PAUSED";
+}
+
+function getDifficultyFromLevel(level: string): Difficulty {
+  const difficulty = LEVEL_TO_DIFFICULTY[level];
+  if (!difficulty) {
+    console.error(`No difficulty found for level ${level}`);
+    return "BEGINNER";
+  }
+  return difficulty;
 }
