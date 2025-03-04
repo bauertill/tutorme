@@ -160,7 +160,9 @@ export function LessonController({ conceptId }: { conceptId: string }) {
               <div key={lesson.id}>
                 <LessonListItem
                   lesson={lesson}
-                  setActiveLesson={setActiveLesson}
+                  setActiveLesson={() =>
+                    setActiveLesson({ ...lesson, status: "ACTIVE" })
+                  }
                 />
               </div>
             ))}
