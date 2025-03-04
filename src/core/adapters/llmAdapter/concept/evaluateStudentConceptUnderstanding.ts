@@ -83,10 +83,11 @@ export async function evaluateStudentConceptUnderstanding(
 function getExerciseResults(lessons: Lesson[]): string {
   const exercisesWithResults = [];
   const exerciseStatuses: Record<LessonStatus, string> = {
+    TODO: "the exercise has not been started",
     DONE: "correct",
     DONE_WITH_HELP: "correct with the help of some hints",
-    PAUSED: "the exercise was abandoned",
-    ACTIVE: "the exercise was not completed",
+    PAUSED: "the exercise was not completed",
+    ACTIVE: "the exercise is currently being worked on",
   };
   for (const lesson of lessons) {
     const exerciseTurn = lesson.turns.find((turn) => turn.type === "exercise");

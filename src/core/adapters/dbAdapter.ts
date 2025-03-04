@@ -69,6 +69,15 @@ export class DBAdapter {
     await this.db.concept.createMany({ data: concepts });
   }
 
+  async updateConceptMasteryLevel(
+    conceptId: string,
+    masteryLevel: MasteryLevel,
+  ) {
+    return this.db.concept.update({
+      where: { id: conceptId },
+      data: { masteryLevel },
+    });
+  }
   async updateConceptMasteryLevelAndTeacherReport(
     conceptId: string,
     masteryLevel: MasteryLevel,
