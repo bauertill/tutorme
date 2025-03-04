@@ -11,6 +11,16 @@ export const MasteryLevel = z.enum([
 ]);
 export type MasteryLevel = z.infer<typeof MasteryLevel>;
 
+// @TODO make MasteryLevel and Difficulty the same thing.
+// Make UNKNOWN = difficulty NULL
+export const Difficulty = z.enum([
+  "BEGINNER",
+  "INTERMEDIATE",
+  "ADVANCED",
+  "EXPERT",
+]);
+export type Difficulty = z.infer<typeof Difficulty>;
+
 export const QuizStatus = z.enum(["ACTIVE", "DONE"]);
 export type QuizStatus = z.infer<typeof QuizStatus>;
 

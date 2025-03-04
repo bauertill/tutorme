@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Difficulty } from "../concept/types";
 
 const LessonExplanationTurn = z.object({
   type: z.literal("explanation"),
@@ -39,6 +40,7 @@ export const Lesson = z.object({
   lessonGoal: z.string(),
   turns: z.array(LessonTurn),
   status: LessonStatus,
+  difficulty: Difficulty,
   conceptId: z.string(),
   goalId: z.string(),
   userId: z.string(),

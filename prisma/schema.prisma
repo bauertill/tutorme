@@ -129,6 +129,7 @@ model Lesson {
   lessonGoal String
   turns      Json
   status     LessonStatus @default(ACTIVE)
+  difficulty Difficulty   @default(BEGINNER)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
