@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import type { Lesson } from "@/core/lesson/types";
+import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { LessonExercise } from "./LessonExercise";
 import { LessonExplanation } from "./LessonExplanation";
@@ -33,10 +34,20 @@ export function ActiveLessonComponent({
 
   return (
     <div className="mt-6 space-y-4">
-      <div className="flex items-center justify-between"></div>
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          onClick={goBack}
+          className="flex items-center gap-2"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
 
       <Card key={lesson.id}>
         <CardHeader>
+          {/* @TODO add lesson number */}
           <CardTitle>Lesson: {lesson.lessonGoal}</CardTitle>
         </CardHeader>
         <CardContent>
