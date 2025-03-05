@@ -12,21 +12,6 @@ export function LessonListItem({
   lesson: Lesson;
   setActiveLesson: (lesson: Lesson) => void;
 }) {
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "BEGINNER":
-        return "bg-green-100 text-green-800 hover:bg-green-200";
-      case "INTERMEDIATE":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
-      case "ADVANCED":
-        return "bg-purple-100 text-purple-800 hover:bg-purple-200";
-      case "EXPERT":
-        return "bg-red-100 text-red-800 hover:bg-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "ACTIVE":
@@ -41,6 +26,13 @@ export function LessonListItem({
         return "bg-gray-100 text-gray-800";
     }
   };
+  const getStatusText = (status: string) => {
+    if (status === "ACTIVE") return "Active";
+    if (status === "DONE") return "Done";
+    if (status === "DONE_WITH_HELP") return "Done";
+    if (status === "PAUSED") return "Paused";
+    return "To Do";
+  };
 
   return (
     <Card
@@ -48,28 +40,18 @@ export function LessonListItem({
       onClick={() => setActiveLesson(lesson)}
     >
       <div className="flex h-12 items-center justify-between gap-4 px-4">
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div className="grow-1 gap-3 overflow-hidden">
           <p className="truncate text-sm text-muted-foreground">
             {lesson.lessonGoal}
           </p>
-          <div className="flex shrink-0 items-center gap-2">
-            <Badge className={getDifficultyColor(lesson.difficulty)}>
-              {lesson.difficulty}
-            </Badge>
-            <Badge className={getStatusColor(lesson.status)}>
-              {lesson.status === "ACTIVE"
-                ? "Active"
-                : lesson.status === "DONE"
-                  ? "Completed"
-                  : lesson.status === "DONE_WITH_HELP"
-                    ? "Completed with Help"
-                    : lesson.status === "PAUSED"
-                      ? "Paused"
-                      : "To Do"}
-            </Badge>
-          </div>
         </div>
-        <ChevronRight className="h-5 w-5 shrink-0 transform text-muted-foreground transition-transform group-hover:translate-x-1" />
+
+        <div className="flex shrink-0 gap-2">
+          <Badge className={getStatusColor(lesson.status)}>
+            {getStatusText(lesson.status)}
+          </Badge>
+          <ChevronRight className="h-5 w-5 shrink-0 transform text-muted-foreground transition-transform group-hover:translate-x-1" />
+        </div>
       </div>
     </Card>
   );
