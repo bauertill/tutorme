@@ -9,7 +9,7 @@ export function ConceptView({
   setLearningMode,
 }: {
   conceptId: string;
-  learningMode: "video" | "lesson";
+  learningMode?: "video" | "lesson";
   setLearningMode: (learningMode: "video" | "lesson") => void;
 }) {
   return (

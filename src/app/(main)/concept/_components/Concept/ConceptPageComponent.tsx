@@ -30,15 +30,12 @@ export function ConceptPageComponent({ conceptId }: { conceptId: string }) {
           setLearningMode={setLearningMode}
         />
         <p className="text-muted-foreground">{concept.description}</p>
-        {learningMode ? (
-          <ConceptView
-            conceptId={conceptId}
-            learningMode={learningMode}
-            setLearningMode={setLearningMode}
-          />
-        ) : (
-          <SelfAssessment concept={concept} />
-        )}
+        <ConceptView
+          conceptId={conceptId}
+          learningMode={learningMode}
+          setLearningMode={setLearningMode}
+        />
+        {masteryLevel === "UNKNOWN" && <SelfAssessment concept={concept} />}
       </main>
     </div>
   );

@@ -22,7 +22,7 @@ export function WatchVideo({
   onComplete: () => void;
 }) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => setIsOpen(!open)}>
+    <Dialog open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="flex items-center gap-1">
           Watch
