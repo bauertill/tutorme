@@ -11,7 +11,7 @@ export function ConceptHeader({
   setLearningMode,
 }: {
   concept: Concept;
-  learningMode: "video" | "lesson";
+  learningMode?: "video" | "lesson";
   setLearningMode: (learningMode: "video" | "lesson") => void;
 }) {
   return (

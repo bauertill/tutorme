@@ -3,6 +3,7 @@ import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
 import { ConceptHeader } from "../ConceptHeader";
 import { ConceptView } from "../ConceptView";
+import { SelfAssessment } from "../SelfAssessment";
 
 export function ConceptPageComponent({ conceptId }: { conceptId: string }) {
   const { data: concept } = api.concept.byId.useQuery(conceptId);
@@ -19,7 +20,7 @@ export function ConceptPageComponent({ conceptId }: { conceptId: string }) {
     }
   }, [masteryLevel]);
 
-  if (!concept || !learningMode) return null;
+  if (!concept) return null;
   return (
     <div className="mx-auto max-w-screen-md">
       <main className="space-y-6">
@@ -29,11 +30,15 @@ export function ConceptPageComponent({ conceptId }: { conceptId: string }) {
           setLearningMode={setLearningMode}
         />
         <p className="text-muted-foreground">{concept.description}</p>
-        <ConceptView
-          conceptId={conceptId}
-          learningMode={learningMode}
-          setLearningMode={setLearningMode}
-        />
+        {learningMode ? (
+          <ConceptView
+            conceptId={conceptId}
+            learningMode={learningMode}
+            setLearningMode={setLearningMode}
+          />
+        ) : (
+          <SelfAssessment concept={concept} />
+        )}
       </main>
     </div>
   );
