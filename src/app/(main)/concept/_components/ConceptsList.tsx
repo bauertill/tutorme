@@ -21,6 +21,7 @@ export default function ConceptsList({ goalId }: { goalId: string }) {
   const concepts = isCompletelyGenerated
     ? (goalWithConcepts?.concepts ?? [])
     : generatedConcepts;
+
   const conceptsSubscription = api.goal.onConceptGenerated.useSubscription(
     isCompletelyGenerated ? skipToken : { goalId },
     {

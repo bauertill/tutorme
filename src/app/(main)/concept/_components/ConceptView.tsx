@@ -1,7 +1,6 @@
 "use client";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { MasteryLevel } from "@/core/goal/types";
 import { api } from "@/trpc/react";
 import { BookOpenIcon, VideoIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -14,11 +13,14 @@ export function ConceptView({ conceptId }: { conceptId: string }) {
   const [learningMode, setLearningMode] = useState<
     "lesson" | "video" | undefined
   >();
+  const masteryLevel = concept?.masteryLevel;
   useEffect(() => {
-    if (concept?.masteryLevel === MasteryLevel.Enum.BEGINNER) {
+    if (masteryLevel === "BEGINNER") {
       setLearningMode("video");
+    } else if (masteryLevel === "INTERMEDIATE" || masteryLevel === "ADVANCED") {
+      setLearningMode("lesson");
     }
-  }, [concept]);
+  }, [masteryLevel]);
 
   if (!concept) return null;
   if (concept.masteryLevel === "UNKNOWN")
