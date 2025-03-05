@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { Goal } from "../goal/types";
-import { type WithTimestamps } from "../utils";
 
 export const MasteryLevel = z.enum([
   "UNKNOWN",
@@ -59,29 +58,3 @@ export const ConceptWithGoal = Concept.extend({
 });
 
 export type ConceptWithGoal = z.infer<typeof ConceptWithGoal>;
-
-export const Quiz = z.object({
-  id: z.string(),
-  questions: z.array(Question),
-  conceptId: z.string(),
-  status: QuizStatus,
-});
-
-export type Quiz = z.infer<typeof Quiz>;
-
-export const UserQuestionResponse = z.object({
-  id: z.string(),
-  answer: z.string(),
-  isCorrect: z.boolean(),
-  userId: z.string(),
-  questionId: z.string(),
-  quizId: z.string(),
-  conceptId: z.string(),
-});
-
-export type UserQuestionResponse = z.infer<typeof UserQuestionResponse>;
-
-export type QuestionResponseWithQuestion =
-  WithTimestamps<UserQuestionResponse> & {
-    question: Question;
-  };

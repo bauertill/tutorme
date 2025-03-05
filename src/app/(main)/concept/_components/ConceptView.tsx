@@ -1,29 +1,26 @@
 "use client";
 
-import { Concept } from "@/core/concept/types";
 import { LessonController } from "./Lesson/LessonController";
 import { VideoController } from "./Video/VideoCard";
 
 export function ConceptView({
-  concept,
+  conceptId,
   learningMode,
   setLearningMode,
 }: {
-  concept: Concept;
+  conceptId: string;
   learningMode: "video" | "lesson";
   setLearningMode: (learningMode: "video" | "lesson") => void;
 }) {
-  if (!concept) return null;
-
   return (
     <div className="mt-8 space-y-8">
       {learningMode === "video" && (
         <VideoController
-          conceptId={concept.id}
+          conceptId={conceptId}
           onVideoComplete={() => setLearningMode("lesson")}
         />
       )}
-      {learningMode === "lesson" && <LessonController conceptId={concept.id} />}
+      {learningMode === "lesson" && <LessonController conceptId={conceptId} />}
     </div>
   );
 }

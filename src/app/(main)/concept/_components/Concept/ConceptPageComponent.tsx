@@ -9,6 +9,7 @@ export function ConceptPageComponent({ conceptId }: { conceptId: string }) {
   const [learningMode, setLearningMode] = useState<
     "lesson" | "video" | undefined
   >();
+
   const masteryLevel = concept?.masteryLevel;
   useEffect(() => {
     if (masteryLevel === "BEGINNER") {
@@ -17,6 +18,7 @@ export function ConceptPageComponent({ conceptId }: { conceptId: string }) {
       setLearningMode("lesson");
     }
   }, [masteryLevel]);
+
   if (!concept || !learningMode) return null;
   return (
     <div className="mx-auto max-w-screen-md">
@@ -28,7 +30,7 @@ export function ConceptPageComponent({ conceptId }: { conceptId: string }) {
         />
         <p className="text-muted-foreground">{concept.description}</p>
         <ConceptView
-          concept={concept}
+          conceptId={conceptId}
           learningMode={learningMode}
           setLearningMode={setLearningMode}
         />

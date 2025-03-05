@@ -12,9 +12,6 @@ import { LessonSkeleton } from "./LessonSkeleton";
 
 export function LessonController({ conceptId }: { conceptId: string }) {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"difficulty" | "status">("difficulty");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const { data: concept } = api.concept.byId.useQuery(conceptId);
 
@@ -85,6 +82,12 @@ export function LessonController({ conceptId }: { conceptId: string }) {
   if (isFetchingLessons || isCreatingLessons) {
     return <LessonSkeleton />;
   }
+  const nextLesson = filteredLessons.find(
+    (l) => !l.status.includes("DONE") && l.id !== activeLesson?.id,
+  );
+  const goToNextLesson = nextLesson
+    ? () => setActiveLesson(nextLesson)
+    : undefined;
 
   return (
     <div className="mt-6 space-y-8">
@@ -124,6 +127,7 @@ export function LessonController({ conceptId }: { conceptId: string }) {
                 refetchLessons();
                 setActiveLesson(null);
               }}
+              goToNextLesson={goToNextLesson}
             />
           ) : (
             <LessonList

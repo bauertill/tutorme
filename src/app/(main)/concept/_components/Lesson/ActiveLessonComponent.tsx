@@ -20,11 +20,13 @@ export function ActiveLessonComponent({
   handleUserResponse,
   isSubmitting,
   goBack,
+  goToNextLesson,
 }: {
   lesson: Lesson;
   handleUserResponse: (userInput: string, lessonId: string) => void;
   isSubmitting: boolean;
   goBack: () => void;
+  goToNextLesson?: () => void;
 }) {
   const [userInput, setUserInput] = useState("");
 
@@ -98,7 +100,9 @@ export function ActiveLessonComponent({
           {lesson.status.includes("DONE") && (
             <div className="flex w-full justify-between gap-2 text-center font-medium">
               <h4>Congratulations! You&apos;ve completed the lesson.</h4>
-              <Button onClick={goBack}>Next Lesson</Button>
+              <Button onClick={goToNextLesson ?? goBack}>
+                {goToNextLesson ? "Next Lesson" : "Back to Lessons"}
+              </Button>
             </div>
           )}
         </CardFooter>
