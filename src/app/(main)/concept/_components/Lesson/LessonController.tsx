@@ -1,12 +1,10 @@
 "use client";
 
 // import { skipToken } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
-import { Search, SortAsc } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ActiveLessonComponent } from "./ActiveLessonComponent";
 import { LessonListItem } from "./LessonListItem";
@@ -17,6 +15,8 @@ export function LessonController({ conceptId }: { conceptId: string }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"difficulty" | "status">("difficulty");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const { data: concept } = api.concept.byId.useQuery(conceptId);
 
   const {
     mutate: createLessonsForConcept,
@@ -60,34 +60,27 @@ export function LessonController({ conceptId }: { conceptId: string }) {
     ? existingLessons
     : (newLessons ?? []);
 
-  const filteredAndSortedLessons = lessons
-    ?.filter((lesson) =>
-      lesson.lessonGoal.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
-    .sort((a, b) => {
-      if (sortBy === "difficulty") {
-        const difficultyOrder = {
-          BEGINNER: 1,
-          INTERMEDIATE: 2,
-          ADVANCED: 3,
-          EXPERT: 4,
-        };
-        const comparison =
-          difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
-        return sortOrder === "asc" ? comparison : -comparison;
-      } else {
-        // Sort by status
-        const statusOrder = {
-          ACTIVE: 1,
-          TODO: 2,
-          DONE: 3,
-          DONE_WITH_HELP: 4,
-          PAUSED: 5,
-        };
-        const comparison = statusOrder[a.status] - statusOrder[b.status];
-        return sortOrder === "asc" ? comparison : -comparison;
-      }
-    });
+  // Filter lessons based on user's mastery level
+  const currentMasteryLevel = concept?.masteryLevel || "BEGINNER";
+  const filteredLessons = lessons.filter(
+    (lesson) => lesson.difficulty === currentMasteryLevel,
+  );
+
+  // Calculate progress
+  const completedLessons = filteredLessons.filter((l) =>
+    l.status.includes("DONE"),
+  ).length;
+  const totalLessons = filteredLessons.length;
+  const progress =
+    totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+
+  // Get next mastery level
+  const masteryLevels = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"];
+  const currentLevelIndex = masteryLevels.indexOf(currentMasteryLevel);
+  const nextLevel =
+    currentLevelIndex < masteryLevels.length - 1
+      ? masteryLevels[currentLevelIndex + 1]
+      : null;
 
   if (isFetchingLessons || isCreatingLessons) {
     return <LessonSkeleton />;
@@ -113,50 +106,31 @@ export function LessonController({ conceptId }: { conceptId: string }) {
     <div className="mt-6 space-y-8">
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search lessons..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">
+                {currentMasteryLevel.charAt(0) +
+                  currentMasteryLevel.slice(1).toLowerCase()}{" "}
+                Level Lessons
+              </h3>
+              {nextLevel && (
+                <span className="text-sm text-muted-foreground">
+                  Progress to{" "}
+                  {nextLevel.charAt(0) + nextLevel.slice(1).toLowerCase()}
+                </span>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSortBy("difficulty")}
-                className={sortBy === "difficulty" ? "bg-accent" : ""}
-              >
-                Sort by Difficulty
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSortBy("status")}
-                className={sortBy === "status" ? "bg-accent" : ""}
-              >
-                Sort by Status
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                }
-              >
-                <SortAsc
-                  className={`h-4 w-4 ${sortOrder === "desc" ? "rotate-180" : ""}`}
-                />
-              </Button>
+            <div className="space-y-1">
+              <Progress value={progress} className="h-2" />
+              <p className="text-sm text-muted-foreground">
+                {completedLessons} of {totalLessons} lessons completed
+              </p>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {filteredAndSortedLessons?.map((lesson, index) => (
+            {filteredLessons.map((lesson) => (
               <div key={lesson.id}>
                 <LessonListItem
                   lesson={lesson}
@@ -166,6 +140,11 @@ export function LessonController({ conceptId }: { conceptId: string }) {
                 />
               </div>
             ))}
+            {filteredLessons.length === 0 && (
+              <p className="text-center text-muted-foreground">
+                No lessons available for your current mastery level.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
