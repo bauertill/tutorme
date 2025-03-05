@@ -33,7 +33,7 @@ export function ActiveLessonComponent({
   };
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="space-y-1">
       <div className="flex items-center justify-between">
         <Button
           variant="ghost"

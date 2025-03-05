@@ -7,7 +7,7 @@ import { Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
 import { ActiveLessonComponent } from "./ActiveLessonComponent";
-import { LessonListItem } from "./LessonListItem";
+import { LessonList } from "./LessonList";
 import { LessonSkeleton } from "./LessonSkeleton";
 
 export function LessonController({ conceptId }: { conceptId: string }) {
@@ -86,22 +86,6 @@ export function LessonController({ conceptId }: { conceptId: string }) {
     return <LessonSkeleton />;
   }
 
-  if (activeLesson) {
-    return (
-      <ActiveLessonComponent
-        lesson={activeLesson}
-        handleUserResponse={(userInput, lessonId) =>
-          submitResponse({ lessonId, userInput })
-        }
-        isSubmitting={isSubmitting}
-        goBack={() => {
-          refetchLessons();
-          setActiveLesson(null);
-        }}
-      />
-    );
-  }
-
   return (
     <div className="mt-6 space-y-8">
       <Card>
@@ -129,23 +113,24 @@ export function LessonController({ conceptId }: { conceptId: string }) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {filteredLessons.map((lesson) => (
-              <div key={lesson.id}>
-                <LessonListItem
-                  lesson={lesson}
-                  setActiveLesson={() =>
-                    setActiveLesson({ ...lesson, status: "ACTIVE" })
-                  }
-                />
-              </div>
-            ))}
-            {filteredLessons.length === 0 && (
-              <p className="text-center text-muted-foreground">
-                No lessons available for your current mastery level.
-              </p>
-            )}
-          </div>
+          {activeLesson ? (
+            <ActiveLessonComponent
+              lesson={activeLesson}
+              handleUserResponse={(userInput, lessonId) =>
+                submitResponse({ lessonId, userInput })
+              }
+              isSubmitting={isSubmitting}
+              goBack={() => {
+                refetchLessons();
+                setActiveLesson(null);
+              }}
+            />
+          ) : (
+            <LessonList
+              lessons={filteredLessons}
+              setActiveLesson={setActiveLesson}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

@@ -1,8 +1,7 @@
 import { Breadcrumbs } from "@/app/_components/Breadcrumbs";
 import { Header } from "@/app/_components/Header";
 import { api, HydrateClient } from "@/trpc/server";
-import { ConceptHeader } from "../_components/ConceptHeader";
-import { ConceptView } from "../_components/ConceptView";
+import { ConceptPageComponent } from "../_components/Concept/ConceptPageComponent";
 
 export default async function ConceptPage({
   params,
@@ -24,13 +23,10 @@ export default async function ConceptPage({
               { label: concept.name, href: `/concept/${conceptId}` },
             ]}
           />
-          <div className="mb-6">
-            <ConceptHeader conceptId={conceptId} />
-          </div>
+          <div className="mb-6"></div>
         </Header>
         <main className="space-y-6">
-          <p className="text-muted-foreground">{concept.description}</p>
-          <ConceptView conceptId={conceptId} />
+          <ConceptPageComponent conceptId={conceptId} />
         </main>
       </div>
     </HydrateClient>

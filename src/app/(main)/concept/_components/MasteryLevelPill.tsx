@@ -38,10 +38,10 @@ const MASTERY_LEVEL_DEFINITIONS: Record<
 };
 
 export function MasteryLevelPill({ level }: MasteryLevelPillProps) {
+  if (level === "UNKNOWN") return null;
   const styles = MASTERY_LEVEL_DEFINITIONS[level];
   return (
     <Badge
-      variant="secondary"
       className={cn(
         "min-w-[80px] justify-center",
         styles.bg,
