@@ -8,7 +8,7 @@ import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
-import { Difficulty, Prisma, type PrismaClient } from "@prisma/client";
+import { type Difficulty, Prisma, type PrismaClient } from "@prisma/client";
 import assert from "assert";
 import { z } from "zod";
 import {

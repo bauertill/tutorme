@@ -1,5 +1,5 @@
 import { Latex } from "@/app/_components/Latex";
-import { LessonExerciseTurn } from "@/core/lesson/types";
+import { type LessonExerciseTurn } from "@/core/lesson/types";
 
 export function LessonExercise({ exercise }: { exercise: LessonExerciseTurn }) {
   return (

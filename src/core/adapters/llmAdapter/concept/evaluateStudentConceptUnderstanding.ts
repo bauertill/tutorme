@@ -1,5 +1,5 @@
 import { MasteryLevel, type Concept } from "@/core/concept/types";
-import { Lesson, LessonStatus } from "@/core/lesson/types";
+import { type Lesson, type LessonStatus } from "@/core/lesson/types";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
@@ -97,5 +97,5 @@ function getExerciseResults(lessons: Lesson[]): string {
       result: exerciseStatuses[lesson.status],
     });
   }
-  return exercisesWithResults.join("\n");
+  return exercisesWithResults.map((x) => JSON.stringify(x)).join("\n");
 }

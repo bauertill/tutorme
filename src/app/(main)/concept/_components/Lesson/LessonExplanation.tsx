@@ -1,5 +1,5 @@
 import { Latex } from "@/app/_components/Latex";
-import { LessonExplanationTurn } from "@/core/lesson/types";
+import { type LessonExplanationTurn } from "@/core/lesson/types";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 

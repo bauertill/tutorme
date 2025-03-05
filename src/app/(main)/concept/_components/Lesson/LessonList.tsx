@@ -1,4 +1,4 @@
-import { Lesson } from "@/core/lesson/types";
+import { type Lesson } from "@/core/lesson/types";
 import { LessonListItem } from "./LessonListItem";
 
 export function LessonList({

@@ -3,7 +3,7 @@
 // import { skipToken } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Lesson } from "@/core/lesson/types";
+import { type Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
 import { ActiveLessonComponent } from "./ActiveLessonComponent";
@@ -58,7 +58,7 @@ export function LessonController({ conceptId }: { conceptId: string }) {
     : (newLessons ?? []);
 
   // Filter lessons based on user's mastery level
-  const currentMasteryLevel = concept?.masteryLevel || "BEGINNER";
+  const currentMasteryLevel = concept?.masteryLevel ?? "BEGINNER";
   const filteredLessons = lessons.filter(
     (lesson) => lesson.difficulty === currentMasteryLevel,
   );
@@ -123,9 +123,9 @@ export function LessonController({ conceptId }: { conceptId: string }) {
                 submitResponse({ lessonId, userInput })
               }
               isSubmitting={isSubmitting}
-              goBack={() => {
-                refetchLessons();
+              goBack={async () => {
                 setActiveLesson(null);
+                await refetchLessons();
               }}
               goToNextLesson={goToNextLesson}
             />

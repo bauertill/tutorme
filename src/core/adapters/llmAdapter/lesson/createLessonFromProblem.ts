@@ -1,5 +1,5 @@
 import { type Concept } from "@/core/concept/types";
-import { Problem } from "@/core/problem/types";
+import { type Problem } from "@/core/problem/types";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,

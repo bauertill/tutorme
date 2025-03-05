@@ -1,10 +1,10 @@
 import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
 import { createLessonFromProblem } from "../adapters/llmAdapter/lesson";
-import { NextLessonAction } from "../adapters/llmAdapter/lesson/decideNextLessonAction";
+import { type NextLessonAction } from "../adapters/llmAdapter/lesson/decideNextLessonAction";
 import { updateConceptMasteryLevelAndTeacherReport } from "../concept/conceptDomain";
-import { Concept, Difficulty, MasteryLevel } from "../concept/types";
-import { Problem, ProblemQueryResult } from "../problem/types";
+import { type Concept, type Difficulty, MasteryLevel } from "../concept/types";
+import { type Problem, type ProblemQueryResult } from "../problem/types";
 import type { Lesson, LessonStatus, LessonTurn } from "./types";
 
 // @TODO understand why scores are so low :/
