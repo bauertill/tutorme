@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { type Concept } from "@/core/concept/types";
 import { api } from "@/trpc/react";
 import { skipToken } from "@tanstack/react-query";
+import { sortBy, unionBy } from "lodash-es";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -18,9 +19,10 @@ export default function ConceptsList({ goalId }: { goalId: string }) {
     goalWithConcepts?.generationStatus === "COMPLETED";
 
   const [generatedConcepts, setGeneratedConcepts] = useState<Concept[]>([]);
-  const concepts = isCompletelyGenerated
-    ? (goalWithConcepts?.concepts ?? [])
-    : generatedConcepts;
+  const concepts = sortBy(
+    unionBy(goalWithConcepts?.concepts ?? [], generatedConcepts, (x) => x.id),
+    (x) => x.createdAt,
+  );
 
   const conceptsSubscription = api.goal.onConceptGenerated.useSubscription(
     isCompletelyGenerated ? skipToken : { goalId },
