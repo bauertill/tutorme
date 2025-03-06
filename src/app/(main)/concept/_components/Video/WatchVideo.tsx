@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import type { EducationalVideo } from "@/core/video/types";
 
@@ -22,12 +21,7 @@ export function WatchVideo({
   onComplete: () => void;
 }) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center gap-1">
-          Watch
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-h-[90vh] overflow-hidden p-0 sm:max-w-[800px]">
         <DialogHeader className="p-4">
           <DialogTitle className="line-clamp-1">{video.title}</DialogTitle>

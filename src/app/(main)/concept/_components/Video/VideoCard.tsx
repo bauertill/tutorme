@@ -1,3 +1,5 @@
+"use client";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -49,54 +51,65 @@ export function VideoController({
   }
 
   return (
-    <Card
-      className="mb-4 overflow-hidden transition-shadow hover:cursor-pointer hover:bg-accent-hover hover:shadow-md"
-      onClick={() => setIsOpen(true)}
-    >
-      <div className="flex flex-col sm:flex-row">
-        <div className="relative h-48 sm:h-auto sm:w-1/3">
-          {video.thumbnailUrl && (
-            <div className="relative h-full w-full">
-              <Image
-                src={video.thumbnailUrl}
-                alt={video.title}
-                fill
-                style={{ objectFit: "cover" }}
-              />
-              {video.duration > 0 && (
-                <div className="absolute bottom-2 right-2 rounded bg-black/70 px-1 py-0.5 text-xs text-white">
-                  {formatDuration(video.duration)}
-                </div>
-              )}
-            </div>
-          )}
+    <>
+      <Card
+        className="mb-4 overflow-hidden transition-shadow hover:cursor-pointer hover:bg-accent-hover hover:shadow-md"
+        onClick={() => {
+          if (!isOpen) setIsOpen(true);
+        }}
+      >
+        <div className="flex flex-col sm:flex-row">
+          <div className="relative h-48 sm:h-auto sm:w-1/3">
+            {video.thumbnailUrl && (
+              <div className="relative h-full w-full">
+                <Image
+                  src={video.thumbnailUrl}
+                  alt={video.title}
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
+                {video.duration > 0 && (
+                  <div className="absolute bottom-2 right-2 rounded bg-black/70 px-1 py-0.5 text-xs text-white">
+                    {formatDuration(video.duration)}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex flex-1 flex-col">
+            <CardHeader>
+              <CardTitle className="line-clamp-2">{video.title}</CardTitle>
+              <CardDescription className="text-sm">
+                {video.channelTitle}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="line-clamp-3 text-sm">{video.description}</p>
+            </CardContent>
+            <CardFooter className="mt-auto">
+              <div className="ml-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                >
+                  Watch
+                </Button>
+              </div>
+            </CardFooter>
+          </div>
         </div>
-        <div className="flex flex-1 flex-col">
-          <CardHeader>
-            <CardTitle className="line-clamp-2">{video.title}</CardTitle>
-            <CardDescription className="text-sm">
-              {video.channelTitle}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="line-clamp-3 text-sm">{video.description}</p>
-          </CardContent>
-          <CardFooter className="mt-auto">
-            <div className="ml-auto">
-              <WatchVideo
-                video={video}
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-                onComplete={() => {
-                  setIsOpen(false);
-                  onVideoComplete();
-                }}
-              />
-            </div>
-          </CardFooter>
-        </div>
-      </div>
-    </Card>
+      </Card>
+      <WatchVideo
+        video={video}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        onComplete={() => {
+          setIsOpen(false);
+          onVideoComplete();
+        }}
+      />
+    </>
   );
 }
 
