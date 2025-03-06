@@ -1,7 +1,7 @@
 import { api } from "@/trpc/react";
 
-export const Asymptote = ({ code }: { code: string }) => {
-  const { data, isLoading } = api.renderAsy.render.useQuery(code);
+export const Asymptote = ({ children }: { children: string }) => {
+  const { data, isLoading } = api.renderAsy.render.useQuery(children);
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>

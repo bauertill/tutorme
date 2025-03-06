@@ -1,4 +1,4 @@
-import { Latex } from "@/app/_components/Latex";
+import { JuicyText } from "@/app/_components/JuicyText";
 import { type LessonExplanationTurn } from "@/core/lesson/types";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
@@ -24,7 +24,7 @@ export function LessonExplanation({
       </button>
       {show && (
         <p className="mt-2 whitespace-pre-wrap">
-          <Latex>{explanation.text}</Latex>
+          <JuicyText>{explanation.text}</JuicyText>
         </p>
       )}
     </div>
