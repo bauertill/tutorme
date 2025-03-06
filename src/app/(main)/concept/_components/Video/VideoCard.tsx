@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/react";
 import Image from "next/image";
 import { useState } from "react";
+import YouTube from "react-youtube";
 
 function formatDuration(seconds: number): string {
   if (!seconds) return "";
@@ -113,14 +114,15 @@ export function VideoController({
           <DialogTitle className="line-clamp-1">{video.title}</DialogTitle>
         </DialogHeader>
         <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-          <iframe
+          <YouTube
+            videoId={video.id}
             className="absolute left-0 top-0 h-full w-full"
-            src={`https://www.youtube.com/embed/${video.id}?autoplay=1`}
-            title={video.title}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
+            opts={{
+              width: "100%",
+              height: "100%",
+              playerVars: { autoplay: 1 },
+            }}
+          />
         </div>
         <div className="flex items-center justify-between p-4">
           <div className="text-sm text-muted-foreground">
