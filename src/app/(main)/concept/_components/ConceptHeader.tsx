@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { Concept } from "@/core/concept/types";
 import { BookOpenIcon, ChevronLeft, VideoIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { MasteryLevelPill } from "./MasteryLevelPill";
 
 export function ConceptHeader({
@@ -14,10 +15,12 @@ export function ConceptHeader({
   learningMode?: "video" | "lesson";
   setLearningMode: (learningMode: "video" | "lesson") => void;
 }) {
+  const router = useRouter();
+
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon">
+      <div className="flex items-center gap-2 space-x-2">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <h1 className="flex items-center space-x-2 text-3xl font-bold text-foreground">
