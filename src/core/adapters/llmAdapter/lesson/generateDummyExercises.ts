@@ -8,7 +8,7 @@ import assert from "assert";
 import { differenceBy } from "lodash-es";
 import { Allow, parse } from "partial-json";
 import { z } from "zod";
-import { model } from "../model";
+import { fastModel } from "../model";
 
 
 const SYSTEM_PROMPT = `You are an expert educational AI that creates practice exercises for students.
@@ -61,7 +61,7 @@ export async function* generateDummyExercisesForConcept(
   });
   const chain = promptTemplate
     .pipe(
-      model.bind({
+      fastModel.bind({
         response_format: {
           type: "json_schema",
           json_schema: {

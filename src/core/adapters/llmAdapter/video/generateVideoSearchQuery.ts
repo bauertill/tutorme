@@ -4,7 +4,7 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import { model } from "../model";
+import { fastModel } from "../model";
 
 export const GENERATE_VIDEO_SEARCH_QUERY_PROMPT = `You are an AI assistant that helps create effective search queries for finding educational videos. 
 Your goal is to generate a search query that will yield high-quality, educational YouTube videos about a given concept.
@@ -35,7 +35,7 @@ export async function generateVideoSearchQuery(
     ),
   ]);
 
-  const chain = promptTemplate.pipe(model);
+  const chain = promptTemplate.pipe(fastModel);
   const response = await chain.invoke(
     {
       conceptName: concept.name,

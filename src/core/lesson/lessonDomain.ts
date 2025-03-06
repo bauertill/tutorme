@@ -285,7 +285,7 @@ export async function generateLessonsForConcept(
     }
     // @TODO decide if the lesson should only be a problem and the hint comes on demand only
     const problem = problemResult.problem;
-    const {lessonText, lessonSummary} = await createLessonFromProblem(concept, problem, userId);
+    const {lessonText, lessonSummary} = await llmAdapter.lesson.createLessonFromProblem(concept, problem, userId);
 
     const turns: LessonTurn[] = [
       {

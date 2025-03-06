@@ -5,7 +5,7 @@ import {
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
 import { z } from "zod";
-import { model } from "../model";
+import { fastModel } from "../model";
 
 const DECIDE_NEXT_ACTION_SYSTEM_PROMPT = `You are an expert tutor evaluating a student's progress and deciding on the next appropriate action.
 
@@ -88,7 +88,7 @@ export async function decideNextLessonAction(
   ]);
 
   const chain = promptTemplate
-    .pipe(model.withStructuredOutput(nextLessonAction))
+    .pipe(fastModel.withStructuredOutput(nextLessonAction))
     .withConfig({
       tags: ["lesson-action-decision"],
       runName: "Decide Next Lesson Action",

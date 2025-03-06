@@ -12,6 +12,9 @@ export async function findEducationalVideo(
   const concept = await dbAdapter.getConceptById(conceptId);
   const searchQuery = await llmAdapter.video.generateVideoSearchQuery(concept);
   const videos = await youtubeAdapter.searchEducationalVideos(searchQuery);
-  const bestVideo = await llmAdapter.video.rankVideos(videos, concept);
+  // @TODO decide on better ranking strategy
+  // const bestVideo = await llmAdapter.video.rankVideos(videos, concept);
+  const bestVideo = videos[0];
+  if (!bestVideo) throw new Error("No videos found");
   return bestVideo;
 }

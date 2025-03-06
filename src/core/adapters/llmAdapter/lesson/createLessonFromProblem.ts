@@ -6,7 +6,7 @@ import {
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
 import { z } from "zod";
-import { model } from "../model";
+import { fastModel } from "../model";
 
 export const CREATE_LESSON_ITERATION_SYSTEM_PROMPT = `
 You are an expert educational AI that creates bite-sized, incremental learning experiences for students.
@@ -31,12 +31,8 @@ Problem: {problem}
 Solution: {solution}
 
 DO NOT disclose the solution to the user. 
+DO NOT give obvious hints about solving the problem. 
 
-Output the lesson text in the following JSON format:
-{{
-  "lessonText": "<lesson text>",
-  "lessonSummary": "<lesson summary>"
-}}
 `;
 
 const outputFormat = z.object({
@@ -66,7 +62,7 @@ export async function createLessonFromProblem(
   ]);
 
   const chain = promptTemplate
-    .pipe(model.withStructuredOutput(outputFormat))
+    .pipe(fastModel.withStructuredOutput(outputFormat))
     .withConfig({
       tags: ["lesson-iteration-generation"],
       runName: "Generate Lesson Iteration",
