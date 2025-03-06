@@ -297,6 +297,17 @@ export class DBAdapter {
       data: { generationStatus: status },
     });
   }
+
+  async updateConceptLessonGenerationStatus(
+    conceptId: string,
+    status: GenerationStatus,
+  ): Promise<void> {
+    await this.db.concept.update({
+      where: { id: conceptId },
+      data: { generationStatus: status },
+    });
+  }
+
 }
 
 export const dbAdapter = new DBAdapter(db);

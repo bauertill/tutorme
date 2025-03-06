@@ -99,6 +99,7 @@ model Concept {
   description   String
   masteryLevel  Mastery @default(UNKNOWN)
   teacherReport String?
+  generationStatus GenerationStatus @default(GENERATING)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

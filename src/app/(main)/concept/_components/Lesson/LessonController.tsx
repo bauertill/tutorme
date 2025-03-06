@@ -5,57 +5,51 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { type Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
-import { useEffect, useState } from "react";
+import { skipToken } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 import { ActiveLessonComponent } from "./ActiveLessonComponent";
 import { LessonList } from "./LessonList";
 import { LessonSkeleton } from "./LessonSkeleton";
 
 export function LessonController({ conceptId }: { conceptId: string }) {
+  const utils = api.useUtils();
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
 
-  const { data: concept } = api.concept.byId.useQuery(conceptId);
-
-  const {
-    mutate: createLessonsForConcept,
-    isPending: isCreatingLessons,
-    data: newLessons,
-  } = api.learning.createLessonsForConcept.useMutation({});
-  // Mutation to submit a lesson response
-  const { mutate: submitResponse, isPending: isSubmitting } =
-    api.learning.submitLessonResponse.useMutation({
-      onSuccess: (lesson) => {
-        setActiveLesson(lesson);
-      },
-      onError: (error) => {
-        console.error("Error submitting response:", error);
-      },
-    });
+  const { data: concept, isLoading: isLoadingConcept } =
+    api.concept.byId.useQuery(conceptId);
+  const isCompletelyGenerated = concept?.generationStatus === "COMPLETED";
 
   const {
     data: existingLessons,
     refetch: refetchLessons,
-    isSuccess: existingLessonsSuccess,
     isLoading: isFetchingLessons,
   } = api.learning.getLessonsByConceptId.useQuery({
     conceptId,
   });
 
-  // If there are no lessons, create them in bulk and save :D
-  useEffect(() => {
-    if (existingLessonsSuccess && existingLessons?.length === 0) {
-      console.log("Creating lessons for concept");
-      createLessonsForConcept({ conceptId });
-    }
-  }, [
-    existingLessons,
-    existingLessonsSuccess,
-    conceptId,
-    createLessonsForConcept,
-  ]);
+  const [generatedLessons, setGeneratedLessons] = useState<Lesson[]>([]);
 
-  const lessons: Lesson[] = existingLessons?.length
-    ? existingLessons
-    : (newLessons ?? []);
+  const lessons: Lesson[] = isCompletelyGenerated
+    ? (existingLessons ?? [])
+    : generatedLessons;
+
+  const shouldSubscribe = !isCompletelyGenerated && !isLoadingConcept;
+  const conceptsSubscription = api.learning.onLessonGenerated.useSubscription(
+    shouldSubscribe ? { conceptId } : skipToken,
+    {
+      onData: (data) => {
+        setGeneratedLessons([...generatedLessons, data]);
+      },
+      onComplete: () => {
+        void utils.learning.getLessonsByConceptId.invalidate({ conceptId });
+      },
+      onError: (error) => {
+        console.error(error);
+        toast.error("Error generating goal concepts");
+      },
+    },
+  );
 
   // Filter lessons based on user's mastery level
   const currentMasteryLevel = concept?.masteryLevel ?? "BEGINNER";
@@ -79,15 +73,27 @@ export function LessonController({ conceptId }: { conceptId: string }) {
       ? masteryLevels[currentLevelIndex + 1]
       : null;
 
-  if (isFetchingLessons || isCreatingLessons) {
-    return <LessonSkeleton />;
-  }
+  // Mutation to submit a lesson response
+  const { mutate: submitResponse, isPending: isSubmitting } =
+    api.learning.submitLessonResponse.useMutation({
+      onSuccess: (lesson) => {
+        setActiveLesson(lesson);
+      },
+      onError: (error) => {
+        console.error("Error submitting response:", error);
+      },
+    });
+
   const nextLesson = filteredLessons.find(
     (l) => !l.status.includes("DONE") && l.id !== activeLesson?.id,
   );
   const goToNextLesson = nextLesson
     ? () => setActiveLesson(nextLesson)
     : undefined;
+
+  if (isFetchingLessons || conceptsSubscription.status === "connecting") {
+    return <LessonSkeleton />;
+  }
 
   return (
     <div className="mt-6 space-y-8">

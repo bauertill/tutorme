@@ -6,6 +6,7 @@ import { updateConceptMasteryLevelAndTeacherReport } from "../concept/conceptDom
 import { type Concept, type Difficulty, MasteryLevel } from "../concept/types";
 import { type Problem, type ProblemQueryResult } from "../problem/types";
 import type { Lesson, LessonStatus, LessonTurn } from "./types";
+import { pubsubAdapter, PubSubAdapter } from "../adapters/pubsubAdapter";
 
 // @TODO understand why scores are so low :/
 const CUTOFF_SCORE = 0;
@@ -24,6 +25,7 @@ const LEVEL_TO_DIFFICULTY: Record<string, Difficulty> = {
   "Level 4": "EXPERT",
 };
 
+// DEPRECATED - keeping it around for inspiration
 async function chooseNextProblemForConcept(
   concept: Concept,
   userId: string,
@@ -62,6 +64,7 @@ async function chooseNextProblemForConcept(
   return { problem: topProblem.problem, lessonGoal };
 }
 
+// DEPRECATED - keeping it around for inspiration
 export async function createLesson(
   conceptId: string,
   userId: string,
@@ -256,4 +259,65 @@ function getDifficultyFromLevel(level: string): Difficulty {
     return "BEGINNER";
   }
   return difficulty;
+}
+
+
+const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
+export async function generateLessonsForConcept(
+  conceptId: string,
+  userId: string,
+  dbAdapter: DBAdapter,
+  llmAdapter: LLMAdapter,
+  pubsubAdapter: PubSubAdapter,
+): Promise<void> {
+  const concept = await dbAdapter.getConceptById(conceptId);
+  const exercises = llmAdapter.lesson.generateDummyExercisesForConcept(
+    concept,
+    userId,
+  );
+
+  for await (const exercise of exercises) {
+    const level = `Level ${DIFFICULTIES.indexOf(exercise.difficulty) + 1}`;
+    const problemResult = (await dbAdapter.queryProblems(exercise.problem, 1, [], level))[0]
+    if (!problemResult) {
+      console.error(`No problem found for exercise ${exercise.problem}`);
+      continue;
+    }
+    // @TODO decide if the lesson should only be a problem and the hint comes on demand only
+    const problem = problemResult.problem;
+    const {lessonText, lessonSummary} = await createLessonFromProblem(concept, problem, userId);
+
+    const turns: LessonTurn[] = [
+      {
+        type: "explanation",
+        text: lessonText,
+      },
+      {
+        type: "exercise",
+        text: problem.problem,
+        solution: problem.solution,
+      },
+    ];
+    const lesson = await dbAdapter.createLesson(
+      lessonSummary,
+      concept.id,
+      concept.goalId,
+      userId,
+      problem.id,
+      turns,
+      getDifficultyFromLevel(problem.level),
+    );
+    void pubsubAdapter.publish("lesson:generated", lesson, concept.id);
+  }
+  await pubsubAdapter.publishEndOfGeneration("lesson:generated", concept.id);
+  await dbAdapter.updateConceptLessonGenerationStatus(concept.id, "COMPLETED");
+} 
+
+export async function getLessonsByConceptId(conceptId: string, userId: string, dbAdapter: DBAdapter, llmAdapter: LLMAdapter, pubsubAdapter: PubSubAdapter): Promise<Lesson[]> {
+  const lessons =  await dbAdapter.getLessonsByConceptId(conceptId);
+  if (lessons.length === 0) {
+    console.log("Generating lessons for concept", conceptId);
+    void generateLessonsForConcept(conceptId, userId, dbAdapter, llmAdapter, pubsubAdapter);
+  }
+  return lessons;
 }

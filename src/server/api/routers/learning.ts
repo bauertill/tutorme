@@ -4,6 +4,7 @@ import {
   addUserInputToLesson,
   createLesson,
   createLessonsForConcept,
+  getLessonsByConceptId,
 } from "@/core/lesson/lessonDomain";
 import { findEducationalVideo } from "@/core/video/videoDomain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
@@ -58,6 +59,19 @@ export const learningRouter = createTRPCRouter({
         ctx.llmAdapter,
       );
     }),
+
+  onLessonGenerated: protectedProcedure
+    .input(z.object({ conceptId: z.string() }))
+    .subscription(async function* ({ ctx, input, signal }) {
+      const it = ctx.pubsubAdapter.subscribeIterator({
+        channel: "lesson:generated",
+        key: input.conceptId,
+        signal,
+      });
+      for await (const lesson of it) {
+        yield lesson;
+      }
+    }),
   /**
    * Get all lessons for a concept
    */
@@ -68,7 +82,7 @@ export const learningRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      return ctx.dbAdapter.getLessonsByConceptId(input.conceptId);
+      return await getLessonsByConceptId(input.conceptId, ctx.session.user.id, ctx.dbAdapter, ctx.llmAdapter, ctx.pubsubAdapter);
     }),
 
   /**

@@ -8,14 +8,15 @@ import {
   generationCompletedToken,
   type GenerationCompletedToken,
 } from "../index";
-
+import { Lesson } from "../lesson/types";
 type PubSubChannels = {
   tick: { payload: "tick" };
   "concept:generated": Concept;
+  "lesson:generated": Lesson;
 };
 type Channel = keyof PubSubChannels;
 type PubSubMessage<T extends Channel = Channel> = PubSubChannels[T];
-const CHANNELS: Channel[] = ["tick", "concept:generated"];
+const CHANNELS: Channel[] = ["tick", "concept:generated", "lesson:generated"];
 
 export class PubSubAdapter<T extends Record<string, unknown> = PubSubChannels> {
   private publisher: RedisClientType;
