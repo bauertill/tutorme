@@ -21,6 +21,14 @@ export const env = createEnv({
       .default("development"),
     NEXTAUTH_URL: z.string().url(),
     REDIS_URL: z.string().url(),
+    LONG_QUERY_TIME: z
+      .number()
+      .default(500)
+      .describe("Time in ms to log long queries"),
+    LOG_LEVEL: z
+      .enum(["error", "warn", "info", "query", "debug"])
+      .default("info")
+      .describe("Log level"),
   },
 
   /**
@@ -46,6 +54,8 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     REDIS_URL: process.env.REDIS_URL,
+    LONG_QUERY_TIME: process.env.LONG_QUERY_TIME,
+    LOG_LEVEL: process.env.LOG_LEVEL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

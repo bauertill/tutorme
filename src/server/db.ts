@@ -1,33 +1,50 @@
+import { env } from "@/env";
 import { PrismaClient } from "@prisma/client";
 
-import { env } from "@/env";
+type LogLevel = "info" | "query" | "warn" | "error";
+type LogDefinition = {
+  level: LogLevel;
+  emit: "stdout" | "event";
+};
 
 const createPrismaClient = () => {
-  const prisma = new PrismaClient({
-    log: [
-      {
-        emit: "event",
-        level: "query",
-      },
-      {
+  const queryEventLog = {
+    emit: "event",
+    level: "query",
+  } as const;
+  const logConfig: [typeof queryEventLog, ...LogDefinition[]] = [queryEventLog];
+
+  switch (env.LOG_LEVEL) {
+    case "query":
+      logConfig.push({
         emit: "stdout",
-        level: "error",
-      },
-      {
+        level: "query",
+      });
+    case "info":
+      logConfig.push({
         emit: "stdout",
         level: "info",
-      },
-      {
+      });
+    case "warn":
+      logConfig.push({
         emit: "stdout",
         level: "warn",
-      },
-    ],
+      });
+    case "error":
+      logConfig.push({
+        emit: "stdout",
+        level: "error",
+      });
+  }
+
+  const prisma = new PrismaClient({
+    log: logConfig,
   });
 
   prisma.$on("query", (e) => {
-    console.log("Query: " + e.query);
-    // console.log("Params: " + e.params);
-    console.log("Duration: " + e.duration + "ms");
+    if (e.duration > env.LONG_QUERY_TIME) {
+      console.log(`Long Query (${e.duration}ms): ${e.query}`);
+    }
   });
 
   return prisma;
