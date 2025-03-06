@@ -1,5 +1,4 @@
 import { type Concept } from "@/core/concept/types";
-import { type Goal } from "@/core/goal/types";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,

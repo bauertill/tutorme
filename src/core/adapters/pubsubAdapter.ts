@@ -8,7 +8,7 @@ import {
   generationCompletedToken,
   type GenerationCompletedToken,
 } from "../index";
-import { Lesson } from "../lesson/types";
+import { type Lesson } from "../lesson/types";
 type PubSubChannels = {
   tick: { payload: "tick" };
   "concept:generated": Concept;

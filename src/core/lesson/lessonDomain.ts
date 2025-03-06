@@ -6,7 +6,7 @@ import { updateConceptMasteryLevelAndTeacherReport } from "../concept/conceptDom
 import { type Concept, type Difficulty, MasteryLevel } from "../concept/types";
 import { type Problem, type ProblemQueryResult } from "../problem/types";
 import type { Lesson, LessonStatus, LessonTurn } from "./types";
-import { pubsubAdapter, PubSubAdapter } from "../adapters/pubsubAdapter";
+import { type PubSubAdapter } from "../adapters/pubsubAdapter";
 
 // @TODO understand why scores are so low :/
 const CUTOFF_SCORE = 0;
