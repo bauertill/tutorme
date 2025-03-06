@@ -43,7 +43,7 @@ const createPrismaClient = () => {
 
   prisma.$on("query", (e) => {
     if (e.duration > env.LONG_QUERY_TIME) {
-      console.log(`Long Query (${e.duration}ms): ${e.query}`);
+      console.warn(`Long Query (${e.duration}ms): ${e.query}`);
     }
   });
 
