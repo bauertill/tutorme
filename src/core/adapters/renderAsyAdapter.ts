@@ -6,6 +6,12 @@ type AsyResponse = {
   isUpdated: true;
   path: "/clients/fe1ca46e5e6ca11039b40b0c69bbab3dcedb7c55ZKEn/workspace_1.html";
 };
+
+type AsyUserIdResponse = {
+  usrID: string;
+  usrConnectStatus: string;
+  asyVersion: string;
+};
 const HEADERS = {
   accept: "*/*",
   "accept-language": "en-GB,en;q=0.7",
@@ -17,11 +23,28 @@ const HEADERS = {
 
 export class RenderAsyAdapter {
   // @TODO get id from server
+  async getId(): Promise<string> {
+    const response = await fetch("http://asymptote.ualberta.ca/", {
+      headers: {
+        accept: "*/*",
+        "accept-language": "en-GB,en;q=0.7",
+        "content-type": "application/json; charset=utf-8",
+        "sec-gpc": "1",
+        Referer: "http://asymptote.ualberta.ca/",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+      },
+      body: '{"reqType":"usrConnect"}',
+      method: "POST",
+    });
+    const data = (await response.json()) as AsyUserIdResponse;
+    return data.usrID;
+  }
 
   async render(code: string): Promise<string> {
+    const id = await this.getId();
     const formData = new URLSearchParams({
       reqType: "run",
-      id: "SqQJ",
+      id,
       workspaceId: "1",
       workspaceName: "workspace",
       codeText: code,
@@ -36,8 +59,8 @@ export class RenderAsyAdapter {
 
       if (!response.ok)
         throw new Error(`Server responded with status: ${response.status}`);
-
       const data = (await response.json()) as AsyResponse;
+      console.log("ASYMPTOTE RESPONSE", data);
       const renderedAsyUrl = BASE_URL + data.path;
       const renderedAsyHtml = await (await fetch(renderedAsyUrl)).text();
       return extractSimpleSvg(renderedAsyHtml);

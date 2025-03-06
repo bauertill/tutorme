@@ -4,7 +4,7 @@ export function Latex({ children }: { children: string | string[] }) {
   return (
     <LatexBase
       delimiters={[
-        { left: "$", right: "$", display: true },
+        { left: "$", right: "$", display: false },
         { left: "$$", right: "$$", display: true },
         { left: "\\(", right: "\\)", display: false },
         {
