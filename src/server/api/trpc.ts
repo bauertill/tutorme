@@ -15,6 +15,7 @@ import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { llmAdapter } from "@/core/adapters/llmAdapter";
 import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
 import { youtubeAdapter } from "@/core/adapters/youtubeAdapter";
+import { renderAsyAdapter } from "@/core/adapters/renderAsyAdapter";
 import { ADMINS, auth } from "@/server/auth";
 
 /**
@@ -38,6 +39,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     llmAdapter,
     youtubeAdapter,
     pubsubAdapter,
+    renderAsyAdapter,
     ...opts,
   };
 };

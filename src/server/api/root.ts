@@ -3,6 +3,7 @@ import { goalRouter } from "@/server/api/routers/goal";
 import { learningRouter } from "@/server/api/routers/learning";
 import { problemRouter } from "@/server/api/routers/problem";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
+import { renderAsyRouter } from "./routers/renderAsy";
 
 /**
  * This is the primary router for your server.
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   concept: conceptRouter,
   learning: learningRouter,
   problem: problemRouter,
+  renderAsy: renderAsyRouter,
 });
 
 // export type definition of API
