@@ -98,6 +98,7 @@ export async function* generateConceptsForGoal(
           goalId: goal.id,
           masteryLevel: "UNKNOWN",
           teacherReport: null,
+          generationStatus: "GENERATING",
           createdAt: new Date(),
           updatedAt: new Date(),
         };
