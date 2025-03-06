@@ -24,7 +24,7 @@ export default function ConceptsList({ goalId }: { goalId: string }) {
     (x) => x.createdAt,
   );
 
-  const conceptsSubscription = api.goal.onConceptGenerated.useSubscription(
+  api.goal.onConceptGenerated.useSubscription(
     isCompletelyGenerated ? skipToken : { goalId },
     {
       onData: (data) => {
@@ -46,37 +46,36 @@ export default function ConceptsList({ goalId }: { goalId: string }) {
 
   return (
     <div className="space-y-4">
-      {conceptsSubscription.status === "connecting"
-        ? Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between">
-                  <div className="w-full">
-                    <Skeleton className="h-6 w-1/3" />
-                    <Skeleton className="mt-2 h-4 w-2/3" />
-                  </div>
-                  <Skeleton className="h-6 w-20" />
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        : concepts.map((concept) => (
-            <Link
-              key={concept.id}
-              href={`/concept/${concept.id}`}
-              className="block"
-            >
-              <Card className="transition-colors">
-                <CardContent className="pt-6">
-                  <h3 className="flex items-start justify-between text-lg font-semibold">
-                    {concept.name}
-                    <MasteryLevelPill level={concept.masteryLevel} />
-                  </h3>
-                  <p className="mt-2">{concept.description}</p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+      {concepts.map((concept) => (
+        <Link
+          key={concept.id}
+          href={`/concept/${concept.id}`}
+          className="block"
+        >
+          <Card className="transition-colors">
+            <CardContent className="pt-6">
+              <h3 className="flex items-start justify-between text-lg font-semibold">
+                {concept.name}
+                <MasteryLevelPill level={concept.masteryLevel} />
+              </h3>
+              <p className="mt-2">{concept.description}</p>
+            </CardContent>
+          </Card>
+        </Link>
+      ))}
+      {!isCompletelyGenerated && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-start justify-between">
+              <div className="w-full">
+                <Skeleton className="h-6 w-1/3" />
+                <Skeleton className="mt-2 h-4 w-2/3" />
+              </div>
+              <Skeleton className="h-6 w-20" />
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

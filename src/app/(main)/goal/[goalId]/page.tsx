@@ -3,6 +3,7 @@ import { Breadcrumbs } from "@/app/_components/Breadcrumbs";
 import { Header } from "@/app/_components/Header";
 import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { getGoalById } from "@/core/goal/goalDomain";
+import { api, HydrateClient } from "@/trpc/server";
 
 interface LearningGoalPageProps {
   params: Promise<{
@@ -16,6 +17,7 @@ export default async function LearningGoalPage({
   const { goalId } = await params;
 
   const goal = await getGoalById(dbAdapter, goalId);
+  await api.goal.byIdIncludeConcepts.prefetch(goalId);
 
   return (
     <div className="mx-auto max-w-screen-md">
@@ -37,7 +39,9 @@ export default async function LearningGoalPage({
           can see your progress in each concept. Click on a concept to start
           learning.
         </p>
-        <ConceptsList goalId={goalId} />
+        <HydrateClient>
+          <ConceptsList goalId={goalId} />
+        </HydrateClient>
       </main>
     </div>
   );
