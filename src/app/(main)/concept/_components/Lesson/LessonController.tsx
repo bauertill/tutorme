@@ -9,8 +9,7 @@ import { skipToken } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ActiveLessonComponent } from "./ActiveLessonComponent";
-import { LessonList } from "./LessonList";
-import { LessonSkeleton } from "./LessonSkeleton";
+import { LessonList, LessonListSkeleton } from "./LessonList";
 
 export function LessonController({ conceptId }: { conceptId: string }) {
   const utils = api.useUtils();
@@ -92,7 +91,11 @@ export function LessonController({ conceptId }: { conceptId: string }) {
     : undefined;
 
   if (isFetchingLessons || conceptsSubscription.status === "connecting") {
-    return <LessonSkeleton />;
+    return (
+      <div className="mt-6 space-y-8">
+        <LessonListSkeleton />
+      </div>
+    );
   }
 
   return (
@@ -139,6 +142,7 @@ export function LessonController({ conceptId }: { conceptId: string }) {
             <LessonList
               lessons={filteredLessons}
               setActiveLesson={setActiveLesson}
+              isGeneratingLessons={!isCompletelyGenerated}
             />
           )}
         </CardContent>

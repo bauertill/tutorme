@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Lesson } from "@/core/lesson/types";
 import { ChevronRight } from "lucide-react";
 
@@ -51,6 +52,24 @@ export function LessonListItem({
             {getStatusText(lesson.status)}
           </Badge>
           <ChevronRight className="h-5 w-5 shrink-0 transform text-muted-foreground transition-transform group-hover:translate-x-1" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+export function LessonListItemSkeleton() {
+  return (
+    <Card className="cursor-pointer transition-all duration-200 hover:shadow-md">
+      <div className="flex h-12 items-center justify-between gap-4 px-4">
+        <Skeleton className="h-4 w-3/4" />
+        <div className="grow-1 gap-3 overflow-hidden">
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+
+        <div className="flex shrink-0 gap-2">
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-5 w-5 shrink-0 rounded" />
         </div>
       </div>
     </Card>
