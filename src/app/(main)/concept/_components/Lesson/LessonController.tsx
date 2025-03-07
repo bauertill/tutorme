@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { type Lesson } from "@/core/lesson/types";
 import { api } from "@/trpc/react";
 import { skipToken } from "@tanstack/react-query";
+import { sortBy, unionBy } from "lodash-es";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ActiveLessonComponent } from "./ActiveLessonComponent";
@@ -29,9 +30,10 @@ export function LessonController({ conceptId }: { conceptId: string }) {
 
   const [generatedLessons, setGeneratedLessons] = useState<Lesson[]>([]);
 
-  const lessons: Lesson[] = isCompletelyGenerated
-    ? (existingLessons ?? [])
-    : generatedLessons;
+  const lessons = sortBy(
+    unionBy(existingLessons ?? [], generatedLessons, (x) => x.id),
+    (x) => x.createdAt,
+  );
 
   const shouldSubscribe = !isCompletelyGenerated && !isLoadingConcept;
   const conceptsSubscription = api.learning.onLessonGenerated.useSubscription(
@@ -42,6 +44,7 @@ export function LessonController({ conceptId }: { conceptId: string }) {
       },
       onComplete: () => {
         void utils.learning.getLessonsByConceptId.invalidate({ conceptId });
+        void utils.concept.byId.invalidate(conceptId);
       },
       onError: (error) => {
         console.error(error);
