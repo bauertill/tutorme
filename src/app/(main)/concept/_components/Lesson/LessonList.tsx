@@ -49,9 +49,9 @@ export function LessonListSkeleton() {
           </div>
           <div className="space-y-1">
             <Skeleton className="h-2 w-full" />
-            <p className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               <Skeleton className="h-4 w-48" />
-            </p>
+            </div>
           </div>
         </div>
       </CardHeader>
