@@ -57,6 +57,9 @@ export async function* generateDummyExercisesForConcept(
   const schema = z.object({
     exercises: z.array(Exercise),
   });
+  const partialSchema = z.object({
+    exercises: z.array(Exercise.partial()),
+  });
   const chain = promptTemplate
     .pipe(
       fastModel.bind({
@@ -92,7 +95,14 @@ export async function* generateDummyExercisesForConcept(
     assert(typeof chunk.content === "string");
     partialResult += chunk.content;
     try {
-      const parsed = schema.parse(parse(partialResult, Allow.ARR) as unknown);
+      const preParsed = partialSchema.parse(
+        parse(partialResult, Allow.ARR | Allow.OBJ) as unknown,
+      );
+      const parsed = schema.parse({
+        exercises: preParsed.exercises.filter(
+          (x) => Exercise.safeParse(x).success,
+        ),
+      });
       const newExercises = differenceBy(
         parsed.exercises,
         partialParsed.exercises,

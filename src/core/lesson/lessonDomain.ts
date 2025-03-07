@@ -2,6 +2,7 @@ import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
 import { createLessonFromProblem } from "../adapters/llmAdapter/lesson";
 import { type NextLessonAction } from "../adapters/llmAdapter/lesson/decideNextLessonAction";
+import { type Exercise } from "../adapters/llmAdapter/lesson/generateDummyExercises";
 import { type PubSubAdapter } from "../adapters/pubsubAdapter";
 import { updateConceptMasteryLevelAndTeacherReport } from "../concept/conceptDomain";
 import { type Concept, type Difficulty, MasteryLevel } from "../concept/types";
@@ -262,6 +263,51 @@ function getDifficultyFromLevel(level: string): Difficulty {
 }
 
 const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
+
+async function generateLesson(
+  exercise: Exercise,
+  concept: Concept,
+  userId: string,
+  dbAdapter: DBAdapter,
+  llmAdapter: LLMAdapter,
+  pubsubAdapter: PubSubAdapter,
+): Promise<void> {
+  const level = `Level ${DIFFICULTIES.indexOf(exercise.difficulty) + 1}`;
+  const problemResult = (
+    await dbAdapter.queryProblems(exercise.problem, 1, [], level)
+  )[0];
+  if (!problemResult) {
+    console.error(`No problem found for exercise ${exercise.problem}`);
+    return;
+  }
+  // @TODO decide if the lesson should only be a problem and the hint comes on demand only
+  const problem = problemResult.problem;
+  const { lessonText, lessonSummary } =
+    await llmAdapter.lesson.createLessonFromProblem(concept, problem, userId);
+
+  const turns: LessonTurn[] = [
+    {
+      type: "explanation",
+      text: lessonText,
+    },
+    {
+      type: "exercise",
+      text: problem.problem,
+      solution: problem.solution,
+    },
+  ];
+  const lesson = await dbAdapter.createLesson(
+    lessonSummary,
+    concept.id,
+    concept.goalId,
+    userId,
+    problem.id,
+    turns,
+    getDifficultyFromLevel(problem.level),
+  );
+  void pubsubAdapter.publish("lesson:generated", lesson, concept.id);
+}
+
 export async function generateLessonsForConcept(
   conceptId: string,
   userId: string,
@@ -269,50 +315,33 @@ export async function generateLessonsForConcept(
   llmAdapter: LLMAdapter,
   pubsubAdapter: PubSubAdapter,
 ): Promise<void> {
+  console.log(
+    new Date().toISOString(),
+    "Generating lessons for concept",
+    conceptId,
+  );
   const concept = await dbAdapter.getConceptById(conceptId);
   const exercises = llmAdapter.lesson.generateDummyExercisesForConcept(
     concept,
     userId,
   );
 
+  const promises: Promise<void>[] = [];
   for await (const exercise of exercises) {
-    const level = `Level ${DIFFICULTIES.indexOf(exercise.difficulty) + 1}`;
-    const problemResult = (
-      await dbAdapter.queryProblems(exercise.problem, 1, [], level)
-    )[0];
-    if (!problemResult) {
-      console.error(`No problem found for exercise ${exercise.problem}`);
-      continue;
-    }
-    // @TODO decide if the lesson should only be a problem and the hint comes on demand only
-    const problem = problemResult.problem;
-    const { lessonText, lessonSummary } =
-      await llmAdapter.lesson.createLessonFromProblem(concept, problem, userId);
-
-    const turns: LessonTurn[] = [
-      {
-        type: "explanation",
-        text: lessonText,
-      },
-      {
-        type: "exercise",
-        text: problem.problem,
-        solution: problem.solution,
-      },
-    ];
-    const lesson = await dbAdapter.createLesson(
-      lessonSummary,
-      concept.id,
-      concept.goalId,
-      userId,
-      problem.id,
-      turns,
-      getDifficultyFromLevel(problem.level),
+    promises.push(
+      generateLesson(
+        exercise,
+        concept,
+        userId,
+        dbAdapter,
+        llmAdapter,
+        pubsubAdapter,
+      ),
     );
-    void pubsubAdapter.publish("lesson:generated", lesson, concept.id);
   }
-  await pubsubAdapter.publishEndOfGeneration("lesson:generated", concept.id);
+  await Promise.all(promises);
   await dbAdapter.updateConceptLessonGenerationStatus(concept.id, "COMPLETED");
+  await pubsubAdapter.publishEndOfGeneration("lesson:generated", concept.id);
 }
 
 export async function getLessonsByConceptId(
