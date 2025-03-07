@@ -2,11 +2,11 @@ import type { DBAdapter } from "../adapters/dbAdapter";
 import type { LLMAdapter } from "../adapters/llmAdapter";
 import { createLessonFromProblem } from "../adapters/llmAdapter/lesson";
 import { type NextLessonAction } from "../adapters/llmAdapter/lesson/decideNextLessonAction";
+import { type PubSubAdapter } from "../adapters/pubsubAdapter";
 import { updateConceptMasteryLevelAndTeacherReport } from "../concept/conceptDomain";
 import { type Concept, type Difficulty, MasteryLevel } from "../concept/types";
 import { type Problem, type ProblemQueryResult } from "../problem/types";
 import type { Lesson, LessonStatus, LessonTurn } from "./types";
-import { type PubSubAdapter } from "../adapters/pubsubAdapter";
 
 // @TODO understand why scores are so low :/
 const CUTOFF_SCORE = 0;
@@ -261,7 +261,6 @@ function getDifficultyFromLevel(level: string): Difficulty {
   return difficulty;
 }
 
-
 const DIFFICULTIES = ["beginner", "intermediate", "advanced"] as const;
 export async function generateLessonsForConcept(
   conceptId: string,
@@ -278,14 +277,17 @@ export async function generateLessonsForConcept(
 
   for await (const exercise of exercises) {
     const level = `Level ${DIFFICULTIES.indexOf(exercise.difficulty) + 1}`;
-    const problemResult = (await dbAdapter.queryProblems(exercise.problem, 1, [], level))[0]
+    const problemResult = (
+      await dbAdapter.queryProblems(exercise.problem, 1, [], level)
+    )[0];
     if (!problemResult) {
       console.error(`No problem found for exercise ${exercise.problem}`);
       continue;
     }
     // @TODO decide if the lesson should only be a problem and the hint comes on demand only
     const problem = problemResult.problem;
-    const {lessonText, lessonSummary} = await llmAdapter.lesson.createLessonFromProblem(concept, problem, userId);
+    const { lessonText, lessonSummary } =
+      await llmAdapter.lesson.createLessonFromProblem(concept, problem, userId);
 
     const turns: LessonTurn[] = [
       {
@@ -311,13 +313,25 @@ export async function generateLessonsForConcept(
   }
   await pubsubAdapter.publishEndOfGeneration("lesson:generated", concept.id);
   await dbAdapter.updateConceptLessonGenerationStatus(concept.id, "COMPLETED");
-} 
+}
 
-export async function getLessonsByConceptId(conceptId: string, userId: string, dbAdapter: DBAdapter, llmAdapter: LLMAdapter, pubsubAdapter: PubSubAdapter): Promise<Lesson[]> {
-  const lessons =  await dbAdapter.getLessonsByConceptId(conceptId);
+export async function getLessonsByConceptId(
+  conceptId: string,
+  userId: string,
+  dbAdapter: DBAdapter,
+  llmAdapter: LLMAdapter,
+  pubsubAdapter: PubSubAdapter,
+): Promise<Lesson[]> {
+  const lessons = await dbAdapter.getLessonsByConceptId(conceptId);
   if (lessons.length === 0) {
     console.log("Generating lessons for concept", conceptId);
-    void generateLessonsForConcept(conceptId, userId, dbAdapter, llmAdapter, pubsubAdapter);
+    void generateLessonsForConcept(
+      conceptId,
+      userId,
+      dbAdapter,
+      llmAdapter,
+      pubsubAdapter,
+    );
   }
   return lessons;
 }

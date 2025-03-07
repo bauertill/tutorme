@@ -10,7 +10,6 @@ import { Allow, parse } from "partial-json";
 import { z } from "zod";
 import { fastModel } from "../model";
 
-
 const SYSTEM_PROMPT = `You are an expert educational AI that creates practice exercises for students.
 Your task is to generate a series of exercises for a given concept at different difficulty levels.
 
@@ -37,8 +36,7 @@ Generate:
 - 10 intermediate exercises
 - 10 advanced exercises
 
-`
-
+`;
 
 const Exercise = z.object({
   problem: z.string(),
@@ -94,9 +92,7 @@ export async function* generateDummyExercisesForConcept(
     assert(typeof chunk.content === "string");
     partialResult += chunk.content;
     try {
-      const parsed = schema.parse(
-        parse(partialResult, Allow.ARR) as unknown,
-      );
+      const parsed = schema.parse(parse(partialResult, Allow.ARR) as unknown);
       const newExercises = differenceBy(
         parsed.exercises,
         partialParsed.exercises,

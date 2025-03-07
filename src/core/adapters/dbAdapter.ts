@@ -307,7 +307,6 @@ export class DBAdapter {
       data: { generationStatus: status },
     });
   }
-
 }
 
 export const dbAdapter = new DBAdapter(db);

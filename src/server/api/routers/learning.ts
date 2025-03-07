@@ -82,7 +82,13 @@ export const learningRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      return await getLessonsByConceptId(input.conceptId, ctx.session.user.id, ctx.dbAdapter, ctx.llmAdapter, ctx.pubsubAdapter);
+      return await getLessonsByConceptId(
+        input.conceptId,
+        ctx.session.user.id,
+        ctx.dbAdapter,
+        ctx.llmAdapter,
+        ctx.pubsubAdapter,
+      );
     }),
 
   /**

@@ -5,5 +5,4 @@ export const renderAsyRouter = createTRPCRouter({
   render: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
     return ctx.renderAsyAdapter.render(input);
   }),
-
 });

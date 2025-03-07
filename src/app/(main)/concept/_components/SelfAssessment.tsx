@@ -28,7 +28,7 @@ function SelfAssessmentCard({
 
   return (
     <Card
-      className="hover:bg-accent-hover w-full text-accent-foreground hover:cursor-pointer"
+      className="w-full text-accent-foreground hover:cursor-pointer hover:bg-accent-hover"
       onClick={onClick}
     >
       <CardHeader>
