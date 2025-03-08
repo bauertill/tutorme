@@ -1,8 +1,3 @@
-import {
-  ChatPromptTemplate,
-  HumanMessagePromptTemplate,
-  SystemMessagePromptTemplate,
-} from "@langchain/core/prompts";
 import { model } from "../model";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
@@ -58,6 +53,8 @@ export async function evaluateSolution(
   // Parse the LLM response to extract the evaluation result
   try {
     // Attempt to identify if the solution is correct and extract feedback
+    // @TODO @MAX This was a linting issue
+    // @ts-ignore
     const responseText = response.content.toString();
     
     // Determine if the solution is correct based on keywords in the response
