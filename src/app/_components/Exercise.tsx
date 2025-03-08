@@ -2,6 +2,7 @@
 import { api } from "@/trpc/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Latex } from "./Latex";
 
 export function Exercise({ exerciseText }: { exerciseText: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -10,19 +11,27 @@ export function Exercise({ exerciseText }: { exerciseText: string }) {
   const [lastX, setLastX] = useState(0);
   const [lastY, setLastY] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    isCorrect: boolean;
+    feedback: string;
+  } | null>(null);
 
   // Use tRPC mutation hook for submitting solution
-  const { mutate: submitSolutionMutation, isPending } =
-    api.exercise.submitSolution.useMutation({
-      onSuccess: () => {
-        toast.success("Solution submitted successfully");
-        setIsSubmitting(false);
-      },
-      onError: (error) => {
-        toast.error(`Error submitting solution: ${error.message}`);
-        setIsSubmitting(false);
-      },
-    });
+  const submitSolutionMutation = api.exercise.submitSolution.useMutation({
+    onSuccess: (data) => {
+      toast.success("Solution submitted and evaluated");
+      setIsSubmitting(false);
+      setFeedback({
+        isCorrect: data.isCorrect,
+        feedback: data.feedback,
+      });
+    },
+    onError: (error) => {
+      toast.error(`Error submitting solution: ${error.message}`);
+      setIsSubmitting(false);
+      setFeedback(null);
+    },
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -119,14 +128,23 @@ export function Exercise({ exerciseText }: { exerciseText: string }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Convert canvas to base64 image
-    const imageData = canvas.toDataURL("image/png");
+    try {
+      setIsSubmitting(true);
+      setFeedback(null);
 
-    // Submit to the server using tRPC
-    submitSolutionMutation({
-      exerciseText,
-      solutionImage: imageData,
-    });
+      // Convert canvas to base64 image
+      const imageData = canvas.toDataURL("image/png");
+
+      // Submit to the server using tRPC
+      submitSolutionMutation.mutate({
+        exerciseText,
+        solutionImage: imageData,
+      });
+    } catch (error) {
+      console.error("Error submitting solution:", error);
+      setIsSubmitting(false);
+      toast.error("Failed to submit solution. Please try again.");
+    }
   };
 
   return (
@@ -150,7 +168,7 @@ export function Exercise({ exerciseText }: { exerciseText: string }) {
               disabled={isSubmitting}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSubmitting ? "Submitting..." : "Submit Solution"}
+              {isSubmitting ? "Evaluating..." : "Submit Solution"}
             </button>
           </div>
         </div>
@@ -158,7 +176,7 @@ export function Exercise({ exerciseText }: { exerciseText: string }) {
         <canvas
           ref={canvasRef}
           className="h-[400px] w-full rounded-lg border-2 border-gray-200"
-          style={{ touchAction: "none" }} // This specific style is needed for touch functionality
+          style={{ touchAction: "none" }}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
@@ -167,6 +185,21 @@ export function Exercise({ exerciseText }: { exerciseText: string }) {
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
         />
+
+        {feedback && (
+          <div
+            className={`mt-4 rounded-lg p-4 ${feedback.isCorrect ? "border border-green-200 bg-green-50" : "border border-yellow-200 bg-yellow-50"}`}
+          >
+            <h4
+              className={`mb-2 font-medium ${feedback.isCorrect ? "text-green-700" : "text-yellow-700"}`}
+            >
+              {feedback.isCorrect
+                ? "✓ Correct Solution"
+                : "⚠ Needs Improvement"}
+            </h4>
+            <Latex>{feedback.feedback}</Latex>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { evaluateSolution } from "@/core/exercise/exerciseDomain";
 
 export const exerciseRouter = createTRPCRouter({
   /**
@@ -19,14 +20,19 @@ export const exerciseRouter = createTRPCRouter({
       // 2. Create a record of the submission
       // 3. Return a success message or ID
       
-      // This is a placeholder implementation
       console.log(`Received solution for exercise: ${input.exerciseText.substring(0, 30)}...`);
-      console.log(`Solution image: ${input.solutionImage.substring(0, 30)}...`);
       
-      // For now, just return success message
+      // Evaluate the solution using the LLM
+      const evaluationResult = await evaluateSolution(
+        input.exerciseText,
+        input.solutionImage
+      );
+      
+      // Return the evaluation result
       return {
         success: true,
-        message: "Solution submitted successfully",
+        isCorrect: evaluationResult.isCorrect,
+        feedback: evaluationResult.feedback,
         timestamp: new Date().toISOString(),
       };
     }),
