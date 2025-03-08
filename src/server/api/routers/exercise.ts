@@ -14,7 +14,7 @@ export const exerciseRouter = createTRPCRouter({
         solutionImage: z.string(), // Base64 encoded image data
       }),
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input}) => {
       // Here you would typically:
       // 1. Save the image to storage (or database as a blob)
       // 2. Create a record of the submission
