@@ -1,5 +1,7 @@
 "use client";
+import { api } from "@/trpc/react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 export function Exercise({ exerciseText }: { exerciseText: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -7,6 +9,20 @@ export function Exercise({ exerciseText }: { exerciseText: string }) {
   const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
   const [lastX, setLastX] = useState(0);
   const [lastY, setLastY] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Use tRPC mutation hook for submitting solution
+  const { mutate: submitSolutionMutation, isPending } =
+    api.exercise.submitSolution.useMutation({
+      onSuccess: () => {
+        toast.success("Solution submitted successfully");
+        setIsSubmitting(false);
+      },
+      onError: (error) => {
+        toast.error(`Error submitting solution: ${error.message}`);
+        setIsSubmitting(false);
+      },
+    });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -99,27 +115,50 @@ export function Exercise({ exerciseText }: { exerciseText: string }) {
     context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   };
 
+  const submitSolution = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Convert canvas to base64 image
+    const imageData = canvas.toDataURL("image/png");
+
+    // Submit to the server using tRPC
+    submitSolutionMutation({
+      exerciseText,
+      solutionImage: imageData,
+    });
+  };
+
   return (
     <div className="flex w-full flex-col gap-6">
-      <div className="rounded-lg p-4 text-lg leading-relaxed">
+      <div className="rounded-lg bg-gray-50 p-4 text-lg leading-relaxed">
         {exerciseText}
       </div>
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <h3 className="font-medium">Your Solution</h3>
-          <button
-            onClick={clearCanvas}
-            className="rounded-md border px-4 py-2 text-sm transition-colors hover:bg-accent"
-          >
-            Clear
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={clearCanvas}
+              className="rounded-md border border-gray-300 bg-gray-100 px-4 py-2 text-sm transition-colors hover:bg-gray-200"
+            >
+              Clear
+            </button>
+            <button
+              onClick={submitSolution}
+              disabled={isSubmitting}
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Solution"}
+            </button>
+          </div>
         </div>
 
         <canvas
           ref={canvasRef}
-          className="h-[400px] w-full rounded-lg border-2"
-          style={{ touchAction: "none" }}
+          className="h-[400px] w-full rounded-lg border-2 border-gray-200"
+          style={{ touchAction: "none" }} // This specific style is needed for touch functionality
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
