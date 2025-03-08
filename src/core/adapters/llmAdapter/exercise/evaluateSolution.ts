@@ -1,5 +1,5 @@
-import { model } from "../model";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { model } from "../model";
 
 type EvaluationResult = {
   isCorrect: boolean;
@@ -7,16 +7,20 @@ type EvaluationResult = {
 };
 
 // Define the system prompt for evaluating exercise solutions
-const EVALUATE_SOLUTION_SYSTEM_PROMPT = `You are an expert teacher evaluating a student's solution to an exercise. 
-You will be given the exercise text and an image of the student's handwritten or drawn solution.
-Carefully analyze the solution and determine whether it is correct or not.
-Provide detailed feedback on the solution, explaining what the student did right and what they could improve.
-Be encouraging but honest in your feedback.`;
+const EVALUATE_SOLUTION_SYSTEM_PROMPT = `You are an expert teacher evaluating a student's solution attempt to an exercise. 
+You will be given the exercise text and an image of the student's handwritten or drawn (partial) solution attempt.
+
+Step 1: Write down the student's solution verbatim as seen in the image.
+Step 2: Analyze each step of the student's solution attempt and interpret what the student is trying to do. Identify any mistakes or misconceptions.
+Step 3: If there is a mistake, write MISTAKE and write down a brief hint to help the student correct this mistake. Otherwise, write NO_MISTAKE.
+
+Keep your output concise.
+`;
 
 // Function to evaluate the solution using the multimodal LLM
 export async function evaluateSolution(
   exerciseText: string,
-  solutionImage: string
+  solutionImage: string,
 ): Promise<EvaluationResult> {
   // Extract the base64 data part (remove the prefix if it exists)
   const base64Data = solutionImage.includes("base64,")
@@ -30,7 +34,8 @@ export async function evaluateSolution(
       content: [
         {
           type: "text",
-          text: `Please evaluate this solution for the following exercise:\n\n${exerciseText}\n\nHere is the student's solution:`,
+          text: `\
+For the following exercise:\n\n${exerciseText}\n\nHere is the student's (partial) solution attempt:`,
         },
         {
           type: "image_url",
@@ -38,10 +43,6 @@ export async function evaluateSolution(
             url: `data:image/png;base64,${base64Data}`,
             detail: "high",
           },
-        },
-        {
-          type: "text",
-          text: "Based on the exercise and the solution image, is the solution correct? Provide detailed feedback.",
         },
       ],
     }),
@@ -53,16 +54,14 @@ export async function evaluateSolution(
   // Parse the LLM response to extract the evaluation result
   try {
     // Attempt to identify if the solution is correct and extract feedback
-    // @TODO @MAX This was a linting issue
-    // @ts-ignore
-    const responseText = response.content.toString();
-    
+    const responseText = response.content as string;
+
     // Determine if the solution is correct based on keywords in the response
-    const isCorrect = 
-      responseText.toLowerCase().includes("correct") && 
+    const isCorrect =
+      responseText.toLowerCase().includes("correct") &&
       !responseText.toLowerCase().includes("not correct") &&
       !responseText.toLowerCase().includes("incorrect");
-    
+
     return {
       isCorrect,
       feedback: responseText,
@@ -74,4 +73,4 @@ export async function evaluateSolution(
       feedback: "Error evaluating solution. Please try again.",
     };
   }
-} 
+}

@@ -1,5 +1,5 @@
-import { Exercise } from "@/app/_components/Exercise";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Exercise } from "./_components/Exercise";
 
 export default function ExercisePage() {
   return (

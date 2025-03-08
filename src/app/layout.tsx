@@ -25,7 +25,7 @@ export default function RootLayout({
       className={`${GeistSans.variable}`}
       suppressHydrationWarning
     >
-      <body>
+      <body className="select-none [-webkit-user-select:none]">
         <ThemeProvider>
           <ProgressProvider>
             <TRPCReactProvider>
