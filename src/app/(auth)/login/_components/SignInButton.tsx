@@ -8,7 +8,7 @@ export function SignInButton() {
     <Button
       onClick={(e) => {
         e.preventDefault();
-        void signIn("google", { redirectTo: "/dashboard" });
+        void signIn("google");
       }}
       variant="default"
       size="default"
