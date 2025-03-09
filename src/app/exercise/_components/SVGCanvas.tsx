@@ -289,7 +289,7 @@ export function useSVGCanvas() {
     const container = containerRef.current;
     if (!container) return;
 
-    const handleWindowResize = () => {
+    const handleResize = () => {
       setContainerSize({
         width: container.clientWidth,
         height: container.clientHeight,
@@ -297,12 +297,16 @@ export function useSVGCanvas() {
     };
 
     // Set initial viewBox
-    handleWindowResize();
+    handleResize();
 
-    window.addEventListener("resize", handleWindowResize);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
+
+    // window.addEventListener("resize", handleWindowResize);
 
     return () => {
-      window.removeEventListener("resize", handleWindowResize);
+      // window.removeEventListener("resize", handleWindowResize);
+      resizeObserver.disconnect();
     };
   }, []);
 
