@@ -27,6 +27,7 @@ type State = {
 type Action =
   | { type: "startDrawing" | "addPoint"; point: Point }
   | { type: "stopDrawing" }
+  | { type: "cancelDrawing" }
   | { type: "undo" }
   | { type: "redo" }
   | { type: "clear" };
@@ -149,6 +150,14 @@ const reducer = (state: State, action: Action): State => {
         currentPath: [],
       };
     }
+    case "cancelDrawing": {
+      if (!state.isDrawing) return state;
+      return {
+        ...state,
+        isDrawing: false,
+        currentPath: [],
+      };
+    }
     case "undo": {
       if (state.isDrawing) return state;
       const paths = state.undoStack.at(-1);
@@ -212,19 +221,17 @@ const preventDefaults = (svg: SVGSVGElement) => {
   svg.addEventListener(
     "touchstart",
     (e) => {
-      if (e.touches.length === 1) e.preventDefault();
+      e.preventDefault();
     },
     { passive: false },
   );
   svg.addEventListener(
     "touchmove",
     (e) => {
-      if (e.touches.length === 1) e.preventDefault();
+      e.preventDefault();
     },
     { passive: false },
   );
-
-  return svg;
 };
 
 export function useSVGCanvas() {
@@ -334,10 +341,27 @@ export function useSVGCanvas() {
     dispatch({ type: "stopDrawing" });
   };
 
+  const [lastTouchInfo, setLastTouchInfo] = useState<{
+    lastY: number;
+    delta: number;
+  }>({ lastY: 0, delta: 0 });
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.scrollTop = Math.min(
+        container.scrollTop - lastTouchInfo.delta,
+        container.scrollHeight - container.clientHeight,
+      );
+    }
+  }, [lastTouchInfo]);
+
   const handleTouchStart = (e: React.TouchEvent<SVGSVGElement>) => {
-    // Only handle single touch for drawing
-    // Let browser handle multi-touch events
-    if (e.touches.length !== 1) return;
+    if (e.touches.length > 1) {
+      dispatch({ type: "cancelDrawing" });
+      setLastTouchInfo({ lastY: e.touches[0]?.clientY ?? 0, delta: 0 });
+      return;
+    }
     const touch = e.touches[0];
     if (!touch) return;
 
@@ -350,9 +374,17 @@ export function useSVGCanvas() {
   };
 
   const handleTouchMove = (e: React.TouchEvent<SVGSVGElement>) => {
-    // Only handle single touch for drawing
-    // Let browser handle multi-touch events
-    if (e.touches.length !== 1) return;
+    if (e.touches.length > 1) {
+      dispatch({ type: "cancelDrawing" });
+      const touch = e.touches[0];
+      if (touch) {
+        setLastTouchInfo((prev) => ({
+          lastY: touch.clientY,
+          delta: touch.clientY - prev.lastY,
+        }));
+      }
+      return;
+    }
 
     const touch = e.touches[0];
     if (!touch) return;
