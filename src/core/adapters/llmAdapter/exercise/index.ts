@@ -1,1 +1,1 @@
-export * from "./evaluateSolution"; 
+export { evaluateSolution } from "./evaluateSolution";

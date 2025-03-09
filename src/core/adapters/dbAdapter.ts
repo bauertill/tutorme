@@ -1,8 +1,8 @@
-import type {
+import {
   Problem,
-  ProblemQueryResult,
-  ProblemUpload,
-  ProblemUploadStatus,
+  type ProblemQueryResult,
+  type ProblemUpload,
+  type ProblemUploadStatus,
 } from "@/core/problem/types";
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
@@ -274,6 +274,24 @@ export class DBAdapter {
       },
       score: result.score,
     }));
+  }
+
+  async getRandomProblem(): Promise<Problem> {
+    const [rawProblem] = await this.db.$queryRaw<unknown[]>`
+      SELECT
+      "id", "createdAt", "dataSource", "problem", "solution", "level", "type"
+      FROM "Problem"
+      WHERE "level" = 'Level 1'
+      AND "problem" NOT ILIKE '%[asy]%'
+      ORDER BY RANDOM() LIMIT 1
+    `;
+    const problem = Problem.parse(rawProblem);
+
+    if (!problem) {
+      throw new Error("No problem found");
+    }
+
+    return problem;
   }
 
   async getProblemUploadFiles(): Promise<ProblemUpload[]> {

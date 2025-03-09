@@ -389,7 +389,7 @@ export function useSVGCanvas() {
           <path
             key={index}
             fill="none"
-            stroke="hsl(var(--primary))"
+            stroke="hsl(var(--accent-foreground))"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -401,7 +401,7 @@ export function useSVGCanvas() {
             cx={points[0]!.x}
             cy={points[0]!.y}
             r="2"
-            fill="hsl(var(--primary))"
+            fill="hsl(var(--accent-foreground))"
           />
         ) : null,
       )}

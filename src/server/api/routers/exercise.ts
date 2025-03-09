@@ -1,6 +1,9 @@
-import { z } from "zod";
+import {
+  evaluateSolution,
+  getRandomProblem,
+} from "@/core/exercise/exerciseDomain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { evaluateSolution } from "@/core/exercise/exerciseDomain";
+import { z } from "zod";
 
 export const exerciseRouter = createTRPCRouter({
   /**
@@ -14,26 +17,27 @@ export const exerciseRouter = createTRPCRouter({
         solutionImage: z.string(), // Base64 encoded image data
       }),
     )
-    .mutation(async ({ input}) => {
+    .mutation(async ({ input }) => {
       // Here you would typically:
       // 1. Save the image to storage (or database as a blob)
       // 2. Create a record of the submission
       // 3. Return a success message or ID
-      
-      console.log(`Received solution for exercise: ${input.exerciseText.substring(0, 30)}...`);
-      
+
+      console.log(
+        `Received solution for exercise: ${input.exerciseText.substring(0, 30)}...`,
+      );
+
       // Evaluate the solution using the LLM
       const evaluationResult = await evaluateSolution(
         input.exerciseText,
-        input.solutionImage
+        input.solutionImage,
       );
-      
+
       // Return the evaluation result
-      return {
-        success: true,
-        isCorrect: evaluationResult.isCorrect,
-        feedback: evaluationResult.feedback,
-        timestamp: new Date().toISOString(),
-      };
+      return evaluationResult;
     }),
-}); 
+
+  getRandomProblem: protectedProcedure.query(async ({ ctx }) => {
+    return await getRandomProblem(ctx.dbAdapter);
+  }),
+});

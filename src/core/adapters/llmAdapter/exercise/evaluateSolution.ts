@@ -1,18 +1,37 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { z } from "zod";
 import { model } from "../model";
 
-type EvaluationResult = {
-  isCorrect: boolean;
-  feedback: string;
-};
+const schema = z.object({
+  studentSolution: z
+    .string()
+    .describe(
+      "The student's solution attempt, verbatim as seen in the image. Discard anything that the student has crossed out.",
+    ),
+  analysis: z
+    .string()
+    .describe(
+      "A detailed analysis of the student's solution attempt. Identify any mistakes or misconceptions.",
+    ),
+  hint: z
+    .string()
+    .optional()
+    .describe(
+      "A hint to help the student correct the mistakes in their solution, if any.",
+    ),
+  hasMistakes: z.boolean().describe("Whether the solution has mistakes"),
+  isComplete: z
+    .boolean()
+    .describe("Whether the solution is correct and complete"),
+});
 
 // Define the system prompt for evaluating exercise solutions
 const EVALUATE_SOLUTION_SYSTEM_PROMPT = `You are an expert teacher evaluating a student's solution attempt to an exercise. 
 You will be given the exercise text and an image of the student's handwritten or drawn (partial) solution attempt.
 
-Step 1: Write down the student's solution verbatim as seen in the image.
-Step 2: Analyze each step of the student's solution attempt and interpret what the student is trying to do. Identify any mistakes or misconceptions.
-Step 3: If there is a mistake, write MISTAKE and write down a brief hint to help the student correct this mistake. Otherwise, write NO_MISTAKE.
+- Write down the student's solution verbatim as seen in the image. Discard anything that the student has crossed out.
+- Analyze each step of the student's solution attempt and interpret what the student is trying to do. Identify any mistakes or misconceptions.
+- If there are mistakes or the solution is incomplete, write down a hint to help the student correct the mistakes.
 
 Keep your output concise.
 `;
@@ -21,7 +40,7 @@ Keep your output concise.
 export async function evaluateSolution(
   exerciseText: string,
   solutionImage: string,
-): Promise<EvaluationResult> {
+): Promise<z.infer<typeof schema>> {
   // Extract the base64 data part (remove the prefix if it exists)
   const base64Data = solutionImage.includes("base64,")
     ? solutionImage.split("base64,")[1]
@@ -49,28 +68,7 @@ For the following exercise:\n\n${exerciseText}\n\nHere is the student's (partial
   ];
 
   // Make the call to the multimodal LLM
-  const response = await model.invoke(messages);
+  const response = await model.withStructuredOutput(schema).invoke(messages);
 
-  // Parse the LLM response to extract the evaluation result
-  try {
-    // Attempt to identify if the solution is correct and extract feedback
-    const responseText = response.content as string;
-
-    // Determine if the solution is correct based on keywords in the response
-    const isCorrect =
-      responseText.toLowerCase().includes("correct") &&
-      !responseText.toLowerCase().includes("not correct") &&
-      !responseText.toLowerCase().includes("incorrect");
-
-    return {
-      isCorrect,
-      feedback: responseText,
-    };
-  } catch (error) {
-    console.error("Error parsing LLM response:", error);
-    return {
-      isCorrect: false,
-      feedback: "Error evaluating solution. Please try again.",
-    };
-  }
+  return response;
 }
