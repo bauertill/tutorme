@@ -19,7 +19,6 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    NEXTAUTH_URL: z.string().url(),
     REDIS_URL: z.string().url(),
     LONG_QUERY_TIME: z
       .number()
@@ -52,7 +51,6 @@ export const env = createEnv({
     YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     REDIS_URL: process.env.REDIS_URL,
     LONG_QUERY_TIME: process.env.LONG_QUERY_TIME,
     LOG_LEVEL: process.env.LOG_LEVEL,
