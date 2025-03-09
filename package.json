@@ -28,6 +28,7 @@
     "@auth/prisma-adapter": "^2.7.2",
     "@bprogress/next": "^3.2.4",
     "@langchain/core": "^0.3.40",
+    "@langchain/google-genai": "^0.1.10",
     "@langchain/openai": "^0.4.4",
     "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/client": "^6.4.1",
