@@ -1,15 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Exercise } from "./_components/Exercise";
-
-export default function ExercisePage() {
+import Exercise from "./_components/Exercise";
+export default function CanvasPage() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Exercise</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Exercise exerciseText={`Solve for x: 2x + 3 = 11`} />
-      </CardContent>
-    </Card>
+    <div className="absolute inset-0">
+      <Exercise />
+    </div>
   );
 }
