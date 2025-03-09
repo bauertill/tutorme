@@ -18,23 +18,7 @@ export const exerciseRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      // Here you would typically:
-      // 1. Save the image to storage (or database as a blob)
-      // 2. Create a record of the submission
-      // 3. Return a success message or ID
-
-      console.log(
-        `Received solution for exercise: ${input.exerciseText.substring(0, 30)}...`,
-      );
-
-      // Evaluate the solution using the LLM
-      const evaluationResult = await evaluateSolution(
-        input.exerciseText,
-        input.solutionImage,
-      );
-
-      // Return the evaluation result
-      return evaluationResult;
+      return evaluateSolution(input.exerciseText, input.solutionImage);
     }),
 
   getRandomProblem: publicProcedure.query(async ({ ctx }) => {
