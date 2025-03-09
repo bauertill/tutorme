@@ -2,14 +2,14 @@ import {
   evaluateSolution,
   getRandomProblem,
 } from "@/core/exercise/exerciseDomain";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 
 export const exerciseRouter = createTRPCRouter({
   /**
    * Submit a drawn solution for an exercise
    */
-  submitSolution: protectedProcedure
+  submitSolution: publicProcedure
     .input(
       z.object({
         exerciseId: z.string().optional(),
@@ -37,7 +37,7 @@ export const exerciseRouter = createTRPCRouter({
       return evaluationResult;
     }),
 
-  getRandomProblem: protectedProcedure.query(async ({ ctx }) => {
+  getRandomProblem: publicProcedure.query(async ({ ctx }) => {
     return await getRandomProblem(ctx.dbAdapter);
   }),
 });
