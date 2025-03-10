@@ -34,7 +34,7 @@ export default function ProblemController({
     }
   }, [currentProblemIndex, userProblems, setProblem]);
 
-  const hasNoProblems = isFetched && userProblems?.length === 0;
+  const hasNoProblems = isFetched && userProblems?.length === 0 && !problem;
 
   return (
     <Card>
