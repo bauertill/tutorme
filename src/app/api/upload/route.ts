@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const fileExtension = file.name.split(".").pop() || "";
+    const fileExtension = file.name.split(".").pop() ?? "";
     const uniqueFilename = `${uuidv4()}.${fileExtension}`;
 
     const blob = await put(uniqueFilename, file, {
