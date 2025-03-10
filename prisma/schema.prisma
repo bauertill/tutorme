@@ -51,10 +51,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  accounts              Account[]
-  sessions              Session[]
-  goals                 Goal[]
-  lessons               Lesson[]
+  accounts     Account[]
+  sessions     Session[]
+  goals        Goal[]
+  lessons      Lesson[]
+  userProblems UserProblem[]
 }
 
 model VerificationToken {
@@ -94,11 +95,11 @@ enum Mastery {
 }
 
 model Concept {
-  id            String  @id @default(cuid())
-  name          String
-  description   String
-  masteryLevel  Mastery @default(UNKNOWN)
-  teacherReport String?
+  id               String           @id @default(cuid())
+  name             String
+  description      String
+  masteryLevel     Mastery          @default(UNKNOWN)
+  teacherReport    String?
   generationStatus GenerationStatus @default(GENERATING)
 
   createdAt DateTime @default(now())
@@ -107,9 +108,8 @@ model Concept {
   goalId String
   goal   Goal   @relation(fields: [goalId], references: [id])
 
-  lessons               Lesson[]
+  lessons Lesson[]
 }
-
 
 enum LessonStatus {
   TODO
@@ -119,15 +119,12 @@ enum LessonStatus {
   DONE
 }
 
-
 enum Difficulty {
   BEGINNER
   INTERMEDIATE
   ADVANCED
   EXPERT
 }
-
-
 
 model Lesson {
   id         String       @id @default(cuid())
@@ -190,4 +187,26 @@ model Problem {
   problemUploadId String
   problemUpload   ProblemUpload @relation(fields: [problemUploadId], references: [id], onDelete: Cascade)
   Lesson          Lesson[]
+}
+
+enum UserProblemStatus {
+  INITIAL
+  IN_PROGRESS
+  SOLVED
+  FAILED
+}
+
+model UserProblem {
+  id                String            @id @default(cuid())
+  problem           String
+  referenceSolution String
+  isCorrect         Boolean
+  status            UserProblemStatus @default(INITIAL)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
