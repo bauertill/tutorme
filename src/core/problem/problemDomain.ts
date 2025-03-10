@@ -1,7 +1,14 @@
 import { sortBy } from "lodash-es";
 import type { DBAdapter } from "../adapters/dbAdapter";
+import { llmAdapter } from "../adapters/llmAdapter";
+import { type OCRAdapter } from "../adapters/ocrAdapter";
 import { Draft, parseCsv } from "../utils";
-import { Problem, type ProblemUpload, ProblemUploadStatus } from "./types";
+import {
+  Problem,
+  type ProblemUpload,
+  ProblemUploadStatus,
+  UserProblem,
+} from "./types";
 
 const UPLOAD_BATCH_SIZE = 128;
 
@@ -101,4 +108,26 @@ export async function deleteProblemUpload(
   dbAdapter: DBAdapter,
 ) {
   await dbAdapter.deleteProblemUpload(uploadId);
+}
+
+export async function createUserProblemsFromUpload(
+  uploadPath: string,
+  userId: string,
+  dbAdapter: DBAdapter,
+  ocrAdapter: OCRAdapter,
+): Promise<void> {
+  const markdown = await ocrAdapter.extractMarkdownFromImage(uploadPath);
+  const rawProblems = await llmAdapter.problem.extractProblemsFromMarkdown(
+    markdown,
+    userId,
+    uploadPath,
+  );
+  const userProblems: Draft<UserProblem>[] = rawProblems.map((problem) => ({
+    userId,
+    status: "INITIAL",
+    problem: problem.problemText,
+    referenceSolution: "",
+    isCorrect: false,
+  }));
+  await dbAdapter.createUserProblems(userProblems);
 }

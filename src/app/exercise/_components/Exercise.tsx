@@ -10,11 +10,12 @@ import FeedbackView from "./FeedbackView";
 import ProblemController from "./Problem/ProblemController";
 
 export default function Exercise() {
-  const [problem, setProblem] = useState<string>(`Solve for x: 2x + 3 = 11`);
+  const [problem, setProblem] = useState<string>("");
   const [debouncedProblem] = useDebounce(problem, 5000);
   const [referenceSolution, setReferenceSolution] = useState<string>();
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResult | null>(null);
+
   const { mutate: createReferenceSolution } =
     api.exercise.createReferenceSolution.useMutation({
       onSuccess: (data) => {
@@ -49,7 +50,7 @@ export default function Exercise() {
   return (
     <div className="relative flex h-full flex-col">
       <ProblemController problem={problem} setProblem={setProblem} />
-      <Canvas onCheck={onCheck} />
+      {problem && <Canvas onCheck={onCheck} />}
       {evaluationResult && <FeedbackView evaluationResult={evaluationResult} />}
       {isSubmitting && (
         <div className="absolute inset-0 flex items-center justify-center">
