@@ -11,6 +11,10 @@ export const fastModel = new ChatOpenAI({
   temperature: 0.7,
 });
 
+export const reasoningModel = new ChatOpenAI({
+  modelName: "o3-mini",
+});
+
 export const gemini = new ChatGoogleGenerativeAI({
   model: "gemini-2.0-flash-lite",
   temperature: 0,

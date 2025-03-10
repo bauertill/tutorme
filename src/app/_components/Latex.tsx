@@ -33,6 +33,16 @@ export function Latex({ children }: { children: string | string[] }) {
           display: true,
         },
         {
+          left: "\\begin{tabular}",
+          right: "\\end{tabular}",
+          display: true,
+        },
+        {
+          left: "\\begin{array}",
+          right: "\\end{array}",
+          display: true,
+        },
+        {
           left: "\\begin{CD}",
           right: "\\end{CD}",
           display: true,

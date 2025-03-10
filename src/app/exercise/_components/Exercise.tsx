@@ -2,14 +2,29 @@
 import { type EvaluationResult } from "@/core/exercise/exerciseDomain";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useDebounce } from "use-debounce";
 import FeedbackView from "./FeedbackView";
 import ProblemView from "./ProblemView";
 import { SVGCanvasWithControls } from "./SVGCanvas";
 
 export default function Exercise() {
   const [problem, setProblem] = useState<string>(`Solve for x: 2x + 3 = 11`);
+  const [debouncedProblem] = useDebounce(problem, 5000);
+  const [referenceSolution, setReferenceSolution] = useState<string>();
+  const { mutate: createReferenceSolution } =
+    api.exercise.createReferenceSolution.useMutation({
+      onMutate: () => {
+        setReferenceSolution(undefined);
+      },
+      onSuccess: (data) => {
+        setReferenceSolution(data);
+      },
+    });
+  useEffect(() => {
+    createReferenceSolution(debouncedProblem);
+  }, [debouncedProblem, createReferenceSolution]);
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResult | null>(null);
   const { mutate: submit, isPending: isSubmitting } =
@@ -28,9 +43,10 @@ export default function Exercise() {
       submit({
         exerciseText: problem,
         solutionImage: dataUrl,
+        referenceSolution: referenceSolution ?? "N/A",
       });
     },
-    [submit, problem],
+    [submit, problem, referenceSolution],
   );
   return (
     <div className="relative flex h-full flex-col">

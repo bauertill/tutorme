@@ -27,19 +27,22 @@ const schema = z.object({
 
 // Define the system prompt for evaluating exercise solutions
 const EVALUATE_SOLUTION_SYSTEM_PROMPT = `You are an expert teacher evaluating a student's solution attempt to an exercise. 
-You will be given the exercise text and an image of the student's handwritten or drawn (partial) solution attempt.
+You will be given the problem statement, a reference solution, and an image of the student's handwritten or drawn (partial) solution attempt.
 
-- Write down the student's solution verbatim as seen in the image. Discard anything that the student has crossed out.
+- Take a close look at the submitted image and take note of any parts that the student has crossed out or scribbled over.
+- Write down the student's solution verbatim as seen in the image. Discard anything that the student has crossed out or scribbled over.
 - Analyze each step of the student's solution attempt and interpret what the student is trying to do. Identify any mistakes or misconceptions.
 - If there are mistakes or the solution is incomplete, write down a hint to help the student correct the mistakes.
+- Ignore any mistakes that are in parts that are crossed out or scribbled over.
 
-Keep your output concise.
+Keep your output concise. Always wrap LaTeX in the appropriate delimiters.
 `;
 
 // Function to evaluate the solution using the multimodal LLM
 export async function evaluateSolution(
   exerciseText: string,
   solutionImage: string,
+  referenceSolution: string,
 ): Promise<z.infer<typeof schema>> {
   // Extract the base64 data part (remove the prefix if it exists)
   const base64Data = solutionImage.includes("base64,")
@@ -54,7 +57,17 @@ export async function evaluateSolution(
         {
           type: "text",
           text: `\
-For the following exercise:\n\n${exerciseText}\n\nHere is the student's (partial) solution attempt:`,
+Problem statement:
+"""
+${exerciseText}
+"""
+
+Reference solution:
+"""
+${referenceSolution}
+"""
+
+Here is the student's (partial) solution attempt:`,
         },
         {
           type: "image_url",
