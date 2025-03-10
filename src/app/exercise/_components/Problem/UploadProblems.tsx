@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import { CameraIcon } from "lucide-react";
+import { CameraIcon, ImageIcon } from "lucide-react";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -19,22 +19,13 @@ interface UploadState {
   success: boolean;
 }
 
-interface BlobResponse {
-  success: boolean;
-  url: string;
-  pathname: string;
-  size: number;
-}
-
 export function UploadProblems() {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [uploadState, setUploadState] = useState<UploadState>({
-    isUploading: false,
-    error: null,
-    success: false,
-  });
+  const [uploadState, setUploadState] = useState<
+    "idle" | "uploading" | "success" | "error"
+  >("idle");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -46,19 +37,11 @@ export function UploadProblems() {
     data,
   } = api.problem.createUserProblemsFromUpload.useMutation({
     onSuccess: () => {
-      setUploadState({
-        isUploading: false,
-        error: null,
-        success: true,
-      });
+      setUploadState("success");
       toast.success("Problem uploaded successfully!");
     },
     onError: (error) => {
-      setUploadState({
-        isUploading: false,
-        error: error.message,
-        success: false,
-      });
+      setUploadState("error");
       toast.error(error.message);
     },
   });
@@ -66,11 +49,7 @@ export function UploadProblems() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
     setSelectedFile(file);
-    setUploadState({
-      isUploading: false,
-      error: null,
-      success: false,
-    });
+    setUploadState("idle");
 
     // Create preview for the selected image
     if (file) {
@@ -86,52 +65,23 @@ export function UploadProblems() {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setUploadState({
-        isUploading: false,
-        error: "Please select an image to upload",
-        success: false,
-      });
+      setUploadState("error");
       return;
     }
-
-    setUploadState({
-      isUploading: true,
-      error: null,
-      success: false,
-    });
+    setUploadState("uploading");
 
     try {
       const url = await uploadToBlob(selectedFile);
       createUserProblemsFromUpload(url);
     } catch (error) {
-      setUploadState({
-        isUploading: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to upload the image. Please try again.",
-        success: false,
-      });
-      console.error("Upload error:", error);
+      setUploadState("error");
     }
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-
-  const triggerCameraInput = () => {
-    cameraInputRef.current?.click();
   };
 
   const resetForm = () => {
     setSelectedFile(null);
     setPreview(null);
-    setUploadState({
-      isUploading: false,
-      error: null,
-      success: false,
-    });
+    setUploadState("idle");
   };
 
   return (
@@ -173,11 +123,17 @@ export function UploadProblems() {
             />
 
             <div className="flex space-x-2">
-              <Button onClick={triggerFileInput} variant="outline">
-                Select Image
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                variant="outline"
+              >
+                <ImageIcon className="h-5 w-5" />
               </Button>
-              <Button onClick={triggerCameraInput} variant="outline">
-                Take Photo
+              <Button
+                onClick={() => cameraInputRef.current?.click()}
+                variant="outline"
+              >
+                <CameraIcon className="h-5 w-5" />
               </Button>
             </div>
 
@@ -200,10 +156,10 @@ export function UploadProblems() {
 
           <Button
             onClick={handleUpload}
-            disabled={!selectedFile || uploadState.isUploading}
+            disabled={!selectedFile || uploadState === "uploading"}
             className="w-full"
           >
-            {uploadState.isUploading ? "Uploading..." : "Upload Problem"}
+            {uploadState === "uploading" ? "Uploading..." : "Upload Problem"}
           </Button>
         </div>
       </DialogContent>
