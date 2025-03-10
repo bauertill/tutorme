@@ -39,7 +39,7 @@ export function UploadProblems() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null;
+    const file = event.target.files?.[0] ?? null;
     setSelectedFile(file);
     setUploadState({
       isUploading: false,
@@ -86,8 +86,9 @@ export function UploadProblems() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to upload image");
+        console.error(response);
+        console.error(await response.json());
+        throw new Error("Failed to upload image");
       }
 
       const result = (await response.json()) as BlobResponse;
@@ -183,6 +184,8 @@ export function UploadProblems() {
                   src={preview}
                   alt="Preview"
                   className="h-auto max-h-64 max-w-full object-contain"
+                  width={400}
+                  height={400}
                 />
               </div>
             )}

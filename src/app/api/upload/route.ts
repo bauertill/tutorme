@@ -1,5 +1,5 @@
 import { put } from '@vercel/blob';
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
@@ -28,7 +28,6 @@ export async function POST(request: NextRequest) {
       access: "public",
       contentType: file.type,
     });
-
     return NextResponse.json({ 
       success: true,
       url: blob.url,
