@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import { Canvas } from "./Canvas";
 import FeedbackView from "./FeedbackView";
-import ProblemView from "./ProblemView";
+import ProblemController from "./Problem/ProblemController";
 
 export default function Exercise() {
   const [problem, setProblem] = useState<string>(`Solve for x: 2x + 3 = 11`);
@@ -48,7 +48,7 @@ export default function Exercise() {
 
   return (
     <div className="relative flex h-full flex-col">
-      <ProblemView problem={problem} onNewProblem={setProblem} />
+      <ProblemController problem={problem} setProblem={setProblem} />
       <Canvas onCheck={onCheck} />
       {evaluationResult && <FeedbackView evaluationResult={evaluationResult} />}
       {isSubmitting && (

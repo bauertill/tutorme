@@ -26,10 +26,13 @@ export function UploadProblems() {
     error: null,
     success: false,
   });
+
+  // Two separate refs for the different input types
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null;
+    const file = event.target.files?.[0] ?? null;
     setSelectedFile(file);
     setUploadState({
       isUploading: false,
@@ -103,6 +106,10 @@ export function UploadProblems() {
     fileInputRef.current?.click();
   };
 
+  const triggerCameraInput = () => {
+    cameraInputRef.current?.click();
+  };
+
   const resetForm = () => {
     setSelectedFile(null);
     setPreview(null);
@@ -132,8 +139,18 @@ export function UploadProblems() {
         </DialogHeader>
         <div className="space-y-4">
           <div className="flex flex-col items-center">
+            {/* File selection input (gallery) */}
             <Input
               ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            {/* Camera input (with capture) */}
+            <Input
+              ref={cameraInputRef}
               type="file"
               accept="image/*"
               capture="environment"
@@ -145,7 +162,7 @@ export function UploadProblems() {
               <Button onClick={triggerFileInput} variant="outline">
                 Select Image
               </Button>
-              <Button onClick={() => triggerFileInput()} variant="outline">
+              <Button onClick={triggerCameraInput} variant="outline">
                 Take Photo
               </Button>
             </div>
