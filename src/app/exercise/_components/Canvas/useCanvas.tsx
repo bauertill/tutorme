@@ -9,7 +9,7 @@ import {
   toDataUrl,
 } from "./utils";
 
-const BOTTOM_PADDING = 500;
+const BOTTOM_PADDING = 800;
 
 export function useCanvas() {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -141,7 +141,7 @@ export function useCanvas() {
     <div ref={containerRef} className="relative h-full w-full overflow-auto">
       <svg
         ref={svgRef}
-        className="absolute inset-0 bg-[length:20px_20px]"
+        className="absolute inset-0 bg-[length:25px_25px]"
         style={{
           backgroundImage:
             "linear-gradient(0deg, hsl(var(--muted)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--muted)) 1px, transparent 1px)",
