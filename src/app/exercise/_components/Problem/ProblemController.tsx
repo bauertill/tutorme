@@ -34,10 +34,16 @@ export default function ProblemController({
     }
   }, [currentProblemIndex, userProblems, setProblem]);
 
+  const hasNoProblems = isFetched && userProblems?.length === 0;
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Exercise</CardTitle>
+        <CardTitle>
+          {hasNoProblems
+            ? "To get started, upload your own problems or get a random one"
+            : "Exercise"}
+        </CardTitle>
         <div className="flex flex-row gap-2">
           {previousProblem && (
             <Button
