@@ -5,9 +5,9 @@ import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
+import { Canvas } from "./Canvas";
 import FeedbackView from "./FeedbackView";
 import ProblemView from "./ProblemView";
-import { SVGCanvasWithControls } from "./SVGCanvas";
 
 export default function Exercise() {
   const [problem, setProblem] = useState<string>(`Solve for x: 2x + 3 = 11`);
@@ -51,7 +51,7 @@ export default function Exercise() {
   return (
     <div className="relative flex h-full flex-col">
       <ProblemView problem={problem} onNewProblem={setProblem} />
-      <SVGCanvasWithControls onCheck={onCheck} />
+      <Canvas onCheck={onCheck} />
       {evaluationResult && <FeedbackView evaluationResult={evaluationResult} />}
       {isSubmitting && (
         <div className="absolute inset-0 flex items-center justify-center">
