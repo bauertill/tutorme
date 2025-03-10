@@ -1,10 +1,10 @@
+import { env } from "@/env";
 import { Mistral } from "@mistralai/mistralai";
 export class OCRAdapter {
   private client: Mistral;
 
   constructor() {
-    const apiKey = process.env.MISTRAL_API_KEY;
-    this.client = new Mistral({ apiKey: apiKey });
+    this.client = new Mistral({ apiKey: env.MISTRAL_API_KEY });
   }
 
   async extractMarkdownFromImage(imagePath: string): Promise<string> {

@@ -14,6 +14,8 @@ export const env = createEnv({
     AUTH_GOOGLE_ID: z.string(),
     AUTH_GOOGLE_SECRET: z.string(),
     OPENAI_API_KEY: z.string(),
+    MISTRAL_API_KEY: z.string(),
+    BLOB_READ_WRITE_TOKEN: z.string(),
     YOUTUBE_API_KEY: z.string(),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
@@ -48,6 +50,8 @@ export const env = createEnv({
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
     YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
