@@ -10,7 +10,7 @@ export const exerciseRouter = createTRPCRouter({
   /**
    * Submit a drawn solution for an exercise
    */
-  submitSolution: publicProcedure
+  submitSolution: publicProcedure // TODO: think about auth
     .input(
       z.object({
         exerciseId: z.string().optional(),

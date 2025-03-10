@@ -53,7 +53,7 @@ export const problemRouter = createTRPCRouter({
         input,
         ctx.session.user.id,
         ctx.dbAdapter,
-        ctx.ocrAdapter,
+        ctx.llmAdapter,
       );
     }),
   createUserProblem: protectedProcedure
