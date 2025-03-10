@@ -46,7 +46,7 @@ export const problemRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await deleteProblemUpload(input.uploadId, ctx.dbAdapter);
     }),
-  createUserProblemsFromUpload: protectedAdminProcedure
+  createUserProblemsFromUpload: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
       return await createUserProblemsFromUpload(
