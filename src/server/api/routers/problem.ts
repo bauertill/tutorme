@@ -49,6 +49,11 @@ export const problemRouter = createTRPCRouter({
   createUserProblemsFromUpload: protectedAdminProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      return await createUserProblemsFromUpload(input, ctx.dbAdapter, ctx.ocrAdapter);
+      return await createUserProblemsFromUpload(
+        input,
+        ctx.session.user.id,
+        ctx.dbAdapter,
+        ctx.ocrAdapter,
+      );
     }),
 });

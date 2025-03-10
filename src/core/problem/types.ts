@@ -39,7 +39,6 @@ export type ProblemQueryResult = {
   score: number;
 };
 
-
 // export type UserProblem = {
 
 //   id                String            @id @default(cuid())
@@ -63,13 +62,7 @@ export const UserProblem = z.object({
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
   createdAt: z.date(),
   updatedAt: z.date(),
+  userId: z.string(),
 });
 
 export type UserProblem = z.infer<typeof UserProblem>;
-
-export const UserProblemDraft = UserProblem.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-export type UserProblemDraft = z.infer<typeof UserProblemDraft>;

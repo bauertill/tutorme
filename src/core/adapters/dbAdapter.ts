@@ -1,5 +1,6 @@
 import {
   Problem,
+  UserProblem,
   type ProblemQueryResult,
   type ProblemUpload,
   type ProblemUploadStatus,
@@ -8,7 +9,7 @@ import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
-import { type Difficulty, Prisma, type PrismaClient } from "@prisma/client";
+import { Prisma, type Difficulty, type PrismaClient } from "@prisma/client";
 import assert from "assert";
 import { z } from "zod";
 import {
@@ -323,6 +324,12 @@ export class DBAdapter {
     await this.db.concept.update({
       where: { id: conceptId },
       data: { generationStatus: status },
+    });
+  }
+
+  async createUserProblems(problems: Draft<UserProblem>[]): Promise<void> {
+    await this.db.userProblem.createMany({
+      data: problems,
     });
   }
 }

@@ -25,21 +25,18 @@ export function UploadProblems() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    mutate: createUserProblemsFromUpload,
-    isPending,
-    error,
-    data,
-  } = api.problem.createUserProblemsFromUpload.useMutation({
-    onSuccess: () => {
-      setUploadState("success");
-      toast.success("Problem uploaded successfully!");
-    },
-    onError: (error) => {
-      setUploadState("error");
-      toast.error(error.message);
-    },
-  });
+  const { mutate: createUserProblemsFromUpload } =
+    api.problem.createUserProblemsFromUpload.useMutation({
+      onSuccess: () => {
+        setUploadState("success");
+        // @TODO refetch the problems in ProblemController
+        toast.success("Problem uploaded successfully!");
+      },
+      onError: (error) => {
+        setUploadState("error");
+        toast.error(error.message);
+      },
+    });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;

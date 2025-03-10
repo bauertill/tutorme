@@ -1,27 +1,21 @@
-
-import { Mistral } from '@mistralai/mistralai';
+import { Mistral } from "@mistralai/mistralai";
 export class OCRAdapter {
+  private client: Mistral;
 
-    private client: Mistral;
+  constructor() {
+    const apiKey = process.env.MISTRAL_API_KEY;
+    this.client = new Mistral({ apiKey: apiKey });
+  }
 
-    constructor() {
-        const apiKey = process.env.MISTRAL_API_KEY;
-        this.client = new Mistral({apiKey: apiKey});
-    }
-
-    
-
-
-  async extractTextFromImage(imagePath: string): Promise<string> {
+  async extractMarkdownFromImage(imagePath: string): Promise<string> {
     const ocrResponse = await this.client.ocr.process({
-        model: "mistral-ocr-latest",
-        document: {
-            type: "image_url",
-            imageUrl: imagePath,
-        }
+      model: "mistral-ocr-latest",
+      document: {
+        type: "image_url",
+        imageUrl: imagePath,
+      },
     });
-    console.log(ocrResponse);
-    return ""
+    return ocrResponse.pages.map(({ markdown }) => markdown).join("\n");
   }
 }
 
