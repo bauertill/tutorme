@@ -11,7 +11,7 @@ export type Path = Point[];
 export async function toDataUrl(
   svgElement: SVGSVGElement,
 ): Promise<string | null> {
-  const pathElements = Array.from(svgElement.querySelectorAll("path"));
+  const pathElements = Array.from(svgElement.querySelectorAll("path, circle"));
   if (pathElements.length === 0) return null;
 
   const p = 10;
