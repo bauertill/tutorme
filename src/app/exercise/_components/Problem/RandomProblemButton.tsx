@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { Shuffle } from "lucide-react";
 import { useCallback } from "react";
-export default function NewProblemButton({
+export default function RandomProblemButton({
   onNewProblem,
 }: {
   onNewProblem: (problem: string) => void;

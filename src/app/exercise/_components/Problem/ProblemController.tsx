@@ -1,20 +1,23 @@
 "use client";
 import { Latex } from "@/app/_components/Latex";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import NewProblemButton from "./NewProblemButton";
-
-export default function ProblemView({
+import RandomProblemButton from "./RandomProblemButton";
+import { UploadProblems } from "./UploadProblems";
+export default function ProblemController({
   problem,
-  onNewProblem,
+  setProblem,
 }: {
   problem: string;
-  onNewProblem: (problem: string) => void;
+  setProblem: (problem: string) => void;
 }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Exercise</CardTitle>
-        <NewProblemButton onNewProblem={onNewProblem} />
+        <div className="flex flex-row gap-2">
+          <RandomProblemButton onNewProblem={setProblem} />
+          <UploadProblems />
+        </div>
       </CardHeader>
       <CardContent className="whitespace-pre-wrap">
         <Latex>{problem}</Latex>
