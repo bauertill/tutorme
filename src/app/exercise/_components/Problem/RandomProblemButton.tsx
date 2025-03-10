@@ -5,9 +5,9 @@ import { api } from "@/trpc/react";
 import { Shuffle } from "lucide-react";
 import { useCallback } from "react";
 export default function RandomProblemButton({
-  onNewProblem,
+  setProblem,
 }: {
-  onNewProblem: (problem: string) => void;
+  setProblem: (problem: string) => void;
 }) {
   const {
     data: newProblem,
@@ -17,12 +17,16 @@ export default function RandomProblemButton({
     staleTime: undefined,
   });
 
-  const onClick = useCallback(() => {
-    onNewProblem(newProblem?.problem ?? "");
-    void refetch();
-  }, [onNewProblem, newProblem, refetch]);
+  const { mutate: createUserProblem } =
+    api.problem.createUserProblem.useMutation();
 
-  // @TODO Random problem should insert the problem for this user.
+  const onClick = useCallback(() => {
+    if (newProblem) {
+      createUserProblem({ problem: newProblem.problem });
+      setProblem(newProblem.problem);
+      void refetch();
+    }
+  }, [setProblem, newProblem, refetch]);
 
   return (
     <Button

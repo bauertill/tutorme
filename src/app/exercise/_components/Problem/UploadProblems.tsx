@@ -25,12 +25,15 @@ export function UploadProblems() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  const { refetch } = api.problem.getUserProblems.useQuery();
+
   const { mutate: createUserProblemsFromUpload } =
     api.problem.createUserProblemsFromUpload.useMutation({
       onSuccess: () => {
         setUploadState("success");
-        // @TODO refetch the problems in ProblemController
-        toast.success("Problem uploaded successfully!");
+        toast.success("Problems uploaded successfully!");
+        setOpen(false);
+        void refetch();
       },
       onError: (error) => {
         setUploadState("error");

@@ -56,6 +56,17 @@ export const problemRouter = createTRPCRouter({
         ctx.ocrAdapter,
       );
     }),
+  createUserProblem: protectedProcedure
+    .input(z.object({ problem: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.dbAdapter.createUserProblem({
+        ...input,
+        userId: ctx.session.user.id,
+        status: "INITIAL",
+        referenceSolution: "",
+        isCorrect: false,
+      });
+    }),
   getUserProblems: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.dbAdapter.getUserProblemsByUserId(ctx.session.user.id);
   }),
