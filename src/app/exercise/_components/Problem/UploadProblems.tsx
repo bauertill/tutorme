@@ -13,11 +13,6 @@ import Image from "next/image";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadToBlob } from "./uploadToBlob";
-interface UploadState {
-  isUploading: boolean;
-  error: string | null;
-  success: boolean;
-}
 
 export function UploadProblems() {
   const [open, setOpen] = useState(false);
