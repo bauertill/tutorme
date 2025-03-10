@@ -2,6 +2,7 @@ import { sortBy } from "lodash-es";
 import type { DBAdapter } from "../adapters/dbAdapter";
 import { Draft, parseCsv } from "../utils";
 import { Problem, type ProblemUpload, ProblemUploadStatus } from "./types";
+import { OCRAdapter } from "../adapters/ocrAdapter";
 
 const UPLOAD_BATCH_SIZE = 128;
 
@@ -101,4 +102,18 @@ export async function deleteProblemUpload(
   dbAdapter: DBAdapter,
 ) {
   await dbAdapter.deleteProblemUpload(uploadId);
+}
+
+
+export async function createUserProblemsFromUpload(
+  uploadPath: string,
+  dbAdapter: DBAdapter,
+  ocrAdapter: OCRAdapter,
+) {
+  console.log("uploadPath", uploadPath);
+  const text = await ocrAdapter.extractTextFromImage(uploadPath);
+  // 1. get file from vercel blob in uploadPath
+  // 2. User OCR to extract text from image
+  // 3. Prompt LLM to extract problems from text and create UserProblemDraft[]
+  // 4. Create user problems in DB with status INITIAL 
 }

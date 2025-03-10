@@ -17,7 +17,7 @@ import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
 import { renderAsyAdapter } from "@/core/adapters/renderAsyAdapter";
 import { youtubeAdapter } from "@/core/adapters/youtubeAdapter";
 import { ADMINS, auth } from "@/server/auth";
-
+import { ocrAdapter } from "@/core/adapters/ocrAdapter";
 /**
  * 1. CONTEXT
  *
@@ -40,6 +40,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     youtubeAdapter,
     pubsubAdapter,
     renderAsyAdapter,
+    ocrAdapter,
     ...opts,
   };
 };

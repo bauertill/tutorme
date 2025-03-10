@@ -1,6 +1,7 @@
 import {
   cancelProblemUpload,
   createProblemsFromCsv,
+  createUserProblemsFromUpload,
   deleteProblemUpload,
   getProblemUploadFiles,
   queryProblems,
@@ -44,5 +45,10 @@ export const problemRouter = createTRPCRouter({
     .input(z.object({ uploadId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await deleteProblemUpload(input.uploadId, ctx.dbAdapter);
+    }),
+  createUserProblemsFromUpload: protectedAdminProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      return await createUserProblemsFromUpload(input, ctx.dbAdapter, ctx.ocrAdapter);
     }),
 });

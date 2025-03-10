@@ -1,4 +1,3 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,10 +7,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { api } from "@/trpc/react";
 import { CameraIcon } from "lucide-react";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
-
+import { toast } from "sonner";
+import { uploadToBlob } from "./uploadToBlob";
 interface UploadState {
   isUploading: boolean;
   error: string | null;
@@ -37,6 +38,30 @@ export function UploadProblems() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    mutate: createUserProblemsFromUpload,
+    isPending,
+    error,
+    data,
+  } = api.problem.createUserProblemsFromUpload.useMutation({
+    onSuccess: () => {
+      setUploadState({
+        isUploading: false,
+        error: null,
+        success: true,
+      });
+      toast.success("Problem uploaded successfully!");
+    },
+    onError: (error) => {
+      setUploadState({
+        isUploading: false,
+        error: error.message,
+        success: false,
+      });
+      toast.error(error.message);
+    },
+  });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
@@ -76,26 +101,8 @@ export function UploadProblems() {
     });
 
     try {
-      // Upload image to Vercel Blob
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        console.error(response);
-        console.error(await response.json());
-        throw new Error("Failed to upload image");
-      }
-
-      const result = (await response.json()) as BlobResponse;
-
-      if (!result.success) {
-        throw new Error("Failed to upload image");
-      }
+      const url = await uploadToBlob(selectedFile);
+      createUserProblemsFromUpload(url);
     } catch (error) {
       setUploadState({
         isUploading: false,
@@ -198,21 +205,6 @@ export function UploadProblems() {
           >
             {uploadState.isUploading ? "Uploading..." : "Upload Problem"}
           </Button>
-
-          {/* @TODO use Sonner here instead */}
-          {uploadState.error && (
-            <Alert variant="destructive">
-              <AlertDescription>{uploadState.error}</AlertDescription>
-            </Alert>
-          )}
-          {/* @TODO use Sonner here instead */}
-          {uploadState.success && (
-            <Alert>
-              <AlertDescription>
-                Problem uploaded successfully!
-              </AlertDescription>
-            </Alert>
-          )}
         </div>
       </DialogContent>
     </Dialog>
