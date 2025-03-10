@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CameraIcon } from "lucide-react";
+import Image from "next/image";
 import React, { useRef, useState } from "react";
 
 interface UploadState {
@@ -178,7 +179,7 @@ export function UploadProblems() {
 
             {preview && (
               <div className="mt-4 overflow-hidden rounded-md border">
-                <img
+                <Image
                   src={preview}
                   alt="Preview"
                   className="h-auto max-h-64 max-w-full object-contain"
