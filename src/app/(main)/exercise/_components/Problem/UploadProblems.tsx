@@ -69,7 +69,7 @@ export function UploadProblems() {
     try {
       const url = await uploadToBlob(selectedFile);
       createUserProblemsFromUpload(url);
-    } catch (error) {
+    } catch {
       setUploadState("error");
     }
   };

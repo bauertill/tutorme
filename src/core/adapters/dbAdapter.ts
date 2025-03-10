@@ -1,9 +1,9 @@
 import {
   Problem,
-  UserProblem,
   type ProblemQueryResult,
   type ProblemUpload,
   type ProblemUploadStatus,
+  type UserProblem,
 } from "@/core/problem/types";
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
