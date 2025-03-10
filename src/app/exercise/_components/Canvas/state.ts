@@ -29,7 +29,6 @@ export type Action =
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "startDrawing": {
-      if (state.isDrawing) return state;
       return { ...state, currentPath: [action.point], isDrawing: true };
     }
     case "addPoint": {
