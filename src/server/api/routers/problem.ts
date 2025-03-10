@@ -56,4 +56,7 @@ export const problemRouter = createTRPCRouter({
         ctx.ocrAdapter,
       );
     }),
+  getUserProblems: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.dbAdapter.getUserProblemsByUserId(ctx.session.user.id);
+  }),
 });

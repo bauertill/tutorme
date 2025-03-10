@@ -328,9 +328,25 @@ export class DBAdapter {
   }
 
   async createUserProblems(problems: Draft<UserProblem>[]): Promise<void> {
-    await this.db.userProblem.createMany({
-      data: problems,
+    await this.db.$transaction(async (tx) => {
+      for (const problem of problems) {
+        const existingProblem = await tx.userProblem.findFirst({
+          where: {
+            userId: problem.userId,
+            problem: problem.problem,
+          },
+        });
+        if (!existingProblem) {
+          await tx.userProblem.create({
+            data: problem,
+          });
+        }
+      }
     });
+  }
+
+  async getUserProblemsByUserId(userId: string): Promise<UserProblem[]> {
+    return this.db.userProblem.findMany({ where: { userId } });
   }
 }
 
