@@ -1,9 +1,10 @@
+import { env } from "@/env";
 import { RedisCache } from "@langchain/community/caches/ioredis";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatOpenAI } from "@langchain/openai";
 import { Redis } from "ioredis";
 
-const client = new Redis({});
+const client = new Redis(env.REDIS_URL);
 
 const cache = new RedisCache(client);
 
