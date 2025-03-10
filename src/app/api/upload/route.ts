@@ -1,23 +1,20 @@
-import { put } from '@vercel/blob';
-import { type NextRequest, NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
+import { put } from "@vercel/blob";
+import { type NextRequest, NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
-    
+    const file = formData.get("file") as File;
+
     if (!file) {
-      return NextResponse.json(
-        { error: 'No file uploaded' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       return NextResponse.json(
-        { error: 'File must be an image' },
-        { status: 400 }
+        { error: "File must be an image" },
+        { status: 400 },
       );
     }
 
@@ -28,7 +25,7 @@ export async function POST(request: NextRequest) {
       access: "public",
       contentType: file.type,
     });
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       url: blob.url,
       pathname: blob.pathname,
@@ -37,7 +34,7 @@ export async function POST(request: NextRequest) {
     console.error("Error uploading file to Vercel Blob:", error);
     return NextResponse.json(
       { error: "Error uploading file" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}
