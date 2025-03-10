@@ -2,7 +2,7 @@
 import { type EvaluationResult } from "@/core/exercise/exerciseDomain";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import { Canvas } from "./Canvas";
@@ -13,20 +13,15 @@ export default function Exercise() {
   const [problem, setProblem] = useState<string>(`Solve for x: 2x + 3 = 11`);
   const [debouncedProblem] = useDebounce(problem, 5000);
   const [referenceSolution, setReferenceSolution] = useState<string>();
+  const [evaluationResult, setEvaluationResult] =
+    useState<EvaluationResult | null>(null);
   const { mutate: createReferenceSolution } =
     api.exercise.createReferenceSolution.useMutation({
-      onMutate: () => {
-        setReferenceSolution(undefined);
-      },
       onSuccess: (data) => {
         setReferenceSolution(data);
       },
     });
-  useEffect(() => {
-    createReferenceSolution(debouncedProblem);
-  }, [debouncedProblem, createReferenceSolution]);
-  const [evaluationResult, setEvaluationResult] =
-    useState<EvaluationResult | null>(null);
+
   const { mutate: submit, isPending: isSubmitting } =
     api.exercise.submitSolution.useMutation({
       onSuccess: (data) => {
@@ -38,16 +33,19 @@ export default function Exercise() {
       },
     });
 
-  const onCheck = useCallback(
-    (dataUrl: string) => {
-      submit({
-        exerciseText: problem,
-        solutionImage: dataUrl,
-        referenceSolution: referenceSolution ?? "N/A",
-      });
-    },
-    [submit, problem, referenceSolution],
-  );
+  useEffect(() => {
+    setReferenceSolution(undefined);
+    createReferenceSolution(debouncedProblem);
+  }, [debouncedProblem, createReferenceSolution]);
+
+  const onCheck = (dataUrl: string) => {
+    submit({
+      exerciseText: problem,
+      solutionImage: dataUrl,
+      referenceSolution: referenceSolution ?? "N/A",
+    });
+  };
+
   return (
     <div className="relative flex h-full flex-col">
       <ProblemView problem={problem} onNewProblem={setProblem} />

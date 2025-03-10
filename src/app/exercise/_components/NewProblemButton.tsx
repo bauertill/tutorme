@@ -10,22 +10,24 @@ export default function NewProblemButton({
   onNewProblem: (problem: string) => void;
 }) {
   const {
-    data: problem,
+    data: newProblem,
     refetch,
     isFetching,
   } = api.exercise.getRandomProblem.useQuery(undefined, {
     staleTime: undefined,
   });
+
   const onClick = useCallback(() => {
-    onNewProblem(problem?.problem ?? "");
+    onNewProblem(newProblem?.problem ?? "");
     void refetch();
-  }, [onNewProblem, problem, refetch]);
+  }, [onNewProblem, newProblem, refetch]);
+
   return (
     <Button
       variant="outline"
       size="icon"
       onClick={onClick}
-      disabled={!problem || isFetching}
+      disabled={!newProblem || isFetching}
     >
       <Shuffle className="h-4 w-4" />
     </Button>
