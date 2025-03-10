@@ -17,6 +17,13 @@ interface UploadState {
   success: boolean;
 }
 
+interface BlobResponse {
+  success: boolean;
+  url: string;
+  pathname: string;
+  size: number;
+}
+
 export function UploadProblems() {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -27,12 +34,11 @@ export function UploadProblems() {
     success: false,
   });
 
-  // Two separate refs for the different input types
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
+    const file = event.target.files?.[0] || null;
     setSelectedFile(file);
     setUploadState({
       isUploading: false,
@@ -69,33 +75,32 @@ export function UploadProblems() {
     });
 
     try {
-      // Here you would implement the actual upload logic
-      // For example:
-      // const formData = new FormData();
-      // formData.append('problem', selectedFile);
-      // const response = await fetch('/api/problems/upload', {
-      //   method: 'POST',
-      //   body: formData,
-      // });
+      // Upload image to Vercel Blob
+      const formData = new FormData();
+      formData.append("file", selectedFile);
 
-      // For now, we'll simulate a successful upload
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      setUploadState({
-        isUploading: false,
-        error: null,
-        success: true,
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
       });
 
-      // On success, close the modal after a short delay
-      setTimeout(() => {
-        setOpen(false);
-        resetForm();
-      }, 2000);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to upload image");
+      }
+
+      const result = (await response.json()) as BlobResponse;
+
+      if (!result.success) {
+        throw new Error("Failed to upload image");
+      }
     } catch (error) {
       setUploadState({
         isUploading: false,
-        error: "Failed to upload the image. Please try again.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to upload the image. Please try again.",
         success: false,
       });
       console.error("Upload error:", error);
@@ -190,12 +195,13 @@ export function UploadProblems() {
             {uploadState.isUploading ? "Uploading..." : "Upload Problem"}
           </Button>
 
+          {/* @TODO use Sonner here instead */}
           {uploadState.error && (
             <Alert variant="destructive">
               <AlertDescription>{uploadState.error}</AlertDescription>
             </Alert>
           )}
-
+          {/* @TODO use Sonner here instead */}
           {uploadState.success && (
             <Alert>
               <AlertDescription>
