@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -95,6 +96,9 @@ export function UploadProblems() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Upload Math Problem</DialogTitle>
+          <DialogDescription>
+            Upload a file with math problems to the database.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="flex flex-col items-center">
