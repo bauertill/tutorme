@@ -18,7 +18,7 @@ export default function FeedbackView({
   const [isOpen, setIsOpen] = useState(true);
   useEffect(() => {
     setIsOpen(true);
-  }, [setIsOpen]);
+  }, [evaluationResult, setIsOpen]);
   if (!isOpen) return null;
   return (
     <Card className="relative">
