@@ -120,7 +120,7 @@ enum UserProblemStatus {
 model UserProblem {
   id                String            @id @default(cuid())
   problem           String
-  referenceSolution String
+  referenceSolution String?
   isCorrect         Boolean
   status            UserProblemStatus @default(INITIAL)
   createdAt         DateTime          @default(now())
