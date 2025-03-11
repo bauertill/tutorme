@@ -9,10 +9,8 @@ export async function createAssignmentFromUpload(
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
 ): Promise<Assignment> {
-  const rawProblems = await llmAdapter.problem.extractProblemsFromImage(
-    uploadPath,
-    userId,
-  );
+  const { assignmentTitle, problems: rawProblems } =
+    await llmAdapter.problem.extractAssignmentFromImage(uploadPath, userId);
   const assignmentId = uuidv4();
   const userProblems: UserProblem[] = rawProblems.map((problem) => ({
     id: uuidv4(),
@@ -26,7 +24,7 @@ export async function createAssignmentFromUpload(
   }));
   const assignmentDraft: Assignment = {
     id: assignmentId,
-    name: uploadPath,
+    name: assignmentTitle,
     problems: userProblems,
     createdAt: new Date(),
     updatedAt: new Date(),

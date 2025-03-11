@@ -3,6 +3,7 @@ import { z } from "zod";
 import { model } from "../model";
 const EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT = `You are an AI assistant that translates an image of math problems into a list of problems. 
 Go through the image and extract all the problems. Problems might be nested, in this case you should flatten the data structure and reformulate the problems so they are standalone.
+Also come up with a title for the assignment.
 
 For example when given:
 # EXERCISE 2 \n
@@ -31,39 +32,38 @@ const RawProblem = z.object({
 });
 
 type RawProblem = z.infer<typeof RawProblem>;
-const RawProblemList = z.object({
+const RawAssignment = z.object({
+  assignmentTitle: z.string().describe("The title of the assignment"),
   problems: z.array(RawProblem),
 });
-type RawProblemList = z.infer<typeof RawProblemList>;
+type RawAssignment = z.infer<typeof RawAssignment>;
 
-export async function extractProblemsFromImage(
+export async function extractAssignmentFromImage(
   documentUrl: string,
   userId?: string,
-): Promise<RawProblem[]> {
-  const rawProblemList = await model
-    .withStructuredOutput(RawProblemList)
-    .invoke(
-      [
-        new SystemMessage(EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT),
-        new HumanMessage({
-          content: [
-            {
-              type: "text",
-              text: "Here is the image of the problems:",
-            },
-            {
-              type: "image_url",
-              image_url: { url: documentUrl, detail: "high" },
-            },
-          ],
-        }),
-      ],
-      {
-        metadata: {
-          userId,
-          documentUrl,
-        },
+): Promise<{ assignmentTitle: string; problems: RawProblem[] }> {
+  const rawAssignment = await model.withStructuredOutput(RawAssignment).invoke(
+    [
+      new SystemMessage(EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT),
+      new HumanMessage({
+        content: [
+          {
+            type: "text",
+            text: "Here is the image of the problems:",
+          },
+          {
+            type: "image_url",
+            image_url: { url: documentUrl, detail: "high" },
+          },
+        ],
+      }),
+    ],
+    {
+      metadata: {
+        userId,
+        documentUrl,
       },
-    );
-  return rawProblemList.problems;
+    },
+  );
+  return rawAssignment;
 }
