@@ -5,10 +5,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { UserProblem } from "@/core/problem/types";
+import { type Assignment, type UserProblem } from "@/core/assignment/types";
 import { cn } from "@/lib/utils";
 import { CheckCircle, ChevronRight, Circle } from "lucide-react";
-import { type Assignment } from "../(main)/new/_components/dummyData";
 
 interface CollapsibleAssignmentProps {
   assignment: Assignment;

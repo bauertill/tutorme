@@ -1,10 +1,10 @@
 "use client";
 import { Latex } from "@/app/_components/Latex";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  useCurrentAssignment,
-  useCurrentProblem,
+  useActiveAssignment,
+  useActiveProblem,
   useGotoNextProblem,
   useGotoPreviousProblem,
   useNextProblem,
@@ -13,14 +13,14 @@ import {
 import { UploadProblems } from "./UploadProblems";
 
 export default function ProblemController() {
-  const assignment = useCurrentAssignment();
-  const currentProblem = useCurrentProblem();
+  const assignment = useActiveAssignment();
+  const activeProblem = useActiveProblem();
   const nextProblem = useNextProblem();
   const previousProblem = usePreviousProblem();
   const gotoNextProblem = useGotoNextProblem();
   const gotoPreviousProblem = useGotoPreviousProblem();
 
-  if (!currentProblem || !assignment) {
+  if (!activeProblem || !assignment) {
     return (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -34,26 +34,20 @@ export default function ProblemController() {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Assignment: {assignment.name}</CardTitle>
-        <div className="flex flex-row gap-2">
-          {previousProblem && (
-            <Button variant="outline" onClick={() => gotoPreviousProblem()}>
-              Previous
-            </Button>
-          )}
-          {nextProblem && (
-            <Button variant="outline" onClick={() => gotoNextProblem()}>
-              Next
-            </Button>
-          )}
-          <UploadProblems />
-        </div>
-      </CardHeader>
-      <CardContent className="whitespace-pre-wrap">
-        <Latex>{currentProblem.problem}</Latex>
-      </CardContent>
-    </Card>
+    <div className="flex flex-row items-center justify-between border-b p-4">
+      <Latex className="whitespace-pre-wrap">{activeProblem.problem}</Latex>
+      <div className="flex flex-row gap-2">
+        {previousProblem && (
+          <Button variant="outline" onClick={() => gotoPreviousProblem()}>
+            Previous
+          </Button>
+        )}
+        {nextProblem && (
+          <Button variant="outline" onClick={() => gotoNextProblem()}>
+            Next
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }

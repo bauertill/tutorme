@@ -4,12 +4,12 @@ import type { MiddlewareList, State } from ".";
 
 export interface AssignmentSlice {
   assignments: Assignment[];
-  currentAssignmentId: string | null;
-  currentProblemId: string | null;
+  activeAssignmentId: string | null;
+  activeProblemId: string | null;
   setAssignments: (assignments: Assignment[]) => void;
   addAssignment: (assignment: Assignment) => void;
-  setCurrentAssignment: (assignment: Assignment) => void;
-  setCurrentProblem: (problem: UserProblem) => void;
+  setActiveAssignment: (assignment: Assignment) => void;
+  setActiveProblem: (problem: UserProblem) => void;
 }
 
 export const createAssignmentSlice: StateCreator<
@@ -19,8 +19,8 @@ export const createAssignmentSlice: StateCreator<
   AssignmentSlice
 > = (set) => ({
   assignments: [],
-  currentAssignmentId: null,
-  currentProblemId: null,
+  activeAssignmentId: null,
+  activeProblemId: null,
   setAssignments: (assignments: Assignment[]) =>
     set((draft) => {
       draft.assignments = assignments;
@@ -29,12 +29,13 @@ export const createAssignmentSlice: StateCreator<
     set((draft) => {
       draft.assignments = [...draft.assignments, assignment];
     }),
-  setCurrentAssignment: (assignment: Assignment) =>
+  setActiveAssignment: (assignment: Assignment) =>
     set((draft) => {
-      draft.currentAssignmentId = assignment.id;
+      draft.activeAssignmentId = assignment.id;
     }),
-  setCurrentProblem: (problem: UserProblem) =>
+  setActiveProblem: (problem: UserProblem) =>
     set((draft) => {
-      draft.currentProblemId = problem.id;
+      draft.activeAssignmentId = problem.assignmentId;
+      draft.activeProblemId = problem.id;
     }),
 });

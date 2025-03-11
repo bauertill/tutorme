@@ -1,23 +1,23 @@
 import { type Assignment, type UserProblem } from "@/core/assignment/types";
 import { useStore } from ".";
 
-export const useCurrentAssignment = (): Assignment | null => {
-  const assignmentId = useStore.use.currentAssignmentId();
+export const useActiveAssignment = (): Assignment | null => {
+  const assignmentId = useStore.use.activeAssignmentId();
   const assignments = useStore.use.assignments();
   const assignment = assignments.find((a) => a.id === assignmentId);
   return assignment ?? assignments[0] ?? null;
 };
 
-export const useCurrentProblem = (): UserProblem | null => {
-  const assignment = useCurrentAssignment();
-  const problemId = useStore.use.currentProblemId();
+export const useActiveProblem = (): UserProblem | null => {
+  const assignment = useActiveAssignment();
+  const problemId = useStore.use.activeProblemId();
   const problem = assignment?.problems.find((p) => p.id === problemId) ?? null;
   return problem ?? assignment?.problems[0] ?? null;
 };
 
 export const useNextProblem = () => {
-  const assignment = useCurrentAssignment();
-  const problemId = useStore.use.currentProblemId();
+  const assignment = useActiveAssignment();
+  const problemId = useStore.use.activeProblemId();
   const problemIndex = assignment?.problems.findIndex(
     (p) => p.id === problemId,
   );
@@ -27,8 +27,8 @@ export const useNextProblem = () => {
 };
 
 export const usePreviousProblem = () => {
-  const assignment = useCurrentAssignment();
-  const problemId = useStore.use.currentProblemId();
+  const assignment = useActiveAssignment();
+  const problemId = useStore.use.activeProblemId();
   const problemIndex = assignment?.problems.findIndex(
     (p) => p.id === problemId,
   );
@@ -39,20 +39,20 @@ export const usePreviousProblem = () => {
 
 export const useGotoNextProblem = () => {
   const nextProblem = useNextProblem();
-  const setCurrentProblem = useStore.use.setCurrentProblem();
+  const setActiveProblem = useStore.use.setActiveProblem();
   return () => {
     if (nextProblem) {
-      setCurrentProblem(nextProblem);
+      setActiveProblem(nextProblem);
     }
   };
 };
 
 export const useGotoPreviousProblem = () => {
   const previousProblem = usePreviousProblem();
-  const setCurrentProblem = useStore.use.setCurrentProblem();
+  const setActiveProblem = useStore.use.setActiveProblem();
   return () => {
     if (previousProblem) {
-      setCurrentProblem(previousProblem);
+      setActiveProblem(previousProblem);
     }
   };
 };

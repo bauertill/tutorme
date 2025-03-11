@@ -11,21 +11,19 @@ import {
   SidebarInput,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { type UserProblem } from "@/core/problem/types";
+import { useStore } from "@/store";
+import { useActiveProblem } from "@/store/selectors";
+import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
-import { type Assignment } from "../(main)/new/_components/dummyData";
+import { UploadProblems } from "../(main)/assignment/_components/Problem/UploadProblems";
 import { CollapsibleAssignment } from "./CollapsibleAssignment";
 import { UserAndSignOutButton } from "./UserAndSignOutButton";
 
-export function AppSidebar({
-  assignments,
-  activeProblem,
-  setActiveProblem,
-}: {
-  assignments: Assignment[];
-  activeProblem: UserProblem | null;
-  setActiveProblem: (problem: UserProblem) => void;
-}) {
+export function AppSidebar() {
+  const session = useSession();
+  const assignments = useStore.use.assignments();
+  const activeProblem = useActiveProblem();
+  const setActiveProblem = useStore.use.setActiveProblem();
   const [openAssignments, setOpenAssignments] = useState<Set<string>>(
     new Set(),
   );
@@ -85,15 +83,20 @@ export function AppSidebar({
             <span className="text-sm font-semibold">Tutor me good</span>
           </div>
         </div>
-        <div className="px-2 pb-2">
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <UploadProblems />
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
           <SidebarInput
             placeholder="Search exercises..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
+        </SidebarGroup>
         <SidebarGroup>
           <SidebarGroupLabel>Exercises</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -111,17 +114,9 @@ export function AppSidebar({
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <UserAndSignOutButton
-          user={{
-            id: "1",
-            name: "John Doe",
-            image: "https://github.com/shadcn.png",
-            email: "john.doe@example.com",
-            emailVerified: new Date(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }}
-        />
+        {session.data?.user && (
+          <UserAndSignOutButton user={session.data.user} />
+        )}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -90,8 +90,9 @@ export function UploadProblems() {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-full">
+        <Button variant="ghost" className="w-full justify-start">
           <CameraIcon className="h-5 w-5" />
+          Upload Assignment
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

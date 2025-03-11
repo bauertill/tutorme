@@ -1,5 +1,6 @@
 "use client";
 import { type EvaluationResult } from "@/core/exercise/exerciseDomain";
+import { useActiveProblem } from "@/store/selectors";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -10,7 +11,8 @@ import FeedbackView from "./FeedbackView";
 import ProblemController from "./Problem/ProblemController";
 
 export default function Exercise() {
-  const [problem] = useState<string>("");
+  const activeProblem = useActiveProblem();
+  const problem = activeProblem?.problem;
   const [debouncedProblem] = useDebounce(problem, 5000);
   const [referenceSolution, setReferenceSolution] = useState<string>();
   const [evaluationResult, setEvaluationResult] =
@@ -36,16 +38,25 @@ export default function Exercise() {
 
   useEffect(() => {
     setReferenceSolution(undefined);
-    createReferenceSolution(debouncedProblem);
+    if (debouncedProblem) {
+      createReferenceSolution(debouncedProblem);
+    }
   }, [debouncedProblem, createReferenceSolution]);
 
   const onCheck = (dataUrl: string) => {
+    if (!problem) {
+      return;
+    }
     submit({
       exerciseText: problem,
       solutionImage: dataUrl,
       referenceSolution: referenceSolution ?? "N/A",
     });
   };
+
+  if (!problem) {
+    return <div>No problem selected</div>;
+  }
 
   return (
     <div className="relative flex h-full flex-col">

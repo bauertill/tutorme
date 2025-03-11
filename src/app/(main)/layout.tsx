@@ -8,9 +8,7 @@ export default async function MainLayout({
 }) {
   return (
     <SessionProvider>
-      <StateSyncProvider>
-        <div className="p-4">{children}</div>
-      </StateSyncProvider>
+      <StateSyncProvider>{children}</StateSyncProvider>
     </SessionProvider>
   );
 }
