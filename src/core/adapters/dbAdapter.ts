@@ -9,17 +9,8 @@ import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
-import { Prisma, type Difficulty, type PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import assert from "assert";
-import { z } from "zod";
-import {
-  type Concept,
-  type ConceptWithGoal,
-  type MasteryLevel,
-} from "../concept/types";
-import type { Goal, GoalWithConcepts } from "../goal/types";
-import { type GenerationStatus } from "../index";
-import { Lesson, LessonTurn } from "../lesson/types";
 
 const EMBEDDING_MODEL = "text-embedding-3-large";
 
@@ -38,147 +29,6 @@ export class DBAdapter {
 
   async embedQuery(query: string): Promise<number[]> {
     return this.embeddingModel.embedQuery(query);
-  }
-
-  async getGoalById(id: string): Promise<Goal> {
-    return this.db.goal.findUniqueOrThrow({ where: { id } });
-  }
-
-  async getGoalByIdIncludeConcepts(id: string): Promise<GoalWithConcepts> {
-    return this.db.goal.findUniqueOrThrow({
-      where: { id },
-      include: { concepts: true },
-    });
-  }
-
-  async createGoal(userId: string, goalText: string): Promise<Goal> {
-    return this.db.goal.create({ data: { name: goalText, userId } });
-  }
-
-  async getUserGoals(userId: string): Promise<Goal[]> {
-    return this.db.goal.findMany({ where: { userId } });
-  }
-
-  async getConceptsByGoalId(goalId: string): Promise<Concept[]> {
-    return this.db.concept.findMany({ where: { goalId } });
-  }
-
-  async getConceptById(id: string): Promise<Concept> {
-    return this.db.concept.findUniqueOrThrow({ where: { id } });
-  }
-
-  async getConceptWithGoalByConceptId(id: string): Promise<ConceptWithGoal> {
-    return this.db.concept.findUniqueOrThrow({
-      where: { id },
-      include: { goal: true },
-    });
-  }
-
-  async createConcept(concepts: Concept): Promise<Concept> {
-    return await this.db.concept.create({ data: concepts });
-  }
-
-  async createConcepts(concepts: Concept[]): Promise<void> {
-    await this.db.concept.createMany({ data: concepts });
-  }
-
-  async updateConceptMasteryLevel(
-    conceptId: string,
-    masteryLevel: MasteryLevel,
-  ) {
-    return this.db.concept.update({
-      where: { id: conceptId },
-      data: { masteryLevel },
-    });
-  }
-  async updateConceptMasteryLevelAndTeacherReport(
-    conceptId: string,
-    masteryLevel: MasteryLevel,
-    teacherReport: string,
-  ) {
-    return this.db.concept.update({
-      where: { id: conceptId },
-      data: { masteryLevel, teacherReport },
-    });
-  }
-
-  /**
-   * Creates a new lesson
-   * @param lessonGoal The goal of the lesson
-   * @param conceptId The ID of the concept this lesson is for
-   * @param goalId The ID of the parent goal
-   * @param userId The ID of the user
-   * @param lessonIterations The initial iterations for the lesson
-   * @returns The created lesson
-   */
-  async createLesson(
-    lessonGoal: string,
-    conceptId: string,
-    goalId: string,
-    userId: string,
-    problemId: string,
-    turns: LessonTurn[],
-    difficulty: Difficulty,
-  ): Promise<Lesson> {
-    const dbLesson = await this.db.lesson.create({
-      data: {
-        lessonGoal,
-        conceptId,
-        goalId,
-        userId,
-        problemId,
-        turns,
-        status: "TODO",
-        difficulty,
-      },
-    });
-    return Lesson.parse(dbLesson);
-  }
-
-  /**
-   * Gets all lessons for a concept
-   * @param conceptId The ID of the concept
-   * @returns The lessons for the concept
-   */
-  async getLessonsByConceptId(conceptId: string): Promise<Lesson[]> {
-    const lessons = await this.db.lesson.findMany({
-      where: { conceptId },
-      orderBy: { createdAt: "desc" },
-    });
-    return lessons.map((lesson) => ({
-      ...lesson,
-      turns: z.array(LessonTurn).parse(lesson.turns),
-    }));
-  }
-
-  /**
-   * Gets a lesson by ID
-   * @param lessonId The ID of the lesson to get
-   * @returns The lesson
-   */
-  async getLessonById(lessonId: string): Promise<Lesson> {
-    const lesson = await this.db.lesson.findUniqueOrThrow({
-      where: { id: lessonId },
-    });
-    return {
-      ...lesson,
-      turns: z.array(LessonTurn).parse(lesson.turns),
-    };
-  }
-
-  /**
-   * Updates a lesson with new iterations and optionally changes status
-   * @param lessonId The ID of the lesson to update
-   * @param lessonIterations The updated iterations for the lesson
-   * @param status Optional new status for the lesson
-   * @returns The updated lesson
-   */
-  async updateLesson(lesson: Lesson): Promise<Lesson> {
-    const dbLesson = await this.db.lesson.update({
-      where: { id: lesson.id },
-      data: lesson,
-    });
-    return Lesson.parse(dbLesson);
   }
 
   async createProblemUpload(
@@ -305,26 +155,6 @@ export class DBAdapter {
 
   async getProblemUploadById(uploadId: string): Promise<ProblemUpload> {
     return this.db.problemUpload.findUniqueOrThrow({ where: { id: uploadId } });
-  }
-
-  async updateGoalGenerationStatus(
-    goalId: string,
-    status: GenerationStatus,
-  ): Promise<void> {
-    await this.db.goal.update({
-      where: { id: goalId },
-      data: { generationStatus: status },
-    });
-  }
-
-  async updateConceptLessonGenerationStatus(
-    conceptId: string,
-    status: GenerationStatus,
-  ): Promise<void> {
-    await this.db.concept.update({
-      where: { id: conceptId },
-      data: { generationStatus: status },
-    });
   }
 
   async createUserProblems(problems: Draft<UserProblem>[]): Promise<void> {

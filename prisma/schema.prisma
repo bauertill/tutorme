@@ -53,8 +53,6 @@ model User {
 
   accounts     Account[]
   sessions     Session[]
-  goals        Goal[]
-  lessons      Lesson[]
   userProblems UserProblem[]
 }
 
@@ -64,94 +62,6 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-}
-
-enum GenerationStatus {
-  GENERATING
-  COMPLETED
-  FAILED
-}
-
-model Goal {
-  id               String           @id @default(cuid())
-  name             String
-  generationStatus GenerationStatus @default(GENERATING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   String
-  concepts Concept[]
-  lessons  Lesson[]
-}
-
-enum Mastery {
-  UNKNOWN
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-  EXPERT
-}
-
-model Concept {
-  id               String           @id @default(cuid())
-  name             String
-  description      String
-  masteryLevel     Mastery          @default(UNKNOWN)
-  teacherReport    String?
-  generationStatus GenerationStatus @default(GENERATING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  goalId String
-  goal   Goal   @relation(fields: [goalId], references: [id])
-
-  lessons Lesson[]
-}
-
-enum LessonStatus {
-  TODO
-  ACTIVE
-  PAUSED
-  DONE_WITH_HELP
-  DONE
-}
-
-enum Difficulty {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-  EXPERT
-}
-
-model Lesson {
-  id         String       @id @default(cuid())
-  lessonGoal String
-  turns      Json
-  status     LessonStatus @default(ACTIVE)
-  difficulty Difficulty   @default(BEGINNER)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  conceptId String
-  concept   Concept @relation(fields: [conceptId], references: [id])
-
-  goalId String
-  goal   Goal   @relation(fields: [goalId], references: [id])
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  problemId String
-  problem   Problem @relation(fields: [problemId], references: [id])
-
-  @@index([conceptId])
-  @@index([goalId])
-  @@index([userId])
-  @@index([problemId])
 }
 
 enum ProblemUploadStatus {
@@ -186,7 +96,6 @@ model Problem {
 
   problemUploadId String
   problemUpload   ProblemUpload @relation(fields: [problemUploadId], references: [id], onDelete: Cascade)
-  Lesson          Lesson[]
 }
 
 enum UserProblemStatus {

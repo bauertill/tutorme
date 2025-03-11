@@ -16,7 +16,6 @@ import { llmAdapter } from "@/core/adapters/llmAdapter";
 import { ocrAdapter } from "@/core/adapters/ocrAdapter";
 import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
 import { renderAsyAdapter } from "@/core/adapters/renderAsyAdapter";
-import { youtubeAdapter } from "@/core/adapters/youtubeAdapter";
 import { ADMINS, auth } from "@/server/auth";
 /**
  * 1. CONTEXT
@@ -37,7 +36,6 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     session,
     dbAdapter,
     llmAdapter,
-    youtubeAdapter,
     pubsubAdapter,
     renderAsyAdapter,
     ocrAdapter,
