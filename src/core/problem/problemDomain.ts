@@ -1,13 +1,7 @@
 import { sortBy } from "lodash-es";
 import type { DBAdapter } from "../adapters/dbAdapter";
-import { type LLMAdapter } from "../adapters/llmAdapter";
 import { Draft, parseCsv } from "../utils";
-import {
-  Problem,
-  type ProblemUpload,
-  ProblemUploadStatus,
-  type UserProblem,
-} from "./types";
+import { Problem, type ProblemUpload, ProblemUploadStatus } from "./types";
 
 const UPLOAD_BATCH_SIZE = 128;
 
@@ -107,24 +101,4 @@ export async function deleteProblemUpload(
   dbAdapter: DBAdapter,
 ) {
   await dbAdapter.deleteProblemUpload(uploadId);
-}
-
-export async function createUserProblemsFromUpload(
-  uploadPath: string,
-  userId: string,
-  dbAdapter: DBAdapter,
-  llmAdapter: LLMAdapter,
-): Promise<void> {
-  const rawProblems = await llmAdapter.problem.extractProblemsFromImage(
-    uploadPath,
-    userId,
-  );
-  const userProblems: Draft<UserProblem>[] = rawProblems.map((problem) => ({
-    userId,
-    status: "INITIAL",
-    problem: problem.problemText,
-    referenceSolution: "",
-    isCorrect: false,
-  }));
-  await dbAdapter.createUserProblems(userProblems);
 }

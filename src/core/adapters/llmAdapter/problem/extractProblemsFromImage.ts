@@ -38,7 +38,7 @@ type RawProblemList = z.infer<typeof RawProblemList>;
 
 export async function extractProblemsFromImage(
   documentUrl: string,
-  userId: string,
+  userId?: string,
 ): Promise<RawProblem[]> {
   const rawProblemList = await model
     .withStructuredOutput(RawProblemList)

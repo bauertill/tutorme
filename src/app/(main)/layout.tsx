@@ -1,10 +1,16 @@
-import { requireSession } from "@/server/auth";
+import { SessionProvider } from "next-auth/react";
+import { StateSyncProvider } from "../_components/StateSyncProvider";
 
 export default async function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireSession();
-  return <div className="p-4">{children}</div>;
+  return (
+    <SessionProvider>
+      <StateSyncProvider>
+        <div className="p-4">{children}</div>
+      </StateSyncProvider>
+    </SessionProvider>
+  );
 }

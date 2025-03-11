@@ -38,31 +38,3 @@ export type ProblemQueryResult = {
   problem: Problem;
   score: number;
 };
-
-// export type UserProblem = {
-
-//   id                String            @id @default(cuid())
-//   problem           String
-//   referenceSolution String
-//   isCorrect         Boolean
-//   status            UserProblemStatus @default(INITIAL)
-//   createdAt         DateTime          @default(now())
-//   updatedAt         DateTime          @updatedAt
-
-//   userId String
-//   user   User   @relation(fields: [userId], references: [id])
-
-//   @@index([userId])
-// }
-export const UserProblem = z.object({
-  id: z.string(),
-  problem: z.string(),
-  referenceSolution: z.string(),
-  isCorrect: z.boolean(),
-  status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  userId: z.string(),
-});
-
-export type UserProblem = z.infer<typeof UserProblem>;

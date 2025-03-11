@@ -8,6 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { CameraIcon, ImageIcon } from "lucide-react";
 import Image from "next/image";
@@ -26,15 +27,15 @@ export function UploadProblems() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const { refetch } = api.problem.getUserProblems.useQuery();
+  const addAssignment = useStore.use.addAssignment();
 
-  const { mutate: createUserProblemsFromUpload } =
-    api.problem.createUserProblemsFromUpload.useMutation({
-      onSuccess: () => {
+  const { mutate: createAssignmentFromUpload } =
+    api.assignment.createFromUpload.useMutation({
+      onSuccess: (assignment) => {
         setUploadState("success");
         toast.success("Problems uploaded successfully!");
         setOpen(false);
-        void refetch();
+        addAssignment(assignment);
       },
       onError: (error) => {
         setUploadState("error");
@@ -68,7 +69,7 @@ export function UploadProblems() {
 
     try {
       const url = await uploadToBlob(selectedFile);
-      createUserProblemsFromUpload(url);
+      createAssignmentFromUpload(url);
     } catch {
       setUploadState("error");
     }

@@ -53,6 +53,7 @@ model User {
 
   accounts     Account[]
   sessions     Session[]
+  assignments  Assignment[]
   userProblems UserProblem[]
 }
 
@@ -98,6 +99,17 @@ model Problem {
   problemUpload   ProblemUpload @relation(fields: [problemUploadId], references: [id], onDelete: Cascade)
 }
 
+model Assignment {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId   String
+  user     User          @relation(fields: [userId], references: [id])
+  problems UserProblem[]
+}
+
 enum UserProblemStatus {
   INITIAL
   IN_PROGRESS
@@ -116,6 +128,9 @@ model UserProblem {
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
+
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
 
   @@index([userId])
 }

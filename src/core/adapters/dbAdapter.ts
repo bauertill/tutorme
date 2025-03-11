@@ -3,7 +3,6 @@ import {
   type ProblemQueryResult,
   type ProblemUpload,
   type ProblemUploadStatus,
-  type UserProblem,
 } from "@/core/problem/types";
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
@@ -11,6 +10,7 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
 import { Prisma, type PrismaClient } from "@prisma/client";
 import assert from "assert";
+import { type Assignment, type UserProblem } from "../assignment/types";
 
 const EMBEDDING_MODEL = "text-embedding-3-large";
 
@@ -157,28 +157,54 @@ export class DBAdapter {
     return this.db.problemUpload.findUniqueOrThrow({ where: { id: uploadId } });
   }
 
-  async createUserProblems(problems: Draft<UserProblem>[]): Promise<void> {
+  async createUserProblems(
+    problems: Draft<UserProblem>[],
+    userId: string,
+  ): Promise<void> {
     for (const problem of problems) {
-      await this.createUserProblem(problem);
+      await this.createUserProblem(problem, userId);
     }
   }
-  async createUserProblem(problem: Draft<UserProblem>): Promise<UserProblem> {
+  async createUserProblem(
+    problem: Draft<UserProblem>,
+    userId: string,
+  ): Promise<UserProblem> {
     const existingProblem = await this.db.userProblem.findFirst({
       where: {
-        userId: problem.userId,
+        userId,
         problem: problem.problem,
       },
     });
     if (!existingProblem) {
       return await this.db.userProblem.create({
-        data: problem,
+        data: { ...problem, userId },
       });
     }
     return existingProblem;
   }
 
-  async getUserProblemsByUserId(userId: string): Promise<UserProblem[]> {
-    return this.db.userProblem.findMany({ where: { userId } });
+  async createAssignment(
+    assignment: Assignment,
+    userId: string,
+  ): Promise<Assignment> {
+    const { problems, ...rest } = assignment;
+    return this.db.assignment.create({
+      data: {
+        ...rest,
+        userId,
+        problems: {
+          create: problems.map((problem) => ({ ...problem, userId })),
+        },
+      },
+      include: { problems: true },
+    });
+  }
+
+  async getAssignmentsByUserId(userId: string): Promise<Assignment[]> {
+    return this.db.assignment.findMany({
+      where: { problems: { some: { userId } } },
+      include: { problems: true },
+    });
   }
 }
 

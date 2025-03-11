@@ -10,7 +10,7 @@ import FeedbackView from "./FeedbackView";
 import ProblemController from "./Problem/ProblemController";
 
 export default function Exercise() {
-  const [problem, setProblem] = useState<string>("");
+  const [problem] = useState<string>("");
   const [debouncedProblem] = useDebounce(problem, 5000);
   const [referenceSolution, setReferenceSolution] = useState<string>();
   const [evaluationResult, setEvaluationResult] =
@@ -49,7 +49,7 @@ export default function Exercise() {
 
   return (
     <div className="relative flex h-full flex-col">
-      <ProblemController problem={problem} setProblem={setProblem} />
+      <ProblemController />
       {problem && <Canvas onCheck={onCheck} />}
       {evaluationResult && <FeedbackView evaluationResult={evaluationResult} />}
       {isSubmitting && (

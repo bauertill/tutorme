@@ -5,7 +5,7 @@ import {
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { createProblemSlice, type ProblemSlice } from "./problem";
+import { createAssignmentSlice, type AssignmentSlice } from "./assignment";
 
 export type MiddlewareList = [
   ["zustand/devtools", never],
@@ -13,16 +13,16 @@ export type MiddlewareList = [
   ["zustand/immer", never],
 ];
 
-export type State = ProblemSlice;
+export type State = AssignmentSlice;
 
 const useStoreBase = create<State>()(
   devtools(
     persist(
       immer((...a) => ({
-        ...createProblemSlice(...a),
+        ...createAssignmentSlice(...a),
       })),
       {
-        name: "code-storage",
+        name: "tutormegood-store",
         storage: createJSONStorage(() => localStorage),
       },
     ),
