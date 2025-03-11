@@ -8,7 +8,7 @@ import {
 import { type Assignment, type UserProblem } from "@/core/assignment/types";
 import { cn } from "@/lib/utils";
 import { CheckCircle, ChevronRight, Circle } from "lucide-react";
-
+import Latex from "react-latex-next";
 interface CollapsibleAssignmentProps {
   assignment: Assignment;
   isOpen: boolean;
@@ -31,15 +31,15 @@ export function CollapsibleAssignment({
 
   return (
     <Collapsible open={isOpen} onOpenChange={onOpenChange}>
-      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent">
+      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-accent">
         <ChevronRight
           className={cn(
             "h-4 w-4 shrink-0 transition-transform duration-200",
             isOpen && "rotate-90",
           )}
         />
-        <span>{assignment.name}</span>
-        <div className="ml-auto flex items-center gap-2">
+        <span className="font-semibold">{assignment.name}</span>
+        <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
           {isSolved ? (
             <CheckCircle className="h-4 w-4 text-green-500" />
           ) : (
@@ -62,7 +62,9 @@ export function CollapsibleAssignment({
               onClick={() => setActiveProblem(problem)}
             >
               {/* @TODO replace with problem number */}
-              Exercise {problem.id}
+              <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                <Latex>{problem.problem}</Latex>
+              </span>
               {problem.status === "SOLVED" && (
                 <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
               )}
