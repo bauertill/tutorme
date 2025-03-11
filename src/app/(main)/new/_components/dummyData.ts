@@ -38,6 +38,16 @@ export const dummyUserProblems: UserProblem[] = [
     updatedAt: new Date(),
     userId: "1",
   },
+  {
+    id: "4",
+    problem: "Solve for x: 2x + 3 = 7",
+    referenceSolution: "x = 2",
+    isCorrect: false,
+    status: "IN_PROGRESS",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    userId: "1",
+  },
 ];
 
 export const dummyAssignments: Assignment[] = [

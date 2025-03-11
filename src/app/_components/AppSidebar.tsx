@@ -17,7 +17,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { ChevronRight } from "lucide-react";
+import { CheckCircle, ChevronRight, Circle } from "lucide-react";
 import { useState } from "react";
 import { type Assignment } from "../(main)/new/_components/dummyData";
 import { UserAndSignOutButton } from "./UserAndSignOutButton";
@@ -80,12 +80,20 @@ export function AppSidebar({ assignments }: { assignments: Assignment[] }) {
                       <button
                         key={problem.id}
                         className={cn(
-                          "w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-accent",
-                          problem.status === "SOLVED" && "text-green-500",
-                          problem.status === "FAILED" && "text-red-500",
+                          "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-accent",
                         )}
                       >
+                        {/* @TODO replace with problem number */}
                         Exercise {problem.id}
+                        {problem.status === "SOLVED" && (
+                          <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
+                        )}
+                        {problem.status === "IN_PROGRESS" && (
+                          <Circle className="ml-auto h-4 w-4 text-yellow-500" />
+                        )}
+                        {problem.status === "FAILED" && (
+                          <Circle className="ml-auto h-4 w-4 text-red-500" />
+                        )}
                       </button>
                     ))}
                   </div>
