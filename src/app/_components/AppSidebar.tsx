@@ -12,7 +12,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { type UserProblem } from "@/core/problem/types";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { type Assignment } from "../(main)/new/_components/dummyData";
 import { CollapsibleAssignment } from "./CollapsibleAssignment";
 import { UserAndSignOutButton } from "./UserAndSignOutButton";
@@ -29,6 +29,7 @@ export function AppSidebar({
   const [openAssignments, setOpenAssignments] = useState<Set<string>>(
     new Set(),
   );
+  const [searchQuery, setSearchQuery] = useState("");
 
   const toggleAssignment = (assignmentId: string) => {
     const newOpenAssignments = new Set(openAssignments);
@@ -39,6 +40,39 @@ export function AppSidebar({
     }
     setOpenAssignments(newOpenAssignments);
   };
+
+  const filteredAssignments = useMemo(() => {
+    if (!searchQuery.trim()) return assignments;
+
+    const query = searchQuery.toLowerCase().trim();
+    return assignments
+      .map((assignment) => ({
+        ...assignment,
+        problems: assignment.problems.filter(
+          (problem) =>
+            problem.problem.toLowerCase().includes(query) ||
+            problem.id.toString().includes(query),
+        ),
+      }))
+      .filter(
+        (assignment) =>
+          assignment.name.toLowerCase().includes(query) ||
+          assignment.problems.length > 0,
+      );
+  }, [assignments, searchQuery]);
+
+  // Auto-expand assignments that have matching problems when searching
+  const autoExpandedAssignments = useMemo(() => {
+    if (!searchQuery.trim()) return openAssignments;
+
+    const newOpenAssignments = new Set(openAssignments);
+    filteredAssignments.forEach((assignment) => {
+      if (assignment.problems.length > 0) {
+        newOpenAssignments.add(assignment.id);
+      }
+    });
+    return newOpenAssignments;
+  }, [filteredAssignments, searchQuery, openAssignments]);
 
   return (
     <Sidebar className="border-r border-border bg-background">
@@ -52,18 +86,22 @@ export function AppSidebar({
           </div>
         </div>
         <div className="px-2 pb-2">
-          <SidebarInput placeholder="Search..." />
+          <SidebarInput
+            placeholder="Search exercises..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Exercises</SidebarGroupLabel>
           <SidebarGroupContent>
-            {assignments.map((assignment) => (
+            {filteredAssignments.map((assignment) => (
               <CollapsibleAssignment
                 key={assignment.id}
                 assignment={assignment}
-                isOpen={openAssignments.has(assignment.id)}
+                isOpen={autoExpandedAssignments.has(assignment.id)}
                 onOpenChange={() => toggleAssignment(assignment.id)}
                 activeProblem={activeProblem}
                 setActiveProblem={setActiveProblem}
