@@ -1,9 +1,7 @@
-import * as exercise from "./exercise";
-import * as problem from "./problem";
+import * as assignment from "./assignment";
 
 export const llmAdapter = {
-  exercise,
-  problem,
+  assignment,
 };
 
 export type LLMAdapter = typeof llmAdapter;

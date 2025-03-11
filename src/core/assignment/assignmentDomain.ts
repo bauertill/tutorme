@@ -10,7 +10,7 @@ export async function createAssignmentFromUpload(
   llmAdapter: LLMAdapter,
 ): Promise<Assignment> {
   const { assignmentTitle, problems: rawProblems } =
-    await llmAdapter.problem.extractAssignmentFromImage(uploadPath, userId);
+    await llmAdapter.assignment.extractAssignmentFromImage(uploadPath, userId);
   const assignmentId = uuidv4();
   const userProblems: UserProblem[] = rawProblems.map((problem) => ({
     id: uuidv4(),

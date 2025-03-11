@@ -19,14 +19,14 @@ export default function Exercise() {
     useState<EvaluationResult | null>(null);
 
   const { mutate: createReferenceSolution } =
-    api.exercise.createReferenceSolution.useMutation({
+    api.assignment.createReferenceSolution.useMutation({
       onSuccess: (data) => {
         setReferenceSolution(data);
       },
     });
 
   const { mutate: submit, isPending: isSubmitting } =
-    api.exercise.submitSolution.useMutation({
+    api.assignment.submitSolution.useMutation({
       onSuccess: (data) => {
         setEvaluationResult(data);
       },

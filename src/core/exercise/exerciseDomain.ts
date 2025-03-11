@@ -17,7 +17,7 @@ export async function evaluateSolution(
   llmAdapter: LLMAdapter,
   // TODO: Add storeAdapter
 ): Promise<EvaluationResult> {
-  const result = await llmAdapter.exercise.evaluateSolution(
+  const result = await llmAdapter.assignment.evaluateSolution(
     exerciseText,
     solutionImage,
     referenceSolution,
@@ -34,6 +34,6 @@ export async function createReferenceSolution(
   exerciseText: string,
   llmAdapter: LLMAdapter,
 ): Promise<string> {
-  const solution = await llmAdapter.exercise.solveProblem(exerciseText);
+  const solution = await llmAdapter.assignment.solveProblem(exerciseText);
   return solution;
 }
