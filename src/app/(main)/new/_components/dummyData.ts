@@ -65,4 +65,22 @@ export const dummyAssignments: Assignment[] = [
     createdAt: new Date(),
     updatedAt: new Date(),
   },
+  {
+    id: "3",
+    name: "Assignment 3",
+    problems: [
+      {
+        id: "1",
+        problem: "Find all roots of the equation $x^2 - 4x + 3 = 0$",
+        referenceSolution: "The roots are $x = 1$ and $x = 3$.",
+        isCorrect: true,
+        status: "SOLVED",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: "1",
+      },
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
 ];

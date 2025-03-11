@@ -1,11 +1,6 @@
 "use client";
 
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -16,10 +11,9 @@ import {
   SidebarInput,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import { CheckCircle, ChevronRight, Circle } from "lucide-react";
 import { useState } from "react";
 import { type Assignment } from "../(main)/new/_components/dummyData";
+import { CollapsibleAssignment } from "./CollapsibleAssignment";
 import { UserAndSignOutButton } from "./UserAndSignOutButton";
 
 export function AppSidebar({ assignments }: { assignments: Assignment[] }) {
@@ -57,48 +51,12 @@ export function AppSidebar({ assignments }: { assignments: Assignment[] }) {
           <SidebarGroupLabel>Exercises</SidebarGroupLabel>
           <SidebarGroupContent>
             {assignments.map((assignment) => (
-              <Collapsible
+              <CollapsibleAssignment
                 key={assignment.id}
-                open={openAssignments.has(assignment.id)}
+                assignment={assignment}
+                isOpen={openAssignments.has(assignment.id)}
                 onOpenChange={() => toggleAssignment(assignment.id)}
-              >
-                <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent">
-                  <ChevronRight
-                    className={cn(
-                      "h-4 w-4 shrink-0 transition-transform duration-200",
-                      openAssignments.has(assignment.id) && "rotate-90",
-                    )}
-                  />
-                  <span>{assignment.name}</span>
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {assignment.problems.length}
-                  </span>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="space-y-1 pl-6">
-                    {assignment.problems.map((problem) => (
-                      <button
-                        key={problem.id}
-                        className={cn(
-                          "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-accent",
-                        )}
-                      >
-                        {/* @TODO replace with problem number */}
-                        Exercise {problem.id}
-                        {problem.status === "SOLVED" && (
-                          <CheckCircle className="ml-auto h-4 w-4 text-green-500" />
-                        )}
-                        {problem.status === "IN_PROGRESS" && (
-                          <Circle className="ml-auto h-4 w-4 text-yellow-500" />
-                        )}
-                        {problem.status === "FAILED" && (
-                          <Circle className="ml-auto h-4 w-4 text-red-500" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+              />
             ))}
           </SidebarGroupContent>
         </SidebarGroup>
