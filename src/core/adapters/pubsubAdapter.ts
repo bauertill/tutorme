@@ -3,20 +3,16 @@ import assert from "assert";
 import EventEmitter, { on } from "events";
 import { createClient, type RedisClientType } from "redis";
 import superjson from "superjson";
-import { type Concept } from "../concept/types";
 import {
   generationCompletedToken,
   type GenerationCompletedToken,
 } from "../index";
-import { type Lesson } from "../lesson/types";
 type PubSubChannels = {
   tick: { payload: "tick" };
-  "concept:generated": Concept;
-  "lesson:generated": Lesson;
 };
 type Channel = keyof PubSubChannels;
 type PubSubMessage<T extends Channel = Channel> = PubSubChannels[T];
-const CHANNELS: Channel[] = ["tick", "concept:generated", "lesson:generated"];
+const CHANNELS: Channel[] = ["tick"];
 
 export class PubSubAdapter<T extends Record<string, unknown> = PubSubChannels> {
   private publisher: RedisClientType;

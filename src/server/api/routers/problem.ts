@@ -1,6 +1,7 @@
 import {
   cancelProblemUpload,
   createProblemsFromCsv,
+  createUserProblemsFromUpload,
   deleteProblemUpload,
   getProblemUploadFiles,
   queryProblems,
@@ -45,4 +46,28 @@ export const problemRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await deleteProblemUpload(input.uploadId, ctx.dbAdapter);
     }),
+  createUserProblemsFromUpload: protectedProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      return await createUserProblemsFromUpload(
+        input,
+        ctx.session.user.id,
+        ctx.dbAdapter,
+        ctx.llmAdapter,
+      );
+    }),
+  createUserProblem: protectedProcedure
+    .input(z.object({ problem: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.dbAdapter.createUserProblem({
+        ...input,
+        userId: ctx.session.user.id,
+        status: "INITIAL",
+        referenceSolution: "",
+        isCorrect: false,
+      });
+    }),
+  getUserProblems: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.dbAdapter.getUserProblemsByUserId(ctx.session.user.id);
+  }),
 });

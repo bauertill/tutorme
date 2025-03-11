@@ -1,13 +1,9 @@
-import * as concept from "./concept";
 import * as exercise from "./exercise";
-import * as lesson from "./lesson";
-import * as video from "./video";
+import * as problem from "./problem";
 
 export const llmAdapter = {
-  concept,
   exercise,
-  lesson,
-  video,
+  problem,
 };
 
 export type LLMAdapter = typeof llmAdapter;
