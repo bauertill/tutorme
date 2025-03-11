@@ -1,17 +1,10 @@
 "use client";
-import {
-  Bell,
-  Calendar,
-  FileText,
-  HelpCircle,
-  Home,
-  LayoutDashboard,
-  Mail,
-  Settings,
-  Users,
-} from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -21,28 +14,29 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarInput,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { type Assignment } from "../(main)/new/_components/dummyData";
+import { UserAndSignOutButton } from "./UserAndSignOutButton";
 
-// Sample navigation data
-const navigationItems = [
-  { name: "Dashboard", href: "#", icon: LayoutDashboard, current: true },
-  { name: "Home", href: "#", icon: Home, current: false },
-  { name: "Team", href: "#", icon: Users, current: false },
-  { name: "Messages", href: "#", icon: Mail, current: false },
-  { name: "Calendar", href: "#", icon: Calendar, current: false },
-  { name: "Documents", href: "#", icon: FileText, current: false },
-];
+export function AppSidebar({ assignments }: { assignments: Assignment[] }) {
+  const [openAssignments, setOpenAssignments] = useState<Set<string>>(
+    new Set(),
+  );
 
-const secondaryNavigation = [
-  { name: "Settings", href: "#", icon: Settings },
-  { name: "Help", href: "#", icon: HelpCircle },
-];
+  const toggleAssignment = (assignmentId: string) => {
+    const newOpenAssignments = new Set(openAssignments);
+    if (newOpenAssignments.has(assignmentId)) {
+      newOpenAssignments.delete(assignmentId);
+    } else {
+      newOpenAssignments.add(assignmentId);
+    }
+    setOpenAssignments(newOpenAssignments);
+  };
 
-export function AppSidebar() {
   return (
     <Sidebar className="border-r border-border bg-background">
       <SidebarHeader>
@@ -60,67 +54,59 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Main Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Exercises</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild isActive={item.current}>
-                    <a href={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.name}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Notifications</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Bell className="h-4 w-4" />
-                  <span>Notifications</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            {assignments.map((assignment) => (
+              <Collapsible
+                key={assignment.id}
+                open={openAssignments.has(assignment.id)}
+                onOpenChange={() => toggleAssignment(assignment.id)}
+              >
+                <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent">
+                  <ChevronRight
+                    className={cn(
+                      "h-4 w-4 shrink-0 transition-transform duration-200",
+                      openAssignments.has(assignment.id) && "rotate-90",
+                    )}
+                  />
+                  <span>{assignment.name}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {assignment.problems.length}
+                  </span>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-1 pl-6">
+                    {assignment.problems.map((problem) => (
+                      <button
+                        key={problem.id}
+                        className={cn(
+                          "w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-accent",
+                          problem.status === "SOLVED" && "text-green-500",
+                          problem.status === "FAILED" && "text-red-500",
+                        )}
+                      >
+                        Exercise {problem.id}
+                      </button>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          {secondaryNavigation.map((item) => (
-            <SidebarMenuItem key={item.name}>
-              <SidebarMenuButton asChild>
-                <a href={item.href}>
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.name}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-        <div className="mt-auto p-2">
-          <div className="flex items-center gap-2 rounded-md p-2 hover:bg-accent">
-            <Avatar className="h-8 w-8">
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="User"
-              />
-              <AvatarFallback>US</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-1 flex-col">
-              <span className="text-sm font-medium">User Name</span>
-              <span className="text-xs text-muted-foreground">
-                user@example.com
-              </span>
-            </div>
-          </div>
-        </div>
+        <UserAndSignOutButton
+          user={{
+            id: "1",
+            name: "John Doe",
+            image: "https://github.com/shadcn.png",
+            email: "john.doe@example.com",
+            emailVerified: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

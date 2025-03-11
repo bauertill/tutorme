@@ -6,11 +6,11 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-
+import { dummyAssignments } from "./dummyData";
 export function Root() {
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar assignments={dummyAssignments} />
       <SidebarInset>
         <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4">
           <SidebarTrigger />
