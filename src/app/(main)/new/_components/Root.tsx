@@ -6,11 +6,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { type UserProblem } from "@/core/problem/types";
+import { useState } from "react";
 import { dummyAssignments } from "./dummyData";
 export function Root() {
+  const [activeProblem, setActiveProblem] = useState<UserProblem | null>(null);
   return (
     <SidebarProvider>
-      <AppSidebar assignments={dummyAssignments} />
+      <AppSidebar
+        assignments={dummyAssignments}
+        activeProblem={activeProblem}
+        setActiveProblem={setActiveProblem}
+      />
       <SidebarInset>
         <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4">
           <SidebarTrigger />

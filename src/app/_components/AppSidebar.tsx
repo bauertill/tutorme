@@ -11,12 +11,21 @@ import {
   SidebarInput,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { type UserProblem } from "@/core/problem/types";
 import { useState } from "react";
 import { type Assignment } from "../(main)/new/_components/dummyData";
 import { CollapsibleAssignment } from "./CollapsibleAssignment";
 import { UserAndSignOutButton } from "./UserAndSignOutButton";
 
-export function AppSidebar({ assignments }: { assignments: Assignment[] }) {
+export function AppSidebar({
+  assignments,
+  activeProblem,
+  setActiveProblem,
+}: {
+  assignments: Assignment[];
+  activeProblem: UserProblem | null;
+  setActiveProblem: (problem: UserProblem) => void;
+}) {
   const [openAssignments, setOpenAssignments] = useState<Set<string>>(
     new Set(),
   );
@@ -56,6 +65,8 @@ export function AppSidebar({ assignments }: { assignments: Assignment[] }) {
                 assignment={assignment}
                 isOpen={openAssignments.has(assignment.id)}
                 onOpenChange={() => toggleAssignment(assignment.id)}
+                activeProblem={activeProblem}
+                setActiveProblem={setActiveProblem}
               />
             ))}
           </SidebarGroupContent>

@@ -5,6 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { UserProblem } from "@/core/problem/types";
 import { cn } from "@/lib/utils";
 import { CheckCircle, ChevronRight, Circle } from "lucide-react";
 import { type Assignment } from "../(main)/new/_components/dummyData";
@@ -13,12 +14,16 @@ interface CollapsibleAssignmentProps {
   assignment: Assignment;
   isOpen: boolean;
   onOpenChange: () => void;
+  activeProblem: UserProblem | null;
+  setActiveProblem: (problem: UserProblem) => void;
 }
 
 export function CollapsibleAssignment({
   assignment,
   isOpen,
   onOpenChange,
+  activeProblem,
+  setActiveProblem,
 }: CollapsibleAssignmentProps) {
   const solvedProblemsCount = assignment.problems.filter(
     (problem) => problem.status === "SOLVED",
@@ -53,7 +58,9 @@ export function CollapsibleAssignment({
               key={problem.id}
               className={cn(
                 "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-accent",
+                activeProblem?.id === problem.id && "bg-accent",
               )}
+              onClick={() => setActiveProblem(problem)}
             >
               {/* @TODO replace with problem number */}
               Exercise {problem.id}
