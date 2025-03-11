@@ -1,5 +1,6 @@
 "use client";
 import { type EvaluationResult } from "@/core/exercise/exerciseDomain";
+import { useStore } from "@/store";
 import { useActiveProblem } from "@/store/selectors";
 import { api } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
@@ -9,26 +10,20 @@ import { useDebounce } from "use-debounce";
 import { Canvas } from "./Canvas";
 import FeedbackView from "./FeedbackView";
 import ProblemController from "./Problem/ProblemController";
-
 export default function Exercise() {
   const activeProblem = useActiveProblem();
-  const problem = activeProblem?.problem;
-  const [debouncedProblem] = useDebounce(problem, 5000);
-  const [referenceSolution, setReferenceSolution] = useState<string>();
+  const [debouncedProblem] = useDebounce(activeProblem, 5000);
+  const setReferenceSolution = useStore.use.setReferenceSolution();
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResult | null>(null);
 
-  const { mutate: createReferenceSolution } =
-    api.assignment.createReferenceSolution.useMutation({
-      onSuccess: (data) => {
-        setReferenceSolution(data);
-      },
-    });
+  const { mutateAsync: createReferenceSolution } =
+    api.assignment.createReferenceSolution.useMutation();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.assignment.submitSolution.useMutation({
       onSuccess: (data) => {
-        setEvaluationResult(data);
+        setEvaluationResult(data); // TODO: modify the problem in the store
       },
       onError: (error) => {
         toast.error(`Error submitting solution: ${error.message}`);
@@ -37,31 +32,37 @@ export default function Exercise() {
     });
 
   useEffect(() => {
-    setReferenceSolution(undefined);
-    if (debouncedProblem) {
-      createReferenceSolution(debouncedProblem);
+    if (debouncedProblem?.referenceSolution === null) {
+      void createReferenceSolution(debouncedProblem.problem).then(
+        (referenceSolution) => {
+          setReferenceSolution(
+            referenceSolution,
+            debouncedProblem.id,
+            debouncedProblem.assignmentId,
+          );
+        },
+      );
     }
-  }, [debouncedProblem, createReferenceSolution]);
+  }, [debouncedProblem, createReferenceSolution, setReferenceSolution]);
 
   const onCheck = (dataUrl: string) => {
-    if (!problem) {
-      return;
+    if (activeProblem) {
+      submit({
+        exerciseText: activeProblem.problem,
+        solutionImage: dataUrl,
+        referenceSolution: activeProblem.referenceSolution ?? "N/A",
+      });
     }
-    submit({
-      exerciseText: problem,
-      solutionImage: dataUrl,
-      referenceSolution: referenceSolution ?? "N/A",
-    });
   };
 
-  if (!problem) {
-    return <div>No problem selected</div>;
+  if (!activeProblem) {
+    return <div className="p-4">No problem selected</div>;
   }
 
   return (
     <div className="relative flex h-full flex-col">
       <ProblemController />
-      {problem && <Canvas onCheck={onCheck} />}
+      <Canvas onCheck={onCheck} />
       {evaluationResult && <FeedbackView evaluationResult={evaluationResult} />}
       {isSubmitting && (
         <div className="absolute inset-0 flex items-center justify-center">

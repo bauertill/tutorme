@@ -17,7 +17,7 @@ export async function createAssignmentFromUpload(
     // TODO: add problem number
     status: "INITIAL", // TODO: add stars 0-3
     problem: problem.problemText,
-    referenceSolution: "", // TODO: add reference solution
+    referenceSolution: null,
     isCorrect: false,
     createdAt: new Date(),
     updatedAt: new Date(),

@@ -10,6 +10,11 @@ export interface AssignmentSlice {
   addAssignment: (assignment: Assignment) => void;
   setActiveAssignment: (assignment: Assignment) => void;
   setActiveProblem: (problem: UserProblem) => void;
+  setReferenceSolution: (
+    referenceSolution: string,
+    problemId: string,
+    assignmentId: string,
+  ) => void;
 }
 
 export const createAssignmentSlice: StateCreator<
@@ -37,5 +42,18 @@ export const createAssignmentSlice: StateCreator<
     set((draft) => {
       draft.activeAssignmentId = problem.assignmentId;
       draft.activeProblemId = problem.id;
+    }),
+  setReferenceSolution: (
+    referenceSolution: string,
+    problemId: string,
+    assignmentId: string,
+  ) =>
+    set((draft) => {
+      const problem = draft.assignments
+        .find((a) => a.id === assignmentId)
+        ?.problems.find((p) => p.id === problemId);
+      if (problem) {
+        problem.referenceSolution = referenceSolution;
+      }
     }),
 });
