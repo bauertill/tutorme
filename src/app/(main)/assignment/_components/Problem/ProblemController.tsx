@@ -13,6 +13,7 @@ import {
 import { UploadProblems } from "./UploadProblems";
 
 export default function ProblemController() {
+  // TODO: put all this in a single hook useProblemController
   const assignment = useActiveAssignment();
   const activeProblem = useActiveProblem();
   const nextProblem = useNextProblem();

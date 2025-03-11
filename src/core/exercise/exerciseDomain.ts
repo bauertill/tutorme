@@ -15,6 +15,7 @@ export async function evaluateSolution(
   solutionImage: string,
   referenceSolution: string,
   llmAdapter: LLMAdapter,
+  // TODO: Add storeAdapter
 ): Promise<EvaluationResult> {
   const result = await llmAdapter.exercise.evaluateSolution(
     exerciseText,

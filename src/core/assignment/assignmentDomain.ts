@@ -14,15 +14,16 @@ export async function createAssignmentFromUpload(
   const assignmentId = uuidv4();
   const userProblems: UserProblem[] = rawProblems.map((problem) => ({
     id: uuidv4(),
-    status: "INITIAL",
+    // TODO: add problem number
+    status: "INITIAL", // TODO: add stars 0-3
     problem: problem.problemText,
-    referenceSolution: "",
+    referenceSolution: "", // TODO: add reference solution
     isCorrect: false,
     createdAt: new Date(),
     updatedAt: new Date(),
     assignmentId,
   }));
-  const assignmentDraft: Assignment = {
+  const assignment: Assignment = {
     id: assignmentId,
     name: assignmentTitle,
     problems: userProblems,
@@ -30,7 +31,7 @@ export async function createAssignmentFromUpload(
     updatedAt: new Date(),
   };
   if (userId) {
-    return await dbAdapter.createAssignment(assignmentDraft, userId);
+    return await dbAdapter.createAssignment(assignment, userId);
   }
-  return assignmentDraft;
+  return assignment;
 }
