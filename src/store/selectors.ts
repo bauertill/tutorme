@@ -36,6 +36,8 @@ export const useProblemController = (): {
   const nextProblem = activeAssignment?.problems[activeProblemIndex + 1];
   const previousProblem = activeAssignment?.problems[activeProblemIndex - 1];
 
+  // @TODO implement the gotoNextProblem logic. It should store the current activeProblem in the store.
+
   const gotoNextProblem = nextProblem
     ? () => setActiveProblem(nextProblem)
     : undefined;

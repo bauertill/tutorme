@@ -1,7 +1,7 @@
 "use client";
+import { useStore } from "@/store";
 import assert from "assert";
-import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { initialState, reducer } from "./state";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   pathToSVGPathData,
   preventDefaults,
@@ -18,10 +18,20 @@ export function useCanvas() {
     assert(svgRef.current, "SVG element is not mounted");
     return svgRef.current;
   };
-  const [{ currentPath, paths, undoStack, redoStack }, dispatch] = useReducer(
-    reducer,
-    initialState,
-  );
+
+  // Use Zustand store instead of local reducer
+  const currentPath = useStore.use.currentPath();
+  const paths = useStore.use.paths();
+  const undoStack = useStore.use.undoStack();
+  const redoStack = useStore.use.redoStack();
+  const startDrawing = useStore.use.startDrawing();
+  const addPoint = useStore.use.addPoint();
+  const stopDrawing = useStore.use.stopDrawing();
+  const cancelDrawing = useStore.use.cancelDrawing();
+  const undo = useStore.use.undo();
+  const redo = useStore.use.redo();
+  const clear = useStore.use.clear();
+
   const [containerSize, setContainerSize] = useState<{
     width: number;
     height: number;
@@ -77,27 +87,27 @@ export function useCanvas() {
     // Only start drawing with left mouse button
     if (e.button !== 0) return;
     const point = screenToSVGCoordinates(assertedSvg(), e.clientX, e.clientY);
-    dispatch({ type: "startDrawing", point });
+    startDrawing(point);
   };
 
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
     // Only draw with left mouse button
     if (e.button !== 0) return;
     const point = screenToSVGCoordinates(assertedSvg(), e.clientX, e.clientY);
-    dispatch({ type: "addPoint", point });
+    addPoint(point);
   };
 
   const handleMouseLeave = () => {
-    dispatch({ type: "stopDrawing" });
+    stopDrawing();
   };
 
   const handleMouseUp = () => {
-    dispatch({ type: "stopDrawing" });
+    stopDrawing();
   };
 
   const handleTouchStart = (e: React.TouchEvent<SVGSVGElement>) => {
     if (e.touches.length > 1) {
-      dispatch({ type: "cancelDrawing" });
+      cancelDrawing();
       setMultiTouchInfo({ lastY: e.touches[0]?.clientY ?? 0, delta: 0 });
       return;
     }
@@ -108,12 +118,12 @@ export function useCanvas() {
       touch.clientX,
       touch.clientY,
     );
-    dispatch({ type: "startDrawing", point });
+    startDrawing(point);
   };
 
   const handleTouchMove = (e: React.TouchEvent<SVGSVGElement>) => {
     if (e.touches.length > 1) {
-      dispatch({ type: "cancelDrawing" });
+      cancelDrawing();
       const touch = e.touches[0];
       if (touch) {
         setMultiTouchInfo((prev) => ({
@@ -130,11 +140,11 @@ export function useCanvas() {
       touch.clientX,
       touch.clientY,
     );
-    dispatch({ type: "addPoint", point });
+    addPoint(point);
   };
 
   const handleTouchEnd = () => {
-    dispatch({ type: "stopDrawing" });
+    stopDrawing();
   };
 
   const canvas = (
@@ -184,9 +194,9 @@ export function useCanvas() {
 
   return {
     canvas,
-    undo: () => dispatch({ type: "undo" }),
-    redo: () => dispatch({ type: "redo" }),
-    clear: () => dispatch({ type: "clear" }),
+    undo,
+    redo,
+    clear,
     getDataUrl: async () => await toDataUrl(assertedSvg()),
     canUndo: undoStack.length > 0,
     canRedo: redoStack.length > 0,

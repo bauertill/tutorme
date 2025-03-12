@@ -6,6 +6,7 @@ import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createAssignmentSlice, type AssignmentSlice } from "./assignment";
+import { createCanvasSlice, type CanvasSlice } from "./canvas";
 
 export type MiddlewareList = [
   ["zustand/devtools", never],
@@ -13,13 +14,14 @@ export type MiddlewareList = [
   ["zustand/immer", never],
 ];
 
-export type State = AssignmentSlice;
+export type State = AssignmentSlice & CanvasSlice;
 
 const useStoreBase = create<State>()(
   devtools(
     persist(
       immer((...a) => ({
         ...createAssignmentSlice(...a),
+        ...createCanvasSlice(...a),
       })),
       {
         name: "tutormegood-store",
