@@ -1,4 +1,8 @@
-import { type Assignment, type UserProblem } from "@/core/assignment/types";
+import {
+  Canvas,
+  type Assignment,
+  type UserProblem,
+} from "@/core/assignment/types";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
 
@@ -15,6 +19,11 @@ export interface AssignmentSlice {
     referenceSolution: string,
     problemId: string,
     assignmentId: string,
+  ) => void;
+  setCanvasOnProblem: (
+    problemId: string,
+    assignmentId: string,
+    canvas: Canvas,
   ) => void;
 }
 
@@ -39,11 +48,13 @@ export const createAssignmentSlice: StateCreator<
     set((draft) => {
       draft.activeAssignmentId = assignment.id;
     }),
-  setActiveProblem: (problem: UserProblem) =>
+  setActiveProblem: (problem: UserProblem) => {
+    console.log("SETTING PROBLEM");
     set((draft) => {
       draft.activeAssignmentId = problem.assignmentId;
       draft.activeProblemId = problem.id;
-    }),
+    });
+  },
   setReferenceSolution: (
     referenceSolution: string,
     problemId: string,
@@ -56,5 +67,16 @@ export const createAssignmentSlice: StateCreator<
       if (problem) {
         problem.referenceSolution = referenceSolution;
       }
+    }),
+  setCanvasOnProblem: (
+    problemId: string,
+    assignmentId: string,
+    canvas: Canvas,
+  ) =>
+    set((draft) => {
+      const problem = draft.assignments
+        .find((a) => a.id === assignmentId)
+        ?.problems.find((p) => p.id === problemId);
+      if (problem) problem.canvas = canvas;
     }),
 });

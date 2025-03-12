@@ -1,6 +1,16 @@
 import { z } from "zod";
 import { type Draft } from "../utils";
 
+export const Point = z.object({
+  x: z.number(),
+  y: z.number(),
+});
+export const Path = z.array(Point);
+export const Canvas = z.object({
+  paths: z.array(Path),
+});
+export type Canvas = z.infer<typeof Canvas>;
+
 export const UserProblem = z.object({
   id: z.string(),
   assignmentId: z.string(),
@@ -8,6 +18,7 @@ export const UserProblem = z.object({
   referenceSolution: z.string().nullable(),
   isCorrect: z.boolean(),
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
+  canvas: Canvas,
   createdAt: z.date(),
   updatedAt: z.date(),
 });

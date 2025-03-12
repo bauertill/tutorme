@@ -25,6 +25,9 @@ export const useProblemController = (): {
   const activeAssignmentId = useStore.use.activeAssignmentId();
   const activeProblemId = useStore.use.activeProblemId();
   const setActiveProblem = useStore.use.setActiveProblem();
+  const setCanvas = useStore.use.setCanvas();
+  const setCanvasOnProblem = useStore.use.setCanvasOnProblem();
+  const currentPaths = useStore.use.paths();
 
   const activeAssignment = assignments.find((a) => a.id === activeAssignmentId);
   const activeProblem = activeAssignment?.problems.find(
@@ -36,14 +39,27 @@ export const useProblemController = (): {
   const nextProblem = activeAssignment?.problems[activeProblemIndex + 1];
   const previousProblem = activeAssignment?.problems[activeProblemIndex - 1];
 
-  // @TODO implement the gotoNextProblem logic. It should store the current activeProblem in the store.
+  const storeCurrentPathsOnProblem = () =>
+    setCanvasOnProblem(activeProblemId ?? "", activeAssignmentId ?? "", {
+      paths: currentPaths,
+    });
 
   const gotoNextProblem = nextProblem
-    ? () => setActiveProblem(nextProblem)
+    ? () => {
+        storeCurrentPathsOnProblem();
+        setActiveProblem(nextProblem);
+        setCanvas(nextProblem.canvas ?? { paths: [] });
+      }
     : undefined;
   const gotoPreviousProblem = previousProblem
-    ? () => setActiveProblem(previousProblem)
+    ? () => {
+        storeCurrentPathsOnProblem();
+        setActiveProblem(previousProblem);
+        setCanvas(previousProblem.canvas ?? { paths: [] });
+      }
     : undefined;
+
+  console.log("activeProblem", activeProblem);
 
   return {
     activeAssignment,

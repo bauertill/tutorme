@@ -1,4 +1,4 @@
-import { type Canvas, type UserProblem } from "@/core/assignment/types";
+import { type Canvas } from "@/core/assignment/types";
 import { type StateCreator } from "zustand";
 import { type MiddlewareList, type State } from ".";
 
@@ -25,8 +25,6 @@ export interface CanvasSlice {
   clear: () => void;
 
   // Problem management
-  activeProblem: UserProblem | null;
-  setActiveProblem: (problem: UserProblem) => void;
   setCanvas: (canvas: Canvas) => void;
 }
 
@@ -44,7 +42,6 @@ export const createCanvasSlice: StateCreator<
   paths: [],
   undoStack: [],
   redoStack: [],
-  activeProblem: null,
 
   // Drawing actions
   startDrawing: (point: Point) =>
@@ -119,20 +116,14 @@ export const createCanvasSlice: StateCreator<
       };
     }),
 
-  // Problem management
-  setActiveProblem: (problem: UserProblem) =>
-    set((state: CanvasSlice) => ({
-      activeProblem: problem,
-    })),
-
   setCanvas: (canvas: Canvas) =>
-    set((state: CanvasSlice) => {
-      if (!state.activeProblem) return state;
+    set(() => {
       return {
-        activeProblem: {
-          ...state.activeProblem,
-          canvas: canvas,
-        },
+        paths: canvas.paths,
+        undoStack: [],
+        redoStack: [],
+        currentPath: [],
+        isDrawing: false,
       };
     }),
 });
