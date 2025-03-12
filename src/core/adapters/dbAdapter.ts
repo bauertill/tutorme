@@ -8,9 +8,13 @@ import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
-import { Prisma, type PrismaClient } from "@prisma/client";
+import {
+  Prisma,
+  UserProblem as UserProblemDB,
+  type PrismaClient,
+} from "@prisma/client";
 import assert from "assert";
-import { type Assignment, type UserProblem } from "../assignment/types";
+import { Canvas, type Assignment, type UserProblem } from "../assignment/types";
 
 const EMBEDDING_MODEL = "text-embedding-3-large";
 
@@ -176,11 +180,12 @@ export class DBAdapter {
       },
     });
     if (!existingProblem) {
-      return await this.db.userProblem.create({
+      const dbProblem = await this.db.userProblem.create({
         data: { ...problem, userId },
       });
+      return { ...dbProblem, canvas: problem.canvas };
     }
-    return existingProblem;
+    return { ...existingProblem, canvas: problem.canvas };
   }
 
   async createAssignment(
@@ -188,7 +193,7 @@ export class DBAdapter {
     userId: string,
   ): Promise<Assignment> {
     const { problems, ...rest } = assignment;
-    return this.db.assignment.create({
+    const dbAssignment = await this.db.assignment.create({
       data: {
         ...rest,
         userId,
@@ -198,14 +203,27 @@ export class DBAdapter {
       },
       include: { problems: true },
     });
+    return {
+      ...dbAssignment,
+      problems: dbAssignment.problems.map(parseProblem),
+    };
   }
 
   async getAssignmentsByUserId(userId: string): Promise<Assignment[]> {
-    return this.db.assignment.findMany({
+    const dbAssignments = await this.db.assignment.findMany({
       where: { problems: { some: { userId } } },
       include: { problems: true },
     });
+    return dbAssignments.map((assignment) => ({
+      ...assignment,
+      problems: assignment.problems.map(parseProblem),
+    }));
   }
 }
+
+const parseProblem = (problem: UserProblemDB): UserProblem => ({
+  ...problem,
+  canvas: Canvas.parse(problem.canvas),
+});
 
 export const dbAdapter = new DBAdapter(db);
