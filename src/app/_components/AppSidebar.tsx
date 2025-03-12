@@ -12,7 +12,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useStore } from "@/store";
-import { useActiveProblem } from "@/store/selectors";
+import { useActiveProblem, useProblemController } from "@/store/selectors";
 import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
 import { UploadProblems } from "../(main)/assignment/_components/Problem/UploadProblems";
@@ -23,7 +23,7 @@ export function AppSidebar() {
   const session = useSession();
   const assignments = useStore.use.assignments();
   const activeProblem = useActiveProblem();
-  const setActiveProblem = useStore.use.setActiveProblem();
+  const { setActiveProblemWithCanvas } = useProblemController();
   const [openAssignments, setOpenAssignments] = useState<Set<string>>(
     new Set(),
   );
@@ -107,7 +107,7 @@ export function AppSidebar() {
                 isOpen={autoExpandedAssignments.has(assignment.id)}
                 onOpenChange={() => toggleAssignment(assignment.id)}
                 activeProblem={activeProblem}
-                setActiveProblem={setActiveProblem}
+                setActiveProblem={setActiveProblemWithCanvas}
               />
             ))}
           </SidebarGroupContent>

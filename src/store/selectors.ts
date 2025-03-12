@@ -20,6 +20,7 @@ export const useProblemController = (): {
   activeProblem?: UserProblem;
   gotoNextProblem?: () => void;
   gotoPreviousProblem?: () => void;
+  setActiveProblemWithCanvas: (problem: UserProblem) => void;
 } => {
   const assignments = useStore.use.assignments();
   const activeAssignmentId = useStore.use.activeAssignmentId();
@@ -59,12 +60,17 @@ export const useProblemController = (): {
       }
     : undefined;
 
-  console.log("activeProblem", activeProblem);
+  const setActiveProblemWithCanvas = (problem: UserProblem) => {
+    storeCurrentPathsOnProblem();
+    setActiveProblem(problem);
+    setCanvas(problem.canvas ?? { paths: [] });
+  };
 
   return {
     activeAssignment,
     activeProblem,
     gotoNextProblem,
     gotoPreviousProblem,
+    setActiveProblemWithCanvas,
   };
 };

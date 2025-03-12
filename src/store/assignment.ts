@@ -1,6 +1,6 @@
 import {
-  Canvas,
   type Assignment,
+  type Canvas,
   type UserProblem,
 } from "@/core/assignment/types";
 import { type StateCreator } from "zustand";
@@ -50,7 +50,6 @@ export const createAssignmentSlice: StateCreator<
       draft.activeAssignmentId = assignment.id;
     }),
   setActiveProblem: (problem: UserProblem) => {
-    console.log("SETTING PROBLEM");
     set((draft) => {
       draft.activeAssignmentId = problem.assignmentId;
       draft.activeProblemId = problem.id;
