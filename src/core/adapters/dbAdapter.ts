@@ -10,8 +10,8 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
 import {
   Prisma,
-  UserProblem as UserProblemDB,
   type PrismaClient,
+  type UserProblem as UserProblemDB,
 } from "@prisma/client";
 import assert from "assert";
 import { Canvas, type Assignment, type UserProblem } from "../assignment/types";
@@ -183,9 +183,9 @@ export class DBAdapter {
       const dbProblem = await this.db.userProblem.create({
         data: { ...problem, userId },
       });
-      return { ...dbProblem, canvas: problem.canvas };
+      return parseProblem(dbProblem);
     }
-    return { ...existingProblem, canvas: problem.canvas };
+    return parseProblem(existingProblem);
   }
 
   async createAssignment(

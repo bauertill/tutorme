@@ -45,7 +45,7 @@ export const createCanvasSlice: StateCreator<
 
   // Drawing actions
   startDrawing: (point: Point) =>
-    set((state: CanvasSlice) => ({
+    set(() => ({
       currentPath: [point],
       isDrawing: true,
     })),
