@@ -1,4 +1,8 @@
-import { type Assignment, type UserProblem } from "@/core/assignment/types";
+import {
+  type Assignment,
+  type EvaluationResult,
+  type UserProblem,
+} from "@/core/assignment/types";
 import { useStore } from ".";
 
 export const useActiveAssignment = (): Assignment | null => {
@@ -73,4 +77,37 @@ export const useProblemController = (): {
     gotoPreviousProblem,
     setActiveProblemWithCanvas,
   };
+};
+
+export const useEvaluationResult = (): {
+  evaluationResult: EvaluationResult | null;
+  setEvaluationResult: (
+    problemId: string,
+    evaluationResult: EvaluationResult,
+  ) => void;
+} => {
+  const activeProblem = useActiveProblem();
+  const setProblem = useStore.use.setProblem();
+  const evaluationResult = activeProblem?.evaluation ?? null;
+  if (!activeProblem) {
+    return { evaluationResult, setEvaluationResult: () => null };
+  }
+  const setEvaluationResult = (
+    problemId: string,
+    evaluationResult: EvaluationResult,
+  ) => {
+    if (activeProblem.id !== problemId) {
+      return;
+    }
+    const newProblem: UserProblem = {
+      ...activeProblem,
+      evaluation: evaluationResult,
+    };
+    const isCorrect =
+      evaluationResult.isComplete && !evaluationResult.hasMistakes;
+    if (isCorrect) newProblem.status = "SOLVED";
+    else newProblem.status = "IN_PROGRESS";
+    setProblem(newProblem);
+  };
+  return { evaluationResult, setEvaluationResult };
 };

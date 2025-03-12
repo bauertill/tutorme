@@ -7,7 +7,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { type EvaluationResult } from "@/core/exercise/exerciseDomain";
+import { type EvaluationResult } from "@/core/assignment/types";
 import { Info, X } from "lucide-react";
 import { useEffect, useState } from "react";
 export default function FeedbackView({

@@ -23,6 +23,7 @@ export async function createAssignmentFromUpload(
     updatedAt: new Date(),
     assignmentId,
     canvas: { paths: [] },
+    evaluation: null,
   }));
   const assignment: Assignment = {
     id: assignmentId,

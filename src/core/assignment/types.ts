@@ -11,14 +11,23 @@ export const Canvas = z.object({
 });
 export type Canvas = z.infer<typeof Canvas>;
 
+export const EvaluationResult = z.object({
+  hint: z.string().optional(),
+  hasMistakes: z.boolean(),
+  isComplete: z.boolean(),
+  analysis: z.string(),
+  studentSolution: z.string(),
+});
+export type EvaluationResult = z.infer<typeof EvaluationResult>;
+
 export const UserProblem = z.object({
   id: z.string(),
   assignmentId: z.string(),
   problem: z.string(),
   referenceSolution: z.string().nullable(),
-  isCorrect: z.boolean(),
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
   canvas: Canvas,
+  evaluation: EvaluationResult.nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

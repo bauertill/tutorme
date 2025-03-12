@@ -14,7 +14,12 @@ import {
   type UserProblem as UserProblemDB,
 } from "@prisma/client";
 import assert from "assert";
-import { Canvas, type Assignment, type UserProblem } from "../assignment/types";
+import {
+  Canvas,
+  EvaluationResult,
+  type Assignment,
+  type UserProblem,
+} from "../assignment/types";
 
 const EMBEDDING_MODEL = "text-embedding-3-large";
 
@@ -169,6 +174,7 @@ export class DBAdapter {
       await this.createUserProblem(problem, userId);
     }
   }
+
   async createUserProblem(
     problem: Draft<UserProblem>,
     userId: string,
@@ -179,12 +185,35 @@ export class DBAdapter {
         problem: problem.problem,
       },
     });
+
     if (!existingProblem) {
+      // Convert evaluation to Prisma.InputJsonValue if it exists
+      const evaluationJson = problem.evaluation
+        ? (JSON.parse(
+            JSON.stringify(problem.evaluation),
+          ) as Prisma.InputJsonValue)
+        : Prisma.JsonNull;
+
+      // Convert canvas to Prisma.InputJsonValue
+      const canvasJson = JSON.parse(
+        JSON.stringify(problem.canvas),
+      ) as Prisma.InputJsonValue;
+
       const dbProblem = await this.db.userProblem.create({
-        data: { ...problem, userId },
+        data: {
+          problem: problem.problem,
+          referenceSolution: problem.referenceSolution,
+          status: problem.status,
+          canvas: canvasJson,
+          evaluation: evaluationJson,
+          userId,
+          assignmentId: problem.assignmentId,
+        },
       });
+
       return parseProblem(dbProblem);
     }
+
     return parseProblem(existingProblem);
   }
 
@@ -193,30 +222,44 @@ export class DBAdapter {
     userId: string,
   ): Promise<Assignment> {
     const { problems, ...rest } = assignment;
+
+    // First create the assignment
     const dbAssignment = await this.db.assignment.create({
       data: {
         ...rest,
         userId,
-        problems: {
-          create: problems.map((problem) => ({ ...problem, userId })),
-        },
       },
-      include: { problems: true },
     });
+
+    // Then create the problems separately
+    const createdProblems: UserProblem[] = [];
+    for (const problem of problems) {
+      const createdProblem = await this.createUserProblem(
+        {
+          ...problem,
+          assignmentId: dbAssignment.id,
+        },
+        userId,
+      );
+      createdProblems.push(createdProblem);
+    }
+
+    // Return the assignment with the created problems
     return {
       ...dbAssignment,
-      problems: dbAssignment.problems.map(parseProblem),
+      problems: createdProblems,
     };
   }
 
   async getAssignmentsByUserId(userId: string): Promise<Assignment[]> {
     const dbAssignments = await this.db.assignment.findMany({
-      where: { problems: { some: { userId } } },
+      where: { userId },
       include: { problems: true },
     });
+
     return dbAssignments.map((assignment) => ({
       ...assignment,
-      problems: assignment.problems.map(parseProblem),
+      problems: assignment.problems.map((problem) => parseProblem(problem)),
     }));
   }
 }
@@ -224,6 +267,9 @@ export class DBAdapter {
 const parseProblem = (problem: UserProblemDB): UserProblem => ({
   ...problem,
   canvas: Canvas.parse(problem.canvas),
+  evaluation: problem.evaluation
+    ? EvaluationResult.parse(problem.evaluation)
+    : null,
 });
 
 export const dbAdapter = new DBAdapter(db);

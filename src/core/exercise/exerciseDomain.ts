@@ -1,14 +1,7 @@
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
+import { type EvaluationResult } from "../assignment/types";
 import { type Problem } from "../problem/types";
-
-export type EvaluationResult = {
-  hint?: string;
-  hasMistakes: boolean;
-  isComplete: boolean;
-  analysis: string;
-  studentSolution: string;
-};
 
 export async function evaluateSolution(
   exerciseText: string,
