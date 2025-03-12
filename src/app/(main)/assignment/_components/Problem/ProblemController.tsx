@@ -2,26 +2,18 @@
 import { Latex } from "@/app/_components/Latex";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  useActiveAssignment,
-  useActiveProblem,
-  useGotoNextProblem,
-  useGotoPreviousProblem,
-  useNextProblem,
-  usePreviousProblem,
-} from "@/store/selectors";
+import { useProblemController } from "@/store/selectors";
 import { UploadProblems } from "./UploadProblems";
 
 export default function ProblemController() {
-  // TODO: put all this in a single hook useProblemController
-  const assignment = useActiveAssignment();
-  const activeProblem = useActiveProblem();
-  const nextProblem = useNextProblem();
-  const previousProblem = usePreviousProblem();
-  const gotoNextProblem = useGotoNextProblem();
-  const gotoPreviousProblem = useGotoPreviousProblem();
+  const {
+    activeAssignment,
+    activeProblem,
+    gotoNextProblem,
+    gotoPreviousProblem,
+  } = useProblemController();
 
-  if (!activeProblem || !assignment) {
+  if (!activeProblem || !activeAssignment) {
     return (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -38,16 +30,20 @@ export default function ProblemController() {
     <div className="flex flex-row items-center justify-between border-b p-4">
       <Latex className="whitespace-pre-wrap">{activeProblem.problem}</Latex>
       <div className="flex flex-row gap-2">
-        {previousProblem && (
-          <Button variant="outline" onClick={() => gotoPreviousProblem()}>
-            Previous
-          </Button>
-        )}
-        {nextProblem && (
-          <Button variant="outline" onClick={() => gotoNextProblem()}>
-            Next
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          disabled={!gotoPreviousProblem}
+          onClick={() => gotoPreviousProblem && gotoPreviousProblem()}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          disabled={!gotoNextProblem}
+          onClick={() => gotoNextProblem && gotoNextProblem()}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

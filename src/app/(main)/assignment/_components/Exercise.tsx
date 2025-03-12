@@ -10,6 +10,7 @@ import { useDebounce } from "use-debounce";
 import { Canvas } from "./Canvas";
 import FeedbackView from "./FeedbackView";
 import ProblemController from "./Problem/ProblemController";
+
 export default function Exercise() {
   const activeProblem = useActiveProblem();
   const [debouncedProblem] = useDebounce(activeProblem, 5000);

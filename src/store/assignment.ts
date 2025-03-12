@@ -6,6 +6,7 @@ export interface AssignmentSlice {
   assignments: Assignment[];
   activeAssignmentId: string | null;
   activeProblemId: string | null;
+  // @TODO discuss when is setAssignments needed?
   setAssignments: (assignments: Assignment[]) => void;
   addAssignment: (assignment: Assignment) => void;
   setActiveAssignment: (assignment: Assignment) => void;

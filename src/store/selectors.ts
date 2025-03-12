@@ -15,44 +15,38 @@ export const useActiveProblem = (): UserProblem | null => {
   return problem ?? assignment?.problems[0] ?? null;
 };
 
-export const useNextProblem = () => {
-  const assignment = useActiveAssignment();
-  const problemId = useStore.use.activeProblemId();
-  const problemIndex = assignment?.problems.findIndex(
-    (p) => p.id === problemId,
-  );
-  const nextProblemIndex = (problemIndex ?? 0) + 1;
-  const nextProblem = assignment?.problems[nextProblemIndex];
-  return nextProblem;
-};
-
-export const usePreviousProblem = () => {
-  const assignment = useActiveAssignment();
-  const problemId = useStore.use.activeProblemId();
-  const problemIndex = assignment?.problems.findIndex(
-    (p) => p.id === problemId,
-  );
-  const previousProblemIndex = (problemIndex ?? 0) - 1;
-  const previousProblem = assignment?.problems[previousProblemIndex];
-  return previousProblem;
-};
-
-export const useGotoNextProblem = () => {
-  const nextProblem = useNextProblem();
+export const useProblemController = (): {
+  activeAssignment?: Assignment;
+  activeProblem?: UserProblem;
+  gotoNextProblem?: () => void;
+  gotoPreviousProblem?: () => void;
+} => {
+  const assignments = useStore.use.assignments();
+  const activeAssignmentId = useStore.use.activeAssignmentId();
+  const activeProblemId = useStore.use.activeProblemId();
   const setActiveProblem = useStore.use.setActiveProblem();
-  return () => {
-    if (nextProblem) {
-      setActiveProblem(nextProblem);
-    }
-  };
-};
 
-export const useGotoPreviousProblem = () => {
-  const previousProblem = usePreviousProblem();
-  const setActiveProblem = useStore.use.setActiveProblem();
-  return () => {
-    if (previousProblem) {
-      setActiveProblem(previousProblem);
-    }
+  const activeAssignment = assignments.find((a) => a.id === activeAssignmentId);
+  const activeProblem = activeAssignment?.problems.find(
+    (p) => p.id === activeProblemId,
+  );
+  const activeProblemIndex =
+    activeAssignment?.problems.findIndex((p) => p.id === activeProblemId) ?? 0;
+
+  const nextProblem = activeAssignment?.problems[activeProblemIndex + 1];
+  const previousProblem = activeAssignment?.problems[activeProblemIndex - 1];
+
+  const gotoNextProblem = nextProblem
+    ? () => setActiveProblem(nextProblem)
+    : undefined;
+  const gotoPreviousProblem = previousProblem
+    ? () => setActiveProblem(previousProblem)
+    : undefined;
+
+  return {
+    activeAssignment,
+    activeProblem,
+    gotoNextProblem,
+    gotoPreviousProblem,
   };
 };
