@@ -1,4 +1,5 @@
 "use client";
+import { UserProblem } from "@/core/assignment/types";
 import { type EvaluationResult } from "@/core/exercise/exerciseDomain";
 import { useStore } from "@/store";
 import { useActiveProblem } from "@/store/selectors";
@@ -15,6 +16,7 @@ export default function Exercise() {
   const activeProblem = useActiveProblem();
   const [debouncedProblem] = useDebounce(activeProblem, 5000);
   const setReferenceSolution = useStore.use.setReferenceSolution();
+  const setProblem = useStore.use.setProblem();
   const [evaluationResult, setEvaluationResult] =
     useState<EvaluationResult | null>(null);
 
@@ -24,7 +26,16 @@ export default function Exercise() {
   const { mutate: submit, isPending: isSubmitting } =
     api.assignment.submitSolution.useMutation({
       onSuccess: (data) => {
-        setEvaluationResult(data); // TODO: modify the problem in the store
+        setEvaluationResult(data);
+        if (!activeProblem) return;
+        const isCorrect = data.isComplete && !data.hasMistakes;
+        const newProblem: UserProblem = {
+          ...activeProblem,
+          isCorrect,
+        };
+        if (isCorrect) newProblem.status = "SOLVED";
+        else newProblem.status = "IN_PROGRESS";
+        setProblem(newProblem);
       },
       onError: (error) => {
         toast.error(`Error submitting solution: ${error.message}`);

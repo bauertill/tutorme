@@ -25,6 +25,7 @@ export interface AssignmentSlice {
     assignmentId: string,
     canvas: Canvas,
   ) => void;
+  setProblem: (problem: UserProblem) => void;
 }
 
 export const createAssignmentSlice: StateCreator<
@@ -78,5 +79,16 @@ export const createAssignmentSlice: StateCreator<
         .find((a) => a.id === assignmentId)
         ?.problems.find((p) => p.id === problemId);
       if (problem) problem.canvas = canvas;
+    }),
+  setProblem: (problem: UserProblem) =>
+    set((draft) => {
+      const assignment = draft.assignments.find(
+        (a) => a.id === problem.assignmentId,
+      );
+      if (assignment) {
+        assignment.problems = assignment.problems.map((p) =>
+          p.id === problem.id ? problem : p,
+        );
+      }
     }),
 });
