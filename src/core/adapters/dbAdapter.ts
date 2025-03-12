@@ -187,33 +187,16 @@ export class DBAdapter {
     });
 
     if (!existingProblem) {
-      // Convert evaluation to Prisma.InputJsonValue if it exists
-      const evaluationJson = problem.evaluation
-        ? (JSON.parse(
-            JSON.stringify(problem.evaluation),
-          ) as Prisma.InputJsonValue)
-        : Prisma.JsonNull;
-
-      // Convert canvas to Prisma.InputJsonValue
-      const canvasJson = JSON.parse(
-        JSON.stringify(problem.canvas),
-      ) as Prisma.InputJsonValue;
-
       const dbProblem = await this.db.userProblem.create({
         data: {
-          problem: problem.problem,
-          referenceSolution: problem.referenceSolution,
-          status: problem.status,
-          canvas: canvasJson,
-          evaluation: evaluationJson,
+          ...problem,
           userId,
-          assignmentId: problem.assignmentId,
+          canvas: { paths: [] },
+          evaluation: undefined,
         },
       });
-
       return parseProblem(dbProblem);
     }
-
     return parseProblem(existingProblem);
   }
 
@@ -223,7 +206,6 @@ export class DBAdapter {
   ): Promise<Assignment> {
     const { problems, ...rest } = assignment;
 
-    // First create the assignment
     const dbAssignment = await this.db.assignment.create({
       data: {
         ...rest,
@@ -231,7 +213,6 @@ export class DBAdapter {
       },
     });
 
-    // Then create the problems separately
     const createdProblems: UserProblem[] = [];
     for (const problem of problems) {
       const createdProblem = await this.createUserProblem(
@@ -244,7 +225,6 @@ export class DBAdapter {
       createdProblems.push(createdProblem);
     }
 
-    // Return the assignment with the created problems
     return {
       ...dbAssignment,
       problems: createdProblems,
