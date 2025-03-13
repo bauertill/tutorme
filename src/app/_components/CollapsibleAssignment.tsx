@@ -66,13 +66,13 @@ export function CollapsibleAssignment({
                 <Latex>{problem.problem}</Latex>
               </span>
               {problem.status === "SOLVED" && (
-                <CheckCircle className="ml-auto flex h-8 w-8 text-green-500" />
+                <CheckCircle className="ml-auto flex h-4 min-h-4 w-4 min-w-4 text-green-500" />
               )}
               {problem.status === "IN_PROGRESS" && (
-                <Circle className="ml-auto flex h-8 w-8 text-yellow-500" />
+                <Circle className="ml-auto flex h-4 w-4 min-w-4 text-yellow-500" />
               )}
               {problem.status === "FAILED" && (
-                <Circle className="ml-auto flex h-8 w-8 text-red-500" />
+                <Circle className="ml-auto flex h-4 w-4 min-w-4 text-red-500" />
               )}
             </button>
           ))}
