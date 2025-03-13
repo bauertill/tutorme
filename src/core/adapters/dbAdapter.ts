@@ -200,6 +200,32 @@ export class DBAdapter {
     return parseProblem(existingProblem);
   }
 
+  async updateUserProblems(
+    problems: UserProblem[],
+    userId: string,
+    assignmentId: string,
+  ): Promise<void> {
+    await this.db.$transaction(
+      problems.map((cur) =>
+        this.db.userProblem.upsert({
+          where: { id: cur.id },
+          update: {
+            ...cur,
+            canvas: JSON.stringify(cur.canvas),
+            evaluation: JSON.stringify(cur.evaluation),
+          },
+          create: {
+            ...cur,
+            canvas: JSON.stringify(cur.canvas),
+            evaluation: JSON.stringify(cur.evaluation),
+            userId,
+            assignmentId,
+          },
+        }),
+      ),
+    );
+  }
+
   async createAssignment(
     assignment: Assignment,
     userId: string,

@@ -1,4 +1,8 @@
-import { createAssignmentFromUpload } from "@/core/assignment/assignmentDomain";
+import {
+  createAssignmentFromUpload,
+  syncAssignments,
+} from "@/core/assignment/assignmentDomain";
+import { Assignment } from "@/core/assignment/types";
 import {
   createReferenceSolution,
   evaluateSolution,
@@ -53,5 +57,11 @@ export const assignmentRouter = createTRPCRouter({
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
       return await createReferenceSolution(input, ctx.llmAdapter);
+    }),
+
+  syncAssignments: protectedProcedure
+    .input(z.array(Assignment))
+    .mutation(async ({ ctx, input }) => {
+      return await syncAssignments(ctx.session.user.id, ctx.dbAdapter, input);
     }),
 });
