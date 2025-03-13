@@ -10,8 +10,8 @@ export function SignInButton() {
         e.preventDefault();
         void signIn("google");
       }}
-      variant="outline"
-      className="flex w-60 items-center justify-center gap-2"
+      variant="ghost"
+      className="flex w-full justify-start gap-2"
     >
       <svg className="h-5 w-5" viewBox="0 0 24 24">
         <path

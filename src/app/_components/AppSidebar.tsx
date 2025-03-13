@@ -76,7 +76,16 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-border bg-background">
-      <SidebarHeader></SidebarHeader>
+      <SidebarHeader>
+        <div className="flex items-center gap-2 px-2 py-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <span className="text-lg font-bold text-primary-foreground">T</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold">Tutor me good</span>
+          </div>
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -106,7 +115,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="flex justify-center">
+      <SidebarFooter className="flex">
         {session.data?.user ? (
           <UserAndSignOutButton user={session.data.user} />
         ) : (
