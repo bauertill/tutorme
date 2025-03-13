@@ -18,6 +18,7 @@ import { useMemo, useState } from "react";
 import { SignInButton } from "../(auth)/login/_components/SignInButton";
 import { UploadProblems } from "../(main)/assignment/_components/Problem/UploadProblems";
 import { CollapsibleAssignment } from "./CollapsibleAssignment";
+import { CollapsibleSettings } from "./CollapsibleSettings";
 import { UserAndSignOutButton } from "./UserAndSignOutButton";
 
 export function AppSidebar() {
@@ -75,16 +76,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-border bg-background">
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">T</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold">Tutor me good</span>
-          </div>
-        </div>
-      </SidebarHeader>
+      <SidebarHeader></SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -120,6 +112,7 @@ export function AppSidebar() {
         ) : (
           <SignInButton />
         )}
+        <CollapsibleSettings />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
