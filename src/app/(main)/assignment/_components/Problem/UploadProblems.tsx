@@ -36,6 +36,7 @@ export function UploadProblems() {
         toast.success("Problems uploaded successfully!");
         setOpen(false);
         addAssignment(assignment);
+        setSelectedFile(null);
       },
       onError: (error) => {
         setUploadState("error");
