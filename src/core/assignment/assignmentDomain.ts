@@ -19,7 +19,6 @@ export async function createAssignmentFromUpload(
     status: "INITIAL", // TODO: add stars 0-3
     problem: problem.problemText,
     referenceSolution: null,
-    isCorrect: false,
     createdAt: new Date(),
     updatedAt: new Date(),
     assignmentId,
@@ -53,8 +52,10 @@ export async function syncAssignments(
   dbAdapter: DBAdapter,
   incomingAssignments: Assignment[],
 ): Promise<{ assignmentsNotInLocal: Assignment[] }> {
+  console.log("syncAssignments", userId);
+  console.log("incomingAssignments", incomingAssignments);
   const existingAssignments = await dbAdapter.getAssignmentsByUserId(userId);
-
+  console.log("existingAssignments", existingAssignments);
   const { newAssignments, updateAssignments } = mergeAssignments(
     existingAssignments,
     incomingAssignments,
@@ -74,6 +75,7 @@ export async function syncAssignments(
   const assignmentsNotInLocal = existingAssignments.filter(
     (assignment) => !incomingAssignments.find((a) => a.id === assignment.id),
   );
+  console.log("assignmentsNotInLocal", assignmentsNotInLocal);
   return { assignmentsNotInLocal };
 }
 /**

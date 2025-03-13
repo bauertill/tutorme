@@ -15,6 +15,7 @@ import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
 import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
+import { SignInButton } from "../(auth)/login/_components/SignInButton";
 import { UploadProblems } from "../(main)/assignment/_components/Problem/UploadProblems";
 import { CollapsibleAssignment } from "./CollapsibleAssignment";
 import { UserAndSignOutButton } from "./UserAndSignOutButton";
@@ -113,9 +114,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        {session.data?.user && (
+      <SidebarFooter className="flex justify-center">
+        {session.data?.user ? (
           <UserAndSignOutButton user={session.data.user} />
+        ) : (
+          <SignInButton />
         )}
       </SidebarFooter>
       <SidebarRail />

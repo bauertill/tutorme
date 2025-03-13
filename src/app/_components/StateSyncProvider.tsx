@@ -8,12 +8,12 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const assignmentsLocal = useStore.use.assignments();
   const setAssignmentsLocal = useStore.use.setAssignments();
-  const lastSyncTime = useRef<number>(0);
+  const lastSyncTime = useRef<number>(Date.now());
 
   const syncAssignments = api.assignment.syncAssignments.useMutation({
     onSuccess: (data) => {
       if (!data.assignmentsNotInLocal.length) {
-        console.log("No assignments found on server to sync");
+        console.log("Assignments in sync");
         return;
       }
       console.log("Syncing assignments from server to local");
@@ -29,18 +29,12 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
       console.log("No user id found, skipping sync");
       return;
     }
-    console.log("Syncing assignments from local to server");
-
-    const now = Date.now();
-    const timeSinceLastSync = now - lastSyncTime.current;
-    const delayNeeded = Math.max(0, 1000 - timeSinceLastSync);
-
-    const t = setTimeout(() => {
+    const timeSinceLastSync = Date.now() - lastSyncTime.current;
+    if (timeSinceLastSync > 60 * 1000) {
+      console.log("Syncing assignments from local to server");
       syncAssignments.mutate(assignmentsLocal);
       lastSyncTime.current = Date.now();
-    }, delayNeeded);
-
-    return () => clearTimeout(t);
+    }
   }, [assignmentsLocal, session.data?.user.id, syncAssignments]);
 
   return <>{children}</>;

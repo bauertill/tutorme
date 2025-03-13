@@ -28,8 +28,8 @@ export const UserProblem = z.object({
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
   canvas: Canvas,
   evaluation: EvaluationResult.nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
+  updatedAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
 });
 
 export type UserProblem = z.infer<typeof UserProblem>;
@@ -38,8 +38,8 @@ export type UserProblemDraft = Omit<Draft<UserProblem>, "assignmentId">;
 export const Assignment = z.object({
   id: z.string(),
   name: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
+  updatedAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
   problems: z.array(UserProblem),
 });
 

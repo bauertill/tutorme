@@ -211,13 +211,13 @@ export class DBAdapter {
           where: { id: cur.id },
           update: {
             ...cur,
-            canvas: JSON.stringify(cur.canvas),
-            evaluation: JSON.stringify(cur.evaluation),
+            canvas: cur.canvas,
+            evaluation: cur.evaluation ?? undefined,
           },
           create: {
             ...cur,
-            canvas: JSON.stringify(cur.canvas),
-            evaluation: JSON.stringify(cur.evaluation),
+            canvas: cur.canvas,
+            evaluation: cur.evaluation ?? undefined,
             userId,
             assignmentId,
           },
