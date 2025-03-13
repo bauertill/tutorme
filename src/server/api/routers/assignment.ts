@@ -2,10 +2,11 @@ import {
   createAssignmentFromUpload,
   syncAssignments,
 } from "@/core/assignment/assignmentDomain";
-import { Assignment } from "@/core/assignment/types";
+import { Assignment, UserProblem } from "@/core/assignment/types";
 import {
   createReferenceSolution,
   evaluateSolution,
+  explainHint,
   getRandomProblem,
 } from "@/core/exercise/exerciseDomain";
 import {
@@ -57,6 +58,16 @@ export const assignmentRouter = createTRPCRouter({
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
       return await createReferenceSolution(input, ctx.llmAdapter);
+    }),
+
+  explainHint: publicProcedure
+    .input(z.object({ userProblem: UserProblem, highlightedText: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      return await explainHint(
+        input.userProblem,
+        input.highlightedText,
+        ctx.llmAdapter,
+      );
     }),
 
   syncAssignments: protectedProcedure
