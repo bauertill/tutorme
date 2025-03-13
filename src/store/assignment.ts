@@ -1,3 +1,4 @@
+import { mergeAssignments } from "@/core/assignment/assignmentDomain";
 import {
   type Assignment,
   type Canvas,
@@ -12,6 +13,7 @@ export interface AssignmentSlice {
   activeProblemId: string | null;
   // @TODO discuss when is setAssignments needed?
   setAssignments: (assignments: Assignment[]) => void;
+  upsertAssignments: (assignments: Assignment[]) => void;
   addAssignment: (assignment: Assignment) => void;
   setActiveAssignment: (assignment: Assignment) => void;
   setActiveProblem: (problem: UserProblem) => void;
@@ -40,6 +42,18 @@ export const createAssignmentSlice: StateCreator<
   setAssignments: (assignments: Assignment[]) =>
     set((draft) => {
       draft.assignments = assignments;
+    }),
+  upsertAssignments: (assignments: Assignment[]) =>
+    set((draft) => {
+      // Reuse the mergeAssignments helper function for consistency
+      // between backend and frontend behaviour.
+      // NOTE: the incoming and existing are flipped to maintain the
+      // local assignments in case of conflict.
+      const { newAssignments } = mergeAssignments(
+        draft.assignments,
+        assignments,
+      );
+      draft.assignments = [...draft.assignments, ...newAssignments];
     }),
   addAssignment: (assignment: Assignment) =>
     set((draft) => {

@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 export function StateSyncProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const assignmentsLocal = useStore.use.assignments();
-  const setAssignmentsLocal = useStore.use.setAssignments();
+  const upsertAssignmentsLocal = useStore.use.upsertAssignments();
   const lastSyncTime = useRef<number>(Date.now());
 
   const syncAssignments = api.assignment.syncAssignments.useMutation({
@@ -16,8 +16,7 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
         console.log("Assignments in sync");
         return;
       }
-      console.log("Syncing assignments from server to local");
-      setAssignmentsLocal([...assignmentsLocal, ...data.assignmentsNotInLocal]);
+      upsertAssignmentsLocal(data.assignmentsNotInLocal);
     },
     onError: (error) => {
       console.error(error);
