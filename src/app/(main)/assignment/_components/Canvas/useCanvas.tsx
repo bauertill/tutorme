@@ -10,10 +10,12 @@ import {
 } from "./utils";
 
 const BOTTOM_PADDING = 800;
+const ERASER_RADIUS = 10; // Radius for eraser collision detection
 
 export function useCanvas() {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const eraserRef = useRef<HTMLDivElement | null>(null);
   const assertedSvg = () => {
     assert(svgRef.current, "SVG element is not mounted");
     return svgRef.current;
@@ -31,6 +33,12 @@ export function useCanvas() {
   const undo = useStore.use.undo();
   const redo = useStore.use.redo();
   const clear = useStore.use.clear();
+  const isEraser = useStore.use.isEraser();
+  const toggleEraser = useStore.use.toggleEraser();
+  const eraseAtPoint = useStore.use.eraseAtPoint();
+
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isEraserActive, setIsEraserActive] = useState(false);
 
   const [containerSize, setContainerSize] = useState<{
     width: number;
@@ -83,26 +91,74 @@ export function useCanvas() {
     }
   }, [multiTouchInfo]);
 
+  // Update eraser cursor position
+  useEffect(() => {
+    if (!isEraser || !eraserRef.current) return;
+
+    const updateEraserPosition = (e: MouseEvent) => {
+      if (eraserRef.current) {
+        eraserRef.current.style.left = `${e.clientX}px`;
+        eraserRef.current.style.top = `${e.clientY}px`;
+      }
+    };
+
+    window.addEventListener("mousemove", updateEraserPosition);
+
+    return () => {
+      window.removeEventListener("mousemove", updateEraserPosition);
+    };
+  }, [isEraser]);
+
+  // Function to handle erasing at a specific point
+  const handleEraseAtPoint = (point: { x: number; y: number }) => {
+    if (isEraserActive) {
+      eraseAtPoint(point, ERASER_RADIUS);
+    }
+  };
+
   const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
     // Only start drawing with left mouse button
     if (e.button !== 0) return;
     const point = screenToSVGCoordinates(assertedSvg(), e.clientX, e.clientY);
-    startDrawing(point);
+    setMousePosition({ x: e.clientX, y: e.clientY });
+
+    if (isEraser) {
+      // Start erasing
+      setIsEraserActive(true);
+      handleEraseAtPoint(point);
+    } else {
+      // Normal drawing
+      startDrawing(point);
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    // Only draw with left mouse button
-    if (e.button !== 0) return;
     const point = screenToSVGCoordinates(assertedSvg(), e.clientX, e.clientY);
-    addPoint(point);
+    setMousePosition({ x: e.clientX, y: e.clientY });
+
+    if (isEraser) {
+      // Only erase if mouse button is pressed
+      handleEraseAtPoint(point);
+    } else if (e.buttons === 1) {
+      // Normal drawing - only if left mouse button is pressed
+      addPoint(point);
+    }
   };
 
   const handleMouseLeave = () => {
-    stopDrawing();
+    if (isEraser) {
+      setIsEraserActive(false);
+    } else {
+      stopDrawing();
+    }
   };
 
   const handleMouseUp = () => {
-    stopDrawing();
+    if (isEraser) {
+      setIsEraserActive(false);
+    } else {
+      stopDrawing();
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent<SVGSVGElement>) => {
@@ -118,7 +174,16 @@ export function useCanvas() {
       touch.clientX,
       touch.clientY,
     );
-    startDrawing(point);
+    setMousePosition({ x: touch.clientX, y: touch.clientY });
+
+    if (isEraser) {
+      // Start erasing
+      setIsEraserActive(true);
+      handleEraseAtPoint(point);
+    } else {
+      // Normal drawing
+      startDrawing(point);
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent<SVGSVGElement>) => {
@@ -140,18 +205,46 @@ export function useCanvas() {
       touch.clientX,
       touch.clientY,
     );
-    addPoint(point);
+    setMousePosition({ x: touch.clientX, y: touch.clientY });
+
+    if (isEraser) {
+      // Only erase if touch is active
+      handleEraseAtPoint(point);
+    } else {
+      // Normal drawing
+      addPoint(point);
+    }
   };
 
   const handleTouchEnd = () => {
-    stopDrawing();
+    if (isEraser) {
+      setIsEraserActive(false);
+    } else {
+      stopDrawing();
+    }
   };
+
+  // Define cursor style based on mode
+  const cursorStyle = isEraser ? "cursor-none" : "cursor-pencil";
 
   const canvas = (
     <div ref={containerRef} className="relative h-full w-full overflow-auto">
+      {isEraser && (
+        <div
+          ref={eraserRef}
+          className={`pointer-events-none fixed z-50 rounded-full border-2 border-accent-foreground bg-background opacity-70 ${isEraserActive ? "border-destructive" : ""}`}
+          style={{
+            width: `${ERASER_RADIUS * 2}px`,
+            height: `${ERASER_RADIUS * 2}px`,
+            transform: "translate(-50%, -50%)",
+            left: mousePosition.x,
+            top: mousePosition.y,
+          }}
+        />
+      )}
       <svg
         ref={svgRef}
-        className="absolute inset-0 bg-[length:25px_25px]"
+        className={`absolute inset-0 bg-[length:25px_25px] ${cursorStyle}`}
         style={{
           backgroundImage:
             "linear-gradient(0deg, hsl(var(--muted)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--muted)) 1px, transparent 1px)",
@@ -197,6 +290,8 @@ export function useCanvas() {
     undo,
     redo,
     clear,
+    isEraser,
+    toggleEraser,
     getDataUrl: async () => await toDataUrl(assertedSvg()),
     canUndo: undoStack.length > 0,
     canRedo: redoStack.length > 0,

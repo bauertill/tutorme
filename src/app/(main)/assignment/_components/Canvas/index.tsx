@@ -1,16 +1,37 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Redo, Sparkles, Trash, Undo } from "lucide-react";
+import { Eraser, Pencil, Redo, Sparkles, Trash, Undo } from "lucide-react";
 import { useCanvas } from "./useCanvas";
 
 export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
-  const { canvas, undo, redo, clear, getDataUrl, canUndo, canRedo, isEmpty } =
-    useCanvas();
+  const {
+    canvas,
+    undo,
+    redo,
+    clear,
+    getDataUrl,
+    canUndo,
+    canRedo,
+    isEmpty,
+    isEraser,
+    toggleEraser,
+  } = useCanvas();
   return (
     <div className="relative h-full w-full overflow-hidden">
       {canvas}
 
       <div className="absolute right-4 top-4 z-10 flex space-x-2">
+        <Button
+          variant={isEraser ? "default" : "outline"}
+          onClick={toggleEraser}
+          title={isEraser ? "Switch to Pen" : "Switch to Eraser"}
+        >
+          {isEraser ? (
+            <Pencil className="h-4 w-4" />
+          ) : (
+            <Eraser className="h-4 w-4" />
+          )}
+        </Button>
         {!isEmpty && (
           <Button variant="outline" onClick={clear}>
             <Trash className="h-4 w-4" />
