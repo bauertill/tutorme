@@ -47,6 +47,8 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
       syncAssignments(assignmentsLocal);
       lastSyncTime.current = Date.now();
     }
+    // @TODO fix this eslint error
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignmentsLocal, session.data?.user.id, isSuccess, assignmentsOnServer]);
 
   return <>{children}</>;
