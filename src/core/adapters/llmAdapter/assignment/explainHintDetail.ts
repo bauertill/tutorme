@@ -16,6 +16,7 @@ Your task is to:
 - Ensure your explanation is clear, concise, and helpful
 
 Always wrap LaTeX in the appropriate delimiters.
+Do not start your response with "Certainly!" or any other greeting, get straight to explaining the hint.
 `;
 
 /**
