@@ -1,10 +1,10 @@
 "use client";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
+import { skipToken } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
-
-const SYNC_INTERVAL = 5 * 1000;
+const SYNC_INTERVAL = 60 * 1000;
 
 export function StateSyncProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
@@ -16,7 +16,9 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
     data: assignmentsOnServer,
     isSuccess,
     refetch,
-  } = api.assignment.list.useQuery();
+  } = api.assignment.list.useQuery(
+    session.data?.user.id ? undefined : skipToken,
+  );
 
   const { mutate: syncAssignments } =
     api.assignment.syncAssignments.useMutation({
