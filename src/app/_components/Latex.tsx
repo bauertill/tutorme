@@ -1,13 +1,47 @@
+import { useEffect, useRef } from "react";
 import LatexBase from "react-latex-next";
 
-export function Latex({
-  children,
-  ...props
-}: {
+interface LatexProps extends React.HTMLAttributes<HTMLDivElement> {
   children: string | string[];
-} & React.HTMLAttributes<HTMLDivElement>) {
+  onTextHighlight?: (highlightedText: string) => void;
+}
+
+export function Latex({ children, onTextHighlight, ...props }: LatexProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!onTextHighlight || !containerRef.current) return;
+
+    const handleSelection = () => {
+      const selection = window.getSelection();
+      if (!selection) return;
+
+      const selectionText = selection.toString().trim();
+
+      if (selectionText.length > 0) {
+        // Check if the selection is within our container
+        if (containerRef.current) {
+          const range = selection.getRangeAt(0);
+          const container = containerRef.current;
+
+          // Check if the selection is within our container
+          if (container.contains(range.commonAncestorContainer)) {
+            onTextHighlight(selectionText);
+          }
+        }
+      }
+    };
+
+    const container = containerRef.current;
+    container.addEventListener("mouseup", handleSelection);
+
+    return () => {
+      container.removeEventListener("mouseup", handleSelection);
+    };
+  }, [onTextHighlight]);
+
   return (
-    <div {...props}>
+    <div ref={containerRef} {...props}>
       <LatexBase
         delimiters={[
           { left: "$", right: "$", display: false },
