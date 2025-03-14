@@ -56,7 +56,7 @@ export async function syncAssignments(
   console.log("incomingAssignments", incomingAssignments);
   const existingAssignments = await dbAdapter.getAssignmentsByUserId(userId);
   console.log("existingAssignments", existingAssignments);
-  const { newAssignments, updateAssignments } = mergeAssignments(
+  const { newAssignments, updateAssignments } = getUpdatedAndNewAssignments(
     existingAssignments,
     incomingAssignments,
   );
@@ -86,7 +86,7 @@ export async function syncAssignments(
  * @param incomingAssignments
  * @returns
  */
-export function mergeAssignments(
+export function getUpdatedAndNewAssignments(
   existingAssignments: Assignment[],
   incomingAssignments: Assignment[],
 ): { updateAssignments: Assignment[]; newAssignments: Assignment[] } {
@@ -110,3 +110,53 @@ export function mergeAssignments(
 
   return { updateAssignments, newAssignments };
 }
+
+/**
+ * Merge incoming assignments with existing assignments.
+ * Add any userProblems from the incoming assignments if they are not already present in the existing assignments.
+ * @param existingAssignments
+ * @param incomingAssignments
+ * @returns
+ */
+export function mergeAssignments(
+  existingAssignments: Assignment[],
+  incomingAssignments: Assignment[],
+): Assignment[] {
+  const mergedAssignmentsMap = new Map<string, Assignment>();
+  for (const assignment of [...existingAssignments, ...incomingAssignments]) {
+    const existingAssignment = mergedAssignmentsMap.get(assignment.id);
+    if (!existingAssignment) {
+      mergedAssignmentsMap.set(assignment.id, assignment);
+    } else {
+      const mergedAssignment = {
+        ...existingAssignment,
+        problems: mergeProblemsByUpdatedAt(
+          existingAssignment.problems,
+          assignment.problems,
+        ),
+      };
+      mergedAssignmentsMap.set(assignment.id, mergedAssignment);
+    }
+  }
+  return Array.from(mergedAssignmentsMap.values());
+}
+
+const mergeProblemsByUpdatedAt = (
+  existingProblems: UserProblem[],
+  incomingProblems: UserProblem[],
+): UserProblem[] => {
+  const existingProblemsById = new Map<string, UserProblem>();
+  for (const problem of [...existingProblems, ...incomingProblems]) {
+    const existingProblem = existingProblemsById.get(problem.id);
+    if (!existingProblem) {
+      existingProblemsById.set(problem.id, problem);
+    } else if (!_.isEqual(existingProblem, problem)) {
+      const recentlyUpdatedProblem =
+        existingProblem.updatedAt > problem.updatedAt
+          ? existingProblem
+          : problem;
+      existingProblemsById.set(problem.id, recentlyUpdatedProblem);
+    }
+  }
+  return Array.from(existingProblemsById.values());
+};

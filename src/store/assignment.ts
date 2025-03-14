@@ -4,6 +4,7 @@ import {
   type Canvas,
   type UserProblem,
 } from "@/core/assignment/types";
+import _ from "lodash";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
 
@@ -45,15 +46,13 @@ export const createAssignmentSlice: StateCreator<
     }),
   upsertAssignments: (assignments: Assignment[]) =>
     set((draft) => {
-      // Reuse the mergeAssignments helper function for consistency
-      // between backend and frontend behaviour.
-      // NOTE: the incoming and existing are flipped to maintain the
-      // local assignments in case of conflict.
-      const { newAssignments } = mergeAssignments(
+      const mergedAssignments = mergeAssignments(
         draft.assignments,
         assignments,
       );
-      draft.assignments = [...draft.assignments, ...newAssignments];
+      if (!_.isEqual(draft.assignments, mergedAssignments)) {
+        draft.assignments = mergedAssignments;
+      }
     }),
   addAssignment: (assignment: Assignment) =>
     set((draft) => {
@@ -100,7 +99,7 @@ export const createAssignmentSlice: StateCreator<
       );
       if (assignment) {
         assignment.problems = assignment.problems.map((p) =>
-          p.id === problem.id ? problem : p,
+          p.id === problem.id ? { ...problem, updatedAt: new Date() } : p,
         );
       }
     }),

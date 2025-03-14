@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, it } from "vitest";
-import { mergeAssignments } from "./assignmentDomain";
+import { getUpdatedAndNewAssignments } from "./assignmentDomain";
 import { type Assignment, type UserProblem } from "./types";
 
 // Helper function to create a test assignment
@@ -36,7 +36,7 @@ function createTestAssignment(
 
 describe("mergeAssignments", () => {
   it("should return empty arrays when both inputs are empty", () => {
-    const result = mergeAssignments([], []);
+    const result = getUpdatedAndNewAssignments([], []);
     expect(result.newAssignments).toEqual([]);
     expect(result.updateAssignments).toEqual([]);
   });
@@ -46,7 +46,10 @@ describe("mergeAssignments", () => {
     const incomingAssignment = createTestAssignment();
     const incomingAssignments = [incomingAssignment];
 
-    const result = mergeAssignments(existingAssignments, incomingAssignments);
+    const result = getUpdatedAndNewAssignments(
+      existingAssignments,
+      incomingAssignments,
+    );
 
     expect(result.newAssignments).toHaveLength(1);
     expect(result.newAssignments[0]).toEqual(incomingAssignment);
@@ -69,7 +72,10 @@ describe("mergeAssignments", () => {
       problem.updatedAt = new Date(problem.updatedAt);
     });
 
-    const result = mergeAssignments([existingAssignment], [incomingAssignment]);
+    const result = getUpdatedAndNewAssignments(
+      [existingAssignment],
+      [incomingAssignment],
+    );
 
     expect(result.newAssignments).toHaveLength(0);
     expect(result.updateAssignments).toHaveLength(0);
@@ -86,7 +92,10 @@ describe("mergeAssignments", () => {
       "Updated Name",
     );
 
-    const result = mergeAssignments([existingAssignment], [incomingAssignment]);
+    const result = getUpdatedAndNewAssignments(
+      [existingAssignment],
+      [incomingAssignment],
+    );
 
     expect(result.newAssignments).toHaveLength(0);
     expect(result.updateAssignments).toHaveLength(1);
@@ -115,7 +124,10 @@ describe("mergeAssignments", () => {
       problem.updatedAt = new Date(problem.updatedAt);
     });
 
-    const result = mergeAssignments([existingAssignment], [incomingAssignment]);
+    const result = getUpdatedAndNewAssignments(
+      [existingAssignment],
+      [incomingAssignment],
+    );
 
     expect(result.newAssignments).toHaveLength(0);
     expect(result.updateAssignments).toHaveLength(1);
@@ -128,7 +140,7 @@ describe("mergeAssignments", () => {
     const updatedAssignment = createTestAssignment(existingId, "Updated Name");
     const newAssignment = createTestAssignment();
 
-    const result = mergeAssignments(
+    const result = getUpdatedAndNewAssignments(
       [existingAssignment],
       [updatedAssignment, newAssignment],
     );
@@ -142,7 +154,7 @@ describe("mergeAssignments", () => {
   it("should handle when incoming assignments is empty", () => {
     const existingAssignment = createTestAssignment();
 
-    const result = mergeAssignments([existingAssignment], []);
+    const result = getUpdatedAndNewAssignments([existingAssignment], []);
 
     expect(result.newAssignments).toHaveLength(0);
     expect(result.updateAssignments).toHaveLength(0);
@@ -164,10 +176,7 @@ describe("mergeAssignments", () => {
         return problem;
       }),
     };
-    console.log("existingAssignment", existingAssignment);
-    console.log("updatedAssignment", updatedAssignment);
-
-    const result = mergeAssignments(
+    const result = getUpdatedAndNewAssignments(
       [existingAssignment, existingAssignment2],
       [updatedAssignment],
     );

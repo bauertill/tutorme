@@ -4,37 +4,48 @@ import { api } from "@/trpc/react";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 
+const SYNC_INTERVAL = 5 * 1000;
+
 export function StateSyncProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const assignmentsLocal = useStore.use.assignments();
   const upsertAssignmentsLocal = useStore.use.upsertAssignments();
   const lastSyncTime = useRef<number>(Date.now());
 
-  const syncAssignments = api.assignment.syncAssignments.useMutation({
-    onSuccess: (data) => {
-      if (!data.assignmentsNotInLocal.length) {
-        console.log("Assignments in sync");
-        return;
-      }
-      upsertAssignmentsLocal(data.assignmentsNotInLocal);
-    },
-    onError: (error) => {
-      console.error(error);
-    },
-  });
+  const {
+    data: assignmentsOnServer,
+    isSuccess,
+    refetch,
+  } = api.assignment.list.useQuery();
+
+  const { mutate: syncAssignments } =
+    api.assignment.syncAssignments.useMutation({
+      onSuccess: () => {
+        lastSyncTime.current = Date.now();
+        void refetch();
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
 
   useEffect(() => {
     if (!session.data?.user.id) {
       console.log("No user id found, skipping sync");
       return;
     }
+    if (!isSuccess || !assignmentsOnServer) {
+      console.log("Assignments on server not loaded, skipping sync");
+      return;
+    }
+    upsertAssignmentsLocal(assignmentsOnServer);
     const timeSinceLastSync = Date.now() - lastSyncTime.current;
-    if (timeSinceLastSync > 60 * 1000) {
+    if (timeSinceLastSync > SYNC_INTERVAL) {
       console.log("Syncing assignments from local to server");
-      syncAssignments.mutate(assignmentsLocal);
+      syncAssignments(assignmentsLocal);
       lastSyncTime.current = Date.now();
     }
-  }, [assignmentsLocal, session.data?.user.id, syncAssignments]);
+  }, [assignmentsLocal, session.data?.user.id, isSuccess, assignmentsOnServer]);
 
   return <>{children}</>;
 }
