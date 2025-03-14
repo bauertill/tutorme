@@ -2,11 +2,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { User } from "@/core/user/types";
+import { useStore } from "@/store";
 import { User as LucideUser } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 export function UserAndSignOutButton({ user }: { user: User }) {
   const imageUrl = user.image;
+  const clearAssignments = useStore.use.clearAssignments();
 
   return (
     <div className="flex items-center gap-4 p-4">
@@ -23,7 +25,11 @@ export function UserAndSignOutButton({ user }: { user: User }) {
       <div className="flex flex-col items-start">
         <p className="text-sm font-medium">{user.name ?? "User"}</p>
         <Button
-          onClick={() => signOut()}
+          onClick={() => {
+            void signOut().then(() => {
+              clearAssignments();
+            });
+          }}
           variant="link"
           size="sm"
           className="h-auto p-0"

@@ -102,6 +102,7 @@ export const useEvaluationResult = (): {
     const newProblem: UserProblem = {
       ...activeProblem,
       evaluation: evaluationResult,
+      updatedAt: new Date(),
     };
     const isCorrect =
       evaluationResult.isComplete && !evaluationResult.hasMistakes;

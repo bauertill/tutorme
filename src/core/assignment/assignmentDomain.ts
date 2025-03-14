@@ -52,10 +52,7 @@ export async function syncAssignments(
   dbAdapter: DBAdapter,
   incomingAssignments: Assignment[],
 ): Promise<{ assignmentsNotInLocal: Assignment[] }> {
-  console.log("syncAssignments", userId);
-  console.log("incomingAssignments", incomingAssignments);
   const existingAssignments = await dbAdapter.getAssignmentsByUserId(userId);
-  console.log("existingAssignments", existingAssignments);
   const { newAssignments, updateAssignments } = getUpdatedAndNewAssignments(
     existingAssignments,
     incomingAssignments,
@@ -152,7 +149,7 @@ const mergeProblemsByUpdatedAt = (
       existingProblemsById.set(problem.id, problem);
     } else if (!_.isEqual(existingProblem, problem)) {
       const recentlyUpdatedProblem =
-        existingProblem.updatedAt > problem.updatedAt
+        new Date(existingProblem.updatedAt) > new Date(problem.updatedAt)
           ? existingProblem
           : problem;
       existingProblemsById.set(problem.id, recentlyUpdatedProblem);

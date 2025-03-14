@@ -80,6 +80,8 @@ export const createAssignmentSlice: StateCreator<
         problem.referenceSolution = referenceSolution;
       }
     }),
+  // @TODO we need to implement an "updateProblem" function that will
+  //  update the problem in the store and the updatedAt field
   setCanvasOnProblem: (
     problemId: string,
     assignmentId: string,
@@ -89,7 +91,10 @@ export const createAssignmentSlice: StateCreator<
       const problem = draft.assignments
         .find((a) => a.id === assignmentId)
         ?.problems.find((p) => p.id === problemId);
-      if (problem) problem.canvas = canvas;
+      if (problem) {
+        problem.canvas = canvas;
+        problem.updatedAt = new Date();
+      }
     }),
   setProblem: (problem: UserProblem) =>
     set((draft) => {

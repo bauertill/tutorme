@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { useStore } from "@/store";
 import { Eraser, Pencil, Redo, Sparkles, Trash, Undo } from "lucide-react";
 import { useCanvas } from "./useCanvas";
 
@@ -16,6 +17,10 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
     isEraser,
     toggleEraser,
   } = useCanvas();
+  const paths = useStore.use.paths();
+  const setCanvasOnProblem = useStore.use.setCanvasOnProblem();
+  const activeProblemId = useStore.use.activeProblemId();
+  const activeAssignmentId = useStore.use.activeAssignmentId();
   return (
     <div className="relative h-full w-full overflow-hidden">
       {canvas}
@@ -50,6 +55,11 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
             onClick={async () => {
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
+              setCanvasOnProblem(
+                activeProblemId ?? "",
+                activeAssignmentId ?? "",
+                { paths },
+              );
               onCheck(dataUrl);
             }}
           >
