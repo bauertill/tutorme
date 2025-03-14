@@ -11,7 +11,7 @@ import { Settings, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function CollapsibleSettings() {
-  const setAssignmentsLocal = useStore.use.setAssignments();
+  const clearAssignments = useStore.use.clearAssignments();
   const [isOpen, setIsOpen] = useState(false);
   const [slideProgress, setSlideProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -60,7 +60,7 @@ export function CollapsibleSettings() {
 
     // If slid to the end, clear local state
     if (progress >= 0.95) {
-      setAssignmentsLocal([]);
+      clearAssignments();
       setIsCompleted(true);
       setIsDragging(false);
     }
