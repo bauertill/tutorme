@@ -2,8 +2,9 @@ import {
   createSelectorFunctions,
   type ZustandFuncSelectors,
 } from "auto-zustand-selectors-hook";
+import superjson from "superjson";
 import { create } from "zustand";
-import { createJSONStorage, devtools, persist } from "zustand/middleware";
+import { devtools, persist, type PersistStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createAssignmentSlice, type AssignmentSlice } from "./assignment";
 import { createCanvasSlice, type CanvasSlice } from "./canvas";
@@ -16,6 +17,18 @@ export type MiddlewareList = [
 
 export type State = AssignmentSlice & CanvasSlice;
 
+const storage: PersistStorage<State> = {
+  getItem: (name) => {
+    const str = localStorage.getItem(name);
+    if (!str) return null;
+    return superjson.parse(str);
+  },
+  setItem: async (name, value) => {
+    localStorage.setItem(name, superjson.stringify(value));
+  },
+  removeItem: (name) => localStorage.removeItem(name),
+};
+
 const useStoreBase = create<State>()(
   devtools(
     persist(
@@ -25,7 +38,7 @@ const useStoreBase = create<State>()(
       })),
       {
         name: "tutormegood-store",
-        storage: createJSONStorage(() => localStorage),
+        storage,
       },
     ),
   ),
