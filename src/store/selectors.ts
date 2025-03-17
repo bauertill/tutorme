@@ -31,7 +31,7 @@ export const useProblemController = (): {
   const activeProblemId = useStore.use.activeProblemId();
   const setActiveProblem = useStore.use.setActiveProblem();
   const setCanvas = useStore.use.setCanvas();
-  const setCanvasOnProblem = useStore.use.setCanvasOnProblem();
+  const updateProblem = useStore.use.updateProblem();
   const currentPaths = useStore.use.paths();
 
   const activeAssignment = assignments.find((a) => a.id === activeAssignmentId);
@@ -45,8 +45,10 @@ export const useProblemController = (): {
   const previousProblem = activeAssignment?.problems[activeProblemIndex - 1];
 
   const storeCurrentPathsOnProblem = () =>
-    setCanvasOnProblem(activeProblemId ?? "", activeAssignmentId ?? "", {
-      paths: currentPaths,
+    updateProblem({
+      id: activeProblemId ?? "",
+      assignmentId: activeAssignmentId ?? "",
+      canvas: { paths: currentPaths },
     });
 
   const gotoNextProblem = nextProblem
@@ -87,7 +89,7 @@ export const useEvaluationResult = (): {
   ) => void;
 } => {
   const activeProblem = useActiveProblem();
-  const setProblem = useStore.use.setProblem();
+  const updateProblem = useStore.use.updateProblem();
   const evaluationResult = activeProblem?.evaluation ?? null;
   if (!activeProblem) {
     return { evaluationResult, setEvaluationResult: () => null };
@@ -108,7 +110,7 @@ export const useEvaluationResult = (): {
       evaluationResult.isComplete && !evaluationResult.hasMistakes;
     if (isCorrect) newProblem.status = "SOLVED";
     else newProblem.status = "IN_PROGRESS";
-    setProblem(newProblem);
+    updateProblem(newProblem);
   };
   return { evaluationResult, setEvaluationResult };
 };

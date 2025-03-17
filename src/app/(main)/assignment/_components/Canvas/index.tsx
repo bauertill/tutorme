@@ -18,7 +18,7 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
     toggleEraser,
   } = useCanvas();
   const paths = useStore.use.paths();
-  const setCanvasOnProblem = useStore.use.setCanvasOnProblem();
+  const updateProblem = useStore.use.updateProblem();
   const activeProblemId = useStore.use.activeProblemId();
   const activeAssignmentId = useStore.use.activeAssignmentId();
   return (
@@ -55,11 +55,11 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
             onClick={async () => {
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
-              setCanvasOnProblem(
-                activeProblemId ?? "",
-                activeAssignmentId ?? "",
-                { paths },
-              );
+              updateProblem({
+                id: activeProblemId ?? "",
+                assignmentId: activeAssignmentId ?? "",
+                canvas: { paths },
+              });
               onCheck(dataUrl);
             }}
           >

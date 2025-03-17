@@ -13,7 +13,7 @@ import ProblemController from "./Problem/ProblemController";
 export default function Exercise() {
   const activeProblem = useActiveProblem();
   const [debouncedProblem] = useDebounce(activeProblem, 5000);
-  const setReferenceSolution = useStore.use.setReferenceSolution();
+  const updateProblem = useStore.use.updateProblem();
   const { evaluationResult, setEvaluationResult } = useEvaluationResult();
 
   const { mutateAsync: createReferenceSolution } =
@@ -33,15 +33,15 @@ export default function Exercise() {
     if (debouncedProblem?.referenceSolution === null) {
       void createReferenceSolution(debouncedProblem.problem).then(
         (referenceSolution) => {
-          setReferenceSolution(
+          updateProblem({
+            id: debouncedProblem.id,
+            assignmentId: debouncedProblem.assignmentId,
             referenceSolution,
-            debouncedProblem.id,
-            debouncedProblem.assignmentId,
-          );
+          });
         },
       );
     }
-  }, [debouncedProblem, createReferenceSolution, setReferenceSolution]);
+  }, [debouncedProblem, createReferenceSolution, updateProblem]);
 
   const onCheck = (dataUrl: string) => {
     if (activeProblem) {

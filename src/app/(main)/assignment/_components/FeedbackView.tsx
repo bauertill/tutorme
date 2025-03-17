@@ -23,7 +23,7 @@ export default function FeedbackView({
   const [isOpen, setIsOpen] = useState(true);
   const [selectedText, setSelectedText] = useState("");
   const activeProblem = useActiveProblem();
-  const setProblem = useStore.use.setProblem();
+  const setProblem = useStore.use.updateProblem();
 
   const { mutate: explainHint, isPending: isExplainPending } =
     api.assignment.explainHint.useMutation({

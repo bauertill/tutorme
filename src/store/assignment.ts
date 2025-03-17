@@ -1,9 +1,5 @@
 import { mergeAssignments } from "@/core/assignment/assignmentDomain";
-import {
-  type Assignment,
-  type Canvas,
-  type UserProblem,
-} from "@/core/assignment/types";
+import { type Assignment, type UserProblem } from "@/core/assignment/types";
 import _ from "lodash";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
@@ -16,17 +12,9 @@ export interface AssignmentSlice {
   upsertAssignments: (assignments: Assignment[]) => void;
   addAssignment: (assignment: Assignment) => void;
   setActiveProblem: (problem: UserProblem) => void;
-  setReferenceSolution: (
-    referenceSolution: string,
-    problemId: string,
-    assignmentId: string,
+  updateProblem: (
+    problem: Partial<UserProblem> & { id: string; assignmentId: string },
   ) => void;
-  setCanvasOnProblem: (
-    problemId: string,
-    assignmentId: string,
-    canvas: Canvas,
-  ) => void;
-  setProblem: (problem: UserProblem) => void;
 }
 
 export const createAssignmentSlice: StateCreator<
@@ -62,43 +50,17 @@ export const createAssignmentSlice: StateCreator<
       draft.activeProblemId = problem.id;
     });
   },
-  setReferenceSolution: (
-    referenceSolution: string,
-    problemId: string,
-    assignmentId: string,
+
+  updateProblem: (
+    problem: Partial<UserProblem> & { id: string; assignmentId: string },
   ) =>
-    set((draft) => {
-      const problem = draft.assignments
-        .find((a) => a.id === assignmentId)
-        ?.problems.find((p) => p.id === problemId);
-      if (problem) {
-        problem.referenceSolution = referenceSolution;
-      }
-    }),
-  // @TODO we need to implement an "updateProblem" function that will
-  //  update the problem in the store and the updatedAt field
-  setCanvasOnProblem: (
-    problemId: string,
-    assignmentId: string,
-    canvas: Canvas,
-  ) =>
-    set((draft) => {
-      const problem = draft.assignments
-        .find((a) => a.id === assignmentId)
-        ?.problems.find((p) => p.id === problemId);
-      if (problem) {
-        problem.canvas = canvas;
-        problem.updatedAt = new Date();
-      }
-    }),
-  setProblem: (problem: UserProblem) =>
     set((draft) => {
       const assignment = draft.assignments.find(
         (a) => a.id === problem.assignmentId,
       );
       if (assignment) {
         assignment.problems = assignment.problems.map((p) =>
-          p.id === problem.id ? { ...problem, updatedAt: new Date() } : p,
+          p.id === problem.id ? { ...p, ...problem, updatedAt: new Date() } : p,
         );
       }
     }),
