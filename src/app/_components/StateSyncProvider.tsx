@@ -13,14 +13,14 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
   const pathsLocal = useStore.use.paths();
   const upsertAssignmentsLocal = useStore.use.upsertAssignments();
 
-  const { data: assignmentsOnServer, refetch } = api.assignment.list.useQuery(
+  const { data: assignmentsOnServer } = api.assignment.list.useQuery(
     session.data?.user.id ? undefined : skipToken,
   );
 
   const { mutate: syncAssignments } =
     api.assignment.syncAssignments.useMutation({
       onSuccess: () => {
-        void refetch();
+        console.log("syncAssignments success");
       },
       onError: (error) => {
         console.error(error);
