@@ -10,13 +10,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useStore } from "@/store";
+import { api } from "@/trpc/react";
+import { skipToken } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { useEffect } from "react";
 import { CheckoutWithStripe } from "./CheckoutWithStripe";
 
 export function UsageLimitOverlay() {
   const { status } = useSession();
   const { isUsageLimitReached, setUsageLimitReached } = useStore();
   const isSignedIn = status === "authenticated";
+  const { data: isSubscribed } = api.subscription.isSubscribed.useQuery(
+    isSignedIn ? undefined : skipToken,
+  );
+
+  useEffect(() => {
+    if (isSubscribed) {
+      setUsageLimitReached(false);
+    }
+  }, [isSubscribed, setUsageLimitReached]);
 
   const title = isSignedIn
     ? "🎉 You have been promoted to customer! 🎉"

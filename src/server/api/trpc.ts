@@ -14,6 +14,7 @@ import { ZodError } from "zod";
 import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { llmAdapter } from "@/core/adapters/llmAdapter";
 import { ocrAdapter } from "@/core/adapters/ocrAdapter";
+import { paymentAdapter } from "@/core/adapters/paymentAdapter";
 import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
 import { renderAsyAdapter } from "@/core/adapters/renderAsyAdapter";
 import { isValidFreeTierUsage } from "@/core/appUsage/appUsageDomain";
@@ -47,6 +48,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     renderAsyAdapter,
     ocrAdapter,
     clientIp,
+    paymentAdapter,
     ...opts,
   };
 };

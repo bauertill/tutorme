@@ -41,6 +41,24 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  status               SubscriptionStatus @default(INACTIVE)
+  cancelAt             DateTime?
+  stripeSubscriptionId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -55,6 +73,7 @@ model User {
   sessions     Session[]
   assignments  Assignment[]
   userProblems UserProblem[]
+  subscription Subscription?
 }
 
 model VerificationToken {

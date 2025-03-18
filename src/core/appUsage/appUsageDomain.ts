@@ -1,4 +1,5 @@
 import { type DBAdapter } from "../adapters/dbAdapter";
+import * as subscription from "../subscription/subscriptionDomain";
 
 const MAX_FREE_CREDITS = 3;
 const MAX_FREE_CREDITS_SIGNED_IN = 10;
@@ -9,6 +10,11 @@ export async function isValidFreeTierUsage(
   ipAddress: string,
 ): Promise<boolean> {
   const isSignedIn = !!userId;
+
+  const isSubscribed =
+    isSignedIn && (await subscription.isSubscribed(userId, dbAdapter));
+  if (isSubscribed) return true;
+
   const fingerprint = isSignedIn ? userId : ipAddress;
 
   const appUsage = await dbAdapter.getAppUsageByFingerprint(fingerprint);
