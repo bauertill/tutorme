@@ -16,7 +16,7 @@ export class PaymentAdapter {
       customer_email: userEmail,
       mode: "subscription",
       line_items: [{ price: env.STRIPE_SUBSCRIPTION_PRICE_ID, quantity: 1 }],
-      success_url: `${env.NEXT_PUBLIC_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${env.NEXT_PUBLIC_URL}/api/payment/callback?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${env.NEXT_PUBLIC_URL}/`,
     });
   }
