@@ -26,7 +26,7 @@ export const assignmentRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return await createAssignmentFromUpload(
         input,
-        ctx.session?.user.id,
+        ctx.session?.user?.id,
         ctx.dbAdapter,
         ctx.llmAdapter,
       );
@@ -36,7 +36,7 @@ export const assignmentRouter = createTRPCRouter({
     return await getRandomProblem(ctx.dbAdapter);
   }),
 
-  submitSolution: publicProcedure // TODO: think about auth
+  submitSolution: publicProcedure
     .input(
       z.object({
         exerciseId: z.string().optional(),

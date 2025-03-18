@@ -14,6 +14,7 @@ import {
   type UserProblem as UserProblemDB,
 } from "@prisma/client";
 import assert from "assert";
+import { type AppUsage } from "../appUsage/types";
 import {
   Canvas,
   EvaluationResult,
@@ -267,6 +268,41 @@ export class DBAdapter {
       ...assignment,
       problems: assignment.problems.map((problem) => parseProblem(problem)),
     }));
+  }
+
+  async getAppUsageByFingerprint(
+    fingerprint: string,
+  ): Promise<AppUsage | null> {
+    return await this.db.appUsage.findUnique({
+      where: { fingerprint },
+    });
+  }
+
+  async createAppUsage(fingerprint: string): Promise<AppUsage> {
+    return await this.db.appUsage.create({
+      data: {
+        fingerprint,
+        creditsUsed: 0,
+      },
+    });
+  }
+
+  async updateAppUsageLastAccessed(id: string): Promise<AppUsage> {
+    return await this.db.appUsage.update({
+      where: { id },
+      data: { updatedAt: new Date() },
+    });
+  }
+
+  async incrementAppUsageProblemCount(id: string): Promise<AppUsage> {
+    return await this.db.appUsage.update({
+      where: { id },
+      data: {
+        creditsUsed: {
+          increment: 1,
+        },
+      },
+    });
   }
 }
 

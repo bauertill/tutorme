@@ -16,6 +16,7 @@ import { llmAdapter } from "@/core/adapters/llmAdapter";
 import { ocrAdapter } from "@/core/adapters/ocrAdapter";
 import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
 import { renderAsyAdapter } from "@/core/adapters/renderAsyAdapter";
+import { isValidFreeTierUsage } from "@/core/appUsage/appUsageDomain";
 import { ADMINS, auth } from "@/server/auth";
 /**
  * 1. CONTEXT
@@ -32,6 +33,12 @@ import { ADMINS, auth } from "@/server/auth";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth();
 
+  // Get client IP address for anonymous user tracking
+  const clientIp =
+    opts.headers.get("x-forwarded-for") ??
+    opts.headers.get("x-real-ip") ??
+    "unknown";
+
   return {
     session,
     dbAdapter,
@@ -39,6 +46,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     pubsubAdapter,
     renderAsyAdapter,
     ocrAdapter,
+    clientIp,
     ...opts,
   };
 };
@@ -122,6 +130,32 @@ const loggingMiddleware = t.middleware(async (opts) => {
 });
 
 /**
+ * Middleware to handle application usage tracking for free-tier users
+ * Checks if the user has exceeded their free tier usage limit
+ */
+const appUsageMiddleware = t.middleware(async ({ ctx, next }) => {
+  const isValidUsage = await isValidFreeTierUsage(
+    ctx.dbAdapter,
+    ctx.session?.user?.id,
+    ctx.clientIp,
+  );
+
+  if (!isValidUsage) {
+    const message = ctx.session?.user?.id
+      ? "You've reached the limit of free usage. Check out our pricing plans to continue."
+      : "You've reached the limit of free usage. Please sign in to continue.";
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message,
+    });
+  }
+
+  return next({
+    ctx,
+  });
+});
+
+/**
  * Public (unauthenticated) procedure
  *
  * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
@@ -129,6 +163,7 @@ const loggingMiddleware = t.middleware(async (opts) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure
+  .use(appUsageMiddleware)
   .use(timingMiddleware)
   .use(loggingMiddleware);
 
@@ -143,6 +178,7 @@ export const publicProcedure = t.procedure
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(loggingMiddleware)
+  .use(appUsageMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });

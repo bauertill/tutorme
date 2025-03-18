@@ -137,12 +137,11 @@ model UserProblem {
 }
 
 model AppUsage {
-  id             String   @id @default(cuid())
-  fingerprint    String   @unique // IP address or other fingerprinting method
-  creditsUsed    Int      @default(0)
-  lastAccessedAt DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(cuid())
+  fingerprint       String   @unique // IP address or other fingerprinting method
+  problemsCompleted Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([fingerprint])
 }
