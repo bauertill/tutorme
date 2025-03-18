@@ -28,7 +28,7 @@ export function UploadProblems() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const addAssignment = useStore.use.addAssignment();
-
+  const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const { mutate: createAssignmentFromUpload } =
     api.assignment.createFromUpload.useMutation({
       onSuccess: (assignment) => {
@@ -40,7 +40,11 @@ export function UploadProblems() {
       },
       onError: (error) => {
         setUploadState("error");
-        toast.error(error.message);
+        if (error.message === "Free tier limit reached") {
+          setUsageLimitReached(true);
+        } else {
+          toast.error(error.message);
+        }
       },
     });
 

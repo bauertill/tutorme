@@ -1,13 +1,16 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useStore } from "@/store";
 import { signIn } from "next-auth/react";
 
 export function SignInButton() {
+  const setUsageLimitReached = useStore.use.setUsageLimitReached();
   return (
     <Button
       onClick={(e) => {
         e.preventDefault();
+        setUsageLimitReached(false);
         void signIn("google");
       }}
       variant="ghost"

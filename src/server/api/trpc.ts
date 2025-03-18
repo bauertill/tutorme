@@ -141,9 +141,7 @@ const appUsageMiddleware = t.middleware(async ({ ctx, next }) => {
   );
 
   if (!isValidUsage) {
-    const message = ctx.session?.user?.id
-      ? "You've reached the limit of free usage. Check out our pricing plans to continue."
-      : "You've reached the limit of free usage. Please sign in to continue.";
+    const message = "Free tier limit reached";
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message,

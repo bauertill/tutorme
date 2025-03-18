@@ -15,7 +15,7 @@ export default function Exercise() {
   const [debouncedProblem] = useDebounce(activeProblem, 5000);
   const updateProblem = useStore.use.updateProblem();
   const { evaluationResult, setEvaluationResult } = useEvaluationResult();
-
+  const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const { mutateAsync: createReferenceSolution } =
     api.assignment.createReferenceSolution.useMutation();
 
@@ -25,7 +25,11 @@ export default function Exercise() {
         setEvaluationResult(activeProblem?.id ?? "", data);
       },
       onError: (error) => {
-        toast.error(`Error submitting solution: ${error.message}`);
+        if (error.message === "Free tier limit reached") {
+          setUsageLimitReached(true);
+        } else {
+          toast.error(`Error submitting solution: ${error.message}`);
+        }
       },
     });
 

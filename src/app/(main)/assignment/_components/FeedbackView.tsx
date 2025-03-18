@@ -24,7 +24,7 @@ export default function FeedbackView({
   const [selectedText, setSelectedText] = useState("");
   const activeProblem = useActiveProblem();
   const setProblem = useStore.use.updateProblem();
-
+  const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const { mutate: explainHint, isPending: isExplainPending } =
     api.assignment.explainHint.useMutation({
       onSuccess: (data) => {
@@ -32,7 +32,11 @@ export default function FeedbackView({
         setProblem(data);
       },
       onError: (error) => {
-        toast.error(`Error explaining hint: ${error.message}`);
+        if (error.message === "Free tier limit reached") {
+          setUsageLimitReached(true);
+        } else {
+          toast.error(`Error explaining hint: ${error.message}`);
+        }
       },
     });
 
