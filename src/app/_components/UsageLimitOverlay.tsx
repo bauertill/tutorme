@@ -1,7 +1,6 @@
 "use client";
 
 import { SignInButton } from "@/app/(auth)/login/_components/SignInButton";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { useStore } from "@/store";
 import { useSession } from "next-auth/react";
+import { CheckoutWithStripe } from "./CheckoutWithStripe";
 
 export function UsageLimitOverlay() {
   const { status } = useSession();
@@ -42,7 +42,7 @@ export function UsageLimitOverlay() {
         </CardContent>
         <CardFooter className="flex justify-center">
           {isSignedIn ? (
-            <Button>Accept promotion</Button>
+            <CheckoutWithStripe />
           ) : (
             <SignInButton
               className="mx-auto flex justify-center"
