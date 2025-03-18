@@ -163,9 +163,10 @@ const appUsageMiddleware = t.middleware(async ({ ctx, next }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure
-  .use(appUsageMiddleware)
   .use(timingMiddleware)
   .use(loggingMiddleware);
+
+export const limitedPublicProcedure = publicProcedure.use(appUsageMiddleware);
 
 /**
  * Protected (authenticated) procedure
@@ -178,7 +179,6 @@ export const publicProcedure = t.procedure
 export const protectedProcedure = t.procedure
   .use(timingMiddleware)
   .use(loggingMiddleware)
-  .use(appUsageMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session || !ctx.session.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -190,6 +190,9 @@ export const protectedProcedure = t.procedure
       },
     });
   });
+
+export const limitedProtectedProcedure =
+  protectedProcedure.use(appUsageMiddleware);
 
 export const protectedAdminProcedure = t.procedure
   .use(timingMiddleware)

@@ -11,6 +11,7 @@ import {
 } from "@/core/exercise/exerciseDomain";
 import {
   createTRPCRouter,
+  limitedPublicProcedure,
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
@@ -21,7 +22,7 @@ export const assignmentRouter = createTRPCRouter({
     return await ctx.dbAdapter.getAssignmentsByUserId(ctx.session.user.id);
   }),
 
-  createFromUpload: publicProcedure
+  createFromUpload: limitedPublicProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
       return await createAssignmentFromUpload(
@@ -36,7 +37,7 @@ export const assignmentRouter = createTRPCRouter({
     return await getRandomProblem(ctx.dbAdapter);
   }),
 
-  submitSolution: publicProcedure
+  submitSolution: limitedPublicProcedure
     .input(
       z.object({
         exerciseId: z.string().optional(),
@@ -54,13 +55,13 @@ export const assignmentRouter = createTRPCRouter({
       );
     }),
 
-  createReferenceSolution: publicProcedure
+  createReferenceSolution: limitedPublicProcedure
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
       return await createReferenceSolution(input, ctx.llmAdapter);
     }),
 
-  explainHint: publicProcedure
+  explainHint: limitedPublicProcedure
     .input(z.object({ userProblem: UserProblem, highlightedText: z.string() }))
     .mutation(async ({ input, ctx }) => {
       return await explainHint(
