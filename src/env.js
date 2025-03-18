@@ -84,3 +84,5 @@ export const env = createEnv({
    */
   emptyStringAsUndefined: true,
 });
+
+console.log("NEXT_PUBLIC_URL", env.NEXT_PUBLIC_URL);
