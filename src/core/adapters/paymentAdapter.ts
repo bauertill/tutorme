@@ -15,7 +15,7 @@ export class PaymentAdapter {
       billing_address_collection: "auto",
       customer_email: userEmail,
       mode: "subscription",
-      line_items: [{ price: "price_1R40c4QAcuSuq8KzJrxAzMGQ", quantity: 1 }],
+      line_items: [{ price: env.STRIPE_SUBSCRIPTION_PRICE_ID, quantity: 1 }],
       success_url: `${env.NEXT_PUBLIC_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${env.NEXT_PUBLIC_URL}/`,
     });
