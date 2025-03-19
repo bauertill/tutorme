@@ -32,12 +32,12 @@ export function UsageLimitOverlay() {
 
   const title = isSignedIn
     ? "🎉 You have been promoted to customer! 🎉"
-    : "Please sign in to continue.";
+    : "You have used up your free tries";
 
   const description = isSignedIn
     ? `You've reached the limit of free usage.
     Upgrade now to keep using the app without any limitations.`
-    : "You've reached the limit of anonymous free usage. Please sign in to continue.";
+    : "Get more free tries now by signing in.";
 
   if (!isUsageLimitReached) return null;
   return (
