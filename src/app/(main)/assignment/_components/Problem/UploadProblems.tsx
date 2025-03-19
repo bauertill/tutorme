@@ -16,7 +16,7 @@ import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadToBlob } from "./uploadToBlob";
 
-export function UploadProblems() {
+export function UploadProblems(props: React.ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -95,7 +95,7 @@ export function UploadProblems() {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start">
+        <Button variant="ghost" {...props}>
           <CameraIcon className="h-5 w-5" />
           Upload Assignment
         </Button>
@@ -163,7 +163,7 @@ export function UploadProblems() {
           <Button
             onClick={handleUpload}
             disabled={!selectedFile || uploadState === "uploading"}
-            className="w-full"
+            {...props}
           >
             {uploadState === "uploading" ? "Uploading..." : "Upload Problem"}
           </Button>

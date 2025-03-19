@@ -89,7 +89,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <UploadProblems />
+            <UploadProblems className="w-full" />
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>

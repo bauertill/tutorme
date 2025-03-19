@@ -7,11 +7,17 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { useStore } from "@/store";
 import { useActiveAssignment } from "@/store/selectors";
 import Exercise from "./_components/Exercise";
+import Onboarding from "./_components/Onboarding";
 
 export default function AssignmentPage() {
   const activeAssignment = useActiveAssignment();
+  const assignments = useStore.use.assignments();
+  if (assignments.length === 0) {
+    return <Onboarding />;
+  }
   return (
     <SidebarProvider>
       <AppSidebar />
