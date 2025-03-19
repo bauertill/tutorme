@@ -145,3 +145,53 @@ export function preventDefaults(svg: SVGSVGElement) {
     { passive: false },
   );
 }
+
+// Helper function to calculate distance between two points
+const distance = (p1: Point, p2: Point): number => {
+  const dx = p1.x - p2.x;
+  const dy = p1.y - p2.y;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+export const isPointCloseToPath = (
+  point: Point,
+  path: Path,
+  radius: number,
+): boolean => {
+  if (path.length < 2) return false;
+
+  // Check if point is close to any segment of the path
+  for (let i = 1; i < path.length; i++) {
+    const p1 = path[i - 1];
+    const p2 = path[i];
+
+    // Skip if either point is undefined (shouldn't happen, but to satisfy TypeScript)
+    if (!p1 || !p2) continue;
+
+    // Calculate distance from point to line segment
+    const len = distance(p1, p2);
+    if (len === 0) continue;
+
+    // Calculate projection of point onto line segment
+    const t = Math.max(
+      0,
+      Math.min(
+        1,
+        ((point.x - p1.x) * (p2.x - p1.x) + (point.y - p1.y) * (p2.y - p1.y)) /
+          (len * len),
+      ),
+    );
+
+    const proj = {
+      x: p1.x + t * (p2.x - p1.x),
+      y: p1.y + t * (p2.y - p1.y),
+    };
+
+    // Check if distance from point to projection is less than radius
+    if (distance(point, proj) <= radius) {
+      return true;
+    }
+  }
+
+  return false;
+};

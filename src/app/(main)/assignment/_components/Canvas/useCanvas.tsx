@@ -4,6 +4,7 @@ import { type Path, type Point } from "@/store/canvas";
 import assert from "assert";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  isPointCloseToPath,
   pathToSVGPathData,
   preventDefaults,
   screenToSVGCoordinates,
@@ -26,14 +27,13 @@ export function useCanvas() {
   const undoStack = useStore.use.undoStack();
   const redoStack = useStore.use.redoStack();
   const addPath = useStore.use.addPath();
+  const removePathsAtIndexes = useStore.use.removePathsAtIndexes();
   const undo = useStore.use.undo();
   const redo = useStore.use.redo();
   const clear = useStore.use.clear();
-  const isEraser = useStore.use.isEraser();
-  const toggleEraser = useStore.use.toggleEraser();
-  const eraseAtPoint = useStore.use.eraseAtPoint();
 
   const [currentPath, setCurrentPath] = useState<Path>();
+  const [erasedPaths, setErasedPaths] = useState<Path[]>([]);
   const startDrawing = (point: Point) => setCurrentPath([point]);
   const addPoint = (point: Point) => {
     if (currentPath) setCurrentPath([...currentPath, point]);
@@ -44,8 +44,28 @@ export function useCanvas() {
       setCurrentPath(undefined);
     }
   };
+  const startErasing = (point: Point) => {
+    setIsEraserActive(true);
+    handleEraseAtPoint(point);
+    setErasedPaths([]);
+  };
+  const stopErasing = () => {
+    if (isEraserActive) {
+      setIsEraserActive(false);
+      removePathsAtIndexes(erasedPaths.map((path) => paths.indexOf(path)));
+      setErasedPaths([]);
+    }
+  };
   const cancelDrawing = () => {
     if (currentPath) setCurrentPath(undefined);
+  };
+  const [isEraser, setIsEraser] = useState(false);
+  const toggleEraser = () => setIsEraser(!isEraser);
+  const eraseAtPoint = (point: Point, radius: number) => {
+    setErasedPaths((erasedPaths) => [
+      ...erasedPaths,
+      ...paths.filter((path) => isPointCloseToPath(point, path, radius)),
+    ]);
   };
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -135,8 +155,7 @@ export function useCanvas() {
 
     if (isEraser) {
       // Start erasing
-      setIsEraserActive(true);
-      handleEraseAtPoint(point);
+      startErasing(point);
     } else {
       // Normal drawing
       startDrawing(point);
@@ -158,7 +177,7 @@ export function useCanvas() {
 
   const handleMouseLeave = () => {
     if (isEraser) {
-      setIsEraserActive(false);
+      stopErasing();
     } else {
       stopDrawing();
     }
@@ -166,7 +185,7 @@ export function useCanvas() {
 
   const handleMouseUp = () => {
     if (isEraser) {
-      setIsEraserActive(false);
+      stopErasing();
     } else {
       stopDrawing();
     }
@@ -189,8 +208,7 @@ export function useCanvas() {
 
     if (isEraser) {
       // Start erasing
-      setIsEraserActive(true);
-      handleEraseAtPoint(point);
+      startErasing(point);
     } else {
       // Normal drawing
       startDrawing(point);
@@ -229,7 +247,7 @@ export function useCanvas() {
 
   const handleTouchEnd = () => {
     if (isEraser) {
-      setIsEraserActive(false);
+      stopErasing();
     } else {
       stopDrawing();
     }
@@ -239,8 +257,9 @@ export function useCanvas() {
   const cursorStyle = isEraser ? "cursor-none" : "cursor-pencil";
 
   const pathsToDisplay = useMemo(() => {
-    return currentPath ? [...paths, currentPath] : paths;
-  }, [paths, currentPath]);
+    const pathsToDisplay = currentPath ? [...paths, currentPath] : paths;
+    return pathsToDisplay.filter((path) => !erasedPaths.includes(path));
+  }, [paths, currentPath, erasedPaths]);
 
   const canvas = (
     <div ref={containerRef} className="relative h-full w-full overflow-auto">
