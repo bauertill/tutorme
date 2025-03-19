@@ -13,12 +13,13 @@ import {
 } from "@/components/ui/sidebar";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
+import { GraduationCap } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
-import { SignInButton } from "../(auth)/login/_components/SignInButton";
 import { UploadProblems } from "../(main)/assignment/_components/Problem/UploadProblems";
 import { CollapsibleAssignment } from "./CollapsibleAssignment";
 import { CollapsibleSettings } from "./CollapsibleSettings";
+import { SignInButton } from "./SignInButton";
 import { UserAndSignOutButton } from "./UserAndSignOutButton";
 
 export function AppSidebar() {
@@ -77,19 +78,17 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-border bg-background">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">T</span>
+        <div className="flex items-center gap-2 px-2 py-3 font-medium">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <GraduationCap className="size-4" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold">Tutor me good</span>
-          </div>
+          Tutor Me Good
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <UploadProblems className="w-full" />
+            <UploadProblems className="w-full justify-start" />
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
@@ -117,9 +116,11 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="flex">
         {session.data?.user ? (
-          <UserAndSignOutButton user={session.data.user} />
+          <div className="px-2">
+            <UserAndSignOutButton user={session.data.user} />
+          </div>
         ) : (
-          <SignInButton />
+          <SignInButton variant="ghost" className="justify-start" />
         )}
         <CollapsibleSettings />
       </SidebarFooter>

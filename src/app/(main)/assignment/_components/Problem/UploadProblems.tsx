@@ -132,12 +132,14 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 variant="outline"
+                disabled={uploadState === "uploading"}
               >
                 <ImageIcon className="h-5 w-5" />
               </Button>
               <Button
                 onClick={() => cameraInputRef.current?.click()}
                 variant="outline"
+                disabled={uploadState === "uploading"}
               >
                 <CameraIcon className="h-5 w-5" />
               </Button>
