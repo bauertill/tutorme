@@ -15,7 +15,7 @@ import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
 import { GraduationCap } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { UploadProblems } from "../(main)/assignment/_components/Problem/UploadProblems";
 import { CollapsibleAssignment } from "./CollapsibleAssignment";
 import { CollapsibleSettings } from "./CollapsibleSettings";
@@ -26,11 +26,20 @@ export function AppSidebar() {
   const session = useSession();
   const assignments = useStore.use.assignments();
   const activeProblem = useActiveProblem();
+  const activeAssignmentId = useStore.use.activeAssignmentId();
   const { setActiveProblemWithCanvas } = useProblemController();
   const [openAssignments, setOpenAssignments] = useState<Set<string>>(
     new Set(),
   );
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (activeAssignmentId) {
+      setOpenAssignments(
+        (assignmentIds) => new Set([...assignmentIds, activeAssignmentId]),
+      );
+    }
+  }, [activeAssignmentId]);
 
   const toggleAssignment = (assignmentId: string) => {
     const newOpenAssignments = new Set(openAssignments);
@@ -85,7 +94,7 @@ export function AppSidebar() {
           Tutor Me Good
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
           <SidebarGroupContent>
             <UploadProblems className="w-full justify-start" />

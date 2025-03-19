@@ -160,6 +160,14 @@ export class DBAdapter {
     return problem;
   }
 
+  async getProblems(level: string, limit: number): Promise<Problem[]> {
+    return this.db.problem.findMany({
+      where: { level },
+      take: limit,
+      orderBy: { createdAt: "asc" },
+    });
+  }
+
   async getProblemUploadFiles(): Promise<ProblemUpload[]> {
     return this.db.problemUpload.findMany();
   }

@@ -1,5 +1,6 @@
 import {
   createAssignmentFromUpload,
+  getExampleAssignment,
   syncAssignments,
 } from "@/core/assignment/assignmentDomain";
 import { Assignment, UserProblem } from "@/core/assignment/types";
@@ -76,4 +77,8 @@ export const assignmentRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return await syncAssignments(ctx.session.user.id, ctx.dbAdapter, input);
     }),
+
+  getExampleAssignment: publicProcedure.query(async ({ ctx }) => {
+    return await getExampleAssignment(ctx.dbAdapter);
+  }),
 });

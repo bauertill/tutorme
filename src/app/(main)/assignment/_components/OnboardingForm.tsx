@@ -2,7 +2,7 @@ import { SignInButton } from "@/app/_components/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/UserAndSignOutButton";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
-import RandomProblemButton from "./Problem/RandomProblemButton";
+import ExampleProblemButton from "./Problem/ExampleProblemButton";
 import { UploadProblems } from "./Problem/UploadProblems";
 export function OnboardingForm({
   className,
@@ -24,7 +24,7 @@ export function OnboardingForm({
         </p>
       </div>
       <div className="flex flex-col items-center justify-center gap-6">
-        <RandomProblemButton variant="default" className="w-full" />
+        <ExampleProblemButton variant="default" className="w-full" />
         <UploadProblems variant="outline" className="w-full" />
       </div>
       <div className="grid gap-6">
