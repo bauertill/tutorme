@@ -25,7 +25,7 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
     <div className="relative h-full w-full overflow-hidden">
       {canvas}
 
-      <div className="absolute right-4 top-4 z-10 flex space-x-2">
+      <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
         <Button
           variant={isEraser ? "default" : "outline"}
           onClick={toggleEraser}
@@ -37,37 +37,32 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
             <Eraser className="h-4 w-4" />
           )}
         </Button>
-        {!isEmpty && (
-          <Button variant="outline" onClick={clear}>
-            <Trash className="h-4 w-4" />
-          </Button>
-        )}
+        <Button variant="outline" onClick={clear} disabled={isEmpty}>
+          <Trash className="h-4 w-4" />
+        </Button>
         <Button variant="outline" onClick={undo} disabled={!canUndo}>
           <Undo className="h-4 w-4" />
         </Button>
         <Button variant="outline" onClick={redo} disabled={!canRedo}>
           <Redo className="h-4 w-4" />
         </Button>
+        <Button
+          onClick={async () => {
+            const dataUrl = await getDataUrl();
+            if (!dataUrl) return;
+            updateProblem({
+              id: activeProblemId ?? "",
+              assignmentId: activeAssignmentId ?? "",
+              canvas: { paths },
+            });
+            onCheck(dataUrl);
+          }}
+          disabled={isEmpty}
+        >
+          <Sparkles className="h-4 w-4" />
+          Check
+        </Button>
       </div>
-      {!isEmpty && (
-        <div className="absolute bottom-4 right-4 z-10 flex space-x-2">
-          <Button
-            onClick={async () => {
-              const dataUrl = await getDataUrl();
-              if (!dataUrl) return;
-              updateProblem({
-                id: activeProblemId ?? "",
-                assignmentId: activeAssignmentId ?? "",
-                canvas: { paths },
-              });
-              onCheck(dataUrl);
-            }}
-          >
-            <Sparkles className="h-4 w-4" />
-            Check
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
