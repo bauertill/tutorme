@@ -1,4 +1,5 @@
 "use client";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { type Path, type Point } from "@/store/canvas";
 import assert from "assert";
@@ -262,11 +263,18 @@ export function useCanvas() {
   }, [paths, currentPath, erasedPaths]);
 
   const canvas = (
-    <div ref={containerRef} className="relative h-full w-full overflow-auto">
+    <div
+      ref={containerRef}
+      className="group relative h-full w-full overflow-auto"
+    >
       {isEraser && (
         <div
           ref={eraserRef}
-          className={`pointer-events-none fixed z-50 rounded-full border-2 border-accent-foreground bg-background opacity-70 ${isEraserActive ? "border-destructive" : ""}`}
+          className={cn(
+            "pointer-events-none fixed z-50 rounded-full border-2 border-accent-foreground bg-background opacity-70",
+            "hidden group-hover:block",
+            isEraserActive && "border-destructive",
+          )}
           style={{
             width: `${ERASER_RADIUS * 2}px`,
             height: `${ERASER_RADIUS * 2}px`,
