@@ -19,7 +19,7 @@ export default function ProblemController() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>To get started, upload your own problems</CardTitle>
           <div className="flex flex-row gap-2">
-            <UploadProblems />
+            <UploadProblems className="w-full" />
           </div>
         </CardHeader>
       </Card>

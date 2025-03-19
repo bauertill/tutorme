@@ -56,7 +56,7 @@ model Subscription {
   updatedAt DateTime @updatedAt
 
   userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -125,7 +125,7 @@ model Assignment {
   updatedAt DateTime @updatedAt
 
   userId   String
-  user     User          @relation(fields: [userId], references: [id])
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   problems UserProblem[]
 }
 
@@ -147,10 +147,10 @@ model UserProblem {
   createdAt         DateTime          @default(now())
 
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   assignmentId String
-  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

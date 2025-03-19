@@ -15,7 +15,7 @@ export function CheckoutWithStripe() {
   };
   return (
     <Button onClick={onClick} disabled={isPending}>
-      Checkout
+      Upgrade Now
       {isPending && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
     </Button>
   );

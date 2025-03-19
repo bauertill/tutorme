@@ -14,13 +14,14 @@ export function UserAndSignOutButton({ user }: { user: User }) {
   const { data: subscription } = api.subscription.getSubscription.useQuery();
   const { mutateAsync: createPortalUrl } =
     api.subscription.createPortalUrl.useMutation();
-  const onClick = async () => {
+  const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     const url = await createPortalUrl();
     redirect(url);
   };
 
   return (
-    <div className="flex items-center gap-4 p-4">
+    <div className="flex items-center gap-4">
       <Avatar>
         <AvatarImage
           src={imageUrl ?? undefined}
@@ -44,7 +45,8 @@ export function UserAndSignOutButton({ user }: { user: User }) {
           </Button>
         )}
         <Button
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
             void signOut().then(() => {
               clearAssignments();
             });

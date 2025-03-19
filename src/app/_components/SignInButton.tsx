@@ -1,17 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { signIn } from "next-auth/react";
 
-export function SignInButton({
-  className,
-  variant = "ghost",
-}: {
-  className?: string;
-  variant?: "ghost" | "default" | "outline" | "secondary";
-}) {
+export function SignInButton(props: React.ComponentProps<typeof Button>) {
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   return (
     <Button
@@ -20,8 +13,7 @@ export function SignInButton({
         setUsageLimitReached(false);
         void signIn("google");
       }}
-      variant={variant}
-      className={cn("flex w-full justify-start gap-2", className)}
+      {...props}
     >
       <svg className="h-5 w-5" viewBox="0 0 24 24">
         <path

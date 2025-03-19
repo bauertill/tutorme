@@ -157,3 +157,29 @@ const mergeProblemsByUpdatedAt = (
   }
   return Array.from(existingProblemsById.values());
 };
+
+export async function getExampleAssignment(
+  dbAdapter: DBAdapter,
+): Promise<Assignment> {
+  const LIMIT = 25;
+  const problems = await dbAdapter.getProblems("Level 1", LIMIT);
+  const assignmentId = uuidv4();
+  const assignment: Assignment = {
+    id: assignmentId,
+    name: "Example Assignment",
+    problems: problems.map((problem) => ({
+      id: uuidv4(),
+      assignmentId,
+      status: "INITIAL",
+      problem: problem.problem,
+      referenceSolution: null,
+      canvas: { paths: [] },
+      evaluation: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  return assignment;
+}

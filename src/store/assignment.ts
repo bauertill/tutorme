@@ -43,6 +43,8 @@ export const createAssignmentSlice: StateCreator<
   addAssignment: (assignment: Assignment) =>
     set((draft) => {
       draft.assignments = [...draft.assignments, assignment];
+      draft.activeAssignmentId = assignment.id;
+      draft.activeProblemId = assignment.problems[0]?.id ?? null;
     }),
   setActiveProblem: (problem: UserProblem) => {
     set((draft) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton } from "@/app/(auth)/login/_components/SignInButton";
+import { SignInButton } from "@/app/_components/SignInButton";
 import {
   Card,
   CardContent,
@@ -35,20 +35,19 @@ export function UsageLimitOverlay() {
     : "Please sign in to continue.";
 
   const description = isSignedIn
-    ? `Thanks to your hard work and dedication you are no longer a free tier user. 
-    You can now use the app without any limitations forever. 
-    Simply follow the link below to accept the promotion.`
+    ? `You've reached the limit of free usage.
+    Upgrade now to keep using the app without any limitations.`
     : "You've reached the limit of anonymous free usage. Please sign in to continue.";
 
   if (!isUsageLimitReached) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <Card className="mx-4 max-w-md shadow-lg">
+      <Card className="max-w-xl space-y-2 shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">{title}</CardTitle>
+          <CardTitle className="text-2xl">{title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <CardDescription className="text-center text-base">
+          <CardDescription className="text-justify text-base">
             {description}
           </CardDescription>
         </CardContent>
