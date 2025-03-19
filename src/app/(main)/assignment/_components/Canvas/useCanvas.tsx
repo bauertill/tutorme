@@ -1,5 +1,6 @@
 "use client";
 import { useStore } from "@/store";
+import { type Path, type Point } from "@/store/canvas";
 import assert from "assert";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -21,21 +22,31 @@ export function useCanvas() {
     return svgRef.current;
   };
 
-  // Use Zustand store instead of local reducer
-  const currentPath = useStore.use.currentPath();
   const paths = useStore.use.paths();
   const undoStack = useStore.use.undoStack();
   const redoStack = useStore.use.redoStack();
-  const startDrawing = useStore.use.startDrawing();
-  const addPoint = useStore.use.addPoint();
-  const stopDrawing = useStore.use.stopDrawing();
-  const cancelDrawing = useStore.use.cancelDrawing();
+  const addPath = useStore.use.addPath();
   const undo = useStore.use.undo();
   const redo = useStore.use.redo();
   const clear = useStore.use.clear();
   const isEraser = useStore.use.isEraser();
   const toggleEraser = useStore.use.toggleEraser();
   const eraseAtPoint = useStore.use.eraseAtPoint();
+
+  const [currentPath, setCurrentPath] = useState<Path>();
+  const startDrawing = (point: Point) => setCurrentPath([point]);
+  const addPoint = (point: Point) => {
+    if (currentPath) setCurrentPath([...currentPath, point]);
+  };
+  const stopDrawing = () => {
+    if (currentPath) {
+      addPath(currentPath);
+      setCurrentPath(undefined);
+    }
+  };
+  const cancelDrawing = () => {
+    if (currentPath) setCurrentPath(undefined);
+  };
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isEraserActive, setIsEraserActive] = useState(false);
@@ -227,6 +238,10 @@ export function useCanvas() {
   // Define cursor style based on mode
   const cursorStyle = isEraser ? "cursor-none" : "cursor-pencil";
 
+  const pathsToDisplay = useMemo(() => {
+    return currentPath ? [...paths, currentPath] : paths;
+  }, [paths, currentPath]);
+
   const canvas = (
     <div ref={containerRef} className="relative h-full w-full overflow-auto">
       {isEraser && (
@@ -260,7 +275,7 @@ export function useCanvas() {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {[...paths, currentPath].map((points, index) =>
+        {pathsToDisplay.map((points, index) =>
           points.length > 1 ? (
             <path
               key={index}

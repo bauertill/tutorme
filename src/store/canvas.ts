@@ -11,16 +11,12 @@ export type Path = Point[];
 export interface CanvasSlice {
   isDrawing: boolean;
   isEraser: boolean;
-  currentPath: Path;
   paths: Path[];
   undoStack: Path[][];
   redoStack: Path[][];
 
   // Canvas actions
-  startDrawing: (point: Point) => void;
-  addPoint: (point: Point) => void;
-  stopDrawing: () => void;
-  cancelDrawing: () => void;
+  addPath: (path: Path) => void;
   undo: () => void;
   redo: () => void;
   clear: () => void;
@@ -93,44 +89,14 @@ export const createCanvasSlice: StateCreator<
   // Initial state
   isDrawing: false,
   isEraser: false,
-  currentPath: [],
   paths: [],
   undoStack: [],
   redoStack: [],
 
-  // Drawing actions
-  startDrawing: (point: Point) =>
-    set(() => ({
-      currentPath: [point],
-      isDrawing: true,
-    })),
-
-  addPoint: (point: Point) =>
+  addPath: (path: Path) =>
     set((state: CanvasSlice) => {
-      if (!state.isDrawing) return state;
       return {
-        currentPath: [...state.currentPath, point],
-      };
-    }),
-
-  stopDrawing: () =>
-    set((state: CanvasSlice) => {
-      if (!state.isDrawing) return state;
-      return {
-        isDrawing: false,
-        paths: [...state.paths, state.currentPath],
-        undoStack: [...state.undoStack, state.paths].slice(-UNDO_HISTORY_SIZE),
-        redoStack: [],
-        currentPath: [],
-      };
-    }),
-
-  cancelDrawing: () =>
-    set((state: CanvasSlice) => {
-      if (!state.isDrawing) return state;
-      return {
-        isDrawing: false,
-        currentPath: [],
+        paths: [...state.paths, path],
       };
     }),
 
@@ -167,7 +133,6 @@ export const createCanvasSlice: StateCreator<
         paths: [],
         undoStack: [...state.undoStack, state.paths].slice(-UNDO_HISTORY_SIZE),
         redoStack: [],
-        currentPath: [],
       };
     }),
 
@@ -204,7 +169,6 @@ export const createCanvasSlice: StateCreator<
         paths: canvas.paths,
         undoStack: [],
         redoStack: [],
-        currentPath: [],
         isDrawing: false,
         isEraser: false,
       };
