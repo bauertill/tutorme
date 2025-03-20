@@ -3,6 +3,7 @@ import {
   type ZustandFuncSelectors,
 } from "auto-zustand-selectors-hook";
 import { del, get, set } from "idb-keyval";
+import { omit } from "lodash";
 import superjson from "superjson";
 import { create } from "zustand";
 import { devtools, persist, type PersistStorage } from "zustand/middleware";
@@ -26,7 +27,11 @@ const storage: PersistStorage<State> = {
     return superjson.parse(str);
   },
   setItem: async (name, value) => {
-    await set(name, superjson.stringify(value));
+    const value_ = {
+      ...value,
+      state: omit(value.state, ["undoStack", "redoStack"]),
+    };
+    await set(name, superjson.stringify(value_));
   },
   removeItem: async (name) => {
     await del(name);
