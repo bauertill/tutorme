@@ -10,13 +10,13 @@ const cache = new RedisCache(client);
 
 export const model = new ChatOpenAI({
   modelName: "gpt-4o",
-  temperature: 0.7,
+  temperature: 0.0,
   cache,
 });
 
 export const fastModel = new ChatOpenAI({
   modelName: "gpt-4o-mini",
-  temperature: 0.7,
+  temperature: 0.0,
   cache,
 });
 
