@@ -20,34 +20,30 @@ export const useActiveProblem = (): UserProblem | null => {
 };
 
 export const useProblemController = (): {
-  activeAssignment?: Assignment;
-  activeProblem?: UserProblem;
+  activeAssignment: Assignment | null;
+  activeProblem: UserProblem | null;
   gotoNextProblem?: () => void;
   gotoPreviousProblem?: () => void;
   setActiveProblemWithCanvas: (problem: UserProblem) => void;
 } => {
-  const assignments = useStore.use.assignments();
-  const activeAssignmentId = useStore.use.activeAssignmentId();
-  const activeProblemId = useStore.use.activeProblemId();
   const setActiveProblem = useStore.use.setActiveProblem();
   const setCanvas = useStore.use.setCanvas();
   const updateProblem = useStore.use.updateProblem();
   const currentPaths = useStore.use.paths();
 
-  const activeAssignment = assignments.find((a) => a.id === activeAssignmentId);
-  const activeProblem = activeAssignment?.problems.find(
-    (p) => p.id === activeProblemId,
-  );
+  const activeAssignment = useActiveAssignment();
+  const activeProblem = useActiveProblem();
   const activeProblemIndex =
-    activeAssignment?.problems.findIndex((p) => p.id === activeProblemId) ?? 0;
+    activeAssignment?.problems.findIndex((p) => p.id === activeProblem?.id) ??
+    0;
 
   const nextProblem = activeAssignment?.problems[activeProblemIndex + 1];
   const previousProblem = activeAssignment?.problems[activeProblemIndex - 1];
 
   const storeCurrentPathsOnProblem = () =>
     updateProblem({
-      id: activeProblemId ?? "",
-      assignmentId: activeAssignmentId ?? "",
+      id: activeProblem?.id ?? "",
+      assignmentId: activeAssignment?.id ?? "",
       canvas: { paths: currentPaths },
     });
 
