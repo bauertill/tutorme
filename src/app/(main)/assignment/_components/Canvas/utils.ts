@@ -158,7 +158,11 @@ export const isPointCloseToPath = (
   path: Path,
   radius: number,
 ): boolean => {
-  if (path.length < 2) return false;
+  if (path.length < 2) {
+    const p = path[0];
+    if (!p) return false;
+    return distance(point, p) <= radius;
+  }
 
   // Check if point is close to any segment of the path
   for (let i = 1; i < path.length; i++) {
