@@ -2,6 +2,7 @@ import {
   createSelectorFunctions,
   type ZustandFuncSelectors,
 } from "auto-zustand-selectors-hook";
+import { del, get, set } from "idb-keyval";
 import superjson from "superjson";
 import { create } from "zustand";
 import { devtools, persist, type PersistStorage } from "zustand/middleware";
@@ -19,15 +20,17 @@ export type MiddlewareList = [
 export type State = AssignmentSlice & CanvasSlice & UsageLimitSlice;
 
 const storage: PersistStorage<State> = {
-  getItem: (name) => {
-    const str = localStorage.getItem(name);
+  getItem: async (name) => {
+    const str = await get<string>(name);
     if (!str) return null;
     return superjson.parse(str);
   },
   setItem: async (name, value) => {
-    localStorage.setItem(name, superjson.stringify(value));
+    await set(name, superjson.stringify(value));
   },
-  removeItem: (name) => localStorage.removeItem(name),
+  removeItem: async (name) => {
+    await del(name);
+  },
 };
 
 const useStoreBase = create<State>()(

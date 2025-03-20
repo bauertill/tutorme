@@ -10,7 +10,6 @@ export type Point = {
 export type Path = Point[];
 export interface CanvasSlice {
   isDrawing: boolean;
-  isEraser: boolean;
   paths: Path[];
   undoStack: Path[][];
   redoStack: Path[][];
@@ -21,13 +20,12 @@ export interface CanvasSlice {
   undo: () => void;
   redo: () => void;
   clear: () => void;
-  toggleEraser: () => void;
 
   // Problem management
   setCanvas: (canvas: Canvas) => void;
 }
 
-const UNDO_HISTORY_SIZE = 1000;
+const UNDO_HISTORY_SIZE = 100;
 
 export const createCanvasSlice: StateCreator<
   State,
@@ -37,7 +35,6 @@ export const createCanvasSlice: StateCreator<
 > = (set) => ({
   // Initial state
   isDrawing: false,
-  isEraser: false,
   paths: [],
   undoStack: [],
   redoStack: [],
@@ -96,11 +93,6 @@ export const createCanvasSlice: StateCreator<
       };
     }),
 
-  toggleEraser: () =>
-    set((state: CanvasSlice) => ({
-      isEraser: !state.isEraser,
-    })),
-
   setCanvas: (canvas: Canvas) =>
     set(() => {
       return {
@@ -108,7 +100,6 @@ export const createCanvasSlice: StateCreator<
         undoStack: [],
         redoStack: [],
         isDrawing: false,
-        isEraser: false,
       };
     }),
 });
