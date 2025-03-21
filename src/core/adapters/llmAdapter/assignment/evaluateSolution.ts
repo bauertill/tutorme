@@ -36,6 +36,8 @@ You will be given the problem statement, a reference solution, and an image of t
 - Ignore any mistakes that are in parts that are crossed out or scribbled over.
 
 Keep your output concise. Always wrap LaTeX in the appropriate delimiters.
+
+Write your response in German language only.
 `;
 
 // Function to evaluate the solution using the multimodal LLM
