@@ -64,10 +64,10 @@ export default function FeedbackView({
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
             {evaluationResult.hasMistakes
-              ? "That's not quite right"
+              ? "Das ist nicht ganz richtig"
               : evaluationResult.isComplete
-                ? "That's correct!"
-                : "Keep going!"}
+                ? "Das ist korrekt!"
+                : "Mach weiter!"}
           </CardTitle>
 
           <div className="absolute right-0 top-0 m-2 mt-8 flex items-center gap-2">

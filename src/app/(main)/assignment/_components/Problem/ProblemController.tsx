@@ -35,14 +35,14 @@ export default function ProblemController() {
           disabled={!gotoPreviousProblem}
           onClick={() => gotoPreviousProblem && gotoPreviousProblem()}
         >
-          Previous
+          Zurück
         </Button>
         <Button
           variant="outline"
           disabled={!gotoNextProblem}
           onClick={() => gotoNextProblem && gotoNextProblem()}
         >
-          Next
+          Weiter
         </Button>
       </div>
     </div>

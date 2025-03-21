@@ -22,6 +22,8 @@ Your response should be:
         "problemNumber": "Exercise 2 (a) (2)"
     }   
 ]
+
+Write your response in German language only.
 `;
 
 const RawProblem = z.object({
