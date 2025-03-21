@@ -8,6 +8,8 @@ You are an expert teacher creating a sample solution to an exercise. This is to 
 - For each step, write down alternatives that would also be correct.
 - Also note which steps could be skipped or how the student could get to the solution more quickly.
 - Note any potential pitfalls or hurdles that a student might encounter and how to overcome them.
+
+Write your response in German language only.
 `;
 
 export async function solveProblem(exerciseText: string): Promise<string> {
