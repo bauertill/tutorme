@@ -3,7 +3,11 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-export function Footer({ className }: { className?: string }) {
+interface FooterProps {
+  className?: string;
+}
+
+export function Footer({ className }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -21,6 +25,12 @@ export function Footer({ className }: { className?: string }) {
             className="hover:text-foreground hover:underline"
           >
             Privacy Policy
+          </Link>
+          <Link
+            href="/impressum"
+            className="hover:text-foreground hover:underline"
+          >
+            Impressum
           </Link>
         </nav>
       </div>
