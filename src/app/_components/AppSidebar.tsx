@@ -19,9 +19,9 @@ import { useEffect, useMemo, useState } from "react";
 import { UploadProblems } from "../(main)/assignment/_components/Problem/UploadProblems";
 import { CollapsibleAssignment } from "./CollapsibleAssignment";
 import { CollapsibleSettings } from "./CollapsibleSettings";
+import { Footer } from "./Footer";
 import { SignInButton } from "./SignInButton";
 import { UserAndSignOutButton } from "./UserAndSignOutButton";
-
 export function AppSidebar() {
   const session = useSession();
   const assignments = useStore.use.assignments();
@@ -132,6 +132,7 @@ export function AppSidebar() {
           <SignInButton variant="ghost" className="justify-start" />
         )}
         <CollapsibleSettings />
+        <Footer />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
