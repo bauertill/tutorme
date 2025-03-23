@@ -17,17 +17,23 @@ export function Footer({ className }: FooterProps) {
           © {currentYear} Tutor Me Good. All rights reserved.
         </div>
         <nav className="flex justify-center gap-4 text-xs text-muted-foreground">
-          <Link href="/terms" className="hover:text-foreground hover:underline">
+          <Link
+            href="/terms"
+            target="_blank"
+            className="hover:text-foreground hover:underline"
+          >
             Terms of Service
           </Link>
           <Link
             href="/privacy"
+            target="_blank"
             className="hover:text-foreground hover:underline"
           >
             Privacy Policy
           </Link>
           <Link
             href="/impressum"
+            target="_blank"
             className="hover:text-foreground hover:underline"
           >
             Impressum

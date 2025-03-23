@@ -12,6 +12,7 @@ import { api } from "@/trpc/react";
 import { Settings, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { LanguageSelector } from "../../user/LanguageSelector";
 
 export function CollapsibleSettings() {
   const clearAssignments = useStore.use.clearAssignments();
@@ -22,14 +23,20 @@ export function CollapsibleSettings() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = () => {
-    setIsDeleting(true);
-    clearAssignments();
-    if (session.data?.user?.id) {
-      deleteAllAssignments();
+    if (
+      confirm(
+        "Are you sure you want to delete all assignments? This can not be undone.",
+      )
+    ) {
+      setIsDeleting(true);
+      clearAssignments();
+      if (session.data?.user?.id) {
+        deleteAllAssignments();
+      }
+      setTimeout(() => {
+        setIsDeleting(false);
+      }, 1500);
     }
-    setTimeout(() => {
-      setIsDeleting(false);
-    }, 1500);
   };
 
   return (
@@ -44,11 +51,11 @@ export function CollapsibleSettings() {
         <span className="font-semibold">Settings</span>
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="space-y-1 pl-6">
-          <div className="mt-2">
-            <div className="mb-2 text-sm text-muted-foreground">
-              Delete all assignments? This can not be undone.
-            </div>
+        <div className="mt-2 space-y-4 pl-6">
+          <div>
+            <LanguageSelector />
+          </div>
+          <div className="">
             <Button
               variant="destructive"
               onClick={handleDelete}
@@ -56,7 +63,7 @@ export function CollapsibleSettings() {
               className="w-full items-center gap-2"
             >
               <Trash2 className="h-4 w-4" />
-              {isDeleting ? "Deleted!" : "Delete All"}
+              {isDeleting ? "Deleted!" : "Delete All Assignments"}
             </Button>
           </div>
         </div>
