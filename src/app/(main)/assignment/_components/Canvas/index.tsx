@@ -4,6 +4,7 @@ import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { Eraser, Pencil, Redo, Sparkles, Trash, Undo } from "lucide-react";
 import { useCanvas } from "./useCanvas";
+import WritingAnimation from "./WritingAnimation";
 
 export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
   const {
@@ -17,6 +18,7 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
     isEmpty,
     isEraser,
     toggleEraser,
+    isUntouched,
   } = useCanvas();
   const paths = useStore.use.paths();
   const updateProblem = useStore.use.updateProblem();
@@ -25,6 +27,10 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
   return (
     <div className="relative h-full w-full overflow-hidden">
       {canvas}
+
+      <div className="absolute left-4 top-4 z-10 flex items-end space-x-4">
+        <WritingAnimation hidden={!isUntouched} delay={5000} />
+      </div>
 
       <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
         <Button

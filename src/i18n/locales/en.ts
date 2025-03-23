@@ -32,6 +32,7 @@ const translation = {
     "Are you sure you want to delete all assignments? This can not be undone.",
   manage_subscription: "Manage subscription",
   sign_out: "Sign out",
+  write_your_answer_here: "Solve the problem here",
 };
 
 export default translation;

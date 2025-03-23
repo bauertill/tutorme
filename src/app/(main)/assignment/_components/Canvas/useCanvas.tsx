@@ -33,9 +33,18 @@ export function useCanvas() {
   const redo = useStore.use.redo();
   const clear = useStore.use.clear();
 
+  const [isUntouched_, setIsUntouched] = useState(true);
+  const isUntouched = useMemo(
+    () => isUntouched_ && paths.length === 0 && undoStack.length === 0,
+    [isUntouched_, paths, undoStack],
+  );
+
   const [currentPath, setCurrentPath] = useState<Path>();
   const [erasedPaths, setErasedPaths] = useState<Path[]>([]);
-  const startDrawing = (point: Point) => setCurrentPath([point]);
+  const startDrawing = (point: Point) => {
+    setCurrentPath([point]);
+    setIsUntouched(false);
+  };
   const addPoint = (point: Point) => {
     if (currentPath) setCurrentPath([...currentPath, point]);
   };
@@ -338,5 +347,6 @@ export function useCanvas() {
     canUndo: undoStack.length > 0,
     canRedo: redoStack.length > 0,
     isEmpty: paths.length === 0,
+    isUntouched,
   };
 }

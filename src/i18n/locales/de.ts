@@ -32,5 +32,6 @@ const translation = {
     "Willst du wirklich alle Aufgaben löschen? Dies kann nicht rückgängig gemacht werden.",
   manage_subscription: "Abonnement verwalten",
   sign_out: "Abmelden",
+  write_your_answer_here: "Löse die Aufgabe hier",
 };
 export default translation;
