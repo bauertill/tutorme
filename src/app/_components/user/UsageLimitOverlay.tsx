@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton } from "@/app/_components/SignInButton";
+import { SignInButton } from "@/app/_components/user/SignInButton";
 import {
   Card,
   CardContent,

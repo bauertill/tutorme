@@ -1,5 +1,5 @@
-import { SignInButton } from "@/app/_components/SignInButton";
-import { UserAndSignOutButton } from "@/app/_components/UserAndSignOutButton";
+import { SignInButton } from "@/app/_components/user/SignInButton";
+import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import ExampleProblemButton from "./Problem/ExampleProblemButton";

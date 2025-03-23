@@ -1,5 +1,5 @@
 "use client";
-import { Latex } from "@/app/_components/Latex";
+import { Latex } from "@/app/_components/richtext/Latex";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

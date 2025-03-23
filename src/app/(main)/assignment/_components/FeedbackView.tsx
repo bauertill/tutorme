@@ -1,5 +1,5 @@
 "use client";
-import { Latex } from "@/app/_components/Latex";
+import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

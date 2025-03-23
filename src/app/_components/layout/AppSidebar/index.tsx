@@ -1,5 +1,11 @@
 "use client";
 
+import { UploadProblems } from "@/app/(main)/assignment/_components/Problem/UploadProblems";
+import { CollapsibleAssignment } from "@/app/_components/layout/AppSidebar/CollapsibleAssignment";
+import { CollapsibleSettings } from "@/app/_components/layout/AppSidebar/CollapsibleSettings";
+import { Footer } from "@/app/_components/layout/Footer";
+import { SignInButton } from "@/app/_components/user/SignInButton";
+import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
 import {
   Sidebar,
   SidebarContent,
@@ -16,12 +22,6 @@ import { useActiveProblem, useProblemController } from "@/store/selectors";
 import { GraduationCap } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
-import { UploadProblems } from "../(main)/assignment/_components/Problem/UploadProblems";
-import { CollapsibleAssignment } from "./CollapsibleAssignment";
-import { CollapsibleSettings } from "./CollapsibleSettings";
-import { Footer } from "./Footer";
-import { SignInButton } from "./SignInButton";
-import { UserAndSignOutButton } from "./UserAndSignOutButton";
 export function AppSidebar() {
   const session = useSession();
   const assignments = useStore.use.assignments();

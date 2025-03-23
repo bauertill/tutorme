@@ -1,6 +1,6 @@
 "use client";
-import { AppSidebar } from "@/app/_components/AppSidebar";
-import { Latex } from "@/app/_components/Latex";
+import { AppSidebar } from "@/app/_components/layout/AppSidebar";
+import { Latex } from "@/app/_components/richtext/Latex";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,

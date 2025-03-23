@@ -5,10 +5,10 @@ import "katex/dist/katex.min.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
+import { ProgressProvider } from "@/app/_components/providers/ProgressProvider";
+import { ThemeProvider } from "@/app/_components/providers/ThemeProvider";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "sonner";
-import { ProgressProvider } from "./_components/ProgressProvider";
-import { ThemeProvider } from "./_components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Tutor Me Good",

@@ -1,6 +1,6 @@
 import { SessionProvider } from "next-auth/react";
-import { StateSyncProvider } from "../_components/StateSyncProvider";
-import { UsageLimitOverlay } from "../_components/UsageLimitOverlay";
+import { StateSyncProvider } from "../_components/providers/StateSyncProvider";
+import { UsageLimitOverlay } from "../_components/user/UsageLimitOverlay";
 export default async function MainLayout({
   children,
 }: {
