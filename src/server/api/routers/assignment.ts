@@ -33,6 +33,15 @@ export const assignmentRouter = createTRPCRouter({
         ctx.llmAdapter,
       );
     }),
+  deleteAssignment: protectedProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.dbAdapter.deleteAssignmentById(input);
+    }),
+  deleteAllAssignments: protectedProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.session.user.id) return;
+    return await ctx.dbAdapter.deleteAllAssignments(ctx.session.user.id);
+  }),
 
   getRandomProblem: publicProcedure.query(async ({ ctx }) => {
     return await getRandomProblem(ctx.dbAdapter);

@@ -270,6 +270,19 @@ export class DBAdapter {
       problems: createdProblems,
     };
   }
+  async deleteAssignmentById(assignmentId: string): Promise<void> {
+    await this.db.assignment.delete({
+      where: {
+        id: assignmentId,
+      },
+    });
+  }
+
+  async deleteAllAssignments(userId: string): Promise<void> {
+    await this.db.assignment.deleteMany({
+      where: { userId },
+    });
+  }
 
   async getAssignmentsByUserId(userId: string): Promise<Assignment[]> {
     const dbAssignments = await this.db.assignment.findMany({

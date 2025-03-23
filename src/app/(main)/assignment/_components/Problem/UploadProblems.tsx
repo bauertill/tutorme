@@ -20,14 +20,21 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
   const [uploadState, setUploadState] = useState<
     "idle" | "uploading" | "success" | "error"
   >("idle");
+  const [isCancelled, setIsCancelled] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addAssignment = useStore.use.addAssignment();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
+  const { mutate: deleteAssignment } =
+    api.assignment.deleteAssignment.useMutation();
   const { mutate: createAssignmentFromUpload } =
     api.assignment.createFromUpload.useMutation({
       onSuccess: (assignment) => {
+        if (isCancelled) {
+          deleteAssignment(assignment.id);
+          return;
+        }
         setUploadState("success");
         toast.success("Problems uploaded successfully!");
         setOpen(false);
@@ -85,7 +92,8 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
   };
 
   const handleCancelUpload = () => {
-    setUploadState("idle");
+    setOpen(false);
+    setIsCancelled(true);
     toast.info("Upload cancelled");
   };
 
