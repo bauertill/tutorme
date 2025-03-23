@@ -4,9 +4,7 @@ import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { BookOpen } from "lucide-react";
 
-export default function ExampleProblemCard({
-  ...props
-}: React.ComponentProps<typeof Card>) {
+export default function ExampleProblemCard() {
   const { promise } = api.assignment.getExampleAssignment.useQuery(undefined, {
     staleTime: Infinity,
     experimental_prefetchInRender: true,
@@ -35,7 +33,6 @@ export default function ExampleProblemCard({
     <Card
       className="cursor-pointer transition-colors hover:bg-accent/50"
       onClick={onClick}
-      {...props}
     >
       <CardContent className="flex items-center gap-4 p-6">
         <BookOpen className="h-6 w-6 flex-shrink-0" />

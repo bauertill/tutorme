@@ -1,9 +1,7 @@
 "use client";
 import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProblemController } from "@/store/selectors";
-import { UploadProblems } from "./UploadProblems";
 
 export default function ProblemController() {
   const {
@@ -14,16 +12,7 @@ export default function ProblemController() {
   } = useProblemController();
 
   if (!activeProblem || !activeAssignment) {
-    return (
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>To get started, upload your own problems</CardTitle>
-          <div className="flex flex-row gap-2">
-            <UploadProblems className="w-full" />
-          </div>
-        </CardHeader>
-      </Card>
-    );
+    return null;
   }
 
   return (

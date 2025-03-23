@@ -97,7 +97,7 @@ export function AppSidebar() {
       <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
           <SidebarGroupContent>
-            <UploadProblems className="w-full justify-start" />
+            <UploadProblems trigger="button" />
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>

@@ -24,8 +24,8 @@ export function OnboardingForm({
         </p>
       </div>
       <div className="flex flex-col items-center justify-center gap-6">
-        <ExampleProblemCard className="w-full" />
-        <UploadProblems variant="outline" className="w-full" />
+        <ExampleProblemCard />
+        <UploadProblems trigger="card" />
       </div>
 
       <div className="mt-40 grid gap-6">

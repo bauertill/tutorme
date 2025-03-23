@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadToBlob } from "./uploadToBlob";
 
-export function UploadProblems(props: React.ComponentProps<typeof Button>) {
+export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<
@@ -113,16 +114,25 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
         className="hidden"
       />
 
-      <Button
-        variant="ghost"
-        onClick={handleButtonClick}
-        type="button"
-        {...props}
-      >
-        <CameraIcon className="h-5 w-5" />
-        Upload Assignment
-      </Button>
-
+      {trigger === "button" && (
+        <Button variant="ghost" onClick={handleButtonClick} type="button">
+          <CameraIcon className="h-5 w-5" />
+          Upload Assignment
+        </Button>
+      )}
+      {trigger === "card" && (
+        <Card
+          className="cursor-pointer bg-primary/60 transition-colors hover:bg-accent/50"
+          onClick={handleButtonClick}
+        >
+          <CardContent className="t flex items-center gap-4 p-6">
+            <CameraIcon className="h-6 w-6 flex-shrink-0" />
+            <p className="text-sm">
+              Get started by uploading your own homework problems.
+            </p>
+          </CardContent>
+        </Card>
+      )}
       <Dialog
         open={open}
         onOpenChange={(isOpen) => {
