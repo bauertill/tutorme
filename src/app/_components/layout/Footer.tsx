@@ -1,5 +1,6 @@
 "use client";
 
+import { SidebarText } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -11,7 +12,7 @@ export function Footer({ className }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className={cn("w-full border-t", className)}>
+    <SidebarText className={cn("w-full border-t", className)}>
       <div className="container mx-auto flex flex-col gap-2 px-4 py-4">
         <div className="text-center text-xs text-muted-foreground">
           © {currentYear} Tutor Me Good. All rights reserved.
@@ -34,6 +35,6 @@ export function Footer({ className }: FooterProps) {
           </Link>
         </nav>
       </div>
-    </footer>
+    </SidebarText>
   );
 }
