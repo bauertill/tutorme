@@ -34,7 +34,7 @@ export default function HelpBox({ onClose }: { onClose?: () => void }) {
   return (
     <div className="relative flex">
       <Button
-        className="absolute right-2 top-1 z-10"
+        className="absolute right-2 top-2 z-10 h-8 w-8"
         variant="ghost"
         size="icon"
         onClick={() => onClose?.()}
@@ -49,7 +49,7 @@ export default function HelpBox({ onClose }: { onClose?: () => void }) {
           {messages.length === 0 && <p>Are you stuck? Ask for help!</p>}
           <MessageList messages={messages} />
         </CardContent>
-        <CardFooter className="flex flex-col gap-2 px-4 pb-4">
+        <CardFooter className="flex flex-col gap-4 px-4 pb-4">
           <TextInput
             disabled={isPending}
             onSend={(question) => ask({ question })}
