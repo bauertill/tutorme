@@ -1,4 +1,4 @@
-import { LanguageSelector } from "@/app/_components/user/LanguageSelector";
+import { LanguagePicker } from "@/app/_components/user/LanguagePicker";
 import { SignInButton } from "@/app/_components/user/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
 import { Trans, useTranslation } from "@/i18n";
@@ -36,7 +36,7 @@ export function OnboardingForm({
             {t("already_have_account")}
           </SignInButton>
         )}
-        <LanguageSelector />
+        <LanguagePicker />
       </div>
     </form>
   );

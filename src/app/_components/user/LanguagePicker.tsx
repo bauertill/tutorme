@@ -13,7 +13,7 @@ const LANGUAGES = {
   },
 };
 
-export function LanguageSelector() {
+export function LanguagePicker() {
   const { userLanguage, setUserLanguage } = useStore();
   return (
     <div className="flex items-center gap-2">

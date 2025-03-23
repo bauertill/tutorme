@@ -1,6 +1,6 @@
 "use client";
 
-import { LanguageSelector } from "@/app/_components/user/LanguageSelector";
+import { LanguagePicker } from "@/app/_components/user/LanguagePicker";
 import { ManageSubscriptionButton } from "@/app/_components/user/ManageSubscriptionButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,7 +59,7 @@ export function CollapsibleSettings() {
       </CollapsibleTrigger>
       <CollapsibleContent className="transition-all duration-200 ease-linear">
         <div className="mt-2 space-y-4 pl-6">
-          <LanguageSelector />
+          <LanguagePicker />
           <ManageSubscriptionButton />
           <Button
             variant="destructive"
