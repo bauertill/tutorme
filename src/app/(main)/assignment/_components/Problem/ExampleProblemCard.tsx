@@ -1,12 +1,12 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
+import { BookOpen } from "lucide-react";
 
-export default function ExampleProblemButton({
-  children = "Work on an Example Problem",
+export default function ExampleProblemCard({
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: React.ComponentProps<typeof Card>) {
   const { promise } = api.assignment.getExampleAssignment.useQuery(undefined, {
     staleTime: Infinity,
     experimental_prefetchInRender: true,
@@ -14,11 +14,12 @@ export default function ExampleProblemButton({
   const assignments = useStore.use.assignments();
   const addAssignment = useStore.use.addAssignment();
   const setActiveProblem = useStore.use.setActiveProblem();
-  const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+
+  const onClick = async () => {
     const existingExampleAssignment = assignments.find(
       (assignment) => assignment.name === "Example Assignment",
     );
+
     if (existingExampleAssignment) {
       const problem = existingExampleAssignment.problems[0];
       if (problem) {
@@ -29,9 +30,19 @@ export default function ExampleProblemButton({
       addAssignment(exampleAssignment);
     }
   };
+
   return (
-    <Button {...props} onClick={onClick}>
-      {children}
-    </Button>
+    <Card
+      className="cursor-pointer transition-colors hover:bg-accent/50"
+      onClick={onClick}
+      {...props}
+    >
+      <CardContent className="flex items-center gap-4 p-6">
+        <BookOpen className="h-6 w-6 flex-shrink-0" />
+        <p className="text-sm">
+          Learn the basics by working through a guided example problem.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
