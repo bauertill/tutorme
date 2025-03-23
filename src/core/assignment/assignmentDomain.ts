@@ -166,9 +166,10 @@ const mergeProblemsByUpdatedAt = (
 
 export async function getExampleAssignment(
   dbAdapter: DBAdapter,
+  language: Language,
 ): Promise<Assignment> {
   const LIMIT = 25;
-  const problems = await dbAdapter.getProblems("Level 1", LIMIT);
+  const problems = await dbAdapter.getProblems(language, "Level 1", LIMIT);
   const assignmentId = uuidv4();
   const assignment: Assignment = {
     id: assignmentId,

@@ -1,3 +1,4 @@
+import { Language } from "@/i18n/types";
 import { z } from "zod";
 
 export const ProblemUploadStatus = z.enum([
@@ -29,6 +30,7 @@ export const Problem = z.object({
   solution: z.string(),
   level: z.string(),
   type: z.string(),
+  language: Language,
   createdAt: z.date(),
 });
 

@@ -94,6 +94,6 @@ export const assignmentRouter = createTRPCRouter({
     }),
 
   getExampleAssignment: publicProcedure.query(async ({ ctx }) => {
-    return await getExampleAssignment(ctx.dbAdapter);
+    return await getExampleAssignment(ctx.dbAdapter, ctx.userLanguage);
   }),
 });

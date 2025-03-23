@@ -5,6 +5,7 @@ import {
   type ProblemUploadStatus,
 } from "@/core/problem/types";
 import type { Draft } from "@/core/utils";
+import { type Language } from "@/i18n/types";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
@@ -92,12 +93,12 @@ export class DBAdapter {
     }));
 
     await this.db.$executeRaw`INSERT INTO "Problem"
-    ("id", "problemUploadId", "dataSource", "problem", "solution", "level", "type", "vector") VALUES
+    ("id", "problemUploadId", "dataSource", "problem", "solution", "level", "type", "language", "vector") VALUES
     ${Prisma.join(
       problemsWithVectors.map(
         (problem) =>
           Prisma.sql`(${createId()}, ${problemUploadId}, ${problem.dataSource}, ${problem.problem}, ${problem.solution},
-          ${problem.level}, ${problem.type}, ${JSON.stringify(problem.vector)}::vector)`,
+          ${problem.level}, ${problem.type}, ${problem.language}::"Language", ${JSON.stringify(problem.vector)}::vector)`,
       ),
     )}`;
   }
@@ -117,10 +118,11 @@ export class DBAdapter {
         solution: string;
         level: string;
         type: string;
+        language: Language;
         createdAt: Date;
         score: number;
       }[]
-    >`SELECT "id", "dataSource", "problem", "solution", "level", "type", "createdAt",
+    >`SELECT "id", "dataSource", "problem", "solution", "level", "type", "language", "createdAt",
         1 - ("vector" <=> ${queryVector}::vector) as "score"
         FROM "Problem"
         WHERE "vector" IS NOT NULL
@@ -136,6 +138,7 @@ export class DBAdapter {
         solution: result.solution,
         level: result.level,
         type: result.type,
+        language: result.language,
         createdAt: result.createdAt,
       },
       score: result.score,
@@ -160,9 +163,13 @@ export class DBAdapter {
     return problem;
   }
 
-  async getProblems(level: string, limit: number): Promise<Problem[]> {
+  async getProblems(
+    language: Language,
+    level: string,
+    limit: number,
+  ): Promise<Problem[]> {
     return this.db.problem.findMany({
-      where: { level },
+      where: { language, level },
       take: limit,
       orderBy: { createdAt: "asc" },
     });

@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { SidebarText } from "@/components/ui/sidebar";
 import type { User } from "@/core/user/types";
+import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { User as LucideUser } from "lucide-react";
@@ -44,7 +45,9 @@ export function UserAndSignOutButton({ user }: { user: User }) {
             size="sm"
             className="h-auto p-0"
           >
-            <SidebarText>Manage subscription</SidebarText>
+            <SidebarText>
+              <Trans i18nKey="manage_subscription" />
+            </SidebarText>
           </Button>
         )}
         <Button
@@ -58,7 +61,9 @@ export function UserAndSignOutButton({ user }: { user: User }) {
           size="sm"
           className="h-auto p-0"
         >
-          <SidebarText>Sign out</SidebarText>
+          <SidebarText>
+            <Trans i18nKey="sign_out" />
+          </SidebarText>
         </Button>
       </div>
     </div>

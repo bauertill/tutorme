@@ -104,12 +104,18 @@ model ProblemUpload {
   problems Problem[]
 }
 
+enum Language {
+  de
+  en
+}
+
 model Problem {
   id         String                       @id @default(cuid())
   dataSource String
   problem    String
   solution   String
   level      String
+  language   Language                     @default(en)
   type       String
   vector     Unsupported("vector(3072)")?
   createdAt  DateTime                     @default(now())
