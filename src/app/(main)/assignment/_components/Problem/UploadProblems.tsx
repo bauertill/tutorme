@@ -16,7 +16,6 @@ import { uploadToBlob } from "./uploadToBlob";
 
 export function UploadProblems(props: React.ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<
     "idle" | "uploading" | "success" | "error"
@@ -33,7 +32,6 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
         toast.success("Problems uploaded successfully!");
         setOpen(false);
         addAssignment(assignment);
-        setSelectedFile(null);
       },
       onError: (error) => {
         setUploadState("error");
@@ -50,7 +48,6 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
   ) => {
     const file = event.target.files?.[0] ?? null;
     if (!file) return;
-    setSelectedFile(file);
     setUploadState("idle");
     setOpen(true);
 
@@ -80,7 +77,6 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
   };
 
   const resetForm = () => {
-    setSelectedFile(null);
     setPreview(null);
     setUploadState("idle");
     if (fileInputRef.current) {
@@ -133,12 +129,6 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex flex-col items-center">
-              {selectedFile && (
-                <div className="mt-4 text-sm">
-                  Selected: {selectedFile.name}
-                </div>
-              )}
-
               {preview && (
                 <div className="mt-4 overflow-hidden rounded-md border">
                   <Image
