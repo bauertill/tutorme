@@ -27,18 +27,17 @@ export function OnboardingForm({
         <ExampleProblemButton variant="default" className="w-full" />
         <UploadProblems variant="outline" className="w-full" />
       </div>
-      <div className="grid gap-6">
-        <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-          <span className="relative z-10 bg-background px-2 text-muted-foreground">
-            {user ? "You are signed in as" : "Already have an Account?"}
-          </span>
-        </div>
-      </div>
-      <div className="grid gap-6">
+
+      <div className="mt-40 grid gap-6">
         {user ? (
           <UserAndSignOutButton user={user} />
         ) : (
-          <SignInButton variant="outline" className="w-full" />
+          <SignInButton
+            overrideButtonText="I already have an account"
+            variant="ghost"
+            className="w-full"
+            hideGoogleIcon
+          />
         )}
       </div>
     </form>
