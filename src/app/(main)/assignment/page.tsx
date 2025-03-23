@@ -1,6 +1,7 @@
 "use client";
 import { AppSidebar } from "@/app/_components/layout/AppSidebar";
 import { Latex } from "@/app/_components/richtext/Latex";
+import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -18,6 +19,14 @@ export default function AssignmentPage() {
   if (assignments.length === 0) {
     return <Onboarding />;
   }
+
+  const solvedProblemsCount =
+    activeAssignment?.problems.filter((problem) => problem.status === "SOLVED")
+      .length ?? 0;
+  const totalProblems = activeAssignment?.problems.length ?? 0;
+  const progressPercentage =
+    totalProblems > 0 ? (solvedProblemsCount / totalProblems) * 100 : 0;
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -26,7 +35,17 @@ export default function AssignmentPage() {
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-6" />
           {activeAssignment ? (
-            <Latex>{activeAssignment.name}</Latex>
+            <div className="flex w-full items-center gap-2">
+              <Latex className="mr-2 flex-1 truncate font-semibold">
+                {activeAssignment.name}
+              </Latex>
+              <div className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap">
+                <span className="min-w-[44px] flex-shrink-0 text-right text-xs text-muted-foreground">
+                  {solvedProblemsCount} / {totalProblems}
+                </span>
+              </div>
+              <Progress className="ml-2 w-24" value={progressPercentage} />
+            </div>
           ) : (
             <span className="text-sm text-muted-foreground">
               No assignment selected
