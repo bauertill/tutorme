@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { Eraser, Pencil, Redo, Sparkles, Trash, Undo } from "lucide-react";
+import HelpButton from "./HelpButton";
 import { useCanvas } from "./useCanvas";
 import WritingAnimation from "./WritingAnimation";
 
@@ -69,6 +70,9 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
           <Sparkles className="h-4 w-4" />
           <Trans i18nKey="check" />
         </Button>
+      </div>
+      <div className="absolute right-4 top-16 z-10 flex items-end space-x-4">
+        <HelpButton />
       </div>
     </div>
   );
