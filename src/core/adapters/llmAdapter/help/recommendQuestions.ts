@@ -9,6 +9,7 @@ The student may still be confused about the terminology and general ideas.
 
 Instructions:
 - Anticipate the most likely questions that the student will run into when trying to learn the concept.
+- If a solution attempt is provided, use it to generate questions that are relevant to the student's current level of understanding.
 - Keep each question as short as possible, not repeating the given context.
 - Generate at most 3 questions.
 - Always wrap LaTeX in the appropriate delimiters.

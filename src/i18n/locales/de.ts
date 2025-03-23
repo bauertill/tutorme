@@ -33,5 +33,6 @@ const translation = {
   manage_subscription: "Abonnement verwalten",
   sign_out: "Abmelden",
   write_your_answer_here: "Löse die Aufgabe hier",
+  enter_question_here: "Hier Frage eingeben...",
 };
 export default translation;

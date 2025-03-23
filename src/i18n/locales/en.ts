@@ -33,6 +33,7 @@ const translation = {
   manage_subscription: "Manage subscription",
   sign_out: "Sign out",
   write_your_answer_here: "Solve the problem here",
+  enter_question_here: "Enter question here...",
 };
 
 export default translation;

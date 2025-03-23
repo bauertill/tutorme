@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/i18n";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 
@@ -14,6 +15,7 @@ export default function TextInput({
 }) {
   // TODO: allow multiline input
   const [inputValue, setInputValue] = useState("");
+  const { t } = useTranslation();
 
   const send = () => {
     onSend(inputValue);
@@ -29,7 +31,7 @@ export default function TextInput({
   return (
     <div className="relative flex w-full items-center">
       <Input
-        placeholder="Enter question here..."
+        placeholder={t("enter_question_here")}
         onKeyDown={onReturn}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
