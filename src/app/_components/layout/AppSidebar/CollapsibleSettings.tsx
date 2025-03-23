@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { SidebarText } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
@@ -33,30 +34,36 @@ export function CollapsibleSettings() {
   };
 
   return (
-    <Collapsible open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
-      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-accent">
+    <Collapsible
+      open={isOpen}
+      onOpenChange={(open) => setIsOpen(open)}
+      className="transition-all duration-200 ease-linear"
+    >
+      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-all duration-200 ease-linear hover:bg-accent">
         <Settings
           className={cn(
-            "h-4 w-4 shrink-0 transition-transform duration-200",
+            "h-4 w-4 flex-shrink-0 shrink-0 transition-transform duration-200",
             isOpen && "rotate-90",
           )}
         />
-        <span className="font-semibold">Settings</span>
+        <SidebarText className="font-semibold">Settings</SidebarText>
       </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="space-y-1 pl-6">
+      <CollapsibleContent className="transition-all duration-200 ease-linear">
+        <div className="space-y-1">
           <div className="mt-2">
-            <div className="mb-2 text-sm text-muted-foreground">
+            <SidebarText className="mb-2 text-sm text-muted-foreground">
               Delete all assignments? This can not be undone.
-            </div>
+            </SidebarText>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
               className="w-full items-center gap-2"
             >
-              <Trash2 className="h-4 w-4" />
-              {isDeleting ? "Deleted!" : "Delete All"}
+              <Trash2 className="h-4 w-4 flex-shrink-0" />
+              <SidebarText>
+                {isDeleting ? "Deleted!" : "Delete All"}
+              </SidebarText>
             </Button>
           </div>
         </div>

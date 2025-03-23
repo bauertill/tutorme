@@ -90,8 +90,11 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r bg-background">
-      <div onClick={() => (state === "collapsed" ? setOpen(true) : null)}>
-        <SidebarHeader className="mt-2">
+      <div
+        onClick={() => (state === "collapsed" ? setOpen(true) : null)}
+        className="flex h-full flex-col"
+      >
+        <SidebarHeader className="mt-2 flex-shrink-0">
           <div className="flex items-center gap-2 font-medium">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GraduationCap className="size-4 flex-shrink-0" />
@@ -99,26 +102,28 @@ export function AppSidebar() {
             <SidebarText className="ml-2">Tutor Me Good</SidebarText>
           </div>
         </SidebarHeader>
-        <SidebarContent className="overflow-x-hidden">
-          <SidebarGroup>
+        <SidebarContent className="flex-1 overflow-y-auto overflow-x-hidden">
+          <SidebarGroup className="transition-all duration-200 ease-linear">
             <SidebarGroupContent>
               <UploadProblems trigger="button" />
             </SidebarGroupContent>
           </SidebarGroup>
-          <SidebarGroup>
-            <div className="flex w-full items-center gap-2 px-2">
-              <SearchIcon className="size-4 flex-shrink-0" />
-              <SidebarText className="w-full overflow-hidden">
-                <SidebarInput
-                  placeholder="Search exercises..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-8"
-                />
-              </SidebarText>
+          <SidebarGroup className="transition-all duration-200 ease-linear">
+            <div className="flex h-10 w-full items-center transition-all duration-200 ease-linear">
+              <div className="flex h-8 w-full items-center gap-2 px-2">
+                <SearchIcon className="size-4 flex-shrink-0" />
+                <SidebarText className="w-full overflow-hidden">
+                  <SidebarInput
+                    placeholder="Search exercises..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="transition-all duration-200 ease-linear"
+                  />
+                </SidebarText>
+              </div>
             </div>
           </SidebarGroup>
-          <SidebarGroup>
+          <SidebarGroup className="transition-all duration-200 ease-linear">
             <SidebarGroupLabel>
               <SidebarText>Exercises</SidebarText>
             </SidebarGroupLabel>
@@ -136,18 +141,23 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter>
-          {session.data?.user ? (
-            <div className="mb-2 px-2">
-              <UserAndSignOutButton user={session.data.user} />
-            </div>
-          ) : (
-            <div className="mb-2">
-              <SignInButton variant="ghost" className="w-full justify-start" />
-            </div>
-          )}
-          <CollapsibleSettings />
-          <Footer />
+        <SidebarFooter className="mt-auto w-full flex-shrink-0 transition-all duration-200 ease-linear">
+          <div className="min-h-[90px] w-full transition-all duration-200 ease-linear">
+            {session.data?.user ? (
+              <div className="mb-2 w-full px-2 transition-all duration-200 ease-linear">
+                <UserAndSignOutButton user={session.data.user} />
+              </div>
+            ) : (
+              <div className="mb-2 w-full px-2 transition-all duration-200 ease-linear">
+                <SignInButton
+                  variant="ghost"
+                  className="w-full justify-start"
+                />
+              </div>
+            )}
+            <CollapsibleSettings />
+          </div>
+          <Footer className="transition-all duration-200 ease-linear" />
         </SidebarFooter>
       </div>
       <SidebarRail />

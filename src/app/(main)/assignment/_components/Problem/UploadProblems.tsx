@@ -120,7 +120,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
           variant="ghost"
           onClick={handleButtonClick}
           type="button"
-          className="flex h-9 w-full items-center justify-start px-2"
+          className="flex h-9 w-full items-center justify-start px-2 transition-all duration-200 ease-linear"
         >
           <CameraIcon className="h-5 w-5 flex-shrink-0" />
           <SidebarText className="ml-2 overflow-hidden">

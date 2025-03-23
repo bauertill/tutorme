@@ -5,10 +5,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { SidebarText } from "@/components/ui/sidebar";
 import { type Assignment, type UserProblem } from "@/core/assignment/types";
 import { cn } from "@/lib/utils";
 import { CheckCircle, ChevronRight, Circle } from "lucide-react";
 import Latex from "react-latex-next";
+
 interface CollapsibleAssignmentProps {
   assignment: Assignment;
   isOpen: boolean;
@@ -38,16 +40,16 @@ export function CollapsibleAssignment({
             isOpen && "rotate-90",
           )}
         />
-        <span className="font-semibold">{assignment.name}</span>
+        <SidebarText className="font-semibold">{assignment.name}</SidebarText>
         <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
           {isSolved ? (
             <CheckCircle className="h-4 w-4 text-green-500" />
           ) : (
             <Circle className="h-4 w-4 text-yellow-500" />
           )}
-          <span className="w-6 text-xs text-muted-foreground">
+          <SidebarText className="w-6 text-xs text-muted-foreground">
             {solvedProblemsCount} / {assignment.problems.length}
-          </span>
+          </SidebarText>
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent>
@@ -62,9 +64,9 @@ export function CollapsibleAssignment({
               onClick={() => setActiveProblem(problem)}
             >
               {/* @TODO replace with problem number */}
-              <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+              <SidebarText className="overflow-hidden text-ellipsis whitespace-nowrap">
                 <Latex>{problem.problem}</Latex>
-              </span>
+              </SidebarText>
               {problem.status === "SOLVED" && (
                 <CheckCircle className="ml-auto flex h-4 min-h-4 w-4 min-w-4 text-green-500" />
               )}
