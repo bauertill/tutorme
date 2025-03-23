@@ -5,22 +5,12 @@ import { SidebarText } from "@/components/ui/sidebar";
 import type { User } from "@/core/user/types";
 import { Trans } from "@/i18n";
 import { useStore } from "@/store";
-import { api } from "@/trpc/react";
 import { User as LucideUser } from "lucide-react";
 import { signOut } from "next-auth/react";
-import { redirect } from "next/navigation";
 
 export function UserAndSignOutButton({ user }: { user: User }) {
   const imageUrl = user.image;
   const clearAssignments = useStore.use.clearAssignments();
-  const { data: subscription } = api.subscription.getSubscription.useQuery();
-  const { mutateAsync: createPortalUrl } =
-    api.subscription.createPortalUrl.useMutation();
-  const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    const url = await createPortalUrl();
-    redirect(url);
-  };
 
   return (
     <div className="flex items-center gap-2">
@@ -38,18 +28,6 @@ export function UserAndSignOutButton({ user }: { user: User }) {
         <SidebarText className="text-sm font-medium">
           {user.name ?? "User"}
         </SidebarText>
-        {subscription && (
-          <Button
-            onClick={onClick}
-            variant="link"
-            size="sm"
-            className="h-auto p-0"
-          >
-            <SidebarText>
-              <Trans i18nKey="manage_subscription" />
-            </SidebarText>
-          </Button>
-        )}
         <Button
           onClick={(e) => {
             e.preventDefault();

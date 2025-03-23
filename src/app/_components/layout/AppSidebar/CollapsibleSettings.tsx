@@ -1,6 +1,7 @@
 "use client";
 
 import { LanguageSelector } from "@/app/_components/user/LanguageSelector";
+import { ManageSubscriptionButton } from "@/app/_components/user/ManageSubscriptionButton";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -59,13 +60,14 @@ export function CollapsibleSettings() {
       <CollapsibleContent className="transition-all duration-200 ease-linear">
         <div className="mt-2 space-y-4 pl-6">
           <LanguageSelector />
+          <ManageSubscriptionButton />
           <Button
             variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="w-full items-center gap-2"
+            className="w-full"
           >
-            <Trash2 className="h-4 w-4 flex-shrink-0" />
+            <Trash2 className="size-4" />
             <SidebarText>
               {isDeleting ? t("deleted") : t("delete_all_assignments")}
             </SidebarText>
