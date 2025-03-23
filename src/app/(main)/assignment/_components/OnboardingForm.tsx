@@ -1,15 +1,18 @@
 import { SignInButton } from "@/app/_components/user/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
+import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import ExampleProblemCard from "./Problem/ExampleProblemCard";
 import { UploadProblems } from "./Problem/UploadProblems";
+
 export function OnboardingForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
   const { data: session } = useSession();
   const user = session?.user;
+  const { t } = useTranslation();
   return (
     <form className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
@@ -33,7 +36,7 @@ export function OnboardingForm({
           <UserAndSignOutButton user={user} />
         ) : (
           <SignInButton variant="ghost" className="w-full">
-            I already have an account
+            {t("already_have_account")}
           </SignInButton>
         )}
       </div>
