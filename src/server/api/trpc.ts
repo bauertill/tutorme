@@ -18,6 +18,7 @@ import { paymentAdapter } from "@/core/adapters/paymentAdapter";
 import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
 import { renderAsyAdapter } from "@/core/adapters/renderAsyAdapter";
 import { isValidFreeTierUsage } from "@/core/appUsage/appUsageDomain";
+import { Language } from "@/i18n/types";
 import { ADMINS, auth } from "@/server/auth";
 /**
  * 1. CONTEXT
@@ -40,6 +41,8 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     opts.headers.get("x-real-ip") ??
     "unknown";
 
+  const userLanguage = Language.parse(opts.headers.get("x-user-language"));
+
   return {
     session,
     dbAdapter,
@@ -49,6 +52,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     ocrAdapter,
     clientIp,
     paymentAdapter,
+    userLanguage,
     ...opts,
   };
 };

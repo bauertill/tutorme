@@ -1,7 +1,11 @@
+import { type Language, LanguageName } from "@/i18n/types";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { model } from "../model";
-const EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT = `You are an AI assistant that translates an image of math problems into a list of problems. 
+
+const EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT = (
+  language: Language,
+) => `You are an AI assistant that translates an image of math problems into a list of problems. 
 Go through the image and extract all the problems. Problems might be nested, in this case you should flatten the data structure and reformulate the problems so they are standalone.
 Also come up with a title for the assignment.
 
@@ -23,7 +27,7 @@ Your response should be:
     }   
 ]
 
-Write your response in German language only.
+Write your response in ${LanguageName[language]} language only.
 `;
 
 const RawProblem = z.object({
@@ -42,11 +46,12 @@ type RawAssignment = z.infer<typeof RawAssignment>;
 
 export async function extractAssignmentFromImage(
   documentUrl: string,
+  language: Language,
   userId?: string,
 ): Promise<{ assignmentTitle: string; problems: RawProblem[] }> {
   const rawAssignment = await model.withStructuredOutput(RawAssignment).invoke(
     [
-      new SystemMessage(EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT),
+      new SystemMessage(EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT(language)),
       new HumanMessage({
         content: [
           {

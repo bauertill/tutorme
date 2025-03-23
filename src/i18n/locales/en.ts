@@ -21,6 +21,13 @@ const translation = {
   back: "Back",
   next: "Next",
   check: "Check",
+  assignment: {
+    feedback: {
+      hasMistakes: "That's not quite correct",
+      isComplete: "That's correct!",
+      notComplete: "Keep going!",
+    },
+  },
 };
 
 export default translation;

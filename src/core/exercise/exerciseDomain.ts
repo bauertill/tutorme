@@ -1,3 +1,4 @@
+import { type Language } from "@/i18n/types";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type EvaluationResult, type UserProblem } from "../assignment/types";
@@ -8,11 +9,13 @@ export async function evaluateSolution(
   solutionImage: string,
   referenceSolution: string,
   llmAdapter: LLMAdapter,
+  language: Language,
 ): Promise<EvaluationResult> {
   const result = await llmAdapter.assignment.evaluateSolution(
     exerciseText,
     solutionImage,
     referenceSolution,
+    language,
   );
   return result;
 }
@@ -25,8 +28,12 @@ export async function getRandomProblem(dbAdapter: DBAdapter): Promise<Problem> {
 export async function createReferenceSolution(
   exerciseText: string,
   llmAdapter: LLMAdapter,
+  language: Language,
 ): Promise<string> {
-  const solution = await llmAdapter.assignment.solveProblem(exerciseText);
+  const solution = await llmAdapter.assignment.solveProblem(
+    exerciseText,
+    language,
+  );
   return solution;
 }
 
