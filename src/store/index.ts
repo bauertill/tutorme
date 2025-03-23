@@ -10,6 +10,7 @@ import { devtools, persist, type PersistStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createAssignmentSlice, type AssignmentSlice } from "./assignment";
 import { createCanvasSlice, type CanvasSlice } from "./canvas";
+import { createHelpSlice, type HelpSlice } from "./help";
 import { createProfileSlice, type ProfileSlice } from "./profile";
 import { createUsageLimitSlice, type UsageLimitSlice } from "./usageLimit";
 
@@ -22,7 +23,8 @@ export type MiddlewareList = [
 export type State = AssignmentSlice &
   CanvasSlice &
   UsageLimitSlice &
-  ProfileSlice;
+  ProfileSlice &
+  HelpSlice;
 
 const storage: PersistStorage<State> = {
   getItem: async (name) => {
@@ -50,6 +52,7 @@ const useStoreBase = create<State>()(
         ...createCanvasSlice(...a),
         ...createUsageLimitSlice(...a),
         ...createProfileSlice(...a),
+        ...createHelpSlice(...a),
       })),
       {
         name: "tutormegood-store",

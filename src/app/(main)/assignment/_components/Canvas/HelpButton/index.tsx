@@ -13,7 +13,7 @@ export default function HelpButton() {
   };
 
   return (
-    <div className="">
+    <>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -21,7 +21,7 @@ export default function HelpButton() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.1 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute right-0 top-0 origin-top-right"
+            className="flex origin-top-right"
           >
             <HelpBox onClose={() => setIsOpen(false)} />
           </motion.div>
@@ -42,6 +42,6 @@ export default function HelpButton() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

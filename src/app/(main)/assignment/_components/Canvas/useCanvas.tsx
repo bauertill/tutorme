@@ -62,8 +62,10 @@ export function useCanvas() {
   const stopErasing = () => {
     if (isEraserActive) {
       setIsEraserActive(false);
-      removePathsAtIndexes(erasedPaths.map((path) => paths.indexOf(path)));
-      setErasedPaths([]);
+      if (erasedPaths.length > 0) {
+        removePathsAtIndexes(erasedPaths.map((path) => paths.indexOf(path)));
+        setErasedPaths([]);
+      }
     }
   };
   const cancelDrawing = () => {

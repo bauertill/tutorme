@@ -1,8 +1,8 @@
 import { type DBAdapter } from "../adapters/dbAdapter";
 import * as subscription from "../subscription/subscriptionDomain";
 
-const MAX_FREE_CREDITS = 20;
-const MAX_FREE_CREDITS_SIGNED_IN = 60;
+const MAX_FREE_CREDITS = 20000000;
+const MAX_FREE_CREDITS_SIGNED_IN = 60000000;
 
 export async function isValidFreeTierUsage(
   dbAdapter: DBAdapter,

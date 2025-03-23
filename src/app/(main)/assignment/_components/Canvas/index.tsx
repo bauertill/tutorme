@@ -71,7 +71,7 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
           <Trans i18nKey="check" />
         </Button>
       </div>
-      <div className="absolute right-4 top-16 z-10 flex items-end space-x-4">
+      <div className="absolute right-4 top-[4rem] z-10 flex max-h-[calc(100%-5rem)]">
         <HelpButton />
       </div>
     </div>

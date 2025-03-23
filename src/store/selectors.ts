@@ -110,3 +110,15 @@ export const useEvaluationResult = (): {
   };
   return { evaluationResult, setEvaluationResult };
 };
+
+export const useHelp = () => {
+  const { messages, addUserMessage, addAssistantMessage, activeProblemId } =
+    useStore();
+  const threadId = activeProblemId ?? "NONE";
+  return {
+    messages: messages.filter((m) => m.threadId === threadId),
+    addUserMessage: (content: string) => addUserMessage(content, threadId),
+    addAssistantMessage: (content: string) =>
+      addAssistantMessage(content, threadId),
+  };
+};

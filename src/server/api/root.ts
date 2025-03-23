@@ -1,6 +1,7 @@
 import { problemRouter } from "@/server/api/routers/problem";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { assignmentRouter } from "./routers/assignment";
+import { helpRouter } from "./routers/help";
 import { renderAsyRouter } from "./routers/renderAsy";
 import { subscriptionRouter } from "./routers/subscription";
 
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   renderAsy: renderAsyRouter,
   assignment: assignmentRouter,
   subscription: subscriptionRouter,
+  help: helpRouter,
 });
 
 // export type definition of API
