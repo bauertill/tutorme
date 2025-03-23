@@ -4,9 +4,10 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useHelp } from "@/store/selectors";
 import { api } from "@/trpc/react";
 import { X } from "lucide-react";
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import MessageList from "./MessageList";
-import SuggestedQuestionsList from "./SuggestedQuestionsList";
+import RecommendedQuestionsList from "./RecommendedQuestionsList";
 import TextInput from "./TextInput";
 
 export default function HelpBox({
@@ -16,11 +17,9 @@ export default function HelpBox({
   onClose?: () => void;
   getCanvasDataUrl: () => Promise<string | null>;
 }) {
-  const questions = [
-    "How do I add two numbers?",
-    "What's a number?",
-    "I don't know how to do this problem at all, please send help.",
-  ];
+  const [recommendedQuestions, setRecommendedQuestions] = useState<string[]>(
+    [],
+  );
   const {
     newUserMessage,
     setMessages,
@@ -31,20 +30,58 @@ export default function HelpBox({
   const ask = async (question: string) => {
     const updatedMessages = [...messages, newUserMessage(question)];
     setMessages(updatedMessages);
-    askMutation({
+    askMutation.mutate({
       messages: updatedMessages,
       problem: activeProblem?.problem ?? null,
       solutionImage: await getCanvasDataUrl(),
     });
   };
-  const { mutate: askMutation, isPending } = api.help.ask.useMutation({
+  const askMutation = api.help.ask.useMutation({
+    onMutate: () => {
+      setRecommendedQuestions([]);
+    },
     onSuccess: (reply) => {
-      setMessages([...messages, newAssistantMessage(reply)]);
+      setMessages([...messages, newAssistantMessage(reply.reply)]);
+      setRecommendedQuestions(reply.followUpQuestions);
     },
     onError: (error) => {
       setMessages([...messages, newAssistantMessage(error.message)]);
     },
   });
+  const { mutate: recommendQuestions, isPending: isRecommendQuestionsPending } =
+    api.help.recommendQuestions.useMutation({
+      onSuccess: (questions) => {
+        setRecommendedQuestions(questions);
+      },
+    });
+
+  const debouncedRecommendQuestions = useDebouncedCallback(
+    useCallback(async () => {
+      if (
+        recommendedQuestions.length === 0 &&
+        messages.length === 0 &&
+        activeProblem &&
+        !isRecommendQuestionsPending
+      ) {
+        recommendQuestions({
+          problem: activeProblem.problem,
+          solutionImage: await getCanvasDataUrl(),
+        });
+      }
+    }, [
+      recommendedQuestions,
+      messages,
+      activeProblem,
+      isRecommendQuestionsPending,
+      recommendQuestions,
+      getCanvasDataUrl,
+    ]),
+    100,
+  );
+
+  useEffect(() => {
+    void debouncedRecommendQuestions();
+  }, [debouncedRecommendQuestions]);
 
   const container = useRef<HTMLDivElement>(null);
   useScrollToBottom(container);
@@ -69,14 +106,14 @@ export default function HelpBox({
         </CardContent>
         <CardFooter className="flex flex-col gap-4 px-4 pb-4">
           <TextInput
-            disabled={isPending}
+            disabled={askMutation.isPending}
             onSend={(question) => ask(question)}
-            isLoading={isPending}
+            isLoading={askMutation.isPending}
           />
-          <SuggestedQuestionsList
-            disabled={isPending}
+          <RecommendedQuestionsList
+            disabled={askMutation.isPending}
             onAsk={(question) => ask(question)}
-            questions={questions}
+            questions={recommendedQuestions}
           />
         </CardFooter>
       </Card>

@@ -1,42 +1,31 @@
-import { type Message } from "@/core/help/types";
 import { type Language, LanguageName } from "@/i18n/types";
-import {
-  AIMessage,
-  HumanMessage,
-  SystemMessage,
-} from "@langchain/core/messages";
-import { z } from "zod";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { z } from "node_modules/zod/lib";
 import { model } from "../model";
 
 const SYSTEM_PROMPT = (language: Language) => `\
 You are an expert teacher helping a student solve a problem.
 
 Instructions:
-- Answer the student's question in a pedagogically helpful way.
-- Only provide brief hints.
-- Keep it as short as possible and rather expect the user to ask follow up questions if needed.
-- If you can anticipate the questions that the student will ask next, list them in the \`followUpQuestions\` field. At most 3 questions.
+- Anticipate the most likely questions that the student will run into when trying to solve the problem.
+- Keep each question as short as possible, not repeating the given context.
+- Generate at most 3 questions.
+- Always wrap LaTeX in the appropriate delimiters.
 
 Write your response in ${LanguageName[language]} language only.
 `;
 
 const schema = z.object({
-  reply: z.string().describe("The reply to the student's question."),
-  followUpQuestions: z
+  questions: z
     .array(z.string())
-    .describe(
-      "The questions that the student will most likely ask next, if any.",
-    ),
+    .describe("The questions that the student will most likely ask next."),
 });
 
-export type GenerateReplyResponse = z.infer<typeof schema>;
-
-export async function generateReply(
-  messages: Message[],
+export async function recommendQuestions(
   problem: string | null,
   solutionImage: string | null,
   language: Language,
-): Promise<GenerateReplyResponse> {
+): Promise<string[]> {
   const base64Data = solutionImage?.includes("base64,")
     ? solutionImage.split("base64,")[1]
     : solutionImage;
@@ -79,13 +68,8 @@ ${problem}
           }),
         ]
       : []),
-    ...messages.map((message) =>
-      message.role === "user"
-        ? new HumanMessage(message.content)
-        : new AIMessage(message.content),
-    ),
   ];
 
   const response = await model.withStructuredOutput(schema).invoke(prompt);
-  return response;
+  return response.questions;
 }

@@ -22,7 +22,7 @@ function UserMessage({ message }: { message: Message }) {
   return (
     <div className="flex justify-end">
       <div className="max-w-[calc(100%-2rem)] rounded-md bg-muted p-2">
-        {message.content}
+        <Latex>{message.content}</Latex>
       </div>
     </div>
   );

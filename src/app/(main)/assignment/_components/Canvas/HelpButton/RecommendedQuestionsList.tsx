@@ -1,6 +1,7 @@
+import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
 
-export default function SuggestedQuestionsList({
+export default function RecommendedQuestionsList({
   disabled,
   onAsk,
   questions,
@@ -19,7 +20,7 @@ export default function SuggestedQuestionsList({
           onClick={() => onAsk(question)}
           disabled={disabled}
         >
-          {question}
+          <Latex>{question}</Latex>
         </Button>
       ))}
     </div>

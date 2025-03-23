@@ -1,4 +1,4 @@
-import { generateHelpReply } from "@/core/help/helpDomain";
+import { generateHelpReply, recommendQuestions } from "@/core/help/helpDomain";
 import { Message } from "@/core/help/types";
 import { createTRPCRouter, limitedPublicProcedure } from "@/server/api/trpc";
 import { z } from "zod";
@@ -15,6 +15,21 @@ export const helpRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return await generateHelpReply(
         input.messages,
+        input.problem,
+        input.solutionImage,
+        ctx.llmAdapter,
+        ctx.userLanguage,
+      );
+    }),
+  recommendQuestions: limitedPublicProcedure
+    .input(
+      z.object({
+        problem: z.string().nullable(),
+        solutionImage: z.string().nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await recommendQuestions(
         input.problem,
         input.solutionImage,
         ctx.llmAdapter,
