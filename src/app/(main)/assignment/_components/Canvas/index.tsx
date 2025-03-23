@@ -28,7 +28,7 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
     <div className="relative h-full w-full overflow-hidden">
       {canvas}
 
-      <div className="absolute left-4 top-20 z-10 flex items-end space-x-4 lg:top-4">
+      <div className="pointer-events-none absolute left-4 top-20 z-10 flex items-end space-x-4 lg:top-4">
         <WritingAnimation hidden={!isUntouched} delay={5000} />
       </div>
 

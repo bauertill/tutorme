@@ -38,7 +38,7 @@ export default function WritingAnimation({
     <div
       className={cn(
         kalam.className,
-        `pointer-events-none relative w-[${width}ch] text-2xl transition-opacity duration-300`,
+        `relative w-[${width}ch] text-2xl transition-opacity duration-300`,
         hidden && "opacity-0",
       )}
     >
