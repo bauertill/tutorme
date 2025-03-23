@@ -2,15 +2,13 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
-import { CameraIcon, ImageIcon } from "lucide-react";
+import { CameraIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -25,7 +23,6 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
   >("idle");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const addAssignment = useStore.use.addAssignment();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
@@ -48,34 +45,36 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
       },
     });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0] ?? null;
+    if (!file) return;
     setSelectedFile(file);
     setUploadState("idle");
+    setOpen(true);
 
-    // Create preview for the selected image
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setPreview(null);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    try {
+      await handleUpload(file);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      setUploadState("error");
     }
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setUploadState("error");
-      return;
-    }
+  const handleUpload = async (file: File) => {
     setUploadState("uploading");
-
     try {
-      const url = await uploadToBlob(selectedFile);
+      const url = await uploadToBlob(file);
       createAssignmentFromUpload(url);
-    } catch {
+    } catch (error) {
+      console.error("Upload error:", error);
       setUploadState("error");
     }
   };
@@ -84,93 +83,86 @@ export function UploadProblems(props: React.ComponentProps<typeof Button>) {
     setSelectedFile(null);
     setPreview(null);
     setUploadState("idle");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setUploadState("idle");
+    toast.info("Upload cancelled");
+  };
+
+  const handleButtonClick = () => {
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = "";
+    fileInputRef.current.click();
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(isOpen) => {
-        setOpen(isOpen);
-        if (!isOpen) resetForm();
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button variant="ghost" {...props}>
-          <CameraIcon className="h-5 w-5" />
-          Upload Assignment
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Upload Math Problem</DialogTitle>
-          <DialogDescription>
-            Upload a file with math problems to the database.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex flex-col items-center">
-            {/* File selection input (gallery) */}
-            <Input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
+    <>
+      <Input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
 
-            {/* Camera input (with capture) */}
-            <Input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handleFileChange}
-              className="hidden"
-            />
+      <Button
+        variant="ghost"
+        onClick={handleButtonClick}
+        type="button"
+        {...props}
+      >
+        <CameraIcon className="h-5 w-5" />
+        Upload Assignment
+      </Button>
 
-            <div className="flex space-x-2">
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                variant="outline"
-                disabled={uploadState === "uploading"}
-              >
-                <ImageIcon className="h-5 w-5" />
-              </Button>
-              <Button
-                onClick={() => cameraInputRef.current?.click()}
-                variant="outline"
-                disabled={uploadState === "uploading"}
-              >
-                <CameraIcon className="h-5 w-5" />
-              </Button>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          console.log("Dialog onOpenChange:", isOpen);
+          setOpen(isOpen);
+          if (!isOpen) resetForm();
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Uploading Assignment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex flex-col items-center">
+              {selectedFile && (
+                <div className="mt-4 text-sm">
+                  Selected: {selectedFile.name}
+                </div>
+              )}
+
+              {preview && (
+                <div className="mt-4 overflow-hidden rounded-md border">
+                  <Image
+                    src={preview}
+                    alt="Preview"
+                    className="h-auto max-h-64 max-w-full object-contain"
+                    width={400}
+                    height={400}
+                  />
+                </div>
+              )}
             </div>
 
-            {selectedFile && (
-              <div className="mt-4 text-sm">Selected: {selectedFile.name}</div>
-            )}
-
-            {preview && (
-              <div className="mt-4 overflow-hidden rounded-md border">
-                <Image
-                  src={preview}
-                  alt="Preview"
-                  className="h-auto max-h-64 max-w-full object-contain"
-                  width={400}
-                  height={400}
-                />
-              </div>
-            )}
+            <div className="flex justify-center">
+              {uploadState === "uploading" && (
+                <Button onClick={handleCancelUpload} variant="ghost">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Cancel
+                </Button>
+              )}
+            </div>
           </div>
-
-          <Button
-            onClick={handleUpload}
-            disabled={!selectedFile || uploadState === "uploading"}
-            {...props}
-          >
-            {uploadState === "uploading" ? "Uploading..." : "Upload Problem"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
