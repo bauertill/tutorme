@@ -17,12 +17,14 @@ import {
   SidebarInput,
   SidebarRail,
   SidebarText,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
 import { GraduationCap } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
+
 export function AppSidebar() {
   const session = useSession();
   const assignments = useStore.use.assignments();
@@ -33,6 +35,7 @@ export function AppSidebar() {
     new Set(),
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const { state, setOpen } = useSidebar();
 
   useEffect(() => {
     if (activeAssignmentId) {
@@ -87,58 +90,60 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r bg-background">
-      <SidebarHeader className="mt-2">
-        <div className="flex items-center gap-2 font-medium">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <GraduationCap className="size-4" />
+      <div onClick={() => (state === "collapsed" ? setOpen(true) : null)}>
+        <SidebarHeader className="mt-2">
+          <div className="flex items-center gap-2 font-medium">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <GraduationCap className="size-4 flex-shrink-0" />
+            </div>
+            <SidebarText className="ml-2">Tutor Me Good</SidebarText>
           </div>
-          <SidebarText className="ml-2">Tutor Me Good</SidebarText>
-        </div>
-      </SidebarHeader>
-      <SidebarContent className="overflow-x-hidden">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <UploadProblems trigger="button" />
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarInput
-            placeholder="Search exercises..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            <SidebarText>Exercises</SidebarText>
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            {filteredAssignments.map((assignment) => (
-              <CollapsibleAssignment
-                key={assignment.id}
-                assignment={assignment}
-                isOpen={autoExpandedAssignments.has(assignment.id)}
-                onOpenChange={() => toggleAssignment(assignment.id)}
-                activeProblem={activeProblem}
-                setActiveProblem={setActiveProblemWithCanvas}
-              />
-            ))}
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
-        {session.data?.user ? (
-          <div className="mb-2 px-2">
-            <UserAndSignOutButton user={session.data.user} />
-          </div>
-        ) : (
-          <div className="mb-2">
-            <SignInButton variant="ghost" className="w-full justify-start" />
-          </div>
-        )}
-        <CollapsibleSettings />
-        <Footer />
-      </SidebarFooter>
+        </SidebarHeader>
+        <SidebarContent className="overflow-x-hidden">
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <UploadProblems trigger="button" />
+            </SidebarGroupContent>
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarInput
+              placeholder="Search exercises..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              <SidebarText>Exercises</SidebarText>
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              {filteredAssignments.map((assignment) => (
+                <CollapsibleAssignment
+                  key={assignment.id}
+                  assignment={assignment}
+                  isOpen={autoExpandedAssignments.has(assignment.id)}
+                  onOpenChange={() => toggleAssignment(assignment.id)}
+                  activeProblem={activeProblem}
+                  setActiveProblem={setActiveProblemWithCanvas}
+                />
+              ))}
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          {session.data?.user ? (
+            <div className="mb-2 px-2">
+              <UserAndSignOutButton user={session.data.user} />
+            </div>
+          ) : (
+            <div className="mb-2">
+              <SignInButton variant="ghost" className="w-full justify-start" />
+            </div>
+          )}
+          <CollapsibleSettings />
+          <Footer />
+        </SidebarFooter>
+      </div>
       <SidebarRail />
     </Sidebar>
   );
