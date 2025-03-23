@@ -14,8 +14,15 @@ export function newMessage(draft: Draft<Message>): Message {
 
 export async function generateHelpReply(
   messages: Message[],
+  problem: string | null,
+  solutionImage: string | null,
   llmAdapter: LLMAdapter,
   language: Language,
 ): Promise<string> {
-  return await llmAdapter.help.generateReply(messages, language);
+  return await llmAdapter.help.generateReply(
+    messages,
+    problem,
+    solutionImage,
+    language,
+  );
 }

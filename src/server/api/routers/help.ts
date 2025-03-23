@@ -8,11 +8,15 @@ export const helpRouter = createTRPCRouter({
     .input(
       z.object({
         messages: z.array(Message),
+        problem: z.string().nullable(),
+        solutionImage: z.string().nullable(), // Base64 encoded image data
       }),
     )
     .mutation(async ({ ctx, input }) => {
       return await generateHelpReply(
         input.messages,
+        input.problem,
+        input.solutionImage,
         ctx.llmAdapter,
         ctx.userLanguage,
       );

@@ -114,8 +114,9 @@ export const useEvaluationResult = (): {
 };
 
 export const useHelp = () => {
-  const { messages, setMessages, activeProblemId } = useStore();
-  const threadId = activeProblemId ?? "NONE";
+  const { messages, setMessages } = useStore();
+  const activeProblem = useActiveProblem();
+  const threadId = activeProblem?.id ?? "NONE";
   return {
     messages: messages.filter((m) => m.threadId === threadId),
     newUserMessage: (content: string) =>
@@ -123,5 +124,6 @@ export const useHelp = () => {
     newAssistantMessage: (content: string) =>
       newMessage({ role: "assistant", content, threadId }),
     setMessages: (messages: Message[]) => setMessages(messages),
+    activeProblem,
   };
 };

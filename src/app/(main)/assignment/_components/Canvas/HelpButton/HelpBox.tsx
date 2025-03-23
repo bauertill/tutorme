@@ -9,18 +9,33 @@ import MessageList from "./MessageList";
 import SuggestedQuestionsList from "./SuggestedQuestionsList";
 import TextInput from "./TextInput";
 
-export default function HelpBox({ onClose }: { onClose?: () => void }) {
+export default function HelpBox({
+  onClose,
+  getCanvasDataUrl,
+}: {
+  onClose?: () => void;
+  getCanvasDataUrl: () => Promise<string | null>;
+}) {
   const questions = [
     "How do I add two numbers?",
     "What's a number?",
     "I don't know how to do this problem at all, please send help.",
   ];
-  const { newUserMessage, setMessages, newAssistantMessage, messages } =
-    useHelp();
-  const ask = (question: string) => {
+  const {
+    newUserMessage,
+    setMessages,
+    newAssistantMessage,
+    messages,
+    activeProblem,
+  } = useHelp();
+  const ask = async (question: string) => {
     const updatedMessages = [...messages, newUserMessage(question)];
     setMessages(updatedMessages);
-    askMutation({ messages: updatedMessages });
+    askMutation({
+      messages: updatedMessages,
+      problem: activeProblem?.problem ?? null,
+      solutionImage: await getCanvasDataUrl(),
+    });
   };
   const { mutate: askMutation, isPending } = api.help.ask.useMutation({
     onSuccess: (reply) => {

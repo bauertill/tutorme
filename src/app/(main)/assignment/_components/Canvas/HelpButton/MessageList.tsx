@@ -1,3 +1,4 @@
+import { Latex } from "@/app/_components/richtext/Latex";
 import { type Message } from "@/core/help/types";
 import { Fragment } from "react";
 
@@ -28,5 +29,9 @@ function UserMessage({ message }: { message: Message }) {
 }
 
 function AssistantMessage({ message }: { message: Message }) {
-  return <div className="whitespace-pre-wrap">{message.content}</div>;
+  return (
+    <div className="whitespace-pre-wrap">
+      <Latex>{message.content}</Latex>
+    </div>
+  );
 }

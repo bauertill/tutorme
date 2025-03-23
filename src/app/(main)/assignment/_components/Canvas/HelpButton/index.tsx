@@ -3,7 +3,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import HelpBox from "./HelpBox";
 
-export default function HelpButton() {
+export default function HelpButton({
+  getCanvasDataUrl,
+}: {
+  getCanvasDataUrl: () => Promise<string | null>;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -23,7 +27,10 @@ export default function HelpButton() {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="flex origin-top-right"
           >
-            <HelpBox onClose={() => setIsOpen(false)} />
+            <HelpBox
+              onClose={() => setIsOpen(false)}
+              getCanvasDataUrl={getCanvasDataUrl}
+            />
           </motion.div>
         )}
       </AnimatePresence>
