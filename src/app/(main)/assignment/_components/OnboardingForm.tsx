@@ -1,3 +1,4 @@
+import { LanguageSelector } from "@/app/_components/user/LanguageSelector";
 import { SignInButton } from "@/app/_components/user/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
 import { useTranslation } from "@/i18n";
@@ -31,7 +32,7 @@ export function OnboardingForm({
         <UploadProblems trigger="card" />
       </div>
 
-      <div className="mt-40 grid gap-6">
+      <div className="mt-40 flex flex-col items-center gap-10">
         {user ? (
           <UserAndSignOutButton user={user} />
         ) : (
@@ -39,6 +40,7 @@ export function OnboardingForm({
             {t("already_have_account")}
           </SignInButton>
         )}
+        <LanguageSelector />
       </div>
     </form>
   );
