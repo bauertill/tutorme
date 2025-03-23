@@ -36,18 +36,20 @@ export function CollapsibleAssignment({
       <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-accent">
         <ChevronRight
           className={cn(
-            "h-4 w-4 shrink-0 transition-transform duration-200",
+            "h-4 w-4 flex-shrink-0 transition-transform duration-200",
             isOpen && "rotate-90",
           )}
         />
-        <SidebarText className="font-semibold">{assignment.name}</SidebarText>
-        <div className="ml-auto flex items-center gap-2 whitespace-nowrap">
+        <SidebarText className="mr-2 flex-1 truncate font-semibold">
+          {assignment.name}
+        </SidebarText>
+        <div className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap">
           {isSolved ? (
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-500" />
           ) : (
-            <Circle className="h-4 w-4 text-yellow-500" />
+            <Circle className="h-4 w-4 flex-shrink-0 text-yellow-500" />
           )}
-          <SidebarText className="w-6 text-xs text-muted-foreground">
+          <SidebarText className="min-w-[44px] flex-shrink-0 text-right text-xs text-muted-foreground">
             {solvedProblemsCount} / {assignment.problems.length}
           </SidebarText>
         </div>

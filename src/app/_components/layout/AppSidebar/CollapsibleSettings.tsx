@@ -6,7 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { SidebarText } from "@/components/ui/sidebar";
+import { SidebarText, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
@@ -21,6 +21,7 @@ export function CollapsibleSettings() {
   const { mutate: deleteAllAssignments } =
     api.assignment.deleteAllAssignments.useMutation();
   const [isDeleting, setIsDeleting] = useState(false);
+  const { state } = useSidebar();
 
   const handleDelete = () => {
     setIsDeleting(true);
@@ -35,11 +36,11 @@ export function CollapsibleSettings() {
 
   return (
     <Collapsible
-      open={isOpen}
+      open={isOpen && state === "expanded"}
       onOpenChange={(open) => setIsOpen(open)}
       className="transition-all duration-200 ease-linear"
     >
-      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-all duration-200 ease-linear hover:bg-accent">
+      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-all duration-200 ease-linear hover:bg-accent">
         <Settings
           className={cn(
             "h-4 w-4 flex-shrink-0 shrink-0 transition-transform duration-200",
