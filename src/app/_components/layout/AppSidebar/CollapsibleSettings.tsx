@@ -1,5 +1,6 @@
 "use client";
 
+import { LanguageSelector } from "@/app/_components/user/LanguageSelector";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -7,6 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { SidebarText, useSidebar } from "@/components/ui/sidebar";
+import { Trans, useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
@@ -15,6 +17,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 export function CollapsibleSettings() {
+  const { t } = useTranslation();
   const clearAssignments = useStore.use.clearAssignments();
   const [isOpen, setIsOpen] = useState(false);
   const session = useSession();
@@ -24,14 +27,16 @@ export function CollapsibleSettings() {
   const { state } = useSidebar();
 
   const handleDelete = () => {
-    setIsDeleting(true);
-    clearAssignments();
-    if (session.data?.user?.id) {
-      deleteAllAssignments();
+    if (confirm(t("delete_all_assignments_confirmation"))) {
+      setIsDeleting(true);
+      clearAssignments();
+      if (session.data?.user?.id) {
+        deleteAllAssignments();
+      }
+      setTimeout(() => {
+        setIsDeleting(false);
+      }, 1500);
     }
-    setTimeout(() => {
-      setIsDeleting(false);
-    }, 1500);
   };
 
   return (
@@ -47,26 +52,24 @@ export function CollapsibleSettings() {
             isOpen && "rotate-90",
           )}
         />
-        <SidebarText className="font-semibold">Settings</SidebarText>
+        <SidebarText className="font-semibold">
+          <Trans i18nKey="settings" />
+        </SidebarText>
       </CollapsibleTrigger>
       <CollapsibleContent className="transition-all duration-200 ease-linear">
-        <div className="space-y-1">
-          <div className="mt-2">
-            <SidebarText className="mb-2 text-sm text-muted-foreground">
-              Delete all assignments? This can not be undone.
+        <div className="mt-2 space-y-4 pl-6">
+          <LanguageSelector />
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="w-full items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4 flex-shrink-0" />
+            <SidebarText>
+              {isDeleting ? t("deleted") : t("delete_all_assignments")}
             </SidebarText>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="w-full items-center gap-2"
-            >
-              <Trash2 className="h-4 w-4 flex-shrink-0" />
-              <SidebarText>
-                {isDeleting ? "Deleted!" : "Delete All"}
-              </SidebarText>
-            </Button>
-          </div>
+          </Button>
         </div>
       </CollapsibleContent>
     </Collapsible>

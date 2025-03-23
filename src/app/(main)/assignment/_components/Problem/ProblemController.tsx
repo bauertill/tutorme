@@ -1,6 +1,7 @@
 "use client";
 import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
+import { Trans } from "@/i18n";
 import { useProblemController } from "@/store/selectors";
 
 export default function ProblemController() {
@@ -24,14 +25,14 @@ export default function ProblemController() {
           disabled={!gotoPreviousProblem}
           onClick={() => gotoPreviousProblem && gotoPreviousProblem()}
         >
-          Zurück
+          <Trans i18nKey="back" />
         </Button>
         <Button
           variant="outline"
           disabled={!gotoNextProblem}
           onClick={() => gotoNextProblem && gotoNextProblem()}
         >
-          Weiter
+          <Trans i18nKey="next" />
         </Button>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { type Language, LanguageName } from "@/i18n/types";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { model } from "../model";
@@ -26,7 +27,9 @@ const schema = z.object({
 });
 
 // Define the system prompt for evaluating exercise solutions
-const EVALUATE_SOLUTION_SYSTEM_PROMPT = `You are an expert teacher evaluating a student's solution attempt to an exercise. 
+const EVALUATE_SOLUTION_SYSTEM_PROMPT = (
+  language: Language,
+) => `You are an expert teacher evaluating a student's solution attempt to an exercise. 
 You will be given the problem statement, a reference solution, and an image of the student's handwritten or drawn (partial) solution attempt.
 
 - Take a close look at the submitted image and take note of any parts that the student has crossed out or scribbled over.
@@ -37,7 +40,7 @@ You will be given the problem statement, a reference solution, and an image of t
 
 Keep your output concise. Always wrap LaTeX in the appropriate delimiters.
 
-Write your response in German language only.
+Write your response in ${LanguageName[language]} language only.
 `;
 
 // Function to evaluate the solution using the multimodal LLM
@@ -45,6 +48,7 @@ export async function evaluateSolution(
   exerciseText: string,
   solutionImage: string,
   referenceSolution: string,
+  language: Language,
 ): Promise<z.infer<typeof schema>> {
   // Extract the base64 data part (remove the prefix if it exists)
   const base64Data = solutionImage.includes("base64,")
@@ -53,7 +57,7 @@ export async function evaluateSolution(
 
   // Create messages for the LLM
   const messages = [
-    new SystemMessage(EVALUATE_SOLUTION_SYSTEM_PROMPT),
+    new SystemMessage(EVALUATE_SOLUTION_SYSTEM_PROMPT(language)),
     new HumanMessage({
       content: [
         {

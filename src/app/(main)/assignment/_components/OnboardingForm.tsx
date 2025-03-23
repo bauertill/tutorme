@@ -1,5 +1,6 @@
 import { SignInButton } from "@/app/_components/user/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
+import { Trans, useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import ExampleProblemCard from "./Problem/ExampleProblemCard";
@@ -10,17 +11,15 @@ export function OnboardingForm({
 }: React.ComponentPropsWithoutRef<"form">) {
   const { data: session } = useSession();
   const user = session?.user;
+  const { t } = useTranslation();
   return (
     <form className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">
-          Welcome to
-          <br />
-          Tutor Me Good!
+          <Trans i18nKey="welcome_to_tutor_me_good" />
         </h1>
         <p className="text-justify text-muted-foreground">
-          Your AI powered Math Homework Assistant. Learn faster with
-          personalized tutoring.
+          <Trans i18nKey="welcome_to_tutor_me_good_description" />
         </p>
       </div>
       <div className="flex flex-col items-center justify-center gap-6">
@@ -28,12 +27,12 @@ export function OnboardingForm({
         <UploadProblems trigger="card" />
       </div>
 
-      <div className="mt-40 grid gap-6">
+      <div className="mt-40 flex flex-col items-center gap-10">
         {user ? (
           <UserAndSignOutButton user={user} />
         ) : (
           <SignInButton variant="ghost" className="w-full">
-            I already have an account
+            {t("already_have_account")}
           </SignInButton>
         )}
       </div>

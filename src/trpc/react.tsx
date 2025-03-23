@@ -1,5 +1,7 @@
 "use client";
 
+import { i18n } from "@/i18n";
+import { type AppRouter } from "@/server/api/root";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import {
   loggerLink,
@@ -11,8 +13,6 @@ import { createTRPCReact } from "@trpc/react-query";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 import { useState } from "react";
 import SuperJSON from "superjson";
-
-import { type AppRouter } from "@/server/api/root";
 import { createQueryClient } from "./query-client";
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
@@ -65,6 +65,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
             headers: () => {
               const headers = new Headers();
               headers.set("x-trpc-source", "nextjs-react");
+              headers.set("x-user-language", i18n.language);
               return headers;
             },
           }),

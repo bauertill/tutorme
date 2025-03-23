@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { SidebarText } from "@/components/ui/sidebar";
+import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { signIn } from "next-auth/react";
 
@@ -41,7 +42,7 @@ export function SignInButton({
             />
           </svg>
           <SidebarText className="ml-2 overflow-hidden">
-            Sign in with Google
+            <Trans i18nKey="sign_in_with_google" />
           </SidebarText>
         </>
       )}

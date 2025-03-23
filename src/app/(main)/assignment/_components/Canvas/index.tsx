@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { Eraser, Pencil, Redo, Sparkles, Trash, Undo } from "lucide-react";
 import { useCanvas } from "./useCanvas";
@@ -60,7 +61,7 @@ export function Canvas({ onCheck }: { onCheck: (dataUrl: string) => void }) {
           disabled={isEmpty}
         >
           <Sparkles className="h-4 w-4" />
-          Check
+          <Trans i18nKey="check" />
         </Button>
       </div>
     </div>

@@ -8,6 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { type EvaluationResult } from "@/core/assignment/types";
+import { useTranslation } from "@/i18n";
 import { useStore } from "@/store";
 import { useActiveProblem } from "@/store/selectors";
 import { api } from "@/trpc/react";
@@ -20,6 +21,7 @@ export default function FeedbackView({
 }: {
   evaluationResult: EvaluationResult;
 }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(true);
   const [selectedText, setSelectedText] = useState("");
   const activeProblem = useActiveProblem();
@@ -64,10 +66,10 @@ export default function FeedbackView({
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
             {evaluationResult.hasMistakes
-              ? "Das ist nicht ganz richtig"
+              ? t("assignment.feedback.hasMistakes")
               : evaluationResult.isComplete
-                ? "Das ist korrekt!"
-                : "Mach weiter!"}
+                ? t("assignment.feedback.isComplete")
+                : t("assignment.feedback.notComplete")}
           </CardTitle>
 
           <div className="absolute right-0 top-0 m-2 mt-8 flex items-center gap-2">

@@ -1,3 +1,4 @@
+import { type Language } from "@/i18n/types";
 import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { type DBAdapter } from "../adapters/dbAdapter";
@@ -9,9 +10,14 @@ export async function createAssignmentFromUpload(
   userId: string | undefined,
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
+  language: Language,
 ): Promise<Assignment> {
   const { assignmentTitle, problems: rawProblems } =
-    await llmAdapter.assignment.extractAssignmentFromImage(uploadPath, userId);
+    await llmAdapter.assignment.extractAssignmentFromImage(
+      uploadPath,
+      language,
+      userId,
+    );
   const assignmentId = uuidv4();
   const userProblems: UserProblem[] = rawProblems.map((problem) => ({
     id: uuidv4(),

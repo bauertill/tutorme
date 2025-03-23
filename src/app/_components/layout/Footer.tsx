@@ -1,6 +1,7 @@
 "use client";
 
 import { SidebarText } from "@/components/ui/sidebar";
+import { Trans } from "@/i18n";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -15,23 +16,29 @@ export function Footer({ className }: FooterProps) {
     <SidebarText className={cn("w-full border-t", className)}>
       <div className="container mx-auto flex flex-col gap-2 px-4 py-4">
         <div className="text-center text-xs text-muted-foreground">
-          © {currentYear} Tutor Me Good. All rights reserved.
+          <Trans i18nKey="footer_text" values={{ currentYear }} />
         </div>
         <nav className="flex justify-center gap-4 text-xs text-muted-foreground">
-          <Link href="/terms" className="hover:text-foreground hover:underline">
-            Terms of Service
+          <Link
+            href="/terms"
+            target="_blank"
+            className="hover:text-foreground hover:underline"
+          >
+            <Trans i18nKey="terms_of_service" />
           </Link>
           <Link
             href="/privacy"
+            target="_blank"
             className="hover:text-foreground hover:underline"
           >
-            Privacy Policy
+            <Trans i18nKey="privacy_policy" />
           </Link>
           <Link
             href="/impressum"
+            target="_blank"
             className="hover:text-foreground hover:underline"
           >
-            Impressum
+            <Trans i18nKey="impressum" />
           </Link>
         </nav>
       </div>

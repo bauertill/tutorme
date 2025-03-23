@@ -1,5 +1,6 @@
 "use client";
 import { Card, CardContent } from "@/components/ui/card";
+import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { BookOpen } from "lucide-react";
@@ -37,7 +38,7 @@ export default function ExampleProblemCard() {
       <CardContent className="flex items-center gap-4 p-6">
         <BookOpen className="h-6 w-6 flex-shrink-0" />
         <p className="text-sm">
-          Learn the basics by working through a guided example problem.
+          <Trans i18nKey="learn_the_basics_by_working_through_a_guided_example_problem" />
         </p>
       </CardContent>
     </Card>

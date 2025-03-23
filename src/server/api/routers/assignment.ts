@@ -31,6 +31,7 @@ export const assignmentRouter = createTRPCRouter({
         ctx.session?.user?.id,
         ctx.dbAdapter,
         ctx.llmAdapter,
+        ctx.userLanguage,
       );
     }),
   deleteAssignment: protectedProcedure
@@ -62,13 +63,18 @@ export const assignmentRouter = createTRPCRouter({
         input.solutionImage,
         input.referenceSolution,
         ctx.llmAdapter,
+        ctx.userLanguage,
       );
     }),
 
   createReferenceSolution: limitedPublicProcedure
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
-      return await createReferenceSolution(input, ctx.llmAdapter);
+      return await createReferenceSolution(
+        input,
+        ctx.llmAdapter,
+        ctx.userLanguage,
+      );
     }),
 
   explainHint: limitedPublicProcedure

@@ -19,6 +19,7 @@ import {
   SidebarText,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Trans, useTranslation } from "@/i18n";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
 import { BookOpen, GraduationCap, SearchIcon } from "lucide-react";
@@ -26,6 +27,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 
 export function AppSidebar() {
+  const { t } = useTranslation();
   const session = useSession();
   const assignments = useStore.use.assignments();
   const activeProblem = useActiveProblem();
@@ -114,7 +116,7 @@ export function AppSidebar() {
                 <SearchIcon className="size-4 flex-shrink-0" />
                 <SidebarText className="w-full overflow-hidden">
                   <SidebarInput
-                    placeholder="Search exercises..."
+                    placeholder={t("search_exercises")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="transition-all duration-200 ease-linear"
@@ -133,7 +135,9 @@ export function AppSidebar() {
                   </span>
                 </div>
                 <SidebarText className="flex items-center gap-2">
-                  <span>Assignments</span>
+                  <span>
+                    <Trans i18nKey="assignments" />
+                  </span>
                   <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium">
                     {filteredAssignments.length}
                   </span>
