@@ -28,5 +28,5 @@ function UserMessage({ message }: { message: Message }) {
 }
 
 function AssistantMessage({ message }: { message: Message }) {
-  return <div className="">{message.content}</div>;
+  return <div className="whitespace-pre-wrap">{message.content}</div>;
 }

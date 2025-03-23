@@ -24,7 +24,6 @@ export default function WritingAnimation({
   const width = useMemo(() => text.length * CHAR_WIDTH, [text]);
 
   useEffect(() => {
-    console.log("Go", hidden, delay, text);
     if (hidden) return;
     const timeout = setTimeout(() => {
       setIsDelayed(false);

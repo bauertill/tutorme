@@ -23,7 +23,6 @@ export const createHelpSlice: StateCreator<
     }),
   addUserMessage: (content, threadId) =>
     set((draft) => {
-      console.log("addUserMessage", content, threadId);
       draft.messages.push(newMessage({ role: "user", content, threadId }));
     }),
   addAssistantMessage: (content, threadId) =>

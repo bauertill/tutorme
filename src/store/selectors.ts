@@ -3,6 +3,8 @@ import {
   type EvaluationResult,
   type UserProblem,
 } from "@/core/assignment/types";
+import { newMessage } from "@/core/help/helpDomain";
+import { type Message } from "@/core/help/types";
 import { useStore } from ".";
 
 export const useActiveAssignment = (): Assignment | null => {
@@ -112,13 +114,14 @@ export const useEvaluationResult = (): {
 };
 
 export const useHelp = () => {
-  const { messages, addUserMessage, addAssistantMessage, activeProblemId } =
-    useStore();
+  const { messages, setMessages, activeProblemId } = useStore();
   const threadId = activeProblemId ?? "NONE";
   return {
     messages: messages.filter((m) => m.threadId === threadId),
-    addUserMessage: (content: string) => addUserMessage(content, threadId),
-    addAssistantMessage: (content: string) =>
-      addAssistantMessage(content, threadId),
+    newUserMessage: (content: string) =>
+      newMessage({ role: "user", content, threadId }),
+    newAssistantMessage: (content: string) =>
+      newMessage({ role: "assistant", content, threadId }),
+    setMessages: (messages: Message[]) => setMessages(messages),
   };
 };

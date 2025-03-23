@@ -15,16 +15,19 @@ export default function HelpBox({ onClose }: { onClose?: () => void }) {
     "What's a number?",
     "I don't know how to do this problem at all, please send help.",
   ];
-  const { addUserMessage, addAssistantMessage, messages } = useHelp();
-  const { mutate: ask, isPending } = api.help.ask.useMutation({
-    onMutate: ({ question }) => {
-      addUserMessage(question);
-    },
-    onSuccess: (data) => {
-      addAssistantMessage(data);
+  const { newUserMessage, setMessages, newAssistantMessage, messages } =
+    useHelp();
+  const ask = (question: string) => {
+    const updatedMessages = [...messages, newUserMessage(question)];
+    setMessages(updatedMessages);
+    askMutation({ messages: updatedMessages });
+  };
+  const { mutate: askMutation, isPending } = api.help.ask.useMutation({
+    onSuccess: (reply) => {
+      setMessages([...messages, newAssistantMessage(reply)]);
     },
     onError: (error) => {
-      addAssistantMessage(error.message);
+      setMessages([...messages, newAssistantMessage(error.message)]);
     },
   });
 
@@ -52,12 +55,12 @@ export default function HelpBox({ onClose }: { onClose?: () => void }) {
         <CardFooter className="flex flex-col gap-4 px-4 pb-4">
           <TextInput
             disabled={isPending}
-            onSend={(question) => ask({ question })}
+            onSend={(question) => ask(question)}
             isLoading={isPending}
           />
           <SuggestedQuestionsList
             disabled={isPending}
-            onAsk={(question) => ask({ question })}
+            onAsk={(question) => ask(question)}
             questions={questions}
           />
         </CardFooter>
