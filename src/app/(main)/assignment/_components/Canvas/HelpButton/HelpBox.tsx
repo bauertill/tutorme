@@ -1,13 +1,15 @@
+import { useScrollToBottom } from "@/app/_components/layout/useScrollToBottom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { useHelp } from "@/store/selectors";
 import { api } from "@/trpc/react";
-import { Loader2, X } from "lucide-react";
-import { useState, type KeyboardEvent } from "react";
+import { X } from "lucide-react";
+import { useRef } from "react";
+import MessageList from "./MessageList";
+import SuggestedQuestionsList from "./SuggestedQuestionsList";
+import TextInput from "./TextInput";
 
 export default function HelpBox({ onClose }: { onClose?: () => void }) {
-  const [inputValue, setInputValue] = useState("");
   const questions = [
     "How do I add two numbers?",
     "What's a number?",
@@ -17,7 +19,6 @@ export default function HelpBox({ onClose }: { onClose?: () => void }) {
   const { mutate: ask, isPending } = api.help.ask.useMutation({
     onMutate: ({ question }) => {
       addUserMessage(question);
-      setInputValue("");
     },
     onSuccess: (data) => {
       addAssistantMessage(data);
@@ -26,13 +27,12 @@ export default function HelpBox({ onClose }: { onClose?: () => void }) {
       addAssistantMessage(error.message);
     },
   });
-  const onReturn = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (inputValue.trim() && event.key === "Enter") {
-      ask({ question: inputValue });
-    }
-  };
+
+  const container = useRef<HTMLDivElement>(null);
+  useScrollToBottom(container);
+
   return (
-    <div className="relative flex overflow-auto">
+    <div className="relative flex">
       <Button
         className="absolute right-2 top-1 z-10"
         variant="ghost"
@@ -41,39 +41,25 @@ export default function HelpBox({ onClose }: { onClose?: () => void }) {
       >
         <X className="h-4 w-4" />
       </Button>
-      <Card className="max-h-full w-60 overflow-auto text-sm md:w-72 lg:w-80 xl:w-96">
+      <Card
+        ref={container}
+        className="max-h-full w-60 overflow-auto text-sm [scrollbar-width:thin] md:w-72 lg:w-80 xl:w-96"
+      >
         <CardContent className="p-4">
           {messages.length === 0 && <p>Are you stuck? Ask for help!</p>}
-          {messages.map((message) => (
-            <p key={message.id}>{message.content}</p>
-          ))}
+          <MessageList messages={messages} />
         </CardContent>
         <CardFooter className="flex flex-col gap-2 px-4 pb-4">
-          <div className="relative flex w-full items-center">
-            <Input
-              placeholder="Enter question here..."
-              onKeyDown={onReturn}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              disabled={isPending}
-            />
-            {isPending && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </div>
-            )}
-          </div>
-          {questions.map((question) => (
-            <Button
-              key={question}
-              variant="outline"
-              className="h-auto w-full whitespace-normal font-normal text-muted-foreground"
-              onClick={() => ask({ question })}
-              disabled={isPending}
-            >
-              {question}
-            </Button>
-          ))}
+          <TextInput
+            disabled={isPending}
+            onSend={(question) => ask({ question })}
+            isLoading={isPending}
+          />
+          <SuggestedQuestionsList
+            disabled={isPending}
+            onAsk={(question) => ask({ question })}
+            questions={questions}
+          />
         </CardFooter>
       </Card>
     </div>
