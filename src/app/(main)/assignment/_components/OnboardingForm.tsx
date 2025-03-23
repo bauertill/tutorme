@@ -1,11 +1,10 @@
 import { SignInButton } from "@/app/_components/user/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
-import { useTranslation } from "@/i18n";
+import { Trans, useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import ExampleProblemCard from "./Problem/ExampleProblemCard";
 import { UploadProblems } from "./Problem/UploadProblems";
-
 export function OnboardingForm({
   className,
   ...props
@@ -17,13 +16,10 @@ export function OnboardingForm({
     <form className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">
-          Welcome to
-          <br />
-          Tutor Me Good!
+          <Trans i18nKey="welcome_to_tutor_me_good" />
         </h1>
         <p className="text-justify text-muted-foreground">
-          Your AI powered Math Homework Assistant. Learn faster with
-          personalized tutoring.
+          <Trans i18nKey="welcome_to_tutor_me_good_description" />
         </p>
       </div>
       <div className="flex flex-col items-center justify-center gap-6">

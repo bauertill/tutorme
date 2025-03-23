@@ -6,6 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Trans, useTranslation } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
@@ -15,6 +16,7 @@ import { useState } from "react";
 import { LanguageSelector } from "../../user/LanguageSelector";
 
 export function CollapsibleSettings() {
+  const { t } = useTranslation();
   const clearAssignments = useStore.use.clearAssignments();
   const [isOpen, setIsOpen] = useState(false);
   const session = useSession();
@@ -48,7 +50,9 @@ export function CollapsibleSettings() {
             isOpen && "rotate-90",
           )}
         />
-        <span className="font-semibold">Settings</span>
+        <span className="font-semibold">
+          <Trans i18nKey="settings" />
+        </span>
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="mt-2 space-y-4 pl-6">
@@ -63,7 +67,7 @@ export function CollapsibleSettings() {
               className="w-full items-center gap-2"
             >
               <Trash2 className="h-4 w-4" />
-              {isDeleting ? "Deleted!" : "Delete All Assignments"}
+              {isDeleting ? t("deleted") : t("delete_all_assignments")}
             </Button>
           </div>
         </div>

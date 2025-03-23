@@ -17,12 +17,15 @@ import {
   SidebarInput,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { Trans, useTranslation } from "@/i18n";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
 import { GraduationCap } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
+
 export function AppSidebar() {
+  const { t } = useTranslation();
   const session = useSession();
   const assignments = useStore.use.assignments();
   const activeProblem = useActiveProblem();
@@ -102,13 +105,15 @@ export function AppSidebar() {
         </SidebarGroup>
         <SidebarGroup>
           <SidebarInput
-            placeholder="Search exercises..."
+            placeholder={t("search_exercises")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Exercises</SidebarGroupLabel>
+          <SidebarGroupLabel>
+            <Trans i18nKey="assignments" />
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             {filteredAssignments.map((assignment) => (
               <CollapsibleAssignment

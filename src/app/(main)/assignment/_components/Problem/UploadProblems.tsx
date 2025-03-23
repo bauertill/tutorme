@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { CameraIcon, Loader2 } from "lucide-react";
@@ -117,7 +118,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
       {trigger === "button" && (
         <Button variant="ghost" onClick={handleButtonClick} type="button">
           <CameraIcon className="h-5 w-5" />
-          Upload Assignment
+          <Trans i18nKey="upload_assignment" />
         </Button>
       )}
       {trigger === "card" && (
@@ -128,7 +129,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
           <CardContent className="t flex items-center gap-4 p-6">
             <CameraIcon className="h-6 w-6 flex-shrink-0" />
             <p className="text-sm">
-              Get started by uploading your own homework problems.
+              <Trans i18nKey="upload_problems_card_description" />
             </p>
           </CardContent>
         </Card>

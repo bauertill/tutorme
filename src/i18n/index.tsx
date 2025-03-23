@@ -2,6 +2,7 @@ import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import {
   initReactI18next,
+  Trans as TransBase,
   useTranslation as useTranslationBase,
 } from "react-i18next";
 import de from "./locales/de";
@@ -30,6 +31,11 @@ i18n
 
 export const useTranslation = () => {
   return useTranslationBase(undefined, { i18n });
+};
+
+export const Trans: typeof TransBase = (props) => {
+  const { t } = useTranslation();
+  return <TransBase {...props} t={t} />;
 };
 
 export { i18n };
