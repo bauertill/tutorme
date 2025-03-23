@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
-import { GraduationCap, SearchIcon } from "lucide-react";
+import { BookOpen, GraduationCap, SearchIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -125,19 +125,34 @@ export function AppSidebar() {
           </SidebarGroup>
           <SidebarGroup className="transition-all duration-200 ease-linear">
             <SidebarGroupLabel>
-              <SidebarText>Exercises</SidebarText>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <BookOpen className="h-4 w-4 flex-shrink-0" />
+                  <span className="absolute -right-1 -top-1 flex hidden h-3 w-3 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground group-data-[collapsible=icon]:block">
+                    {filteredAssignments.length}
+                  </span>
+                </div>
+                <SidebarText className="flex items-center gap-2">
+                  <span>Assignments</span>
+                  <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium">
+                    {filteredAssignments.length}
+                  </span>
+                </SidebarText>
+              </div>
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              {filteredAssignments.map((assignment) => (
-                <CollapsibleAssignment
-                  key={assignment.id}
-                  assignment={assignment}
-                  isOpen={autoExpandedAssignments.has(assignment.id)}
-                  onOpenChange={() => toggleAssignment(assignment.id)}
-                  activeProblem={activeProblem}
-                  setActiveProblem={setActiveProblemWithCanvas}
-                />
-              ))}
+              <SidebarText className="block w-full">
+                {filteredAssignments.map((assignment) => (
+                  <CollapsibleAssignment
+                    key={assignment.id}
+                    assignment={assignment}
+                    isOpen={autoExpandedAssignments.has(assignment.id)}
+                    onOpenChange={() => toggleAssignment(assignment.id)}
+                    activeProblem={activeProblem}
+                    setActiveProblem={setActiveProblemWithCanvas}
+                  />
+                ))}
+              </SidebarText>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
