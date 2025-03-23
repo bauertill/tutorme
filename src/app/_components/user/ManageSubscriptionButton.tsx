@@ -2,6 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { Trans } from "@/i18n";
 import { api } from "@/trpc/react";
+import { skipToken } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 
 export function ManageSubscriptionButton({
@@ -9,7 +11,10 @@ export function ManageSubscriptionButton({
 }: {
   children?: React.ReactNode;
 }) {
-  const { data: subscription } = api.subscription.getSubscription.useQuery();
+  const { data: session } = useSession();
+  const { data: subscription } = api.subscription.getSubscription.useQuery(
+    !session?.user ? skipToken : undefined,
+  );
   const { mutateAsync: createPortalUrl } =
     api.subscription.createPortalUrl.useMutation();
   const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
