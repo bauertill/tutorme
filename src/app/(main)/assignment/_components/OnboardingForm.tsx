@@ -32,12 +32,9 @@ export function OnboardingForm({
         {user ? (
           <UserAndSignOutButton user={user} />
         ) : (
-          <SignInButton
-            overrideButtonText="I already have an account"
-            variant="ghost"
-            className="w-full"
-            hideGoogleIcon
-          />
+          <SignInButton variant="ghost" className="w-full">
+            I already have an account
+          </SignInButton>
         )}
       </div>
     </form>
