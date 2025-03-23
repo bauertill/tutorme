@@ -4,10 +4,11 @@ import { z } from "node_modules/zod/lib";
 import { model } from "../model";
 
 const SYSTEM_PROMPT = (language: Language) => `\
-You are an expert teacher helping a student solve a problem.
+You are an expert teacher helping a student learn a new concept.
+The student may still be confused about the terminology and general ideas.
 
 Instructions:
-- Anticipate the most likely questions that the student will run into when trying to solve the problem.
+- Anticipate the most likely questions that the student will run into when trying to learn the concept.
 - Keep each question as short as possible, not repeating the given context.
 - Generate at most 3 questions.
 - Always wrap LaTeX in the appropriate delimiters.

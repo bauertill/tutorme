@@ -12,6 +12,7 @@ export default function TextInput({
   isLoading: boolean;
   onSend: (question: string) => void;
 }) {
+  // TODO: allow multiline input
   const [inputValue, setInputValue] = useState("");
 
   const send = () => {

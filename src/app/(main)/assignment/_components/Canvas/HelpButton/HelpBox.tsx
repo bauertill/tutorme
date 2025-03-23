@@ -17,6 +17,7 @@ export default function HelpBox({
   onClose?: () => void;
   getCanvasDataUrl: () => Promise<string | null>;
 }) {
+  // TODO: improve logic when recommended questions are generated; keep them in store
   const [recommendedQuestions, setRecommendedQuestions] = useState<string[]>(
     [],
   );
