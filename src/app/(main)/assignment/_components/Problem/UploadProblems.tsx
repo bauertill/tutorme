@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { SidebarText } from "@/components/ui/sidebar";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { CameraIcon, Loader2 } from "lucide-react";
@@ -115,9 +116,16 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
       />
 
       {trigger === "button" && (
-        <Button variant="ghost" onClick={handleButtonClick} type="button">
-          <CameraIcon className="h-5 w-5" />
-          Upload Assignment
+        <Button
+          variant="ghost"
+          onClick={handleButtonClick}
+          type="button"
+          className="flex h-9 w-full items-center justify-start px-2"
+        >
+          <CameraIcon className="h-5 w-5 flex-shrink-0" />
+          <SidebarText className="ml-2 overflow-hidden">
+            Upload Assignment
+          </SidebarText>
         </Button>
       )}
       {trigger === "card" && (

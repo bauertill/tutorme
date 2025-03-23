@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, SearchIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -106,11 +106,17 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
           <SidebarGroup>
-            <SidebarInput
-              placeholder="Search exercises..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <div className="flex w-full items-center gap-2 px-2">
+              <SearchIcon className="size-4 flex-shrink-0" />
+              <SidebarText className="w-full overflow-hidden">
+                <SidebarInput
+                  placeholder="Search exercises..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-8"
+                />
+              </SidebarText>
+            </div>
           </SidebarGroup>
           <SidebarGroup>
             <SidebarGroupLabel>
