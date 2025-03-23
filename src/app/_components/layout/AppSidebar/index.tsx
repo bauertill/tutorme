@@ -16,6 +16,7 @@ import {
   SidebarHeader,
   SidebarInput,
   SidebarRail,
+  SidebarText,
 } from "@/components/ui/sidebar";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
@@ -85,13 +86,13 @@ export function AppSidebar() {
   }, [filteredAssignments, searchQuery, openAssignments]);
 
   return (
-    <Sidebar className="border-r border-border bg-background">
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-3 font-medium">
+    <Sidebar className="border-r bg-background">
+      <SidebarHeader className="mt-2">
+        <div className="flex items-center gap-2 font-medium">
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <GraduationCap className="size-4" />
           </div>
-          Tutor Me Good
+          <SidebarText className="ml-2">Tutor Me Good</SidebarText>
         </div>
       </SidebarHeader>
       <SidebarContent className="overflow-x-hidden">
@@ -108,7 +109,9 @@ export function AppSidebar() {
           />
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Exercises</SidebarGroupLabel>
+          <SidebarGroupLabel>
+            <SidebarText>Exercises</SidebarText>
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             {filteredAssignments.map((assignment) => (
               <CollapsibleAssignment
@@ -123,13 +126,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="flex">
+      <SidebarFooter>
         {session.data?.user ? (
-          <div className="px-2">
+          <div className="mb-2 px-2">
             <UserAndSignOutButton user={session.data.user} />
           </div>
         ) : (
-          <SignInButton variant="ghost" className="justify-start" />
+          <div className="mb-2">
+            <SignInButton variant="ghost" className="w-full justify-start" />
+          </div>
         )}
         <CollapsibleSettings />
         <Footer />
