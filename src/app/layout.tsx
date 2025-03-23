@@ -13,7 +13,12 @@ import { ThemeProvider } from "./_components/ThemeProvider";
 export const metadata: Metadata = {
   title: "Tutor Me Good",
   description: "An app for tutoring",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: {
+    icon: [
+      { url: "/icons/graduation-cap.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
+  },
 };
 
 export default function RootLayout({
