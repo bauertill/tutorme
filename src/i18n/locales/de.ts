@@ -39,9 +39,10 @@ const translation = {
   help_box_empty_message: "Du kommst nicht weiter? Frag nach Hilfe!",
   celebrationDialog: {
     title: "Gut gemacht!",
-    description:
+    description_one_problem_solved:
       "Großartig, du hast die Aufgabe gelöst! Du kannst jetzt mit der nächsten Aufgabe weitermachen.",
-    nextProblem: "Nächste Aufgabe",
+    description_all_problems_solved: "Großartig, du hast alle Aufgaben gelöst!",
+    close: "Schließen",
   },
   returning_visitor: "Warst du schon bei uns?",
 };

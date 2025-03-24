@@ -9,17 +9,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useTranslation } from "@/i18n";
+import { useProblemController } from "@/store/selectors";
 
 export function CelebrationDialog({
   open,
   setOpen,
-  onNextProblem,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onNextProblem: () => void;
 }) {
   const { t } = useTranslation();
+  const { gotoNextUnsolvedProblem } = useProblemController();
   return (
     <Dialog open={open} onOpenChange={setOpen} modal={false}>
       {open && <Confetti />}
@@ -28,7 +28,11 @@ export function CelebrationDialog({
           <DialogTitle>{t("celebrationDialog.title")}</DialogTitle>
         </DialogHeader>
         <div className="flex items-center space-x-2">
-          <p>{t("celebrationDialog.description")}</p>
+          <p>
+            {gotoNextUnsolvedProblem
+              ? t("celebrationDialog.description_one_problem_solved")
+              : t("celebrationDialog.description_all_problems_solved")}
+          </p>
         </div>
         <DialogFooter className="justify-end">
           <DialogClose asChild>
@@ -36,11 +40,13 @@ export function CelebrationDialog({
               type="button"
               variant="default"
               onClick={() => {
-                onNextProblem();
+                gotoNextUnsolvedProblem?.();
                 setOpen(false);
               }}
             >
-              {t("celebrationDialog.nextProblem")}
+              {gotoNextUnsolvedProblem
+                ? t("celebrationDialog.nextProblem")
+                : t("celebrationDialog.close")}
             </Button>
           </DialogClose>
         </DialogFooter>

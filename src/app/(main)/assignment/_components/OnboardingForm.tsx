@@ -1,7 +1,7 @@
 import { LanguagePicker } from "@/app/_components/user/LanguagePicker";
 import { SignInButton } from "@/app/_components/user/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
-import { Trans, useTranslation } from "@/i18n";
+import { Trans } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import ExampleProblemCard from "./Problem/ExampleProblemCard";
@@ -12,7 +12,6 @@ export function OnboardingForm({
 }: React.ComponentPropsWithoutRef<"form">) {
   const { data: session } = useSession();
   const user = session?.user;
-  const { t } = useTranslation();
   return (
     <form
       className={cn("flex h-full flex-col justify-between gap-20", className)}

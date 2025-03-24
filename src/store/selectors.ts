@@ -25,6 +25,7 @@ export const useProblemController = (): {
   activeAssignment: Assignment | null;
   activeProblem: UserProblem | null;
   gotoNextProblem?: () => void;
+  gotoNextUnsolvedProblem?: () => void;
   gotoPreviousProblem?: () => void;
   setActiveProblemWithCanvas: (problem: UserProblem) => void;
 } => {
@@ -40,6 +41,10 @@ export const useProblemController = (): {
     0;
 
   const nextProblem = activeAssignment?.problems[activeProblemIndex + 1];
+  const nextUnsolvedProblem =
+    activeAssignment?.problems.find(
+      (p, idx) => p.status !== "SOLVED" && idx > activeProblemIndex,
+    ) ?? activeAssignment?.problems.find((p) => p.status !== "SOLVED");
   const previousProblem = activeAssignment?.problems[activeProblemIndex - 1];
 
   const storeCurrentPathsOnProblem = () =>
@@ -54,6 +59,13 @@ export const useProblemController = (): {
         storeCurrentPathsOnProblem();
         setActiveProblem(nextProblem);
         setCanvas(nextProblem.canvas ?? { paths: [] });
+      }
+    : undefined;
+  const gotoNextUnsolvedProblem = nextUnsolvedProblem
+    ? () => {
+        storeCurrentPathsOnProblem();
+        setActiveProblem(nextUnsolvedProblem);
+        setCanvas(nextUnsolvedProblem.canvas ?? { paths: [] });
       }
     : undefined;
   const gotoPreviousProblem = previousProblem
@@ -74,6 +86,7 @@ export const useProblemController = (): {
     activeAssignment,
     activeProblem,
     gotoNextProblem,
+    gotoNextUnsolvedProblem,
     gotoPreviousProblem,
     setActiveProblemWithCanvas,
   };

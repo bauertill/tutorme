@@ -7,7 +7,6 @@ import {
   useActiveProblem,
   useEvaluationResult,
   useHelp,
-  useProblemController,
 } from "@/store/selectors";
 import { api } from "@/trpc/react";
 import {
@@ -56,7 +55,6 @@ export function Canvas() {
     setRecommendedQuestions,
     newAssistantMessage,
   } = useHelp();
-  const { gotoNextProblem } = useProblemController();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.assignment.submitSolution.useMutation({
@@ -161,11 +159,7 @@ export function Canvas() {
           setOpen={setHelpOpen}
         />
       </div>
-      <CelebrationDialog
-        open={celebrationOpen}
-        setOpen={setCelebrationOpen}
-        onNextProblem={() => gotoNextProblem?.()}
-      />
+      <CelebrationDialog open={celebrationOpen} setOpen={setCelebrationOpen} />
     </div>
   );
 }
