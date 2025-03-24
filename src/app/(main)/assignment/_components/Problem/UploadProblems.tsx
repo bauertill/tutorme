@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import { SidebarText } from "@/components/ui/sidebar";
 import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
-import { CameraIcon, Loader2 } from "lucide-react";
+import { ArrowRight, CameraIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -136,10 +136,16 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
         >
           <CardContent className="t flex items-center gap-4 p-6">
             <CameraIcon className="h-6 w-6 flex-shrink-0" />
-            <p className="text-sm">
+            <p className="">
               <Trans i18nKey="upload_problems_card_description" />
             </p>
           </CardContent>
+          <CardFooter className="flex items-center justify-end gap-2">
+            <div className="flex items-center gap-2 font-semibold">
+              <Trans i18nKey="upload_assignment" />
+              <ArrowRight className="size-4" />
+            </div>
+          </CardFooter>
         </Card>
       )}
       <Dialog

@@ -14,29 +14,40 @@ export function OnboardingForm({
   const user = session?.user;
   const { t } = useTranslation();
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
-      <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">
-          <Trans i18nKey="welcome_to_tutor_me_good" />
-        </h1>
-        <p className="text-justify text-muted-foreground">
-          <Trans i18nKey="welcome_to_tutor_me_good_description" />
-        </p>
-      </div>
-      <div className="flex flex-col items-center justify-center gap-6">
-        <ExampleProblemCard />
-        <UploadProblems trigger="card" />
+    <form
+      className={cn("flex h-full flex-col justify-between gap-20", className)}
+      {...props}
+    >
+      <div className="flex flex-1 flex-col items-center justify-center gap-20">
+        <div className="flex flex-col items-center gap-10 text-center">
+          <h1 className="w-full text-left text-4xl font-bold">
+            <Trans i18nKey="welcome_to_tutor_me_good" />
+          </h1>
+          <p className="text-justify text-muted-foreground">
+            <Trans i18nKey="welcome_to_tutor_me_good_description" />
+          </p>
+        </div>
+        <div className="flex flex-col items-center justify-center gap-10">
+          <ExampleProblemCard />
+          <UploadProblems trigger="card" />
+        </div>
       </div>
 
-      <div className="mt-40 flex flex-col items-center gap-10">
+      <div className="flex w-full flex-col items-center gap-10">
+        <LanguagePicker />
+        <div className="relative w-full text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+          <span className="relative z-10 bg-background px-2 text-muted-foreground">
+            <Trans i18nKey="returning_visitor" />
+          </span>
+        </div>
+
         {user ? (
           <UserAndSignOutButton user={user} />
         ) : (
-          <SignInButton variant="ghost" className="w-full">
-            {t("already_have_account")}
+          <SignInButton variant="outline" className="w-full">
+            <Trans i18nKey="sign_in" />
           </SignInButton>
         )}
-        <LanguagePicker />
       </div>
     </form>
   );

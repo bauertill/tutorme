@@ -1,9 +1,9 @@
 "use client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
-import { BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen } from "lucide-react";
 
 export default function ExampleProblemCard() {
   const { promise } = api.assignment.getExampleAssignment.useQuery(undefined, {
@@ -37,10 +37,16 @@ export default function ExampleProblemCard() {
     >
       <CardContent className="flex items-center gap-4 p-6">
         <BookOpen className="h-6 w-6 flex-shrink-0" />
-        <p className="text-sm">
+        <p className="">
           <Trans i18nKey="learn_the_basics_by_working_through_a_guided_example_problem" />
         </p>
       </CardContent>
+      <CardFooter className="flex items-center justify-end gap-2">
+        <div className="flex items-center gap-2 font-semibold">
+          <Trans i18nKey="try_example_now" />
+          <ArrowRight className="size-4" />
+        </div>
+      </CardFooter>
     </Card>
   );
 }

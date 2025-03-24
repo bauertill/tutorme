@@ -7,10 +7,12 @@ const translation = {
     "Lerne die Grundlagen, indem du durch Beispiele von Rechenaufgaben arbeitest.",
   upload_problems_card_description:
     "Beginne, indem du deine eigenen Mathe-Hausaufgaben hochlädst.",
-  upload_assignment: "Hochladen",
+  upload_assignment: "Hausaufgaben hochladen",
+  try_example_now: "Jetzt Beispielaufgabe lösen",
   search_exercises: "Aufgaben durchsuchen...",
   assignments: "Aufgaben",
   settings: "Einstellungen",
+  sign_in: "Anmelden",
   sign_in_with_google: "Mit Google anmelden",
   footer_text: "© {{currentYear}} Tutor Me Good. Alle Rechte vorbehalten.",
   terms_of_service: "Nutzungsbedingungen",
@@ -41,5 +43,6 @@ const translation = {
       "Großartig, du hast die Aufgabe gelöst! Du kannst jetzt mit der nächsten Aufgabe weitermachen.",
     nextProblem: "Nächste Aufgabe",
   },
+  returning_visitor: "Warst du schon bei uns?",
 };
 export default translation;

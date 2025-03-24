@@ -8,9 +8,11 @@ const translation = {
   upload_problems_card_description:
     "Get started by uploading your own homework problems.",
   upload_assignment: "Upload Assignment",
+  try_example_now: "Try Example Now",
   search_exercises: "Search exercises...",
   assignments: "Assignments",
   settings: "Settings",
+  sign_in: "Sign in",
   sign_in_with_google: "Sign in with Google",
   footer_text: "© {{currentYear}} Tutor Me Good. All rights reserved.",
   terms_of_service: "Terms of Service",
@@ -41,6 +43,7 @@ const translation = {
       "Great work, you solved the problem! You can now move on to the next one.",
     nextProblem: "Next problem",
   },
+  returning_visitor: "Returning visitor?",
 };
 
 export default translation;
