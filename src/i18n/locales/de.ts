@@ -35,5 +35,11 @@ const translation = {
   write_your_answer_here: "Löse die Aufgabe hier",
   enter_question_here: "Hier Frage eingeben...",
   help_box_empty_message: "Du kommst nicht weiter? Frag nach Hilfe!",
+  celebrationDialog: {
+    title: "Gut gemacht!",
+    description:
+      "Großartig, du hast die Aufgabe gelöst! Du kannst jetzt mit der nächsten Aufgabe weitermachen.",
+    nextProblem: "Nächste Aufgabe",
+  },
 };
 export default translation;

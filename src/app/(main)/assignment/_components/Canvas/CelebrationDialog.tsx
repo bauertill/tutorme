@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslation } from "@/i18n";
 
 export function CelebrationDialog({
   open,
@@ -18,31 +19,28 @@ export function CelebrationDialog({
   setOpen: (open: boolean) => void;
   onNextProblem: () => void;
 }) {
+  const { t } = useTranslation();
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen} modal={false}>
       {open && <Confetti />}
       <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle>Congratulations!</DialogTitle>
+          <DialogTitle>{t("celebrationDialog.title")}</DialogTitle>
         </DialogHeader>
         <div className="flex items-center space-x-2">
-          <p>
-            Congratulations! You solved the problem. You can now move on to the
-            next problem.
-          </p>
+          <p>{t("celebrationDialog.description")}</p>
         </div>
         <DialogFooter className="justify-end">
           <DialogClose asChild>
             <Button
               type="button"
               variant="default"
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 onNextProblem();
                 setOpen(false);
               }}
             >
-              Next problem
+              {t("celebrationDialog.nextProblem")}
             </Button>
           </DialogClose>
         </DialogFooter>

@@ -35,6 +35,12 @@ const translation = {
   write_your_answer_here: "Solve the problem here",
   enter_question_here: "Enter question here...",
   help_box_empty_message: "Are you stuck? Ask for help!",
+  celebrationDialog: {
+    title: "Congratulations!",
+    description:
+      "Great work, you solved the problem! You can now move on to the next one.",
+    nextProblem: "Next problem",
+  },
 };
 
 export default translation;
