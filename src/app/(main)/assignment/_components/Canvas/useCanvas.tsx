@@ -276,7 +276,11 @@ export function useCanvas() {
   const canvas = (
     <div
       ref={containerRef}
-      className="group relative h-full w-full overflow-auto"
+      className={cn(
+        "group relative h-full w-full overflow-auto",
+        "[scrollbar-color:hsl(var(--muted))_transparent]",
+        "[scrollbar-width:thin]",
+      )}
     >
       {isEraser && (
         <div

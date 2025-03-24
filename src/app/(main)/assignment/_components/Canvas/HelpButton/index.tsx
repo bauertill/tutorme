@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
+import { MessageCircleQuestion } from "lucide-react";
 import { useState } from "react";
 import HelpBox from "./HelpBox";
 
@@ -46,9 +47,9 @@ export default function HelpButton({
             <Button
               onClick={onClick}
               size="icon"
-              className="size-12 rounded-full text-xl text-white"
+              className="size-12 rounded-full text-xl"
             >
-              ?
+              <MessageCircleQuestion className="!size-6" />
             </Button>
           </motion.div>
         )}
