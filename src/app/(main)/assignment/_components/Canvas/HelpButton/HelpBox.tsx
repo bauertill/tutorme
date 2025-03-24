@@ -2,6 +2,7 @@ import { useScrollToBottom } from "@/app/_components/layout/useScrollToBottom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Trans } from "@/i18n";
+import { useStore } from "@/store";
 import { useHelp } from "@/store/selectors";
 import { api } from "@/trpc/react";
 import { X } from "lucide-react";
@@ -18,6 +19,7 @@ export default function HelpBox({
   onClose?: () => void;
   getCanvasDataUrl: () => Promise<string | null>;
 }) {
+  const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const {
     messages,
     setMessages,
@@ -45,13 +47,22 @@ export default function HelpBox({
       setRecommendedQuestions(reply.followUpQuestions);
     },
     onError: (error) => {
-      setMessages([...messages, newAssistantMessage(error.message)]);
+      if (error.message === "Free tier limit reached") {
+        setUsageLimitReached(true);
+      } else {
+        setMessages([...messages, newAssistantMessage(error.message)]);
+      }
     },
   });
   const { mutate: recommendQuestions, isPending: isRecommendQuestionsPending } =
     api.help.recommendQuestions.useMutation({
       onSuccess: (questions) => {
         setRecommendedQuestions(questions);
+      },
+      onError: (error) => {
+        if (error.message === "Free tier limit reached") {
+          setUsageLimitReached(true);
+        }
       },
     });
 
