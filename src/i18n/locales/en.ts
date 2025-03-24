@@ -34,6 +34,7 @@ const translation = {
   sign_out: "Sign out",
   write_your_answer_here: "Solve the problem here",
   enter_question_here: "Enter question here...",
+  help_box_empty_message: "Are you stuck? Ask for help!",
 };
 
 export default translation;

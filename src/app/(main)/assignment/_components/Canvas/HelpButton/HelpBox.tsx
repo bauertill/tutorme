@@ -1,6 +1,7 @@
 import { useScrollToBottom } from "@/app/_components/layout/useScrollToBottom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Trans } from "@/i18n";
 import { useHelp } from "@/store/selectors";
 import { api } from "@/trpc/react";
 import { X } from "lucide-react";
@@ -100,7 +101,11 @@ export default function HelpBox({
         className="max-h-full w-60 overflow-auto text-sm [scrollbar-width:thin] md:w-72 lg:w-80 xl:w-96"
       >
         <CardContent className="p-4">
-          {messages.length === 0 && <p>Are you stuck? Ask for help!</p>}
+          {messages.length === 0 && (
+            <p>
+              <Trans i18nKey="help_box_empty_message" />
+            </p>
+          )}
           <MessageList messages={messages} />
         </CardContent>
         <CardFooter className="flex flex-col gap-4 px-4 pb-4">

@@ -34,5 +34,6 @@ const translation = {
   sign_out: "Abmelden",
   write_your_answer_here: "Löse die Aufgabe hier",
   enter_question_here: "Hier Frage eingeben...",
+  help_box_empty_message: "Du kommst nicht weiter? Frag nach Hilfe!",
 };
 export default translation;
