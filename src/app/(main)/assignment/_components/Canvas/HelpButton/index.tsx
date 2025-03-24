@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircleQuestion } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import HelpBox from "./HelpBox";
 
 export default function HelpButton({
