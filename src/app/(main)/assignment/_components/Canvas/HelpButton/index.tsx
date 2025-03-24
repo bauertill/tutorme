@@ -43,7 +43,11 @@ export default function HelpButton({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="absolute right-0 top-0"
           >
-            <Button onClick={onClick} size="icon" className="size-12 text-xl">
+            <Button
+              onClick={onClick}
+              size="icon"
+              className="size-12 rounded-full text-xl text-white"
+            >
               ?
             </Button>
           </motion.div>
