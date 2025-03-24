@@ -7,7 +7,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   isPointCloseToPath,
   pathToSVGPathData,
-  preventDefaults,
   screenToSVGCoordinates,
   toDataUrl,
 } from "./utils";
@@ -100,14 +99,8 @@ export function useCanvas() {
     return { x: 0, y: 0, width, height };
   }, [paths, containerSize]);
 
-  const [multiTouchInfo, setMultiTouchInfo] = useState<{
-    lastY: number;
-    delta: number;
-  }>({ lastY: 0, delta: 0 });
-
   // Set up resize observer and prevent default events
   useEffect(() => {
-    preventDefaults(assertedSvg());
     const container = containerRef.current;
     if (!container) return;
     const handleResize = () =>
@@ -122,17 +115,6 @@ export function useCanvas() {
       resizeObserver.disconnect();
     };
   }, []);
-
-  // Scroll the container when user uses multi-touch
-  useEffect(() => {
-    const container = containerRef.current;
-    if (container) {
-      container.scrollTop = Math.min(
-        container.scrollTop - multiTouchInfo.delta,
-        container.scrollHeight - container.clientHeight,
-      );
-    }
-  }, [multiTouchInfo]);
 
   // Update eraser cursor position
   useEffect(() => {
@@ -203,10 +185,9 @@ export function useCanvas() {
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent<SVGSVGElement>) => {
+  const handleTouchStart = (e: TouchEvent) => {
     if (e.touches.length > 1) {
       cancelDrawing();
-      setMultiTouchInfo({ lastY: e.touches[0]?.clientY ?? 0, delta: 0 });
       return;
     }
     const touch = e.touches[0];
@@ -227,18 +208,12 @@ export function useCanvas() {
     }
   };
 
-  const handleTouchMove = (e: React.TouchEvent<SVGSVGElement>) => {
+  const handleTouchMove = (e: TouchEvent) => {
     if (e.touches.length > 1) {
       cancelDrawing();
-      const touch = e.touches[0];
-      if (touch) {
-        setMultiTouchInfo((prev) => ({
-          lastY: touch.clientY,
-          delta: touch.clientY - prev.lastY,
-        }));
-      }
       return;
     }
+    e.preventDefault();
     const touch = e.touches[0];
     if (!touch) return;
     const point = screenToSVGCoordinates(
@@ -264,6 +239,20 @@ export function useCanvas() {
       stopDrawing();
     }
   };
+
+  // Set up touch event listeners
+  useEffect(() => {
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+    svgEl.addEventListener("touchstart", handleTouchStart, { passive: false });
+    svgEl.addEventListener("touchmove", handleTouchMove, { passive: false });
+    svgEl.addEventListener("touchend", handleTouchEnd, { passive: false });
+    return () => {
+      svgEl.removeEventListener("touchstart", handleTouchStart);
+      svgEl.removeEventListener("touchmove", handleTouchMove);
+      svgEl.removeEventListener("touchend", handleTouchEnd);
+    };
+  });
 
   // Define cursor style based on mode
   const cursorStyle = isEraser ? "cursor-none" : "cursor-pencil";
@@ -313,9 +302,6 @@ export function useCanvas() {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {pathsToDisplay.map((points, index) =>
           points.length > 1 ? (

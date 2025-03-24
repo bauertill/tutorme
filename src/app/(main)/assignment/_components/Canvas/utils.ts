@@ -129,23 +129,6 @@ export function screenToSVGCoordinates(
   };
 }
 
-export function preventDefaults(svg: SVGSVGElement) {
-  svg.addEventListener(
-    "touchstart",
-    (e) => {
-      e.preventDefault();
-    },
-    { passive: false },
-  );
-  svg.addEventListener(
-    "touchmove",
-    (e) => {
-      e.preventDefault();
-    },
-    { passive: false },
-  );
-}
-
 // Helper function to calculate distance between two points
 const distance = (p1: Point, p2: Point): number => {
   const dx = p1.x - p2.x;
