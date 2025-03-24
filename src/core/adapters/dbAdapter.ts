@@ -368,9 +368,7 @@ export class DBAdapter {
 const parseProblem = (problem: UserProblemDB): UserProblem => ({
   ...problem,
   canvas: Canvas.parse(problem.canvas),
-  evaluation: problem.evaluation
-    ? EvaluationResult.parse(problem.evaluation)
-    : null,
+  evaluation: EvaluationResult.safeParse(problem.evaluation).data ?? null,
 });
 
 export const dbAdapter = new DBAdapter(db);

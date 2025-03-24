@@ -2,6 +2,7 @@ import { useScrollToBottom } from "@/app/_components/layout/useScrollToBottom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Trans } from "@/i18n";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { useHelp } from "@/store/selectors";
 import { api } from "@/trpc/react";
@@ -109,7 +110,11 @@ export default function HelpBox({
       </Button>
       <Card
         ref={container}
-        className="max-h-full w-60 overflow-auto text-sm [scrollbar-width:thin] md:w-72 lg:w-80 xl:w-96"
+        className={cn(
+          "max-h-full w-60 overflow-auto text-sm md:w-72 lg:w-80 xl:w-96",
+          "[scrollbar-width:thin]",
+          "[scrollbar-color:hsl(var(--muted))_transparent]",
+        )}
       >
         <CardContent className="p-4">
           {messages.length === 0 && (

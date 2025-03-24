@@ -1,26 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircleQuestion } from "lucide-react";
-import { useState } from "react";
 import HelpBox from "./HelpBox";
 
 export default function HelpButton({
   getCanvasDataUrl,
+  open,
+  setOpen,
 }: {
   getCanvasDataUrl: () => Promise<string | null>;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-
   const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    setIsOpen(!isOpen);
+    setOpen(true);
   };
 
   return (
     <>
       <AnimatePresence>
-        {isOpen && (
+        {open && (
           <motion.div
             initial={{ opacity: 0, scale: 0.1 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -29,14 +29,14 @@ export default function HelpButton({
             className="flex origin-top-right"
           >
             <HelpBox
-              onClose={() => setIsOpen(false)}
+              onClose={() => setOpen(false)}
               getCanvasDataUrl={getCanvasDataUrl}
             />
           </motion.div>
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {!isOpen && (
+        {!open && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

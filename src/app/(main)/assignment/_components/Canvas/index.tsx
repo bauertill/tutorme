@@ -1,8 +1,14 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Trans } from "@/i18n";
+import { type Message } from "@/core/help/types";
+import { Trans, useTranslation } from "@/i18n";
 import { useStore } from "@/store";
-import { useActiveProblem, useEvaluationResult } from "@/store/selectors";
+import {
+  useActiveProblem,
+  useEvaluationResult,
+  useHelp,
+  useProblemController,
+} from "@/store/selectors";
 import { api } from "@/trpc/react";
 import {
   Eraser,
@@ -13,12 +19,15 @@ import {
   Trash,
   Undo,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { CelebrationDialog } from "./CelebrationDialog";
 import HelpButton from "./HelpButton";
 import { useCanvas } from "./useCanvas";
 import WritingAnimation from "./WritingAnimation";
 
 export function Canvas() {
+  const { t } = useTranslation();
   const {
     canvas,
     undo,
@@ -39,11 +48,41 @@ export function Canvas() {
   const { setEvaluationResult } = useEvaluationResult();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const activeProblem = useActiveProblem();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [celebrationOpen, setCelebrationOpen] = useState(false);
+  const {
+    messages,
+    setMessages,
+    setRecommendedQuestions,
+    newAssistantMessage,
+  } = useHelp();
+  const { gotoNextProblem } = useProblemController();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.assignment.submitSolution.useMutation({
-      onSuccess: (data) => {
-        setEvaluationResult(activeProblem?.id ?? "", data);
+      onSuccess: (result) => {
+        setEvaluationResult(activeProblem?.id ?? "", result);
+        console.log(result);
+        const newMessages: Message[] = [];
+        if (result.hasMistakes) {
+          newMessages.push(
+            newAssistantMessage(t("assignment.feedback.hasMistakes")),
+          );
+        } else if (!result.isComplete) {
+          newMessages.push(
+            newAssistantMessage(t("assignment.feedback.notComplete")),
+          );
+        } else {
+          setCelebrationOpen(true);
+        }
+        if (newMessages.length > 0) {
+          if (result.hint) {
+            newMessages.push(newAssistantMessage(result.hint));
+          }
+          setMessages([...messages, ...newMessages]);
+          setRecommendedQuestions(result.followUpQuestions);
+          setHelpOpen(true);
+        }
       },
       onError: (error) => {
         if (error.message === "Free tier limit reached") {
@@ -115,8 +154,18 @@ export function Canvas() {
         </Button>
       </div>
       <div className="absolute right-4 top-[4rem] z-10 flex max-h-[calc(100%-5rem)]">
-        <HelpButton key={activeProblemId} getCanvasDataUrl={getDataUrl} />
+        <HelpButton
+          key={activeProblemId}
+          getCanvasDataUrl={getDataUrl}
+          open={helpOpen}
+          setOpen={setHelpOpen}
+        />
       </div>
+      <CelebrationDialog
+        open={celebrationOpen}
+        setOpen={setCelebrationOpen}
+        onNextProblem={() => gotoNextProblem?.()}
+      />
     </div>
   );
 }

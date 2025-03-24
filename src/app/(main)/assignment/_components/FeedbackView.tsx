@@ -16,6 +16,9 @@ import { HelpCircle, Info, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+/**
+ * @deprecated This component is deprecated and will be removed in a future version.
+ */
 export default function FeedbackView({
   evaluationResult,
 }: {

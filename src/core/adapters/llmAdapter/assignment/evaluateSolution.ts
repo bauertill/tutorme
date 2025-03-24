@@ -24,12 +24,17 @@ const schema = z.object({
   isComplete: z
     .boolean()
     .describe("Whether the solution is correct and complete"),
+  followUpQuestions: z
+    .array(z.string())
+    .describe(
+      "The questions that the student will most likely ask next, if any.",
+    ),
 });
 
 // Define the system prompt for evaluating exercise solutions
-const EVALUATE_SOLUTION_SYSTEM_PROMPT = (
-  language: Language,
-) => `You are an expert teacher evaluating a student's solution attempt to an exercise. 
+const EVALUATE_SOLUTION_SYSTEM_PROMPT = (language: Language) => `\
+You are an expert teacher helping a student learn a new concept.
+The student may still be confused about the terminology and general ideas.
 You will be given the problem statement, a reference solution, and an image of the student's handwritten or drawn (partial) solution attempt.
 
 - Take a close look at the submitted image and take note of any parts that the student has crossed out or scribbled over.
@@ -37,6 +42,7 @@ You will be given the problem statement, a reference solution, and an image of t
 - Analyze each step of the student's solution attempt and interpret what the student is trying to do. Identify any mistakes or misconceptions.
 - If there are mistakes or the solution is incomplete, write down a hint to help the student correct the mistakes.
 - Ignore any mistakes that are in parts that are crossed out or scribbled over.
+- Anticipate the questions that the student will ask next, list them in the \`followUpQuestions\` field. At most 3 questions.
 
 Keep your output concise. Always wrap LaTeX in the appropriate delimiters.
 

@@ -17,6 +17,7 @@ export const EvaluationResult = z.object({
   isComplete: z.boolean(),
   analysis: z.string(),
   studentSolution: z.string(),
+  followUpQuestions: z.array(z.string()),
 });
 export type EvaluationResult = z.infer<typeof EvaluationResult>;
 
