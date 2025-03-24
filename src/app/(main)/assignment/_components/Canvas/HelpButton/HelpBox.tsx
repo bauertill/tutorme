@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useHelp } from "@/store/selectors";
 import { api } from "@/trpc/react";
 import { X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import MessageList from "./MessageList";
 import RecommendedQuestionsList from "./RecommendedQuestionsList";
@@ -17,15 +17,13 @@ export default function HelpBox({
   onClose?: () => void;
   getCanvasDataUrl: () => Promise<string | null>;
 }) {
-  // TODO: improve logic when recommended questions are generated; keep them in store
-  const [recommendedQuestions, setRecommendedQuestions] = useState<string[]>(
-    [],
-  );
   const {
-    newUserMessage,
-    setMessages,
-    newAssistantMessage,
     messages,
+    setMessages,
+    recommendedQuestions,
+    setRecommendedQuestions,
+    newUserMessage,
+    newAssistantMessage,
     activeProblem,
   } = useHelp();
   const ask = async (question: string) => {

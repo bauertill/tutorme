@@ -9,3 +9,10 @@ export const Message = z.object({
 });
 
 export type Message = z.infer<typeof Message>;
+
+export const RecommendedQuestion = z.object({
+  question: z.string(),
+  threadId: z.string(),
+});
+
+export type RecommendedQuestion = z.infer<typeof RecommendedQuestion>;

@@ -1,6 +1,6 @@
 import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
-
+import { type RecommendedQuestion } from "@/core/help/types";
 export default function RecommendedQuestionsList({
   disabled,
   onAsk,
@@ -8,19 +8,19 @@ export default function RecommendedQuestionsList({
 }: {
   disabled: boolean;
   onAsk: (question: string) => void;
-  questions: string[];
+  questions: RecommendedQuestion[];
 }) {
   return (
     <div className="flex flex-col gap-2">
       {questions.map((question) => (
         <Button
-          key={question}
+          key={question.question}
           variant="outline"
           className="h-auto w-full whitespace-normal font-normal text-muted-foreground"
-          onClick={() => onAsk(question)}
+          onClick={() => onAsk(question.question)}
           disabled={disabled}
         >
-          <Latex>{question}</Latex>
+          <Latex>{question.question}</Latex>
         </Button>
       ))}
     </div>
