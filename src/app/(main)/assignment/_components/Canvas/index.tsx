@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { ScrollGestureAnimation } from "@/components/ui/scroll-gesture-animation";
 import { type Message } from "@/core/help/types";
 import { Trans, useTranslation } from "@/i18n";
 import { useStore } from "@/store";
@@ -166,6 +167,7 @@ export function Canvas() {
         setOpen={setCelebrationOpen}
         onNextProblem={() => gotoNextProblem?.()}
       />
+      <ScrollGestureAnimation className="absolute bottom-0 left-[50%] -translate-x-1/2" />
     </div>
   );
 }

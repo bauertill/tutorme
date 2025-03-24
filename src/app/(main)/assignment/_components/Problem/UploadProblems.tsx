@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
 import { Trans } from "@/i18n";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { CameraIcon, Loader2 } from "lucide-react";
@@ -17,7 +17,7 @@ import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadToBlob } from "./uploadToBlob";
 
-export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
+export function UploadProblems(props: ButtonProps) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<
@@ -107,7 +107,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
   };
 
   return (
-    <>
+    <div>
       <Input
         ref={fileInputRef}
         type="file"
@@ -116,32 +116,21 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
         className="hidden"
       />
 
-      {trigger === "button" && (
-        <Button
-          variant="ghost"
-          onClick={handleButtonClick}
-          type="button"
-          className="flex h-9 w-full items-center justify-start px-2 transition-all duration-200 ease-linear"
-        >
-          <CameraIcon className="h-5 w-5 flex-shrink-0" />
-          <SidebarText className="ml-2 overflow-hidden">
-            <Trans i18nKey="upload_assignment" />
-          </SidebarText>
-        </Button>
-      )}
-      {trigger === "card" && (
-        <Card
-          className="cursor-pointer bg-primary/60 transition-colors hover:bg-accent/50"
-          onClick={handleButtonClick}
-        >
-          <CardContent className="t flex items-center gap-4 p-6">
-            <CameraIcon className="h-6 w-6 flex-shrink-0" />
-            <p className="text-sm">
-              <Trans i18nKey="upload_problems_card_description" />
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      <Button
+        variant="ghost"
+        onClick={handleButtonClick}
+        type="button"
+        {...props}
+        className={cn(
+          "flex items-center justify-start transition-all duration-200 ease-linear",
+          props.className,
+        )}
+      >
+        <CameraIcon className="h-5 w-5 flex-shrink-0" />
+        <SidebarText className="overflow-hidden">
+          <Trans i18nKey="upload_assignment" />
+        </SidebarText>
+      </Button>
       <Dialog
         open={open}
         onOpenChange={(isOpen) => {
@@ -183,6 +172,6 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

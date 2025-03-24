@@ -4,7 +4,7 @@ const translation = {
   welcome_to_tutor_me_good_description:
     "Dein KI-Assistent für Mathe-Hausaufgaben. Lerne schneller mit personalisierter Nachhilfe.",
   learn_the_basics_by_working_through_a_guided_example_problem:
-    "Lerne die Grundlagen, indem du durch Beispiele von Rechenaufgaben arbeitest.",
+    "Probier die App aus, indem du durch Beispielaufgaben arbeitest.",
   upload_problems_card_description:
     "Beginne, indem du deine eigenen Mathe-Hausaufgaben hochlädst.",
   upload_assignment: "Hochladen",

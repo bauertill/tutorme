@@ -1,5 +1,5 @@
 "use client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Trans } from "@/i18n";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
@@ -31,16 +31,21 @@ export default function ExampleProblemCard() {
   };
 
   return (
-    <Card
-      className="cursor-pointer transition-colors hover:bg-accent/50"
-      onClick={onClick}
-    >
-      <CardContent className="flex items-center gap-4 p-6">
-        <BookOpen className="h-6 w-6 flex-shrink-0" />
-        <p className="text-sm">
-          <Trans i18nKey="learn_the_basics_by_working_through_a_guided_example_problem" />
-        </p>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col gap-4">
+      <p className="font-semibold">
+        <Trans i18nKey="learn_the_basics_by_working_through_a_guided_example_problem" />
+      </p>
+      <div>
+        <Button
+          variant="outline"
+          onClick={onClick}
+          className="w-full justify-start text-left"
+          size="lg"
+        >
+          <BookOpen className="h-6 w-6 flex-shrink-0" />
+          <Trans i18nKey="Start with Example Problem" />
+        </Button>
+      </div>
+    </div>
   );
 }
