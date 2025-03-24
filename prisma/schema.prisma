@@ -145,6 +145,7 @@ enum UserProblemStatus {
 model UserProblem {
   id                String            @id @default(cuid())
   problem           String
+  problemNumber     String?
   referenceSolution String?
   status            UserProblemStatus @default(INITIAL)
   canvas            Json

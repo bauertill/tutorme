@@ -18,7 +18,12 @@ export default function ProblemController() {
 
   return (
     <div className="flex flex-row items-center justify-between border-b p-4">
-      <Latex className="whitespace-pre-wrap">{activeProblem.problem}</Latex>
+      <div className="flex flex-row items-center gap-1">
+        <span className="mr-1 text-muted-foreground">
+          {activeProblem.problemNumber}
+        </span>
+        <Latex className="whitespace-pre-wrap">{activeProblem.problem}</Latex>
+      </div>
       <div className="flex flex-row gap-2">
         <Button
           variant="outline"

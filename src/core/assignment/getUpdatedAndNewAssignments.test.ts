@@ -16,6 +16,7 @@ function createTestAssignment(
       id: uuidv4(),
       assignmentId: id,
       problem: `Problem ${i + 1}`,
+      problemNumber: `${i + 1}`,
       referenceSolution: null,
       status: "INITIAL",
       canvas: { paths: [] },

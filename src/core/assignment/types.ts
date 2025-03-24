@@ -25,6 +25,7 @@ export const UserProblem = z.object({
   id: z.string(),
   assignmentId: z.string(),
   problem: z.string(),
+  problemNumber: z.string(),
   referenceSolution: z.string().nullable(),
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
   canvas: Canvas,

@@ -21,9 +21,9 @@ export async function createAssignmentFromUpload(
   const assignmentId = uuidv4();
   const userProblems: UserProblem[] = rawProblems.map((problem) => ({
     id: uuidv4(),
-    // TODO: add problem number
     status: "INITIAL", // TODO: add stars 0-3
     problem: problem.problemText,
+    problemNumber: problem.problemNumber,
     referenceSolution: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -174,11 +174,12 @@ export async function getExampleAssignment(
   const assignment: Assignment = {
     id: assignmentId,
     name: "Example Assignment",
-    problems: problems.map((problem) => ({
+    problems: problems.map((problem, i) => ({
       id: uuidv4(),
       assignmentId,
       status: "INITIAL",
       problem: problem.problem,
+      problemNumber: `${i + 1}`,
       referenceSolution: null,
       canvas: { paths: [] },
       evaluation: null,
@@ -188,5 +189,6 @@ export async function getExampleAssignment(
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  console.log("assignment", assignment);
   return assignment;
 }

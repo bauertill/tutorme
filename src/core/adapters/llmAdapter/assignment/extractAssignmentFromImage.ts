@@ -19,11 +19,11 @@ Your response should be:
 [
     {
         "problemText": "Consider the numbers 24 and 504. Write both numbers as a product of primes.",
-        "problemNumber": "Exercise 2 (a) (1)"
+        "problemNumber": "(a) (1)"
     },
     {
-        "problemText": "Write \\( \\frac{24}{504} \\) in decimal form." ,
-        "problemNumber": "Exercise 2 (a) (2)"
+        "problemText": "Consider the numbers 24 and 504. Write \\( \\frac{24}{504} \\) in decimal form." ,
+        "problemNumber": "(a) (2)"
     }   
 ]
 

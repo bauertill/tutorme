@@ -65,8 +65,10 @@ export function CollapsibleAssignment({
               )}
               onClick={() => setActiveProblem(problem)}
             >
-              {/* @TODO replace with problem number */}
               <SidebarText className="overflow-hidden text-ellipsis whitespace-nowrap">
+                <span className="mr-1 text-muted-foreground">
+                  {problem.problemNumber}
+                </span>
                 <Latex>{problem.problem}</Latex>
               </SidebarText>
               {problem.status === "SOLVED" && (
