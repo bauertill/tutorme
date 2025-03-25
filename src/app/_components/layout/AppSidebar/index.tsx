@@ -96,8 +96,8 @@ export function AppSidebar() {
         onClick={() => (state === "collapsed" ? setOpen(true) : null)}
         className="flex h-full flex-col"
       >
-        <SidebarHeader className="mt-2 flex-shrink-0">
-          <div className="flex items-center gap-2 font-medium">
+        <SidebarHeader className="ml-1 mt-2 flex-shrink-0">
+          <div className="flex items-center gap-1 font-medium">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GraduationCap className="size-4 flex-shrink-0" />
             </div>
