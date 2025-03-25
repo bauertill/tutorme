@@ -49,7 +49,7 @@ export function CollapsibleSettings() {
       <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-all duration-200 ease-linear hover:bg-accent">
         <Settings
           className={cn(
-            "h-4 w-4 flex-shrink-0 shrink-0 transition-transform duration-200",
+            "size-4 flex-shrink-0 transition-transform duration-200",
             isOpen && "rotate-90",
           )}
         />

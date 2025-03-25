@@ -136,7 +136,7 @@ export function AppSidebar() {
             <SidebarGroupLabel>
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <BookOpen className="h-4 w-4 flex-shrink-0" />
+                  <BookOpen className="size-4 flex-shrink-0" />
                   <span className="absolute -right-1 -top-1 flex hidden h-3 w-3 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground group-data-[collapsible=icon]:block">
                     {filteredAssignments.length}
                   </span>
@@ -174,7 +174,7 @@ export function AppSidebar() {
                 <UserAndSignOutButton user={session.data.user} />
               </div>
             ) : (
-              <div className="mb-2 w-full px-2 transition-all duration-200 ease-linear">
+              <div className="mb-2 w-full transition-all duration-200 ease-linear">
                 <SignInButton
                   variant="ghost"
                   className="w-full justify-start"
