@@ -44,6 +44,7 @@ const translation = {
     description_all_problems_solved:
       "Great work, you solved all problems of the assignment!",
     close: "Close",
+    next_problem: "Next Problem",
   },
   returning_visitor: "Returning visitor?",
 };

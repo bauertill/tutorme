@@ -45,7 +45,7 @@ export function CelebrationDialog({
               }}
             >
               {gotoNextUnsolvedProblem
-                ? t("celebrationDialog.nextProblem")
+                ? t("celebrationDialog.next_problem")
                 : t("celebrationDialog.close")}
             </Button>
           </DialogClose>

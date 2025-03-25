@@ -43,6 +43,7 @@ const translation = {
       "Großartig, du hast die Aufgabe gelöst! Du kannst jetzt mit der nächsten Aufgabe weitermachen.",
     description_all_problems_solved: "Großartig, du hast alle Aufgaben gelöst!",
     close: "Schließen",
+    next_problem: "Nächste Aufgabe",
   },
   returning_visitor: "Warst du schon bei uns?",
 };
