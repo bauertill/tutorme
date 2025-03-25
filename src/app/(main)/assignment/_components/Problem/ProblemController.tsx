@@ -1,4 +1,5 @@
 "use client";
+import { ProblemStatusIcon } from "@/app/_components/layout/ProblemStatusIcon";
 import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
 import { Trans } from "@/i18n";
@@ -24,7 +25,8 @@ export default function ProblemController() {
         </span>
         <Latex className="whitespace-pre-wrap">{activeProblem.problem}</Latex>
       </div>
-      <div className="flex flex-row gap-2">
+      <div className="flex flex-row items-center gap-2">
+        <ProblemStatusIcon status={activeProblem.status} />
         <Button
           variant="outline"
           disabled={!gotoPreviousProblem}

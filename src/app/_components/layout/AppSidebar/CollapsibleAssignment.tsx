@@ -10,6 +10,7 @@ import { type Assignment, type UserProblem } from "@/core/assignment/types";
 import { cn } from "@/lib/utils";
 import { CheckCircle, ChevronRight, Circle } from "lucide-react";
 import Latex from "react-latex-next";
+import { ProblemStatusIcon } from "../ProblemStatusIcon";
 
 interface CollapsibleAssignmentProps {
   assignment: Assignment;
@@ -71,15 +72,7 @@ export function CollapsibleAssignment({
                 </span>
                 <Latex>{problem.problem}</Latex>
               </SidebarText>
-              {problem.status === "SOLVED" && (
-                <CheckCircle className="ml-auto flex h-4 min-h-4 w-4 min-w-4 text-green-500" />
-              )}
-              {problem.status === "IN_PROGRESS" && (
-                <Circle className="ml-auto flex h-4 w-4 min-w-4 text-yellow-500" />
-              )}
-              {problem.status === "FAILED" && (
-                <Circle className="ml-auto flex h-4 w-4 min-w-4 text-red-500" />
-              )}
+              <ProblemStatusIcon status={problem.status} />
             </button>
           ))}
         </div>
