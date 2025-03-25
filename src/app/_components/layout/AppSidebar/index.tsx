@@ -24,7 +24,7 @@ import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
 import { BookOpen, GraduationCap, SearchIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export function AppSidebar() {
   const { t } = useTranslation();
@@ -38,6 +38,7 @@ export function AppSidebar() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const { state, setOpen } = useSidebar();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (activeAssignmentId) {
@@ -96,12 +97,14 @@ export function AppSidebar() {
         onClick={() => (state === "collapsed" ? setOpen(true) : null)}
         className="flex h-full flex-col"
       >
-        <SidebarHeader className="ml-1 mt-2 flex-shrink-0">
+        <SidebarHeader className="ml-1 mt-2 flex-shrink-0 transition-all duration-200 ease-linear">
           <div className="flex items-center gap-1 font-medium">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GraduationCap className="size-4 flex-shrink-0" />
             </div>
-            <SidebarText className="ml-2">Tutor Me Good</SidebarText>
+            <SidebarText className="ml-2 w-full overflow-hidden">
+              Tutor Me Good
+            </SidebarText>
           </div>
         </SidebarHeader>
         <SidebarContent className="flex-1 overflow-y-auto overflow-x-hidden">
@@ -112,16 +115,20 @@ export function AppSidebar() {
           </SidebarGroup>
           <SidebarGroup className="transition-all duration-200 ease-linear">
             <div className="flex h-10 w-full items-center transition-all duration-200 ease-linear">
-              <div className="flex h-8 w-full items-center gap-2 px-2">
-                <SearchIcon className="size-4 flex-shrink-0" />
-                <SidebarText className="w-full overflow-hidden">
+              <div className="flex h-8 w-full items-center">
+                <div className="relative w-full">
+                  <SearchIcon
+                    className="absolute left-2 top-1/2 size-4 flex-shrink-0 -translate-y-1/2 cursor-pointer text-muted-foreground"
+                    onClick={() => searchInputRef.current?.focus()}
+                  />
                   <SidebarInput
+                    ref={searchInputRef}
                     placeholder={t("search_exercises")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="transition-all duration-200 ease-linear"
+                    className="w-full pl-8 transition-all duration-200 ease-linear"
                   />
-                </SidebarText>
+                </div>
               </div>
             </div>
           </SidebarGroup>
