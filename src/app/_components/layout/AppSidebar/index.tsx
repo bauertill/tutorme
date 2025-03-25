@@ -113,22 +113,20 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup className="transition-all duration-200 ease-linear">
-          <div className="flex h-10 w-full items-center transition-all duration-200 ease-linear">
-            <div className="flex h-8 w-full items-center">
-              <div className="relative w-full">
-                <SearchIcon
-                  className="absolute left-2 top-1/2 size-4 flex-shrink-0 -translate-y-1/2 cursor-pointer text-muted-foreground"
-                  onClick={() => searchInputRef.current?.focus()}
-                />
-                <SidebarInput
-                  ref={searchInputRef}
-                  placeholder={t("search_exercises")}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 transition-all duration-200 ease-linear"
-                />
-              </div>
-            </div>
+          <div className="relative flex h-10 w-full flex-shrink-0 items-center transition-all duration-200 ease-linear">
+            <SearchIcon
+              className="absolute left-2 top-1/2 size-4 flex-shrink-0 -translate-y-1/2 cursor-pointer text-muted-foreground"
+              onClick={() => searchInputRef.current?.focus()}
+            />
+            <SidebarInput
+              ref={searchInputRef}
+              placeholder={t("search_exercises")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`w-full transition-all duration-200 ease-linear ${
+                state === "collapsed" ? "pl-4" : "pl-10"
+              }`}
+            />
           </div>
         </SidebarGroup>
         <SidebarContent className="flex-1 overflow-y-auto overflow-x-hidden">
