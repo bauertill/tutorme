@@ -6,6 +6,7 @@ import { CollapsibleSettings } from "@/app/_components/layout/AppSidebar/Collaps
 import { Footer } from "@/app/_components/layout/Footer";
 import { SignInButton } from "@/app/_components/user/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -22,7 +23,7 @@ import {
 import { Trans, useTranslation } from "@/i18n";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
-import { BookOpen, GraduationCap, SearchIcon } from "lucide-react";
+import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -100,11 +101,19 @@ export function AppSidebar() {
         <SidebarHeader className="ml-1 mt-2 flex-shrink-0 transition-all duration-200 ease-linear">
           <div className="flex items-center gap-1 font-medium">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <GraduationCap className="size-4 flex-shrink-0" />
+              <GraduationCap className="size-4" />
             </div>
-            <SidebarText className="ml-2 w-full overflow-hidden">
+            <SidebarText className="ml-2 flex-1 overflow-hidden">
               Tutor Me Good
             </SidebarText>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setOpen(false)}
+              className={`${state === "collapsed" ? "hidden" : ""}`}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
           </div>
         </SidebarHeader>
         <SidebarGroup className="transition-all duration-200 ease-linear">
