@@ -2,12 +2,7 @@
 import { AppSidebar } from "@/app/_components/layout/AppSidebar";
 import { Latex } from "@/app/_components/richtext/Latex";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useStore } from "@/store";
 import { useActiveAssignment } from "@/store/selectors";
 import Exercise from "./_components/Exercise";
@@ -32,8 +27,6 @@ export default function AssignmentPage() {
       <AppSidebar />
       <SidebarInset>
         <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4">
-          <SidebarTrigger />
-          <Separator orientation="vertical" className="h-6" />
           {activeAssignment ? (
             <div className="flex w-full items-center gap-2">
               <Latex className="mr-2 flex-1 truncate font-semibold">
