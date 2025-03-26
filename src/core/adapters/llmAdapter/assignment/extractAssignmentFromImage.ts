@@ -1,3 +1,4 @@
+import { ImageRegion } from "@/core/assignment/types";
 import { type Language, LanguageName } from "@/i18n/types";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
@@ -24,12 +25,10 @@ Your response should be:
     {
         "problemText": "Consider the numbers 24 and 504. Write both numbers as a product of primes.",
         "problemNumber": "(a) (1)",
-        "requiresImage": false
     },
     {
         "problemText": "Consider the numbers 24 and 504. Write \\( \\frac{24}{504} \\) in decimal form." ,
         "problemNumber": "(a) (2)",
-        "requiresImage": false
     }   
 ]
 
@@ -43,8 +42,7 @@ Your response should be:
     {
         "problemText": "Find the area of the shaded triangle in the figure.",
         "problemNumber": "(a)",
-        "requiresImage": true,
-        "imageRegion": {
+        "relevantImageSegment": {
             "topLeft": {"x": 0.2, "y": 0.4},
             "bottomRight": {"x": 0.8, "y": 0.9}
         }
@@ -54,28 +52,12 @@ Your response should be:
 Write your response in ${LanguageName[language]} language only.
 `;
 
-const ImageRegion = z
-  .object({
-    topLeft: z.object({
-      x: z.number(),
-      y: z.number(),
-    }),
-    bottomRight: z.object({
-      x: z.number(),
-      y: z.number(),
-    }),
-  })
-  .optional();
-
 const RawProblem = z.object({
   problemText: z
     .string()
     .describe("The text of the problem, formatted as LaTeX"),
   problemNumber: z.string().describe("The number of the problem"),
-  requiresImage: z
-    .boolean()
-    .describe("Whether the problem requires an image to be understood"),
-  imageRegion: ImageRegion.describe(
+  relevantImageSegment: ImageRegion.optional().describe(
     "Region of the image containing the visual elements",
   ),
 });
@@ -92,7 +74,7 @@ export async function extractAssignmentFromImage(
   language: Language,
   userId?: string,
 ): Promise<RawAssignment> {
-  const rawAssignment = await model.withStructuredOutput(RawAssignment).invoke(
+  return await model.withStructuredOutput(RawAssignment).invoke(
     [
       new SystemMessage(EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT(language)),
       new HumanMessage({
@@ -115,14 +97,4 @@ export async function extractAssignmentFromImage(
       },
     },
   );
-
-  const processedProblems = rawAssignment.problems.map((problem) => ({
-    ...problem,
-    requiresImage: problem.requiresImage ?? false,
-  }));
-
-  return {
-    assignmentTitle: rawAssignment.assignmentTitle,
-    problems: processedProblems,
-  };
 }

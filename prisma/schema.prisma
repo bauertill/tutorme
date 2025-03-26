@@ -143,16 +143,16 @@ enum UserProblemStatus {
 }
 
 model UserProblem {
-  id                String            @id @default(cuid())
-  problem           String
-  problemNumber     String
-  referenceSolution String?
-  status            UserProblemStatus @default(INITIAL)
-  canvas            Json
-  evaluation        Json?
-  imageUrl          String?
-  updatedAt         DateTime          @updatedAt
-  createdAt         DateTime          @default(now())
+  id                   String            @id @default(cuid())
+  problem              String
+  problemNumber        String
+  referenceSolution    String?
+  status               UserProblemStatus @default(INITIAL)
+  canvas               Json
+  evaluation           Json?
+  relevantImageSegment Json?
+  updatedAt            DateTime          @updatedAt
+  createdAt            DateTime          @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

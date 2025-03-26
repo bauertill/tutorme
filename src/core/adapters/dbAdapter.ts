@@ -19,6 +19,7 @@ import { type AppUsage } from "../appUsage/types";
 import {
   Canvas,
   EvaluationResult,
+  ImageRegion,
   type Assignment,
   type UserProblem,
 } from "../assignment/types";
@@ -214,6 +215,7 @@ export class DBAdapter {
           userId,
           canvas: { paths: [] },
           evaluation: undefined,
+          relevantImageSegment: problem.relevantImageSegment ?? undefined,
         },
       });
       return parseProblem(dbProblem);
@@ -234,6 +236,7 @@ export class DBAdapter {
             ...cur,
             canvas: cur.canvas,
             evaluation: cur.evaluation ?? undefined,
+            relevantImageSegment: cur.relevantImageSegment ?? undefined,
           },
           create: {
             ...cur,
@@ -241,6 +244,7 @@ export class DBAdapter {
             evaluation: cur.evaluation ?? undefined,
             userId,
             assignmentId,
+            relevantImageSegment: cur.relevantImageSegment ?? undefined,
           },
         }),
       ),
@@ -369,6 +373,8 @@ const parseProblem = (problem: UserProblemDB): UserProblem => ({
   ...problem,
   canvas: Canvas.parse(problem.canvas),
   evaluation: EvaluationResult.safeParse(problem.evaluation).data ?? null,
+  relevantImageSegment:
+    ImageRegion.safeParse(problem.relevantImageSegment).data ?? null,
 });
 
 export const dbAdapter = new DBAdapter(db);

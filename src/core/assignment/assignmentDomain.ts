@@ -29,7 +29,7 @@ export async function createAssignmentFromUpload(
       referenceSolution: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      imageUrl: problem.requiresImage ? uploadPath : null,
+      relevantImageSegment: problem.relevantImageSegment ?? undefined,
       assignmentId,
       canvas: { paths: [] },
       evaluation: null,
