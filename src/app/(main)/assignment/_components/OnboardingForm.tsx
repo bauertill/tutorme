@@ -14,21 +14,24 @@ export function OnboardingForm({
   const user = session?.user;
   return (
     <form
-      className={cn("flex h-full flex-col justify-between gap-20", className)}
+      className={cn(
+        "flex h-full flex-col justify-between gap-10 2xl:gap-20",
+        className,
+      )}
       {...props}
     >
-      <div className="flex flex-1 flex-col items-center justify-center gap-20">
+      <div className="flex flex-1 flex-col items-center justify-center gap-10 2xl:gap-20">
         <div className="flex flex-col items-center gap-10 text-center">
-          <h1 className="w-full text-left text-4xl font-bold">
+          <h1 className="w-full text-left text-3xl font-bold 2xl:text-4xl">
             <Trans i18nKey="welcome_to_tutor_me_good" />
           </h1>
           <p className="text-justify text-muted-foreground">
             <Trans i18nKey="welcome_to_tutor_me_good_description" />
           </p>
         </div>
-        <div className="flex flex-col items-center justify-center gap-10">
-          <ExampleProblemCard />
+        <div className="flex flex-col items-center justify-center gap-5 2xl:gap-10">
           <UploadProblems trigger="card" />
+          <ExampleProblemCard />
         </div>
       </div>
 

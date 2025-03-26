@@ -134,13 +134,13 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
           className="cursor-pointer bg-primary/60 transition-colors hover:bg-accent/50"
           onClick={handleButtonClick}
         >
-          <CardContent className="t flex items-center gap-4 p-6">
+          <CardContent className="flex items-center gap-4 p-6 pb-4 2xl:pb-6">
             <CameraIcon className="h-6 w-6 flex-shrink-0" />
             <p className="">
               <Trans i18nKey="upload_problems_card_description" />
             </p>
           </CardContent>
-          <CardFooter className="flex items-center justify-end gap-2">
+          <CardFooter className="ml-10 flex items-center gap-2">
             <div className="flex items-center gap-2 font-semibold">
               <Trans i18nKey="upload_assignment" />
               <ArrowRight className="size-4" />

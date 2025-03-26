@@ -35,13 +35,13 @@ export default function ExampleProblemCard() {
       className="cursor-pointer transition-colors hover:bg-accent/50"
       onClick={onClick}
     >
-      <CardContent className="flex items-center gap-4 p-6">
+      <CardContent className="flex items-center gap-4 p-6 pb-4 2xl:pb-6">
         <BookOpen className="h-6 w-6 flex-shrink-0" />
         <p className="">
           <Trans i18nKey="learn_the_basics_by_working_through_a_guided_example_problem" />
         </p>
       </CardContent>
-      <CardFooter className="flex items-center justify-end gap-2">
+      <CardFooter className="ml-10 flex items-center gap-2">
         <div className="flex items-center gap-2 font-semibold">
           <Trans i18nKey="try_example_now" />
           <ArrowRight className="size-4" />

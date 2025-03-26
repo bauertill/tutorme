@@ -5,8 +5,8 @@ import { OnboardingForm } from "./OnboardingForm";
 export default function Onboarding() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="flex flex-col gap-8 p-6 md:p-10 md:pb-20">
-        <div className="flex justify-start gap-2">
+      <div className="flex flex-col gap-8 p-6 md:p-10 2xl:pb-20">
+        <div className="hidden justify-start gap-2 xl:flex">
           <a href="#" className="flex items-center gap-2 font-medium">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GraduationCap className="size-4" />
