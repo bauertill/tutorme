@@ -41,6 +41,7 @@ export const UserProblem = z.object({
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
   canvas: Canvas,
   evaluation: EvaluationResult.nullable(),
+  imageUrl: z.string().nullable().optional(),
   relevantImageSegment: ImageRegion.nullable().optional(),
   createdAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
   updatedAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),

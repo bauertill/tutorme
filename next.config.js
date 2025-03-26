@@ -12,6 +12,7 @@ const config = {
       { hostname: "img.youtube.com" },
       { hostname: "i1.ytimg.com" },
       { hostname: "i2.ytimg.com" },
+      { hostname: "jtsi0m6tmkz7q60p.public.blob.vercel-storage.com" },
     ],
   },
 };

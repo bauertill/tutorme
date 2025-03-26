@@ -151,6 +151,7 @@ model UserProblem {
   canvas               Json
   evaluation           Json?
   relevantImageSegment Json?
+  imageUrl             String?
   updatedAt            DateTime          @updatedAt
   createdAt            DateTime          @default(now())
 
