@@ -9,6 +9,10 @@ const EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT = (
 Go through the image and extract all the problems. Problems might be nested, in this case you should flatten the data structure and reformulate the problems so they are standalone.
 Also come up with a title for the assignment.
 
+If a problem contains visual elements or requires the image to be understood (especially for geometric questions), you should:
+1. Indicate this in your response with "requiresImage: true"
+2. Specify the region of the image that contains the visual elements using coordinates (topLeft and bottomRight) where 0,0 is the top-left corner and 1,1 is the bottom-right corner
+
 For example when given:
 # EXERCISE 2 \n
 '(a) Consider the numbers 24 and 504 .\n' +
@@ -19,22 +23,61 @@ Your response should be:
 [
     {
         "problemText": "Consider the numbers 24 and 504. Write both numbers as a product of primes.",
-        "problemNumber": "(a) (1)"
+        "problemNumber": "(a) (1)",
+        "requiresImage": false
     },
     {
         "problemText": "Consider the numbers 24 and 504. Write \\( \\frac{24}{504} \\) in decimal form." ,
-        "problemNumber": "(a) (2)"
+        "problemNumber": "(a) (2)",
+        "requiresImage": false
     }   
+]
+
+For an image with geometric content like:
+# EXERCISE 3 \n
+'(a) Find the area of the shaded triangle in the figure below.\n' +
+[IMAGE: A circle with radius 5 and a triangle inscribed in it] \n
+
+Your response should be:
+[
+    {
+        "problemText": "Find the area of the shaded triangle in the figure.",
+        "problemNumber": "(a)",
+        "requiresImage": true,
+        "imageRegion": {
+            "topLeft": {"x": 0.2, "y": 0.4},
+            "bottomRight": {"x": 0.8, "y": 0.9}
+        }
+    }
 ]
 
 Write your response in ${LanguageName[language]} language only.
 `;
+
+const ImageRegion = z
+  .object({
+    topLeft: z.object({
+      x: z.number(),
+      y: z.number(),
+    }),
+    bottomRight: z.object({
+      x: z.number(),
+      y: z.number(),
+    }),
+  })
+  .optional();
 
 const RawProblem = z.object({
   problemText: z
     .string()
     .describe("The text of the problem, formatted as LaTeX"),
   problemNumber: z.string().describe("The number of the problem"),
+  requiresImage: z
+    .boolean()
+    .describe("Whether the problem requires an image to be understood"),
+  imageRegion: ImageRegion.describe(
+    "Region of the image containing the visual elements",
+  ),
 });
 
 type RawProblem = z.infer<typeof RawProblem>;
@@ -48,7 +91,7 @@ export async function extractAssignmentFromImage(
   documentUrl: string,
   language: Language,
   userId?: string,
-): Promise<{ assignmentTitle: string; problems: RawProblem[] }> {
+): Promise<RawAssignment> {
   const rawAssignment = await model.withStructuredOutput(RawAssignment).invoke(
     [
       new SystemMessage(EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT(language)),
@@ -72,5 +115,14 @@ export async function extractAssignmentFromImage(
       },
     },
   );
-  return rawAssignment;
+
+  const processedProblems = rawAssignment.problems.map((problem) => ({
+    ...problem,
+    requiresImage: problem.requiresImage ?? false,
+  }));
+
+  return {
+    assignmentTitle: rawAssignment.assignmentTitle,
+    problems: processedProblems,
+  };
 }
