@@ -21,6 +21,17 @@ export const EvaluationResult = z.object({
 });
 export type EvaluationResult = z.infer<typeof EvaluationResult>;
 
+export const ImageRegion = z.object({
+  topLeft: z.object({
+    x: z.number(),
+    y: z.number(),
+  }),
+  bottomRight: z.object({
+    x: z.number(),
+    y: z.number(),
+  }),
+});
+
 export const UserProblem = z.object({
   id: z.string(),
   assignmentId: z.string(),
@@ -30,6 +41,8 @@ export const UserProblem = z.object({
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
   canvas: Canvas,
   evaluation: EvaluationResult.nullable(),
+  imageUrl: z.string().nullable().optional(),
+  relevantImageSegment: ImageRegion.nullable().optional(),
   createdAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
   updatedAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
 });

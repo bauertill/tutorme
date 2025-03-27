@@ -19,18 +19,23 @@ export async function createAssignmentFromUpload(
       userId,
     );
   const assignmentId = uuidv4();
-  const userProblems: UserProblem[] = rawProblems.map((problem) => ({
-    id: uuidv4(),
-    status: "INITIAL", // TODO: add stars 0-3
-    problem: problem.problemText,
-    problemNumber: problem.problemNumber,
-    referenceSolution: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    assignmentId,
-    canvas: { paths: [] },
-    evaluation: null,
-  }));
+  const userProblems: UserProblem[] = [];
+  for (const problem of rawProblems) {
+    userProblems.push({
+      id: uuidv4(),
+      status: "INITIAL", // TODO: add stars 0-3
+      problem: problem.problemText,
+      problemNumber: problem.problemNumber,
+      referenceSolution: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      relevantImageSegment: problem.relevantImageSegment ?? undefined,
+      imageUrl: uploadPath,
+      assignmentId,
+      canvas: { paths: [] },
+      evaluation: null,
+    });
+  }
   const assignment: Assignment = {
     id: assignmentId,
     name: assignmentTitle,
