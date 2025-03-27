@@ -1,5 +1,5 @@
 import { Latex } from "@/app/_components/richtext/Latex";
-import { UserProblem } from "@/core/assignment/types";
+import { type UserProblem } from "@/core/assignment/types";
 import Image from "next/image";
 
 // We don't need to import ImageRegion, as we can just define it inline based on the shape
@@ -16,8 +16,8 @@ function ImageSegmentRenderer({
   segment,
 }: ImageSegmentRendererProps) {
   return (
-    <div className="relative mt-2 w-full max-w-xl overflow-hidden rounded-md border border-muted">
-      <div className="relative aspect-[4/3] w-full">
+    <div className="relative w-full overflow-hidden rounded-md border border-muted">
+      <div className="relative aspect-[16/9] w-full">
         <div
           className="absolute z-10 rounded-sm border-2 border-primary"
           style={{
@@ -32,7 +32,8 @@ function ImageSegmentRenderer({
           alt="Problem image"
           fill
           className="object-contain"
-          sizes="(max-width: 768px) 100vw, 50vw"
+          sizes="100vw"
+          priority
         />
       </div>
     </div>
@@ -44,7 +45,7 @@ export function ProblemRenderer({ problem }: { problem: UserProblem }) {
     problem.imageUrl && problem.relevantImageSegment;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex w-full flex-col space-y-4">
       <div className="flex flex-row items-center gap-1">
         <span className="mr-1 text-muted-foreground">
           {problem.problemNumber}
@@ -55,10 +56,12 @@ export function ProblemRenderer({ problem }: { problem: UserProblem }) {
       {hasRelevantImageSegment &&
         problem.imageUrl &&
         problem.relevantImageSegment && (
-          <ImageSegmentRenderer
-            imageUrl={problem.imageUrl}
-            segment={problem.relevantImageSegment}
-          />
+          <div className="w-full max-w-none">
+            <ImageSegmentRenderer
+              imageUrl={problem.imageUrl}
+              segment={problem.relevantImageSegment}
+            />
+          </div>
         )}
     </div>
   );
