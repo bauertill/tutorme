@@ -9,11 +9,9 @@ import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButto
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
-  SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarInput,
   SidebarRail,
@@ -142,42 +140,33 @@ export function AppSidebar() {
             />
           </div>
         </SidebarGroup>
-        <SidebarContent className="flex-1 overflow-y-auto overflow-x-hidden">
-          <SidebarGroup className="transition-all duration-200 ease-linear">
-            <SidebarGroupLabel>
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <BookOpen className="size-4 flex-shrink-0" />
-                  <span className="absolute -right-1 -top-1 flex hidden h-3 w-3 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground group-data-[collapsible=icon]:block">
-                    {filteredAssignments.length}
-                  </span>
-                </div>
-                <SidebarText className="flex items-center gap-2">
-                  <span>
-                    <Trans i18nKey="assignments" />
-                  </span>
-                  <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium">
-                    {filteredAssignments.length}
-                  </span>
-                </SidebarText>
-              </div>
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarText className="block w-full">
-                {filteredAssignments.map((assignment) => (
-                  <CollapsibleAssignment
-                    key={assignment.id}
-                    assignment={assignment}
-                    isOpen={autoExpandedAssignments.has(assignment.id)}
-                    onOpenChange={() => toggleAssignment(assignment.id)}
-                    activeProblem={activeProblem}
-                    setActiveProblem={setActiveProblemWithCanvas}
-                  />
-                ))}
-              </SidebarText>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
+        <SidebarGroup className="transition-all duration-200 ease-linear">
+          <div className="mb-2 ml-2 mt-2 flex items-center gap-4">
+            <BookOpen className="size-4 text-muted-foreground" />
+            <SidebarText className="flex items-center gap-2">
+              <p className="text-sm font-medium text-muted-foreground">
+                <Trans i18nKey="assignments" />
+              </p>
+              <p className="rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium">
+                {filteredAssignments.length}
+              </p>
+            </SidebarText>
+          </div>
+          <SidebarGroupContent>
+            <SidebarText className="block w-full">
+              {filteredAssignments.map((assignment) => (
+                <CollapsibleAssignment
+                  key={assignment.id}
+                  assignment={assignment}
+                  isOpen={autoExpandedAssignments.has(assignment.id)}
+                  onOpenChange={() => toggleAssignment(assignment.id)}
+                  activeProblem={activeProblem}
+                  setActiveProblem={setActiveProblemWithCanvas}
+                />
+              ))}
+            </SidebarText>
+          </SidebarGroupContent>
+        </SidebarGroup>
         <SidebarFooter className="mt-auto w-full flex-shrink-0 transition-all duration-200 ease-linear">
           <div className="min-h-[90px] w-full transition-all duration-200 ease-linear">
             {session.data?.user ? (
