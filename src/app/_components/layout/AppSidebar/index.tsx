@@ -38,7 +38,8 @@ export function AppSidebar() {
     new Set(),
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const { state, setOpen } = useSidebar();
+  const { open, state, setOpen, openMobile, setOpenMobile, isMobile } =
+    useSidebar();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -109,8 +110,11 @@ export function AppSidebar() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setOpen(false)}
-              className={`${state === "collapsed" ? "hidden" : ""}`}
+              onClick={() => {
+                if (isMobile) setOpenMobile(false);
+                else setOpen(false);
+              }}
+              className={`${open || openMobile ? "" : "hidden"}`}
             >
               <ChevronLeft className="size-4" />
             </Button>
