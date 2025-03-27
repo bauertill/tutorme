@@ -18,11 +18,11 @@ export default function ProblemController() {
   }
 
   return (
-    <div className="flex flex-col border-b">
-      <div className="w-full p-4">
+    <div className="flex flex-row items-center justify-between border-b p-4">
+      <div className="flex flex-row items-center gap-1">
         <ProblemRenderer problem={activeProblem} />
       </div>
-      <div className="flex flex-row items-center justify-end gap-2 p-2">
+      <div className="flex flex-row items-center gap-2">
         <ProblemStatusIcon status={activeProblem.status} />
         <Button
           variant="outline"
