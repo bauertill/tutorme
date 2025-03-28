@@ -140,7 +140,7 @@ export function AppSidebar() {
             />
           </div>
         </SidebarGroup>
-        <SidebarGroup className="transition-all duration-200 ease-linear">
+        <SidebarGroup className="no-scrollbar overflow-y-auto overflow-x-hidden pr-1 transition-all duration-200 ease-linear">
           <div className="mb-2 ml-2 mt-2 flex items-center gap-4">
             <BookOpen className="size-4 text-muted-foreground" />
             <SidebarText className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export function AppSidebar() {
               </p>
             </SidebarText>
           </div>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="no-scrollbar overflow-y-auto">
             <SidebarText className="block w-full">
               {filteredAssignments.map((assignment) => (
                 <CollapsibleAssignment
