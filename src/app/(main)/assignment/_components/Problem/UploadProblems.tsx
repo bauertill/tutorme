@@ -131,7 +131,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
       )}
       {trigger === "card" && (
         <Card
-          className="cursor-pointer bg-primary/60 transition-colors hover:bg-accent/50"
+          className="cursor-pointer transition-colors hover:bg-accent/50"
           onClick={handleButtonClick}
         >
           <CardContent className="flex items-center gap-4 p-6 pb-4 2xl:pb-6">

@@ -32,7 +32,7 @@ export default function ExampleProblemCard() {
 
   return (
     <Card
-      className="cursor-pointer transition-colors hover:bg-accent/50"
+      className="cursor-pointer bg-primary/60 transition-colors hover:bg-accent/50"
       onClick={onClick}
     >
       <CardContent className="flex items-center gap-4 p-6 pb-4 2xl:pb-6">

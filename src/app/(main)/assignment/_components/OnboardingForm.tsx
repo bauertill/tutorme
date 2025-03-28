@@ -30,8 +30,8 @@ export function OnboardingForm({
           </p>
         </div>
         <div className="flex flex-col items-center justify-center gap-5 2xl:gap-10">
-          <UploadProblems trigger="card" />
           <ExampleProblemCard />
+          <UploadProblems trigger="card" />
         </div>
       </div>
 
