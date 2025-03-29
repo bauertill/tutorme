@@ -5,6 +5,7 @@ import "katex/dist/katex.min.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
+import { PostHogProvider } from "@/app/_components/providers/PostHogProvider";
 import { ProgressProvider } from "@/app/_components/providers/ProgressProvider";
 import { ThemeProvider } from "@/app/_components/providers/ThemeProvider";
 import { TRPCReactProvider } from "@/trpc/react";
@@ -33,19 +34,21 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="select-none [-webkit-user-select:none]">
-        <ThemeProvider>
-          <ProgressProvider>
-            <TRPCReactProvider>
-              <ClientOnly>
-                <I18nProvider>
-                  {children}
-                  <Toaster />
-                </I18nProvider>
-              </ClientOnly>
-            </TRPCReactProvider>
-          </ProgressProvider>
-        </ThemeProvider>
-        <SpeedInsights />
+        <PostHogProvider>
+          <ThemeProvider>
+            <ProgressProvider>
+              <TRPCReactProvider>
+                <ClientOnly>
+                  <I18nProvider>
+                    {children}
+                    <Toaster />
+                  </I18nProvider>
+                </ClientOnly>
+              </TRPCReactProvider>
+            </ProgressProvider>
+          </ThemeProvider>
+          <SpeedInsights />
+        </PostHogProvider>
       </body>
     </html>
   );
