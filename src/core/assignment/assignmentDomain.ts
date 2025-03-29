@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n/server";
 import { type Language } from "@/i18n/types";
 import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
@@ -173,12 +174,13 @@ export async function getExampleAssignment(
   dbAdapter: DBAdapter,
   language: Language,
 ): Promise<Assignment> {
+  const t = i18n.getFixedT(language);
   const LIMIT = 25;
   const problems = await dbAdapter.getProblems(language, "Level 1", LIMIT);
   const assignmentId = uuidv4();
   const assignment: Assignment = {
     id: assignmentId,
-    name: "Example Assignment",
+    name: t("example_assignment"),
     problems: problems.map((problem, i) => ({
       id: uuidv4(),
       assignmentId,
@@ -194,6 +196,5 @@ export async function getExampleAssignment(
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-  console.log("assignment", assignment);
   return assignment;
 }

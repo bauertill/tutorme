@@ -47,6 +47,7 @@ const translation = {
     next_problem: "Next Problem",
   },
   returning_visitor: "Returning visitor?",
+  example_assignment: "Example Assignment",
 };
 
 export default translation;

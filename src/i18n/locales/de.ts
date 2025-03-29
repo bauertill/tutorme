@@ -46,5 +46,6 @@ const translation = {
     next_problem: "Nächste Aufgabe",
   },
   returning_visitor: "Warst du schon bei uns?",
+  example_assignment: "Beispielaufgabe",
 };
 export default translation;
