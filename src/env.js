@@ -52,11 +52,7 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    NEXT_PUBLIC_URL:
-      process.env.NEXT_PUBLIC_URL ??
-      (process.env.VERCEL_URL !== undefined
-        ? `https://${process.env.VERCEL_BRANCH_URL}`
-        : undefined),
+    NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
