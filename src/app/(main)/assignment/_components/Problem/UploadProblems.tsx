@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
-import { Trans } from "@/i18n";
+import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { ArrowRight, CameraIcon, Loader2 } from "lucide-react";

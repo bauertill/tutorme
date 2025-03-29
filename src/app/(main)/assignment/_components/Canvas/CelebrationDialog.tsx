@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useTranslation } from "@/i18n";
+import { useTranslation } from "@/i18n/react";
 import { useProblemController } from "@/store/selectors";
 
 export function CelebrationDialog({

@@ -1,6 +1,6 @@
 "use client";
 
-import { i18n } from "@/i18n";
+import { i18n } from "@/i18n/react";
 import { type AppRouter } from "@/server/api/root";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import {

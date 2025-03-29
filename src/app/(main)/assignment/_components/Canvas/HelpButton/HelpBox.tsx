@@ -1,7 +1,7 @@
 import { useScrollToBottom } from "@/app/_components/layout/useScrollToBottom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Trans } from "@/i18n";
+import { Trans } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { useHelp } from "@/store/selectors";

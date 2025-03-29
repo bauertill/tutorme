@@ -1,7 +1,7 @@
 "use client";
 
 import { SidebarText } from "@/components/ui/sidebar";
-import { Trans } from "@/i18n";
+import { Trans } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 

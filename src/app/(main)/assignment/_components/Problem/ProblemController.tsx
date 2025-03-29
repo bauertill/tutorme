@@ -1,7 +1,7 @@
 "use client";
 import { ProblemStatusIcon } from "@/app/_components/layout/ProblemStatusIcon";
 import { Button } from "@/components/ui/button";
-import { Trans } from "@/i18n";
+import { Trans } from "@/i18n/react";
 import { useProblemController } from "@/store/selectors";
 import { ProblemRenderer } from "./ProblemRenderer";
 

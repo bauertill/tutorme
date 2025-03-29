@@ -18,7 +18,7 @@ import {
   SidebarText,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Trans, useTranslation } from "@/i18n";
+import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
 import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";

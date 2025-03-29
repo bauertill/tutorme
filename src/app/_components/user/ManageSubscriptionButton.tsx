@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Trans } from "@/i18n";
+import { Trans } from "@/i18n/react";
 import { api } from "@/trpc/react";
 import { skipToken } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";

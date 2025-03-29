@@ -1,6 +1,6 @@
 "use client";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Trans } from "@/i18n";
+import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { ArrowRight, BookOpen } from "lucide-react";

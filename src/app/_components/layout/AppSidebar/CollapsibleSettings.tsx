@@ -9,7 +9,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { SidebarText, useSidebar } from "@/components/ui/sidebar";
-import { Trans, useTranslation } from "@/i18n";
+import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";

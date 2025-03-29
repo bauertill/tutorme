@@ -1,4 +1,4 @@
-import { useTranslation } from "@/i18n";
+import { useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { Pencil } from "lucide-react";
 import { Kalam } from "next/font/google";

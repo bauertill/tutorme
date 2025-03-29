@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { type Message } from "@/core/help/types";
-import { Trans, useTranslation } from "@/i18n";
+import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import {
   useActiveProblem,

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useTranslation } from "@/i18n";
+import { useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";

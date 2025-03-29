@@ -1,7 +1,7 @@
 import { LanguagePicker } from "@/app/_components/user/LanguagePicker";
 import { SignInButton } from "@/app/_components/user/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
-import { Trans } from "@/i18n";
+import { Trans } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import ExampleProblemCard from "./Problem/ExampleProblemCard";

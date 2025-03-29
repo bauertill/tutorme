@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { SidebarText } from "@/components/ui/sidebar";
-import { Trans } from "@/i18n";
+import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
 import { signIn } from "next-auth/react";
 

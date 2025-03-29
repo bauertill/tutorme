@@ -8,7 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { type EvaluationResult } from "@/core/assignment/types";
-import { useTranslation } from "@/i18n";
+import { useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import { useActiveProblem } from "@/store/selectors";
 import { api } from "@/trpc/react";
