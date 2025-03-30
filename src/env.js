@@ -44,6 +44,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_URL: z.string().url(),
     NEXT_PUBLIC_POSTHOG_KEY: z.string(),
+    NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID: z.string().default(""),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
   },
 
@@ -70,6 +71,8 @@ export const env = createEnv({
     LOG_LEVEL: process.env.LOG_LEVEL,
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID:
+      process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
