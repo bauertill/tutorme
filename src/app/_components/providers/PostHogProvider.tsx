@@ -14,6 +14,13 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       capture_pageview: false, // We capture pageviews manually
       capture_pageleave: true, // Enable pageleave capture
     });
+
+    window.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "pen") {
+        // User is using a stylus/Apple Pencil
+        posthog.capture("stylus_used");
+      }
+    });
   }, []);
 
   return (
