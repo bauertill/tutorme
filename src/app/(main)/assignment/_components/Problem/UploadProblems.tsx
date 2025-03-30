@@ -1,3 +1,4 @@
+import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
@@ -24,6 +25,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
     "idle" | "uploading" | "success" | "error"
   >("idle");
   const [isCancelled, setIsCancelled] = useState(false);
+  const trackEvent = useTrackEvent();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,6 +78,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
   };
 
   const handleUpload = async (file: File) => {
+    trackEvent("uploaded_assignment");
     setUploadState("uploading");
     try {
       const url = await uploadToBlob(file);

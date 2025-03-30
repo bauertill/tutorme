@@ -1,4 +1,5 @@
 "use client";
+import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { type Message } from "@/core/help/types";
 import { Trans, useTranslation } from "@/i18n/react";
@@ -55,6 +56,7 @@ export function Canvas() {
     setRecommendedQuestions,
     newAssistantMessage,
   } = useHelp();
+  const trackEvent = useTrackEvent();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.assignment.submitSolution.useMutation({
@@ -132,6 +134,7 @@ export function Canvas() {
         </Button>
         <Button
           onClick={async () => {
+            trackEvent("clicked_check_solution");
             const dataUrl = await getDataUrl();
             if (!dataUrl) return;
             updateProblem({

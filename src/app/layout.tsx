@@ -10,8 +10,8 @@ import { ProgressProvider } from "@/app/_components/providers/ProgressProvider";
 import { ThemeProvider } from "@/app/_components/providers/ThemeProvider";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "sonner";
+import { GoogleTagManager } from "./_components/GoogleTagManager";
 import { ClientOnly } from "./_components/providers/ClientOnly";
-import GoogleTagManager from "./_components/providers/GoogleTagManager";
 import { I18nProvider } from "./_components/providers/I18nProvider";
 
 export const metadata: Metadata = {

@@ -1,3 +1,4 @@
+import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { MessageCircleQuestion } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -12,8 +13,10 @@ export default function HelpButton({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
+  const trackEvent = useTrackEvent();
   const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    trackEvent("opened_helpbox");
     setOpen(true);
   };
 

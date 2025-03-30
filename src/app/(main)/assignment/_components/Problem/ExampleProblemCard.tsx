@@ -1,4 +1,5 @@
 "use client";
+import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
@@ -13,8 +14,10 @@ export default function ExampleProblemCard() {
   const assignments = useStore.use.assignments();
   const addAssignment = useStore.use.addAssignment();
   const setActiveProblem = useStore.use.setActiveProblem();
+  const trackEvent = useTrackEvent();
 
   const onClick = async () => {
+    trackEvent("clicked_example_assignment_card");
     const existingExampleAssignment = assignments.find(
       (assignment) => assignment.name === "Example Assignment",
     );
