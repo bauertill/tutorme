@@ -32,8 +32,6 @@ export function useCanvas() {
   const redo = useStore.use.redo();
   const clear = useStore.use.clear();
 
-  console.log(JSON.stringify(paths, null, 2));
-
   const [isUntouched_, setIsUntouched] = useState(true);
   const isUntouched = useMemo(
     () => isUntouched_ && paths.length === 0 && undoStack.length === 0,
