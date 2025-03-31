@@ -48,6 +48,17 @@ const translation = {
   },
   returning_visitor: "Returning visitor?",
   example_assignment: "Example Assignment",
+  onboarding: {
+    currentProblem:
+      "Here you can see which problem you are currently working on",
+    currentProblemTitle: "Current Problem",
+    canvasSection:
+      "Here you can work on the problem with a pen, the AI has access to this and understands handwriting",
+    canvasSectionTitle: "Paper",
+    checkAnswerButton:
+      "Here you can check your answer, or check if you are on the right track",
+    checkAnswerButtonTitle: "Check Answer",
+  },
 };
 
 export default translation;

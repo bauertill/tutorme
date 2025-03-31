@@ -45,7 +45,7 @@ export function ProblemRenderer({ problem }: { problem: UserProblem }) {
   //   problem.imageUrl && problem.relevantImageSegment;
 
   return (
-    <div>
+    <div className="current-problem">
       <div className="flex flex-row items-center gap-1">
         <span className="mr-1 text-muted-foreground">
           {problem.problemNumber}
