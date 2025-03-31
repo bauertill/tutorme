@@ -25,12 +25,14 @@ export function CollapsibleSettings() {
   const { mutate: deleteAllAssignments } =
     api.assignment.deleteAllAssignments.useMutation();
   const [isDeleting, setIsDeleting] = useState(false);
+  const setHasCompletedOnboarding = useStore.use.setHasCompletedOnboarding();
   const { state } = useSidebar();
 
   const handleDelete = () => {
     if (confirm(t("delete_all_assignments_confirmation"))) {
       setIsDeleting(true);
       clearAssignments();
+      setHasCompletedOnboarding(false);
       if (session.data?.user?.id) {
         deleteAllAssignments();
       }
