@@ -16,8 +16,7 @@ interface TourProps {
 export function Tour({ className }: TourProps) {
   const addPath = useStore.use.addPath();
   const setHasCompletedOnboarding = useStore.use.setHasCompletedOnboarding();
-  const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
-  const [run, setRun] = useState(!hasCompletedOnboarding);
+  const [run, setRun] = useState(true);
 
   const handleJoyrideCallback = useCallback(
     async (data: CallBackProps) => {

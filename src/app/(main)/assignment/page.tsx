@@ -16,6 +16,7 @@ export default function AssignmentPage() {
   const activeAssignment = useActiveAssignment();
   const assignments = useStore.use.assignments();
 
+  const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
   if (assignments.length === 0) {
     return <Onboarding />;
   }
@@ -29,7 +30,7 @@ export default function AssignmentPage() {
 
   return (
     <SidebarProvider>
-      <Tour />
+      {!hasCompletedOnboarding && <Tour />}
 
       <AppSidebar />
       <SidebarInset>
