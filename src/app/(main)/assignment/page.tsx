@@ -9,21 +9,12 @@ import {
 } from "@/components/ui/sidebar";
 import { Tour } from "@/components/ui/tour";
 import { useStore } from "@/store";
-import { steps } from "@/store/onboarding";
 import { useActiveAssignment } from "@/store/selectors";
-import { useEffect } from "react";
 import Exercise from "./_components/Exercise";
 import Onboarding from "./_components/Onboarding";
 export default function AssignmentPage() {
   const activeAssignment = useActiveAssignment();
   const assignments = useStore.use.assignments();
-  const setHasCompletedOnboarding = useStore.use.setHasCompletedOnboarding();
-  const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
-
-  // @TODO DELETE ME
-  useEffect(() => {
-    setHasCompletedOnboarding(false);
-  }, []);
 
   if (assignments.length === 0) {
     return <Onboarding />;
@@ -38,13 +29,7 @@ export default function AssignmentPage() {
 
   return (
     <SidebarProvider>
-      {!hasCompletedOnboarding && (
-        <Tour
-          steps={steps}
-          onFinish={() => setHasCompletedOnboarding(true)}
-          onSkip={() => setHasCompletedOnboarding(false)}
-        />
-      )}
+      <Tour />
 
       <AppSidebar />
       <SidebarInset>

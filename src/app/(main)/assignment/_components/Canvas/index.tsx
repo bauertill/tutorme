@@ -24,7 +24,6 @@ import { toast } from "sonner";
 import { CelebrationDialog } from "./CelebrationDialog";
 import HelpButton from "./HelpButton";
 import { useCanvas } from "./useCanvas";
-import WritingAnimation from "./WritingAnimation";
 
 export function Canvas() {
   const { t } = useTranslation();
@@ -106,10 +105,6 @@ export function Canvas() {
   return (
     <div className="canvas-section relative h-full w-full overflow-hidden">
       {canvas}
-
-      <div className="pointer-events-none absolute left-4 top-20 z-10 flex items-end space-x-4 lg:top-4">
-        <WritingAnimation hidden={!isUntouched} delay={5000} />
-      </div>
 
       <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
         <Button

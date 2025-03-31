@@ -1,23 +1,38 @@
 "use client";
 
+import { type Path } from "@/app/(main)/assignment/_components/Canvas/utils";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/store";
+import { steps } from "@/store/onboarding";
 import { useCallback, useState } from "react";
-import Joyride, { type CallBackProps, STATUS, type Step } from "react-joyride";
+import Joyride, { type CallBackProps, STATUS } from "react-joyride";
 import { Button } from "./button";
 import { Card } from "./card";
 
 interface TourProps {
-  steps: Step[];
   className?: string;
-  onFinish?: () => void;
-  onSkip?: () => void;
 }
 
-export function Tour({ steps, className, onFinish, onSkip }: TourProps) {
-  const [run, setRun] = useState(true);
+export function Tour({ className }: TourProps) {
+  const addPath = useStore.use.addPath();
+  const setHasCompletedOnboarding = useStore.use.setHasCompletedOnboarding();
+  const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
+  const [run, setRun] = useState(!hasCompletedOnboarding);
 
   const handleJoyrideCallback = useCallback(
-    (data: CallBackProps) => {
+    async (data: CallBackProps) => {
+      const isCanvasStep =
+        steps.map((step) => step.target).indexOf(".canvas-section") ===
+        data.index;
+
+      if (isCanvasStep && run) {
+        const paths = await getOnboardingSolutionPaths();
+        for (const path of paths) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          addPath(path);
+        }
+      }
+
       const { status } = data;
       const finishedStatuses: (typeof STATUS)[keyof typeof STATUS][] = [
         STATUS.FINISHED,
@@ -26,15 +41,15 @@ export function Tour({ steps, className, onFinish, onSkip }: TourProps) {
 
       if (finishedStatuses.includes(status)) {
         setRun(false);
-        if (status === STATUS.FINISHED && onFinish) {
-          onFinish();
+        if (status === STATUS.FINISHED) {
+          setHasCompletedOnboarding(true);
         }
-        if (status === STATUS.SKIPPED && onSkip) {
-          onSkip();
+        if (status === STATUS.SKIPPED) {
+          setHasCompletedOnboarding(false);
         }
       }
     },
-    [onFinish, onSkip],
+    [addPath, setHasCompletedOnboarding, run],
   );
 
   return (
@@ -98,4 +113,9 @@ export function Tour({ steps, className, onFinish, onSkip }: TourProps) {
       )}
     />
   );
+}
+
+async function getOnboardingSolutionPaths(): Promise<Path[]> {
+  const paths = await fetch("/content/onboardingScribble.json");
+  return (await paths.json()) as Path[];
 }
