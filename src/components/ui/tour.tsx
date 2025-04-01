@@ -1,6 +1,7 @@
 "use client";
 
 import { type Path } from "@/app/(main)/assignment/_components/Canvas/utils";
+import { useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { steps } from "@/store/onboarding";
@@ -14,6 +15,7 @@ interface TourProps {
 }
 
 export function Tour({ className }: TourProps) {
+  const { t } = useTranslation();
   const addPath = useStore.use.addPath();
   const setHasCompletedOnboarding = useStore.use.setHasCompletedOnboarding();
   const [run, setRun] = useState(true);
@@ -92,19 +94,19 @@ export function Tour({ className }: TourProps) {
               <div>
                 {!isLastStep && (
                   <Button variant="ghost" {...skipProps}>
-                    Skip
+                    {t("skip")}
                   </Button>
                 )}
               </div>
               <div className="flex gap-2">
                 {index > 0 && (
                   <Button variant="outline" {...backProps}>
-                    Back
+                    {t("back")}
                   </Button>
                 )}
                 {continuous && (
                   <Button {...primaryProps}>
-                    {isLastStep ? "Done" : "Next"}
+                    {isLastStep ? t("done") : t("next")}
                   </Button>
                 )}
               </div>

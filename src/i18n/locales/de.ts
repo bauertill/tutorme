@@ -22,6 +22,8 @@ const translation = {
   delete_all_assignments: "Alle Aufgaben löschen",
   back: "Zurück",
   next: "Weiter",
+  done: "Fertig",
+  skip: "Überspringen",
   check: "Checken",
   assignment: {
     feedback: {
