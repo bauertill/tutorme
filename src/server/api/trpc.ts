@@ -41,7 +41,8 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     opts.headers.get("x-real-ip") ??
     "unknown";
 
-  const userLanguage = Language.parse(opts.headers.get("x-user-language"));
+  const userLanguage =
+    Language.safeParse(opts.headers.get("x-user-language")).data ?? "en";
 
   return {
     session,
