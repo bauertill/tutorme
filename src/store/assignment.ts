@@ -42,7 +42,7 @@ export const createAssignmentSlice: StateCreator<
     }),
   addAssignment: (assignment: Assignment) =>
     set((draft) => {
-      draft.assignments = [...draft.assignments, assignment];
+      draft.assignments = [assignment, ...draft.assignments];
       draft.activeAssignmentId = assignment.id;
       draft.activeProblemId = assignment.problems[0]?.id ?? null;
     }),
