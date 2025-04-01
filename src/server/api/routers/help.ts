@@ -1,6 +1,10 @@
 import { generateHelpReply, recommendQuestions } from "@/core/help/helpDomain";
 import { Message } from "@/core/help/types";
-import { createTRPCRouter, limitedPublicProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  limitedPublicProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
 import { z } from "zod";
 
 export const helpRouter = createTRPCRouter({
@@ -21,7 +25,7 @@ export const helpRouter = createTRPCRouter({
         ctx.userLanguage,
       );
     }),
-  recommendQuestions: limitedPublicProcedure
+  recommendQuestions: publicProcedure
     .input(
       z.object({
         problem: z.string().nullable(),

@@ -67,7 +67,7 @@ export const assignmentRouter = createTRPCRouter({
       );
     }),
 
-  createReferenceSolution: limitedPublicProcedure
+  createReferenceSolution: publicProcedure
     .input(z.string())
     .mutation(async ({ input, ctx }) => {
       return await createReferenceSolution(
