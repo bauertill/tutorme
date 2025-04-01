@@ -1,21 +1,9 @@
 import { t } from "i18next";
+import type { Props as JoyrideProps } from "react-joyride";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
 
-type OnboardingStepTargetCSSClass =
-  | ".current-problem"
-  | ".check-answer-button"
-  | ".ai-explanation-section"
-  | ".canvas-section";
-
-type OnboardingStep = {
-  target: OnboardingStepTargetCSSClass;
-  content: string;
-  title: string;
-  disableBeacon?: boolean;
-};
-
-export const steps: OnboardingStep[] = [
+export const steps: JoyrideProps["steps"] = [
   {
     disableBeacon: true,
     target: ".current-problem",
@@ -26,6 +14,8 @@ export const steps: OnboardingStep[] = [
     target: ".canvas-section",
     content: t("onboarding.canvasSection"),
     title: t("onboarding.canvasSectionTitle"),
+    placement: "top-start",
+    spotlightPadding: 0,
   },
   {
     target: ".check-answer-button",

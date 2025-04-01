@@ -89,6 +89,13 @@ export function Tour({ className }: TourProps) {
             )}
             <div>{step.content}</div>
             <div className="flex items-center justify-between">
+              <div>
+                {!isLastStep && (
+                  <Button variant="ghost" {...skipProps}>
+                    Skip
+                  </Button>
+                )}
+              </div>
               <div className="flex gap-2">
                 {index > 0 && (
                   <Button variant="outline" {...backProps}>
@@ -101,11 +108,6 @@ export function Tour({ className }: TourProps) {
                   </Button>
                 )}
               </div>
-              {!isLastStep && (
-                <Button variant="ghost" {...skipProps}>
-                  Skip
-                </Button>
-              )}
             </div>
           </div>
         </Card>

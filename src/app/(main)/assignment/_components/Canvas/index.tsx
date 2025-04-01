@@ -38,7 +38,6 @@ export function Canvas() {
     isEmpty,
     isEraser,
     toggleEraser,
-    isUntouched,
   } = useCanvas();
   const paths = useStore.use.paths();
   const updateProblem = useStore.use.updateProblem();
