@@ -4,6 +4,7 @@ import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
+import { getExampleProblems } from "./getExampleProblems";
 import { type Assignment, type UserProblem } from "./types";
 
 export async function createAssignmentFromUpload(
@@ -171,12 +172,10 @@ const mergeProblemsByUpdatedAt = (
 };
 
 export async function getExampleAssignment(
-  dbAdapter: DBAdapter,
   language: Language,
 ): Promise<Assignment> {
   const t = i18n.getFixedT(language);
-  const LIMIT = 25;
-  const problems = await dbAdapter.getProblems(language, "Level 1", LIMIT);
+  const problems = getExampleProblems(language);
   const assignmentId = uuidv4();
   const assignment: Assignment = {
     id: assignmentId,
