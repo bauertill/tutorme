@@ -22,14 +22,16 @@ export const createAssignmentSlice: StateCreator<
   MiddlewareList,
   [],
   AssignmentSlice
-> = (set) => ({
+> = (set, get) => ({
   assignments: [],
   activeAssignmentId: null,
   activeProblemId: null,
-  clearAssignments: () =>
+  clearAssignments: () => {
     set((draft) => {
       draft.assignments = [];
-    }),
+    });
+    get().setCanvas({ paths: [] });
+  },
   upsertAssignments: (assignments: Assignment[]) =>
     set((draft) => {
       const mergedAssignments = mergeAssignments(
@@ -40,17 +42,20 @@ export const createAssignmentSlice: StateCreator<
         draft.assignments = mergedAssignments;
       }
     }),
-  addAssignment: (assignment: Assignment) =>
+  addAssignment: (assignment: Assignment) => {
     set((draft) => {
       draft.assignments = [assignment, ...draft.assignments];
       draft.activeAssignmentId = assignment.id;
       draft.activeProblemId = assignment.problems[0]?.id ?? null;
-    }),
+    });
+    get().setCanvas({ paths: [] });
+  },
   setActiveProblem: (problem: UserProblem) => {
     set((draft) => {
       draft.activeAssignmentId = problem.assignmentId;
       draft.activeProblemId = problem.id;
     });
+    get().setCanvas({ paths: [] });
   },
 
   updateProblem: (

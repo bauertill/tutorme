@@ -33,7 +33,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const { mutate: deleteAssignment } =
     api.assignment.deleteAssignment.useMutation();
-  const { mutate: createAssignmentFromUpload } =
+  const { mutateAsync: createAssignmentFromUpload } =
     api.assignment.createFromUpload.useMutation({
       onSuccess: (assignment) => {
         if (isCancelled) {
@@ -44,14 +44,6 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
         toast.success("Problems uploaded successfully!");
         setOpen(false);
         addAssignment(assignment);
-      },
-      onError: (error) => {
-        setUploadState("error");
-        if (error.message === "Free tier limit reached") {
-          setUsageLimitReached(true);
-        } else {
-          toast.error(error.message);
-        }
       },
     });
 
@@ -82,10 +74,21 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
     setUploadState("uploading");
     try {
       const url = await uploadToBlob(file);
-      createAssignmentFromUpload(url);
+      await createAssignmentFromUpload(url);
     } catch (error) {
-      console.error("Upload error:", error);
       setUploadState("error");
+      if (
+        error instanceof Error &&
+        error.message === "Free tier limit reached"
+      ) {
+        setUsageLimitReached(true);
+        setOpen(false);
+      } else {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        }
+        console.error("Upload error:", error);
+      }
     }
   };
 
