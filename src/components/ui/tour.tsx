@@ -55,7 +55,6 @@ export function Tour({ className }: TourProps) {
 
   return (
     <Joyride
-      debug
       callback={handleJoyrideCallback}
       continuous
       run={run}
@@ -65,7 +64,7 @@ export function Tour({ className }: TourProps) {
       steps={steps}
       styles={{
         options: {
-          arrowColor: "hsl(var(--card))",
+          arrowColor: "hsl(var(--border))",
           backgroundColor: "hsl(var(--card))",
           primaryColor: "hsl(var(--primary))",
           textColor: "hsl(var(--foreground))",
