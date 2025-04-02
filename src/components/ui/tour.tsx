@@ -24,9 +24,11 @@ export function Tour({ className }: TourProps) {
     async (data: CallBackProps) => {
       const isCanvasStep =
         steps.map((step) => step.target).indexOf(".canvas-section") ===
-        data.index;
+          data.index &&
+        data.action === "update" &&
+        data.type === "tooltip";
 
-      if (isCanvasStep && run) {
+      if (isCanvasStep) {
         const paths = await getOnboardingSolutionPaths();
         for (const path of paths) {
           await new Promise((resolve) => setTimeout(resolve, 50));
@@ -50,7 +52,7 @@ export function Tour({ className }: TourProps) {
         }
       }
     },
-    [addPath, setHasCompletedOnboarding, run],
+    [run, addPath, setHasCompletedOnboarding],
   );
 
   return (
