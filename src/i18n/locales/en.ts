@@ -2,11 +2,11 @@ const translation = {
   already_have_account: "I already have an account",
   welcome_to_tutor_me_good: "Welcome to<br />Tutor Me Good!",
   welcome_to_tutor_me_good_description:
-    "Your AI powered Math Homework Assistant. Learn faster with personalized tutoring.",
+    "Your personal math buddy that explains problems in a way that finally makes sense to you.",
   learn_the_basics_by_working_through_a_guided_example_problem:
-    "Learn the basics by working through a guided example problem.",
+    "Try it out – with real examples we can solve together:",
   upload_problems_card_description:
-    "Get started by uploading your own homework problems.",
+    "Or start with your own homework assignment:",
   upload_assignment: "Upload Assignment",
   try_example_now: "Try Example Now",
   search_exercises: "Search exercises...",

@@ -1,5 +1,6 @@
 "use client";
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
@@ -34,21 +35,21 @@ export default function ExampleProblemCard() {
   };
 
   return (
-    <Card
-      className="cursor-pointer bg-primary/60 transition-colors hover:bg-accent/50"
-      onClick={onClick}
-    >
+    <Card>
       <CardContent className="flex items-center gap-4 p-6 pb-4 2xl:pb-6">
-        <BookOpen className="h-6 w-6 flex-shrink-0" />
         <p className="">
           <Trans i18nKey="learn_the_basics_by_working_through_a_guided_example_problem" />
         </p>
       </CardContent>
-      <CardFooter className="ml-10 flex items-center gap-2">
-        <div className="flex items-center gap-2 font-semibold">
+      <CardFooter className="flex items-center gap-2">
+        <Button
+          className="flex items-center gap-4 font-semibold"
+          onClick={onClick}
+        >
+          <BookOpen className="h-6 w-6 flex-shrink-0" />
           <Trans i18nKey="try_example_now" />
           <ArrowRight className="size-4" />
-        </div>
+        </Button>
       </CardFooter>
     </Card>
   );
