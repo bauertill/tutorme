@@ -53,7 +53,7 @@ const translation = {
     currentProblem: "Hier kannst du sehen, welche Aufgabe du gerade löst",
     currentProblemTitle: "Aktuelle Aufgabe",
     canvasSection:
-      "Hier kannst du die Aufgabe mit einem Stift lösen, die KI hat Zugriff auf diese und versteht deine Handschrift",
+      "Hier kannst du die Aufgabe mit einem Stift lösen, die KI hat Zugriff darauf und versteht deine Handschrift",
     canvasSectionTitle: "Papier",
     checkAnswerButton:
       "Hier kannst du deine Antwort überprüfen, oder schauen ob du auf dem richtigen Weg bist",

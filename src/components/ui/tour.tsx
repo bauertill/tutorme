@@ -5,6 +5,7 @@ import { useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { steps } from "@/store/onboarding";
+import { useActiveProblem } from "@/store/selectors";
 import { useCallback, useState } from "react";
 import Joyride, { type CallBackProps, STATUS } from "react-joyride";
 import { Button } from "./button";
@@ -17,6 +18,7 @@ interface TourProps {
 export function Tour({ className }: TourProps) {
   const { t } = useTranslation();
   const addPath = useStore.use.addPath();
+  const activeProblem = useActiveProblem();
   const setHasCompletedOnboarding = useStore.use.setHasCompletedOnboarding();
   const [run, setRun] = useState(true);
 
@@ -28,7 +30,10 @@ export function Tour({ className }: TourProps) {
         data.action === "update" &&
         data.type === "tooltip";
 
-      if (isCanvasStep) {
+      // What are the chances a problem uploaded by a user starts with Ivan (50:50)
+      const isExampleProblem1 = activeProblem?.problem.startsWith("Ivan");
+
+      if (isCanvasStep && isExampleProblem1) {
         const paths = await getOnboardingSolutionPaths();
         for (const path of paths) {
           await new Promise((resolve) => setTimeout(resolve, 50));
@@ -52,7 +57,7 @@ export function Tour({ className }: TourProps) {
         }
       }
     },
-    [run, addPath, setHasCompletedOnboarding],
+    [addPath, setHasCompletedOnboarding, activeProblem],
   );
 
   return (
