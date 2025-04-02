@@ -16,6 +16,7 @@ export const steps: JoyrideProps["steps"] = [
     title: t("onboarding.canvasSectionTitle"),
     placement: "top-start",
     spotlightPadding: 0,
+    offset: -40,
   },
   {
     target: ".check-answer-button",
