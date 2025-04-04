@@ -53,6 +53,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
     const file = event.target.files?.[0] ?? null;
     if (!file) return;
     setUploadState("idle");
+    setIsCancelled(false);
     setOpen(true);
 
     const reader = new FileReader();
@@ -106,7 +107,9 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
     toast.info("Upload cancelled");
   };
 
-  const handleButtonClick = () => {
+  const handleButtonClick = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+
     if (!fileInputRef.current) return;
     fileInputRef.current.value = "";
     fileInputRef.current.click();
