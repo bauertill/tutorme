@@ -1,6 +1,7 @@
 import { Latex } from "@/app/_components/richtext/Latex";
 import { type UserProblem } from "@/core/assignment/types";
 import Image from "next/image";
+import { useState } from "react";
 
 interface ImageSegmentRendererProps {
   imageUrl: string;
@@ -14,6 +15,7 @@ function ImageSegmentRenderer({
   imageUrl,
   segment,
 }: ImageSegmentRendererProps) {
+  const IMAGE_HEIGHT = 240;
   // Calculate the crop percentages
   const left = segment.topLeft.x * 100;
   const top = segment.topLeft.y * 100;
@@ -21,17 +23,20 @@ function ImageSegmentRenderer({
   const height = (segment.bottomRight.y - segment.topLeft.y) * 100;
 
   // Calculate the aspect ratio of the cropped segment
-  const aspectRatio = width / height;
+  const [originalAspectRatio, setOriginalAspectRatio] = useState(0);
 
-  console.log(left, top, width, height);
-  console.log(segment);
+  // Function to calculate original aspect ratio
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setOriginalAspectRatio(img.naturalWidth / img.naturalHeight);
+  };
 
   return (
     <div
       className="absolute z-10 mt-8 overflow-hidden rounded-md"
       style={{
-        width: "320px",
-        height: `${320 / aspectRatio}px`,
+        height: `${IMAGE_HEIGHT}px`,
+        width: `${IMAGE_HEIGHT * originalAspectRatio}px`,
         maxWidth: "100%",
       }}
     >
@@ -48,8 +53,10 @@ function ImageSegmentRenderer({
           src={imageUrl}
           alt="Problem image"
           priority
-          width={1000}
-          height={1000 / aspectRatio}
+          width={IMAGE_HEIGHT * width * originalAspectRatio}
+          height={IMAGE_HEIGHT * height}
+          style={{ border: "1px solid green" }}
+          onLoad={handleImageLoad}
         />
       </div>
     </div>
