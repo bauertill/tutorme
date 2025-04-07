@@ -1,7 +1,6 @@
 import { Latex } from "@/app/_components/richtext/Latex";
 import { type UserProblem } from "@/core/assignment/types";
 import Image from "next/image";
-import { useState } from "react";
 
 interface ImageSegmentRendererProps {
   imageUrl: string;
@@ -15,22 +14,44 @@ function ImageSegmentRenderer({
   imageUrl,
   segment,
 }: ImageSegmentRendererProps) {
-  const [reposition, setReposition] = useState({ x: 0, y: 0 });
+  // Calculate the crop percentages
+  const left = segment.topLeft.x * 100;
+  const top = segment.topLeft.y * 100;
+  const width = (segment.bottomRight.x - segment.topLeft.x) * 100;
+  const height = (segment.bottomRight.y - segment.topLeft.y) * 100;
+
+  // Calculate the aspect ratio of the cropped segment
+  const aspectRatio = width / height;
+
+  console.log(left, top, width, height);
+  console.log(segment);
 
   return (
-    <div className="absolute z-10 mt-8 h-60 w-60">
-      <Image
-        src={imageUrl}
-        alt="Problem image"
-        className="rounded-md"
-        priority
-        width={300}
-        height={300}
-        onMouseDown={(e) => {
-          console.log(e.clientX, e.clientY);
-          setReposition({ x: e.clientX, y: e.clientY });
+    <div
+      className="absolute z-10 mt-8 overflow-hidden rounded-md"
+      style={{
+        width: "320px",
+        height: `${320 / aspectRatio}px`,
+        maxWidth: "100%",
+      }}
+    >
+      <div
+        className="absolute"
+        style={{
+          width: `${(100 / width) * 100}%`,
+          height: `${(100 / height) * 100}%`,
+          left: `${(-left / width) * 100}%`,
+          top: `${(-top / height) * 100}%`,
         }}
-      />
+      >
+        <Image
+          src={imageUrl}
+          alt="Problem image"
+          priority
+          width={1000}
+          height={1000 / aspectRatio}
+        />
+      </div>
     </div>
   );
 }
