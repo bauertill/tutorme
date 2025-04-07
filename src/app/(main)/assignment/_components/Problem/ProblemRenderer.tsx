@@ -44,20 +44,39 @@ function ImageSegmentRenderer({
     setOriginalAspectRatio(img.naturalWidth / img.naturalHeight);
   };
 
-  const startDragging = (e: React.MouseEvent) => {
+  const startDragging = (
+    e: React.MouseEvent | React.TouchEvent | React.PointerEvent,
+  ) => {
     setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
+    if ("touches" in e && e.touches[0]) {
+      setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    } else if ("clientX" in e) {
+      setDragStart({ x: e.clientX, y: e.clientY });
+    }
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMove = (
+    e: React.MouseEvent | React.TouchEvent | React.PointerEvent,
+  ) => {
     if (!isDragging) return;
+
+    let clientX: number, clientY: number;
+
+    if ("touches" in e && e.touches[0]) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else if ("clientX" in e) {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    } else {
+      return;
+    }
+
     const containerWidth = originalAspectRatio * IMAGE_HEIGHT;
     const containerHeight = IMAGE_HEIGHT;
-    const deltaX = ((e.clientX - dragStart.x) / containerWidth) * 100;
-    const deltaY = ((e.clientY - dragStart.y) / containerHeight) * 100;
+    const deltaX = ((clientX - dragStart.x) / containerWidth) * 100;
+    const deltaY = ((clientY - dragStart.y) / containerHeight) * 100;
 
-    // NOTE the offset is negative because we are moving the image segment to the left and up
-    // e.g. shifted 200% to the right means the offset is -200
     const minOffsetX = segment.bottomRight.x * totalWidth - totalWidth;
     const maxOffsetX = segment.topLeft.x * totalWidth;
     const minOffsetY = segment.bottomRight.y * totalHeight - totalHeight;
@@ -74,7 +93,7 @@ function ImageSegmentRenderer({
       return { x: newX, y: newY };
     });
 
-    setDragStart({ x: e.clientX, y: e.clientY });
+    setDragStart({ x: clientX, y: clientY });
   };
 
   const updateProblem = useStore.use.updateProblem();
@@ -135,16 +154,24 @@ function ImageSegmentRenderer({
   return (
     <div className="relative">
       <div
-        className="absolute z-10 mt-8 overflow-hidden rounded-md"
+        className="absolute z-10 mt-8 touch-none overflow-hidden rounded-md"
         style={{
           height: `${IMAGE_HEIGHT}px`,
           width: `${IMAGE_HEIGHT * originalAspectRatio}px`,
           cursor: isDragging ? "grabbing" : "grab",
         }}
         onMouseDown={startDragging}
-        onMouseMove={handleMouseMove}
+        onTouchStart={startDragging}
+        onPointerDown={startDragging}
+        onMouseMove={handleMove}
+        onTouchMove={handleMove}
+        onPointerMove={handleMove}
         onMouseUp={stopDragging}
+        onTouchEnd={stopDragging}
+        onPointerUp={stopDragging}
         onMouseLeave={stopDragging}
+        onTouchCancel={stopDragging}
+        onPointerCancel={stopDragging}
       >
         <div
           className="absolute"
