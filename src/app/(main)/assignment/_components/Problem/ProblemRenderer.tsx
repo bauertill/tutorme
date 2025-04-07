@@ -1,4 +1,5 @@
 import { Latex } from "@/app/_components/richtext/Latex";
+import { Button } from "@/components/ui/button";
 import { type UserProblem } from "@/core/assignment/types";
 import { useStore } from "@/store";
 import { Minus, Plus } from "lucide-react";
@@ -29,6 +30,8 @@ function ImageSegmentRenderer({
   const height = (segment.bottomRight.y - segment.topLeft.y) * 100;
   const totalWidth = (100 / width) * 100;
   const totalHeight = (100 / height) * 100;
+  console.log("TOTAL WIDTH", totalWidth);
+  console.log("TOTAL HEIGHT", totalHeight);
 
   // Calculate the aspect ratio of the cropped segment
   const [originalAspectRatio, setOriginalAspectRatio] = useState(0);
@@ -76,22 +79,15 @@ function ImageSegmentRenderer({
 
   const updateProblem = useStore.use.updateProblem();
   const handleZoom = (zoomFactor: number) => {
-    const newBottomRight = {
-      x:
-        segment.bottomRight.x * zoomFactor > 1
-          ? 1
-          : segment.bottomRight.x * zoomFactor,
-      y:
-        segment.bottomRight.y * zoomFactor > 1
-          ? 1
-          : segment.bottomRight.y * zoomFactor,
-    };
     updateProblem({
       id: problemId,
       assignmentId,
       relevantImageSegment: {
         topLeft: segment.topLeft,
-        bottomRight: newBottomRight,
+        bottomRight: {
+          x: Math.min(segment.bottomRight.x * zoomFactor, 1),
+          y: Math.min(segment.bottomRight.y * zoomFactor, 1),
+        },
       },
     });
   };
@@ -172,18 +168,22 @@ function ImageSegmentRenderer({
           />
         </div>
         <div className="absolute left-2 top-2 z-20 flex flex-col gap-2">
-          <button
-            className="rounded-full bg-background p-2 shadow-md hover:bg-accent"
-            onClick={() => handleZoom(0.75)}
+          <Button
+            className="shadow-md"
+            variant="outline"
+            onClick={() => handleZoom(3 / 4)}
+            disabled={totalWidth > 1000}
           >
             <Plus className="h-4 w-4" />
-          </button>
-          <button
-            className="rounded-full bg-background p-2 shadow-md hover:bg-accent"
-            onClick={() => handleZoom(1.5)}
+          </Button>
+          <Button
+            className="shadow-md"
+            variant="outline"
+            onClick={() => handleZoom(4 / 3)}
+            disabled={totalWidth < 100}
           >
             <Minus className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>
