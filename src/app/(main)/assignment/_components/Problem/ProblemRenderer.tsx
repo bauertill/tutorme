@@ -2,7 +2,7 @@ import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
 import { type UserProblem } from "@/core/assignment/types";
 import { useStore } from "@/store";
-import { Minus, Plus } from "lucide-react";
+import { ChevronUp, Image as ImageIcon, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -23,6 +23,7 @@ function ImageSegmentRenderer({
   assignmentId,
 }: ImageSegmentRendererProps) {
   const IMAGE_HEIGHT = 240;
+  const [isMinimized, setIsMinimized] = useState(false);
   // Calculate the crop percentages
   const left = segment.topLeft.x * 100;
   const top = segment.topLeft.y * 100;
@@ -152,69 +153,85 @@ function ImageSegmentRenderer({
   const stopDragging = () => setIsDragging(false);
 
   return (
-    <div className="relative">
-      <div
-        className="absolute z-10 mt-8 touch-none overflow-hidden rounded-md"
-        style={{
-          height: `${IMAGE_HEIGHT}px`,
-          width: `${IMAGE_HEIGHT * originalAspectRatio}px`,
-          cursor: isDragging ? "grabbing" : "grab",
-        }}
-        onMouseDown={startDragging}
-        onTouchStart={startDragging}
-        onPointerDown={startDragging}
-        onMouseMove={handleMove}
-        onTouchMove={handleMove}
-        onPointerMove={handleMove}
-        onMouseUp={stopDragging}
-        onTouchEnd={stopDragging}
-        onPointerUp={stopDragging}
-        onMouseLeave={stopDragging}
-        onTouchCancel={stopDragging}
-        onPointerCancel={stopDragging}
+    <div className="absolute z-10 mt-8">
+      <Button
+        className="absolute left-2 top-2 z-20 gap-2 shadow-md"
+        variant="outline"
+        size="icon"
+        onClick={() => setIsMinimized(!isMinimized)}
       >
+        {isMinimized ? (
+          <>
+            <ImageIcon className="h-4 w-4" />
+          </>
+        ) : (
+          <ChevronUp className="h-3 w-3 text-muted-foreground" />
+        )}
+      </Button>
+      {!isMinimized && (
         <div
-          className="absolute"
+          className="absolute z-10 touch-none overflow-hidden rounded-md"
           style={{
-            width: `${totalWidth}%`,
-            height: `${totalHeight}%`,
-            left: `${(-left / width) * 100 + offset.x}%`,
-            top: `${(-top / height) * 100 + offset.y}%`,
-            transition: isDragging ? "none" : "all 0.1s ease-out",
+            height: `${IMAGE_HEIGHT}px`,
+            width: `${IMAGE_HEIGHT * originalAspectRatio}px`,
+            cursor: isDragging ? "grabbing" : "grab",
           }}
+          onMouseDown={startDragging}
+          onTouchStart={startDragging}
+          onPointerDown={startDragging}
+          onMouseMove={handleMove}
+          onTouchMove={handleMove}
+          onPointerMove={handleMove}
+          onMouseUp={stopDragging}
+          onTouchEnd={stopDragging}
+          onPointerUp={stopDragging}
+          onMouseLeave={stopDragging}
+          onTouchCancel={stopDragging}
+          onPointerCancel={stopDragging}
         >
-          <Image
-            src={imageUrl}
-            alt="Problem image"
-            priority
-            width={IMAGE_HEIGHT * width * originalAspectRatio}
-            height={IMAGE_HEIGHT * height}
-            style={{}}
-            onLoad={handleImageLoad}
-            draggable={false}
-          />
-        </div>
-        <div className="absolute right-2 top-2 z-20 flex flex-col gap-2">
-          <Button
-            className="shadow-md"
-            variant="outline"
-            size="sm"
-            onClick={() => handleZoom(3 / 4)}
-            disabled={totalWidth > 1000}
+          <div
+            className="absolute"
+            style={{
+              width: `${totalWidth}%`,
+              height: `${totalHeight}%`,
+              left: `${(-left / width) * 100 + offset.x}%`,
+              top: `${(-top / height) * 100 + offset.y}%`,
+              transition: isDragging ? "none" : "all 0.1s ease-out",
+            }}
           >
-            <Plus className="h-3 w-3" />
-          </Button>
-          <Button
-            className="shadow-md"
-            variant="outline"
-            size="sm"
-            onClick={() => handleZoom(4 / 3)}
-            disabled={totalWidth < 100}
-          >
-            <Minus className="h-3 w-3" />
-          </Button>
+            <Image
+              src={imageUrl}
+              alt="Problem image"
+              priority
+              width={IMAGE_HEIGHT * width * originalAspectRatio}
+              height={IMAGE_HEIGHT * height}
+              style={{}}
+              onLoad={handleImageLoad}
+              draggable={false}
+            />
+          </div>
+          <div className="absolute right-2 top-2 z-20 flex flex-col gap-2">
+            <Button
+              className="shadow-md"
+              variant="outline"
+              size="icon"
+              onClick={() => handleZoom(3 / 4)}
+              disabled={totalWidth > 1000}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+            <Button
+              className="shadow-md"
+              variant="outline"
+              size="icon"
+              onClick={() => handleZoom(4 / 3)}
+              disabled={totalWidth < 100}
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
