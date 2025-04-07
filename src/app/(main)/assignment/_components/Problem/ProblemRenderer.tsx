@@ -1,6 +1,7 @@
 import { Latex } from "@/app/_components/richtext/Latex";
 import { type UserProblem } from "@/core/assignment/types";
 import { useStore } from "@/store";
+import { Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -72,7 +73,28 @@ function ImageSegmentRenderer({
 
     setDragStart({ x: e.clientX, y: e.clientY });
   };
+
   const updateProblem = useStore.use.updateProblem();
+  const handleZoom = (zoomFactor: number) => {
+    const newBottomRight = {
+      x:
+        segment.bottomRight.x * zoomFactor > 1
+          ? 1
+          : segment.bottomRight.x * zoomFactor,
+      y:
+        segment.bottomRight.y * zoomFactor > 1
+          ? 1
+          : segment.bottomRight.y * zoomFactor,
+    };
+    updateProblem({
+      id: problemId,
+      assignmentId,
+      relevantImageSegment: {
+        topLeft: segment.topLeft,
+        bottomRight: newBottomRight,
+      },
+    });
+  };
   // Update the problem when the component unmounts or the offset changes
   useEffect(() => {
     const handleUpdate = () => {
@@ -115,38 +137,54 @@ function ImageSegmentRenderer({
   const stopDragging = () => setIsDragging(false);
 
   return (
-    <div
-      className="absolute z-10 mt-8 overflow-hidden rounded-md"
-      style={{
-        height: `${IMAGE_HEIGHT}px`,
-        width: `${IMAGE_HEIGHT * originalAspectRatio}px`,
-        cursor: isDragging ? "grabbing" : "grab",
-      }}
-      onMouseDown={startDragging}
-      onMouseMove={handleMouseMove}
-      onMouseUp={stopDragging}
-      onMouseLeave={stopDragging}
-    >
+    <div className="relative">
       <div
-        className="absolute"
+        className="absolute z-10 mt-8 overflow-hidden rounded-md"
         style={{
-          width: `${totalWidth}%`,
-          height: `${totalHeight}%`,
-          left: `${(-left / width) * 100 + offset.x}%`,
-          top: `${(-top / height) * 100 + offset.y}%`,
-          transition: isDragging ? "none" : "all 0.1s ease-out",
+          height: `${IMAGE_HEIGHT}px`,
+          width: `${IMAGE_HEIGHT * originalAspectRatio}px`,
+          cursor: isDragging ? "grabbing" : "grab",
         }}
+        onMouseDown={startDragging}
+        onMouseMove={handleMouseMove}
+        onMouseUp={stopDragging}
+        onMouseLeave={stopDragging}
       >
-        <Image
-          src={imageUrl}
-          alt="Problem image"
-          priority
-          width={IMAGE_HEIGHT * width * originalAspectRatio}
-          height={IMAGE_HEIGHT * height}
-          style={{}}
-          onLoad={handleImageLoad}
-          draggable={false}
-        />
+        <div
+          className="absolute"
+          style={{
+            width: `${totalWidth}%`,
+            height: `${totalHeight}%`,
+            left: `${(-left / width) * 100 + offset.x}%`,
+            top: `${(-top / height) * 100 + offset.y}%`,
+            transition: isDragging ? "none" : "all 0.1s ease-out",
+          }}
+        >
+          <Image
+            src={imageUrl}
+            alt="Problem image"
+            priority
+            width={IMAGE_HEIGHT * width * originalAspectRatio}
+            height={IMAGE_HEIGHT * height}
+            style={{}}
+            onLoad={handleImageLoad}
+            draggable={false}
+          />
+        </div>
+        <div className="absolute left-2 top-2 z-20 flex flex-col gap-2">
+          <button
+            className="rounded-full bg-background p-2 shadow-md hover:bg-accent"
+            onClick={() => handleZoom(0.75)}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+          <button
+            className="rounded-full bg-background p-2 shadow-md hover:bg-accent"
+            onClick={() => handleZoom(1.5)}
+          >
+            <Minus className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
