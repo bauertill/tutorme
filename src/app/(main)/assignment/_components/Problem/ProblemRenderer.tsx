@@ -21,12 +21,15 @@ function ImageSegmentRenderer({
   const top = segment.topLeft.y * 100;
   const width = (segment.bottomRight.x - segment.topLeft.x) * 100;
   const height = (segment.bottomRight.y - segment.topLeft.y) * 100;
+  const totalWidth = (100 / width) * 100;
+  const totalHeight = (100 / height) * 100;
 
   // Calculate the aspect ratio of the cropped segment
   const [originalAspectRatio, setOriginalAspectRatio] = useState(0);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  console.log("offset.x", offset.x, "offset.y", offset.y);
 
   // Function to calculate original aspect ratio
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -35,46 +38,40 @@ function ImageSegmentRenderer({
   };
 
   // Handle mouse events for dragging
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const startDragging = (e: React.MouseEvent) => {
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return;
-
-    // Calculate the movement as percentage of the visible area
     const containerWidth = originalAspectRatio * IMAGE_HEIGHT;
     const containerHeight = IMAGE_HEIGHT;
-
     const deltaX = ((e.clientX - dragStart.x) / containerWidth) * 100;
     const deltaY = ((e.clientY - dragStart.y) / containerHeight) * 100;
 
-    // Calculate constraints to prevent seeing outside the image
-    // These ensure we never see black space outside the image boundaries
-    const maxOffsetX = 0; // Right edge (can't go beyond right edge of image)
-    const minOffsetX = 100 - (100 / width) * 100; // Left edge (can't go beyond left edge of image)
-    const maxOffsetY = 0; // Bottom edge (can't go beyond bottom edge of image)
-    const minOffsetY = 100 - (100 / height) * 100; // Top edge (can't go beyond top edge of image)
+    // NOTE the offset is negative because we are moving the image segment to the left and up
+    // e.g. shifted 200% to the right means the offset is -200
+    const minOffsetX = segment.bottomRight.x * totalWidth - totalWidth;
+    const maxOffsetX = segment.topLeft.x * totalWidth;
+    const minOffsetY = segment.bottomRight.y * totalHeight - totalHeight;
+    const maxOffsetY = segment.topLeft.y * totalHeight;
 
-    // Update offset with constraints and drag start position
     setOffset((prev) => {
-      const newX = Math.min(maxOffsetX, Math.max(minOffsetX, prev.x + deltaX));
-      const newY = Math.min(maxOffsetY, Math.max(minOffsetY, prev.y + deltaY));
+      let newX = prev.x + deltaX;
+      if (newX > maxOffsetX) newX = maxOffsetX;
+      if (newX < minOffsetX) newX = minOffsetX;
+
+      let newY = prev.y + deltaY;
+      if (newY > maxOffsetY) newY = maxOffsetY;
+      if (newY < minOffsetY) newY = minOffsetY;
       return { x: newX, y: newY };
     });
 
     setDragStart({ x: e.clientX, y: e.clientY });
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  // Handle mouse leave to prevent "sticky" dragging
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
+  const stopDragging = () => setIsDragging(false);
 
   return (
     <div
@@ -85,16 +82,16 @@ function ImageSegmentRenderer({
         maxWidth: "100%",
         cursor: isDragging ? "grabbing" : "grab",
       }}
-      onMouseDown={handleMouseDown}
+      onMouseDown={startDragging}
       onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
+      onMouseUp={stopDragging}
+      onMouseLeave={stopDragging}
     >
       <div
         className="absolute"
         style={{
-          width: `${(100 / width) * 100}%`,
-          height: `${(100 / height) * 100}%`,
+          width: `${totalWidth}%`,
+          height: `${totalHeight}%`,
           left: `${(-left / width) * 100 + offset.x}%`,
           top: `${(-top / height) * 100 + offset.y}%`,
           transition: isDragging ? "none" : "all 0.1s ease-out",
