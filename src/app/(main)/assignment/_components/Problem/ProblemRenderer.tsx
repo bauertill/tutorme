@@ -1,7 +1,8 @@
 import { Latex } from "@/app/_components/richtext/Latex";
 import { type UserProblem } from "@/core/assignment/types";
+import { useStore } from "@/store";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ImageSegmentRendererProps {
   imageUrl: string;
@@ -9,11 +10,15 @@ interface ImageSegmentRendererProps {
     topLeft: { x: number; y: number };
     bottomRight: { x: number; y: number };
   };
+  problemId: string;
+  assignmentId: string;
 }
 
 function ImageSegmentRenderer({
   imageUrl,
   segment,
+  problemId,
+  assignmentId,
 }: ImageSegmentRendererProps) {
   const IMAGE_HEIGHT = 240;
   // Calculate the crop percentages
@@ -29,15 +34,12 @@ function ImageSegmentRenderer({
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  console.log("offset.x", offset.x, "offset.y", offset.y);
 
-  // Function to calculate original aspect ratio
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     setOriginalAspectRatio(img.naturalWidth / img.naturalHeight);
   };
 
-  // Handle mouse events for dragging
   const startDragging = (e: React.MouseEvent) => {
     setIsDragging(true);
     setDragStart({ x: e.clientX, y: e.clientY });
@@ -70,6 +72,45 @@ function ImageSegmentRenderer({
 
     setDragStart({ x: e.clientX, y: e.clientY });
   };
+  const updateProblem = useStore.use.updateProblem();
+  // Update the problem when the component unmounts or the offset changes
+  useEffect(() => {
+    const handleUpdate = () => {
+      const deltaX = -offset.x / totalWidth;
+      const deltaY = -offset.y / totalHeight;
+
+      updateProblem({
+        id: problemId,
+        assignmentId,
+        relevantImageSegment: {
+          topLeft: {
+            x: segment.topLeft.x + deltaX,
+            y: segment.topLeft.y + deltaY,
+          },
+          bottomRight: {
+            x: segment.bottomRight.x + deltaX,
+            y: segment.bottomRight.y + deltaY,
+          },
+        },
+      });
+    };
+
+    // Update when component unmounts or problem changes
+    return () => {
+      if (offset.x !== 0 || offset.y !== 0) {
+        handleUpdate();
+        setOffset({ x: 0, y: 0 });
+      }
+    };
+  }, [
+    problemId,
+    offset,
+    totalWidth,
+    totalHeight,
+    segment,
+    assignmentId,
+    updateProblem,
+  ]);
 
   const stopDragging = () => setIsDragging(false);
 
@@ -79,7 +120,6 @@ function ImageSegmentRenderer({
       style={{
         height: `${IMAGE_HEIGHT}px`,
         width: `${IMAGE_HEIGHT * originalAspectRatio}px`,
-        maxWidth: "100%",
         cursor: isDragging ? "grabbing" : "grab",
       }}
       onMouseDown={startDragging}
@@ -116,8 +156,6 @@ export function ProblemRenderer({ problem }: { problem: UserProblem }) {
   const hasRelevantImageSegment =
     problem.imageUrl && problem.relevantImageSegment;
 
-  console.log(problem.relevantImageSegment);
-
   return (
     <div>
       <div className="current-problem flex flex-row items-center gap-1">
@@ -132,6 +170,8 @@ export function ProblemRenderer({ problem }: { problem: UserProblem }) {
           <ImageSegmentRenderer
             imageUrl={problem.imageUrl}
             segment={problem.relevantImageSegment}
+            problemId={problem.id}
+            assignmentId={problem.assignmentId}
           />
         )}
     </div>
