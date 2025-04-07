@@ -167,22 +167,24 @@ function ImageSegmentRenderer({
             draggable={false}
           />
         </div>
-        <div className="absolute left-2 top-2 z-20 flex flex-col gap-2">
+        <div className="absolute right-2 top-2 z-20 flex flex-col gap-2">
           <Button
             className="shadow-md"
             variant="outline"
+            size="sm"
             onClick={() => handleZoom(3 / 4)}
             disabled={totalWidth > 1000}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3 w-3" />
           </Button>
           <Button
             className="shadow-md"
             variant="outline"
+            size="sm"
             onClick={() => handleZoom(4 / 3)}
             disabled={totalWidth < 100}
           >
-            <Minus className="h-4 w-4" />
+            <Minus className="h-3 w-3" />
           </Button>
         </div>
       </div>
