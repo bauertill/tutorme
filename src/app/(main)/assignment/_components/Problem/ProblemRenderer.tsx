@@ -3,9 +3,6 @@ import { type UserProblem } from "@/core/assignment/types";
 import { ImageSegmentRenderer } from "./ImageSegmentRenderer";
 
 export function ProblemRenderer({ problem }: { problem: UserProblem }) {
-  const hasRelevantImageSegment =
-    problem.imageUrl && problem.relevantImageSegment;
-
   return (
     <div>
       <div className="current-problem flex flex-row items-center gap-1">
@@ -14,16 +11,7 @@ export function ProblemRenderer({ problem }: { problem: UserProblem }) {
         </span>
         <Latex className="whitespace-pre-wrap">{problem.problem}</Latex>
       </div>
-      {hasRelevantImageSegment &&
-        problem.imageUrl &&
-        problem.relevantImageSegment && (
-          <ImageSegmentRenderer
-            imageUrl={problem.imageUrl}
-            segment={problem.relevantImageSegment}
-            problemId={problem.id}
-            assignmentId={problem.assignmentId}
-          />
-        )}
+      <ImageSegmentRenderer problem={problem} />
     </div>
   );
 }

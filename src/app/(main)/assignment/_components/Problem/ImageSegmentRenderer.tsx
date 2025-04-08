@@ -1,40 +1,25 @@
 import { Button } from "@/components/ui/button";
+import { type UserProblem } from "@/core/assignment/types";
 import { useStore } from "@/store";
 import { ChevronUp, Image as ImageIcon, Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-interface ImageSegmentRendererProps {
-  imageUrl: string;
-  segment: {
-    topLeft: { x: number; y: number };
-    bottomRight: { x: number; y: number };
-  };
-  problemId: string;
-  assignmentId: string;
-}
+const DEFAULT_SEGMENT = {
+  topLeft: { x: 0, y: 0 },
+  bottomRight: { x: 0, y: 0 },
+};
 
-export function ImageSegmentRenderer({
-  imageUrl,
-  segment,
-  problemId,
-  assignmentId,
-}: ImageSegmentRendererProps) {
+export function ImageSegmentRenderer({ problem }: { problem: UserProblem }) {
   const IMAGE_HEIGHT = 240;
   const [isMinimized, setIsMinimized] = useState(false);
-  // Calculate the crop percentages
-  const left = segment.topLeft.x * 100;
-  const top = segment.topLeft.y * 100;
-  const width = (segment.bottomRight.x - segment.topLeft.x) * 100;
-  const height = (segment.bottomRight.y - segment.topLeft.y) * 100;
-  const totalWidth = (100 / width) * 100;
-  const totalHeight = (100 / height) * 100;
 
   // Calculate the aspect ratio of the cropped segment
   const [originalAspectRatio, setOriginalAspectRatio] = useState(0);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const updateProblem = useStore.use.updateProblem();
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
@@ -93,11 +78,19 @@ export function ImageSegmentRenderer({
     setDragStart({ x: clientX, y: clientY });
   };
 
-  const updateProblem = useStore.use.updateProblem();
+  const segment = problem.relevantImageSegment ?? DEFAULT_SEGMENT;
+  const imageUrl = problem.imageUrl;
+  // Calculate the crop percentages
+  const left = segment.topLeft.x * 100;
+  const top = segment.topLeft.y * 100;
+  const width = (segment.bottomRight.x - segment.topLeft.x) * 100;
+  const height = (segment.bottomRight.y - segment.topLeft.y) * 100;
+  const totalWidth = (100 / width) * 100;
+  const totalHeight = (100 / height) * 100;
   const handleZoom = (zoomFactor: number) => {
     updateProblem({
-      id: problemId,
-      assignmentId,
+      id: problem.id,
+      assignmentId: problem.assignmentId,
       relevantImageSegment: {
         topLeft: segment.topLeft,
         bottomRight: {
@@ -114,8 +107,8 @@ export function ImageSegmentRenderer({
       const deltaY = -offset.y / totalHeight;
 
       updateProblem({
-        id: problemId,
-        assignmentId,
+        id: problem.id,
+        assignmentId: problem.assignmentId,
         relevantImageSegment: {
           topLeft: {
             x: segment.topLeft.x + deltaX,
@@ -136,17 +129,10 @@ export function ImageSegmentRenderer({
         setOffset({ x: 0, y: 0 });
       }
     };
-  }, [
-    problemId,
-    offset,
-    totalWidth,
-    totalHeight,
-    segment,
-    assignmentId,
-    updateProblem,
-  ]);
+  }, [problem, offset, totalWidth, totalHeight, segment, updateProblem]);
 
   const stopDragging = () => setIsDragging(false);
+  if (!imageUrl || segment === DEFAULT_SEGMENT) return null;
 
   return (
     <div className="absolute z-10 mt-8">
