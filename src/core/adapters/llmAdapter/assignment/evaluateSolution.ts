@@ -49,13 +49,25 @@ Keep your output concise. Always wrap LaTeX in the appropriate delimiters.
 Write your response in ${LanguageName[language]} language only.
 `;
 
+export type EvaluateSolutionInput = {
+  problemId: string;
+  exerciseText: string;
+  solutionImage: string;
+  referenceSolution: string;
+  language: Language;
+};
+
 // Function to evaluate the solution using the multimodal LLM
 export async function evaluateSolution(
-  exerciseText: string,
-  solutionImage: string,
-  referenceSolution: string,
-  language: Language,
+  input: EvaluateSolutionInput,
 ): Promise<z.infer<typeof schema>> {
+  const {
+    problemId,
+    exerciseText,
+    solutionImage,
+    referenceSolution,
+    language,
+  } = input;
   // Extract the base64 data part (remove the prefix if it exists)
   const base64Data = solutionImage.includes("base64,")
     ? solutionImage.split("base64,")[1]
@@ -93,7 +105,12 @@ Here is the student's (partial) solution attempt:`,
   ];
 
   // Make the call to the multimodal LLM
-  const response = await model.withStructuredOutput(schema).invoke(messages);
+  const response = await model.withStructuredOutput(schema).invoke(messages, {
+    metadata: {
+      functionName: "evaluateSolution",
+      problemId,
+    },
+  });
 
   return response;
 }

@@ -94,6 +94,7 @@ export function Canvas() {
   const onCheck = (dataUrl: string) => {
     if (activeProblem) {
       submit({
+        problemId: activeProblem.id,
         exerciseText: activeProblem.problem,
         solutionImage: dataUrl,
         referenceSolution: activeProblem.referenceSolution ?? "N/A",

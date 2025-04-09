@@ -1,23 +1,15 @@
 import { type Language } from "@/i18n/types";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
+import { type EvaluateSolutionInput } from "../adapters/llmAdapter/assignment/evaluateSolution";
 import { type EvaluationResult, type UserProblem } from "../assignment/types";
 import { type Problem } from "../problem/types";
 
 export async function evaluateSolution(
-  exerciseText: string,
-  solutionImage: string,
-  referenceSolution: string,
+  input: EvaluateSolutionInput,
   llmAdapter: LLMAdapter,
-  language: Language,
 ): Promise<EvaluationResult> {
-  const result = await llmAdapter.assignment.evaluateSolution(
-    exerciseText,
-    solutionImage,
-    referenceSolution,
-    language,
-  );
-  return result;
+  return await llmAdapter.assignment.evaluateSolution(input);
 }
 
 export async function getRandomProblem(dbAdapter: DBAdapter): Promise<Problem> {
@@ -44,11 +36,12 @@ export async function explainHint(
 ): Promise<UserProblem> {
   if (!userProblem.evaluation) return userProblem;
 
-  const detailedHint = await llmAdapter.assignment.explainHintDetail(
-    userProblem.problem,
-    userProblem.evaluation,
+  const detailedHint = await llmAdapter.assignment.explainHintDetail({
+    problemId: userProblem.id,
+    problemText: userProblem.problem,
+    evaluation: userProblem.evaluation,
     highlightedText,
-  );
+  });
 
   return {
     ...userProblem,

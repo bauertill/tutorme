@@ -1,7 +1,10 @@
 import { type Language } from "@/i18n/types";
 import { v4 as uuidv4 } from "uuid";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { type GenerateReplyResponse } from "../adapters/llmAdapter/help/generateReply";
+import {
+  GenerateReplyInput,
+  type GenerateReplyResponse,
+} from "../adapters/llmAdapter/help/generateReply";
 import { type Draft } from "../utils";
 import { type Message } from "./types";
 
@@ -14,18 +17,10 @@ export function newMessage(draft: Draft<Message>): Message {
 }
 
 export async function generateHelpReply(
-  messages: Message[],
-  problem: string | null,
-  solutionImage: string | null,
+  input: GenerateReplyInput,
   llmAdapter: LLMAdapter,
-  language: Language,
 ): Promise<GenerateReplyResponse> {
-  return await llmAdapter.help.generateReply(
-    messages,
-    problem,
-    solutionImage,
-    language,
-  );
+  return await llmAdapter.help.generateReply(input);
 }
 
 export async function recommendQuestions(

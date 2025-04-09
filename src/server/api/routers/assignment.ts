@@ -51,7 +51,7 @@ export const assignmentRouter = createTRPCRouter({
   submitSolution: limitedPublicProcedure
     .input(
       z.object({
-        exerciseId: z.string().optional(),
+        problemId: z.string(),
         exerciseText: z.string(),
         solutionImage: z.string(), // Base64 encoded image data
         referenceSolution: z.string(),
@@ -59,11 +59,11 @@ export const assignmentRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       return evaluateSolution(
-        input.exerciseText,
-        input.solutionImage,
-        input.referenceSolution,
+        {
+          ...input,
+          language: ctx.userLanguage,
+        },
         ctx.llmAdapter,
-        ctx.userLanguage,
       );
     }),
 

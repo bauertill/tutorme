@@ -30,14 +30,19 @@ const schema = z.object({
     ),
 });
 
+export type GenerateReplyInput = {
+  problemId: string;
+  messages: Message[];
+  problem: string | null;
+  solutionImage: string | null;
+  language: Language;
+};
 export type GenerateReplyResponse = z.infer<typeof schema>;
 
 export async function generateReply(
-  messages: Message[],
-  problem: string | null,
-  solutionImage: string | null,
-  language: Language,
+  input: GenerateReplyInput,
 ): Promise<GenerateReplyResponse> {
+  const { problemId, messages, problem, solutionImage, language } = input;
   const base64Data = solutionImage?.includes("base64,")
     ? solutionImage.split("base64,")[1]
     : solutionImage;
@@ -87,6 +92,11 @@ ${problem}
     ),
   ];
 
-  const response = await model.withStructuredOutput(schema).invoke(prompt);
+  const response = await model.withStructuredOutput(schema).invoke(prompt, {
+    metadata: {
+      functionName: "generateReply",
+      problemId,
+    },
+  });
   return response;
 }

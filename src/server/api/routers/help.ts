@@ -11,6 +11,7 @@ export const helpRouter = createTRPCRouter({
   ask: limitedPublicProcedure
     .input(
       z.object({
+        problemId: z.string(),
         messages: z.array(Message),
         problem: z.string().nullable(),
         solutionImage: z.string().nullable(), // Base64 encoded image data
@@ -18,11 +19,11 @@ export const helpRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       return await generateHelpReply(
-        input.messages,
-        input.problem,
-        input.solutionImage,
+        {
+          ...input,
+          language: ctx.userLanguage,
+        },
         ctx.llmAdapter,
-        ctx.userLanguage,
       );
     }),
   recommendQuestions: publicProcedure

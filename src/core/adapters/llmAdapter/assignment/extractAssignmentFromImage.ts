@@ -94,6 +94,7 @@ export async function extractAssignmentFromImage(
       metadata: {
         userId,
         documentUrl,
+        functionName: "extractAssignmentFromImage",
       },
     },
   );

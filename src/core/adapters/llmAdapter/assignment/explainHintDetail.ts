@@ -19,6 +19,13 @@ Always wrap LaTeX in the appropriate delimiters.
 Do not start your response with "Certainly!" or any other greeting, get straight to explaining the hint.
 `;
 
+export type ExplainHintDetailInput = {
+  problemId: string;
+  problemText: string;
+  evaluation: EvaluationResult;
+  highlightedText: string;
+};
+
 /**
  * Generates a more detailed explanation of a highlighted hint
  * @param problemText The original problem text
@@ -27,10 +34,9 @@ Do not start your response with "Certainly!" or any other greeting, get straight
  * @returns A detailed explanation of the highlighted text
  */
 export async function explainHintDetail(
-  problemText: string,
-  evaluation: EvaluationResult,
-  highlightedText: string,
+  input: ExplainHintDetailInput,
 ): Promise<string> {
+  const { problemId, problemText, evaluation, highlightedText } = input;
   // Create messages for the LLM
   const messages = [
     new SystemMessage(EXPLAIN_HINT_SYSTEM_PROMPT),
@@ -66,7 +72,12 @@ Please provide a more detailed explanation of this highlighted text:`,
   ];
 
   // Make the call to the LLM
-  const response = await model.invoke(messages);
+  const response = await model.invoke(messages, {
+    metadata: {
+      functionName: "explainHintDetail",
+      problemId,
+    },
+  });
 
   // Ensure we're properly converting the content to string
   const content = response.content;

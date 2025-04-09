@@ -34,6 +34,9 @@ ${exerciseText}`,
 
   const response = await reasoningModel.invoke(messages, {
     reasoning_effort: "high",
+    metadata: {
+      functionName: "solveProblem",
+    },
   });
   return response.content as string;
 }

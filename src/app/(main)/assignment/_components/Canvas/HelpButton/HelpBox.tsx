@@ -34,6 +34,7 @@ export default function HelpBox({
     const updatedMessages = [...messages, newUserMessage(question)];
     setMessages(updatedMessages);
     askMutation.mutate({
+      problemId: activeProblem?.id ?? "",
       messages: updatedMessages,
       problem: activeProblem?.problem ?? null,
       solutionImage: await getCanvasDataUrl(),
