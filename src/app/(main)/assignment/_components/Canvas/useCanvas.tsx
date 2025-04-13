@@ -181,7 +181,7 @@ export function useCanvas() {
         </svg>
         {isEraser ? (
           <PointingTool
-            className="absolute inset-0"
+            className="absolute inset-0 cursor-none"
             onStartDrawing={startErasing}
             onDraw={eraseAtPoint}
             onStopDrawing={stopErasing}
