@@ -119,12 +119,11 @@ export const useEvaluationResult = (): {
 };
 
 export const useHelp = () => {
-  const {
-    messages,
-    recommendedQuestions,
-    setThreadMessages,
-    setThreadRecommendedQuestions,
-  } = useStore();
+  const messages = useStore.use.messages();
+  const recommendedQuestions = useStore.use.recommendedQuestions();
+  const setThreadMessages = useStore.use.setThreadMessages();
+  const setThreadRecommendedQuestions =
+    useStore.use.setThreadRecommendedQuestions();
   const activeProblem = useActiveProblem();
   const threadId = activeProblem?.id ?? "NONE";
   return {

@@ -2,7 +2,7 @@ import { type Language } from "@/i18n/types";
 import { v4 as uuidv4 } from "uuid";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import {
-  GenerateReplyInput,
+  type GenerateReplyInput,
   type GenerateReplyResponse,
 } from "../adapters/llmAdapter/help/generateReply";
 import { type Draft } from "../utils";
