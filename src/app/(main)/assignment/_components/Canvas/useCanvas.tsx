@@ -140,12 +140,28 @@ export function useCanvas() {
     [assertedSvg],
   );
 
+  const svgContents = useMemo(() => {
+    return pathsToDisplay.map((points, index) =>
+      points.length > 1 ? (
+        <PathComponent key={index} points={points} />
+      ) : points.length > 0 ? (
+        <circle
+          key={index}
+          cx={points[0]!.x}
+          cy={points[0]!.y}
+          r="2"
+          fill="hsl(var(--accent-foreground))"
+        />
+      ) : null,
+    );
+  }, [pathsToDisplay]);
+
   const canvas = useMemo(
     () => (
       <div
         ref={containerRef}
         className={cn(
-          "relative h-full w-full overflow-auto",
+          "relative h-full w-full overflow-x-auto overflow-y-scroll",
           "[scrollbar-color:hsl(var(--muted))_transparent]",
           "[scrollbar-width:thin]",
         )}
@@ -161,19 +177,7 @@ export function useCanvas() {
           height={viewBox.height}
           viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
         >
-          {pathsToDisplay.map((points, index) =>
-            points.length > 1 ? (
-              <PathComponent key={index} points={points} />
-            ) : points.length > 0 ? (
-              <circle
-                key={index}
-                cx={points[0]!.x}
-                cy={points[0]!.y}
-                r="2"
-                fill="hsl(var(--accent-foreground))"
-              />
-            ) : null,
-          )}
+          {svgContents}
         </svg>
         {isEraser ? (
           <PointingTool
@@ -209,7 +213,6 @@ export function useCanvas() {
       </div>
     ),
     [
-      pathsToDisplay,
       viewBox,
       addPoint,
       startDrawing,
@@ -221,6 +224,7 @@ export function useCanvas() {
       startErasing,
       cancelDrawing,
       transform,
+      svgContents,
     ],
   );
 
@@ -242,7 +246,11 @@ export function useCanvas() {
   };
 }
 
-const PathComponent = memo(function Path({ points }: { points: Path }) {
+const PathComponent = memo(function PathComponent({
+  points,
+}: {
+  points: Path;
+}) {
   return (
     <path
       fill="none"

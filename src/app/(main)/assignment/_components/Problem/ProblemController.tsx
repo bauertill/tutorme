@@ -3,6 +3,7 @@ import { ProblemStatusIcon } from "@/app/_components/layout/ProblemStatusIcon";
 import { Button } from "@/components/ui/button";
 import { Trans } from "@/i18n/react";
 import { useProblemController } from "@/store/selectors";
+import { useEffect } from "react";
 import { ProblemRenderer } from "./ProblemRenderer";
 
 export default function ProblemController() {
@@ -12,6 +13,12 @@ export default function ProblemController() {
     gotoNextProblem,
     gotoPreviousProblem,
   } = useProblemController();
+  useEffect(() => {
+    console.log("next problem", gotoNextProblem);
+  }, [gotoNextProblem]);
+  useEffect(() => {
+    console.log("activeProblem", activeProblem);
+  }, [activeProblem]);
 
   if (!activeProblem || !activeAssignment) {
     return null;

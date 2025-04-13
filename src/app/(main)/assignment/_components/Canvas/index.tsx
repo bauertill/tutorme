@@ -39,10 +39,8 @@ export function Canvas() {
     isEraser,
     toggleEraser,
   } = useCanvas();
-  const paths = useStore.use.paths();
-  const updateProblem = useStore.use.updateProblem();
+  const storeCurrentPathsOnProblem = useStore.use.storeCurrentPathsOnProblem();
   const activeProblemId = useStore.use.activeProblemId();
-  const activeAssignmentId = useStore.use.activeAssignmentId();
   const { setEvaluationResult } = useEvaluationResult();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const activeProblem = useActiveProblem();
@@ -134,11 +132,7 @@ export function Canvas() {
               trackEvent("clicked_check_solution");
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
-              updateProblem({
-                id: activeProblemId ?? "",
-                assignmentId: activeAssignmentId ?? "",
-                canvas: { paths },
-              });
+              storeCurrentPathsOnProblem();
               onCheck(dataUrl);
             }}
             disabled={isEmpty || isSubmitting}
@@ -168,7 +162,6 @@ export function Canvas() {
     ),
     [
       activeProblemId,
-      activeAssignmentId,
       getDataUrl,
       isEmpty,
       isSubmitting,
@@ -176,13 +169,12 @@ export function Canvas() {
       setHelpOpen,
       celebrationOpen,
       setCelebrationOpen,
-      paths,
       canUndo,
       canRedo,
       toggleEraser,
       clear,
       isEraser,
-      updateProblem,
+      storeCurrentPathsOnProblem,
       onCheck,
       trackEvent,
       undo,

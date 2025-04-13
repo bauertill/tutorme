@@ -15,6 +15,7 @@ export interface AssignmentSlice {
   updateProblem: (
     problem: Partial<UserProblem> & { id: string; assignmentId: string },
   ) => void;
+  storeCurrentPathsOnProblem: () => void;
 }
 
 export const createAssignmentSlice: StateCreator<
@@ -71,4 +72,14 @@ export const createAssignmentSlice: StateCreator<
         );
       }
     }),
+  storeCurrentPathsOnProblem: () => {
+    set((draft) => {
+      const problem = draft.assignments
+        .find((a) => a.id === draft.activeAssignmentId)
+        ?.problems.find((p) => p.id === draft.activeProblemId);
+      if (problem) {
+        problem.canvas = { paths: get().paths };
+      }
+    });
+  },
 });

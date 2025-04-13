@@ -5,6 +5,7 @@ import {
 } from "@/core/assignment/types";
 import { newMessage } from "@/core/help/helpDomain";
 import { type Message } from "@/core/help/types";
+import { useCallback } from "react";
 import { useStore } from ".";
 
 export const useActiveAssignment = (): Assignment | null => {
@@ -31,8 +32,7 @@ export const useProblemController = (): {
 } => {
   const setActiveProblem = useStore.use.setActiveProblem();
   const setCanvas = useStore.use.setCanvas();
-  const updateProblem = useStore.use.updateProblem();
-  const currentPaths = useStore.use.paths();
+  const storeCurrentPathsOnProblem = useStore.use.storeCurrentPathsOnProblem();
 
   const activeAssignment = useActiveAssignment();
   const activeProblem = useActiveProblem();
@@ -47,20 +47,12 @@ export const useProblemController = (): {
     ) ?? activeAssignment?.problems.find((p) => p.status !== "SOLVED");
   const previousProblem = activeAssignment?.problems[activeProblemIndex - 1];
 
-  const storeCurrentPathsOnProblem = () =>
-    updateProblem({
-      id: activeProblem?.id ?? "",
-      assignmentId: activeAssignment?.id ?? "",
-      canvas: { paths: currentPaths },
-    });
-
-  const gotoNextProblem = nextProblem
-    ? () => {
-        storeCurrentPathsOnProblem();
-        setActiveProblem(nextProblem);
-        setCanvas(nextProblem.canvas ?? { paths: [] });
-      }
-    : undefined;
+  const gotoNextProblem = useCallback(() => {
+    if (!nextProblem) return;
+    storeCurrentPathsOnProblem();
+    setActiveProblem(nextProblem);
+    setCanvas(nextProblem.canvas ?? { paths: [] });
+  }, [nextProblem, setActiveProblem, setCanvas, storeCurrentPathsOnProblem]);
   const gotoNextUnsolvedProblem = nextUnsolvedProblem
     ? () => {
         storeCurrentPathsOnProblem();
