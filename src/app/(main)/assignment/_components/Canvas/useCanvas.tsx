@@ -3,7 +3,8 @@ import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { type Path, type Point } from "@/store/canvas";
 import assert from "assert";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import PointingTool from "./PointingTool";
 import {
   isPointCloseToPath,
   pathToSVGPathData,
@@ -17,11 +18,10 @@ const ERASER_RADIUS = 10; // Radius for eraser collision detection
 export function useCanvas() {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const eraserRef = useRef<HTMLDivElement | null>(null);
-  const assertedSvg = () => {
+  const assertedSvg = useCallback(() => {
     assert(svgRef.current, "SVG element is not mounted");
     return svgRef.current;
-  };
+  }, []);
 
   const paths = useStore.use.paths();
   const undoStack = useStore.use.undoStack();
@@ -33,54 +33,68 @@ export function useCanvas() {
   const clear = useStore.use.clear();
 
   const [isUntouched_, setIsUntouched] = useState(true);
-  const isUntouched = useMemo(
-    () => isUntouched_ && paths.length === 0 && undoStack.length === 0,
-    [isUntouched_, paths, undoStack],
-  );
+  const isUntouched =
+    isUntouched_ && paths.length === 0 && undoStack.length === 0;
 
   const [currentPath, setCurrentPath] = useState<Path>();
+  const currentPathRef = useRef<Path>(undefined);
+  useEffect(() => {
+    currentPathRef.current = currentPath;
+  }, [currentPath]);
   const [erasedPaths, setErasedPaths] = useState<Path[]>([]);
-  const startDrawing = (point: Point) => {
-    setCurrentPath([point]);
-    setIsUntouched(false);
-  };
-  const addPoint = (point: Point) => {
-    if (currentPath) setCurrentPath([...currentPath, point]);
-  };
-  const stopDrawing = () => {
-    if (currentPath) {
-      addPath(currentPath);
+  const startDrawing = useCallback(
+    (point: Point) => {
+      setIsUntouched(false);
+      setCurrentPath([point]);
+    },
+    [setIsUntouched, setCurrentPath],
+  );
+  const addPoint = useCallback(
+    (point: Point) => {
+      setCurrentPath((prev) => (prev ? [...prev, point] : prev));
+    },
+    [setCurrentPath],
+  );
+  const stopDrawing = useCallback(() => {
+    if (currentPathRef.current) {
+      addPath(currentPathRef.current);
       setCurrentPath(undefined);
     }
-  };
-  const startErasing = (point: Point) => {
-    setIsEraserActive(true);
-    handleEraseAtPoint(point);
-    setErasedPaths([]);
-  };
-  const stopErasing = () => {
-    if (isEraserActive) {
-      setIsEraserActive(false);
-      if (erasedPaths.length > 0) {
-        removePathsAtIndexes(erasedPaths.map((path) => paths.indexOf(path)));
-        setErasedPaths([]);
-      }
-    }
-  };
-  const cancelDrawing = () => {
-    if (currentPath) setCurrentPath(undefined);
-  };
+  }, [addPath, setCurrentPath]);
   const [isEraser, setIsEraser] = useState(false);
-  const toggleEraser = () => setIsEraser(!isEraser);
-  const eraseAtPoint = (point: Point, radius: number) => {
-    setErasedPaths((erasedPaths) => [
-      ...erasedPaths,
-      ...paths.filter((path) => isPointCloseToPath(point, path, radius)),
-    ]);
-  };
+  const toggleEraser = useCallback(() => setIsEraser(!isEraser), [isEraser]);
+  const eraseAtPoint = useCallback(
+    (point: Point) => {
+      setErasedPaths((erasedPaths) => [
+        ...erasedPaths,
+        ...paths.filter((path) =>
+          isPointCloseToPath(point, path, ERASER_RADIUS),
+        ),
+      ]);
+    },
+    [paths],
+  );
 
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isEraserActive, setIsEraserActive] = useState(false);
+  const startErasing = useCallback(
+    (point: Point) => {
+      eraseAtPoint(point);
+      setErasedPaths([]);
+    },
+    [eraseAtPoint],
+  );
+  const stopErasing = useCallback(() => {
+    if (erasedPaths.length > 0) {
+      removePathsAtIndexes(erasedPaths.map((path) => paths.indexOf(path)));
+      setErasedPaths([]);
+    }
+  }, [removePathsAtIndexes, erasedPaths, paths]);
+  const cancelErasing = useCallback(() => {
+    setErasedPaths([]);
+  }, [setErasedPaths]);
+
+  const cancelDrawing = useCallback(() => {
+    setCurrentPath(undefined);
+  }, [setCurrentPath]);
 
   const [containerSize, setContainerSize] = useState<{
     width: number;
@@ -116,216 +130,98 @@ export function useCanvas() {
     };
   }, []);
 
-  // Update eraser cursor position
-  useEffect(() => {
-    if (!isEraser || !eraserRef.current) return;
-
-    const updateEraserPosition = (e: MouseEvent) => {
-      if (eraserRef.current) {
-        eraserRef.current.style.left = `${e.clientX}px`;
-        eraserRef.current.style.top = `${e.clientY}px`;
-      }
-    };
-
-    window.addEventListener("mousemove", updateEraserPosition);
-
-    return () => {
-      window.removeEventListener("mousemove", updateEraserPosition);
-    };
-  }, [isEraser]);
-
-  // Function to handle erasing at a specific point
-  const handleEraseAtPoint = (point: { x: number; y: number }) => {
-    if (isEraserActive) {
-      eraseAtPoint(point, ERASER_RADIUS);
-    }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
-    // Only start drawing with left mouse button
-    if (e.button !== 0) return;
-    const point = screenToSVGCoordinates(assertedSvg(), e.clientX, e.clientY);
-    setMousePosition({ x: e.clientX, y: e.clientY });
-
-    if (isEraser) {
-      // Start erasing
-      startErasing(point);
-    } else {
-      // Normal drawing
-      startDrawing(point);
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    const point = screenToSVGCoordinates(assertedSvg(), e.clientX, e.clientY);
-    setMousePosition({ x: e.clientX, y: e.clientY });
-
-    if (isEraser) {
-      // Only erase if mouse button is pressed
-      handleEraseAtPoint(point);
-    } else if (e.buttons === 1) {
-      // Normal drawing - only if left mouse button is pressed
-      addPoint(point);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (isEraser) {
-      stopErasing();
-    } else {
-      stopDrawing();
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (isEraser) {
-      stopErasing();
-    } else {
-      stopDrawing();
-    }
-  };
-
-  const handleTouchStart = (e: TouchEvent) => {
-    if (e.touches.length > 1) {
-      cancelDrawing();
-      return;
-    }
-    const touch = e.touches[0];
-    if (!touch) return;
-    const point = screenToSVGCoordinates(
-      assertedSvg(),
-      touch.clientX,
-      touch.clientY,
-    );
-    setMousePosition({ x: touch.clientX, y: touch.clientY });
-
-    if (isEraser) {
-      // Start erasing
-      startErasing(point);
-    } else {
-      // Normal drawing
-      startDrawing(point);
-    }
-  };
-
-  const handleTouchMove = (e: TouchEvent) => {
-    if (e.touches.length > 1) {
-      cancelDrawing();
-      return;
-    }
-    e.preventDefault();
-    const touch = e.touches[0];
-    if (!touch) return;
-    const point = screenToSVGCoordinates(
-      assertedSvg(),
-      touch.clientX,
-      touch.clientY,
-    );
-    setMousePosition({ x: touch.clientX, y: touch.clientY });
-
-    if (isEraser) {
-      // Only erase if touch is active
-      handleEraseAtPoint(point);
-    } else {
-      // Normal drawing
-      addPoint(point);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (isEraser) {
-      stopErasing();
-    } else {
-      stopDrawing();
-    }
-  };
-
-  // Set up touch event listeners
-  useEffect(() => {
-    const svgEl = svgRef.current;
-    if (!svgEl) return;
-    svgEl.addEventListener("touchstart", handleTouchStart, { passive: false });
-    svgEl.addEventListener("touchmove", handleTouchMove, { passive: false });
-    svgEl.addEventListener("touchend", handleTouchEnd, { passive: false });
-    return () => {
-      svgEl.removeEventListener("touchstart", handleTouchStart);
-      svgEl.removeEventListener("touchmove", handleTouchMove);
-      svgEl.removeEventListener("touchend", handleTouchEnd);
-    };
-  });
-
-  // Define cursor style based on mode
-  const cursorStyle = isEraser ? "cursor-none" : "cursor-pencil";
-
   const pathsToDisplay = useMemo(() => {
     const pathsToDisplay = currentPath ? [...paths, currentPath] : paths;
     return pathsToDisplay.filter((path) => !erasedPaths.includes(path));
   }, [paths, currentPath, erasedPaths]);
 
-  const canvas = (
-    <div
-      ref={containerRef}
-      className={cn(
-        "group relative h-full w-full overflow-auto",
-        "[scrollbar-color:hsl(var(--muted))_transparent]",
-        "[scrollbar-width:thin]",
-      )}
-    >
-      {isEraser && (
-        <div
-          ref={eraserRef}
-          className={cn(
-            "pointer-events-none fixed z-50 rounded-full border-2 border-accent-foreground bg-background opacity-70",
-            "hidden group-hover:block",
-            isEraserActive && "border-destructive",
-          )}
-          style={{
-            width: `${ERASER_RADIUS * 2}px`,
-            height: `${ERASER_RADIUS * 2}px`,
-            transform: "translate(-50%, -50%)",
-            left: mousePosition.x,
-            top: mousePosition.y,
-          }}
-        />
-      )}
-      <svg
-        ref={svgRef}
-        className={`absolute inset-0 bg-[length:25px_25px] ${cursorStyle}`}
-        style={{
-          backgroundImage:
-            "linear-gradient(0deg, hsl(var(--muted)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--muted)) 1px, transparent 1px)",
-        }}
-        width={viewBox.width}
-        height={viewBox.height}
-        viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-      >
-        {pathsToDisplay.map((points, index) =>
-          points.length > 1 ? (
-            <path
-              key={index}
-              fill="none"
-              stroke="hsl(var(--accent-foreground))"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d={pathToSVGPathData(points)}
-            />
-          ) : points.length > 0 ? (
-            <circle
-              key={index}
-              cx={points[0]!.x}
-              cy={points[0]!.y}
-              r="2"
-              fill="hsl(var(--accent-foreground))"
-            />
-          ) : null,
+  const transform = useCallback(
+    (pos: Point) => screenToSVGCoordinates(assertedSvg(), pos.x, pos.y),
+    [assertedSvg],
+  );
+
+  const canvas = useMemo(
+    () => (
+      <div
+        ref={containerRef}
+        className={cn(
+          "relative h-full w-full overflow-auto",
+          "[scrollbar-color:hsl(var(--muted))_transparent]",
+          "[scrollbar-width:thin]",
         )}
-      </svg>
-    </div>
+      >
+        <svg
+          ref={svgRef}
+          className={`absolute inset-0 bg-[length:25px_25px]`}
+          style={{
+            backgroundImage:
+              "linear-gradient(0deg, hsl(var(--muted)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--muted)) 1px, transparent 1px)",
+          }}
+          width={viewBox.width}
+          height={viewBox.height}
+          viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
+        >
+          {pathsToDisplay.map((points, index) =>
+            points.length > 1 ? (
+              <PathComponent key={index} points={points} />
+            ) : points.length > 0 ? (
+              <circle
+                key={index}
+                cx={points[0]!.x}
+                cy={points[0]!.y}
+                r="2"
+                fill="hsl(var(--accent-foreground))"
+              />
+            ) : null,
+          )}
+        </svg>
+        {isEraser ? (
+          <PointingTool
+            className="absolute inset-0"
+            onStartDrawing={startErasing}
+            onDraw={eraseAtPoint}
+            onStopDrawing={stopErasing}
+            onCancelDrawing={cancelErasing}
+            transform={transform}
+          >
+            <div
+              className={cn(
+                "rounded-full border-2 border-accent-foreground bg-background opacity-70",
+                "group-[.is-drawing]:border-destructive",
+              )}
+              style={{
+                width: `${ERASER_RADIUS * 2}px`,
+                height: `${ERASER_RADIUS * 2}px`,
+                transform: "translate(-50%, -50%)",
+              }}
+            />
+          </PointingTool>
+        ) : (
+          <PointingTool
+            className="absolute inset-0"
+            onStartDrawing={startDrawing}
+            onDraw={addPoint}
+            onStopDrawing={stopDrawing}
+            onCancelDrawing={cancelDrawing}
+            transform={transform}
+          />
+        )}
+      </div>
+    ),
+    [
+      pathsToDisplay,
+      viewBox,
+      addPoint,
+      startDrawing,
+      stopDrawing,
+      isEraser,
+      eraseAtPoint,
+      stopErasing,
+      cancelErasing,
+      startErasing,
+      cancelDrawing,
+      transform,
+    ],
   );
 
   return {
@@ -335,10 +231,26 @@ export function useCanvas() {
     clear,
     isEraser,
     toggleEraser,
-    getDataUrl: async () => await toDataUrl(assertedSvg()),
-    canUndo: undoStack.length > 0,
-    canRedo: redoStack.length > 0,
-    isEmpty: paths.length === 0,
+    getDataUrl: useCallback(
+      async () => await toDataUrl(assertedSvg()),
+      [assertedSvg],
+    ),
+    canUndo: useMemo(() => undoStack.length > 0, [undoStack]),
+    canRedo: useMemo(() => redoStack.length > 0, [redoStack]),
+    isEmpty: useMemo(() => paths.length === 0, [paths]),
     isUntouched,
   };
 }
+
+const PathComponent = memo(function Path({ points }: { points: Path }) {
+  return (
+    <path
+      fill="none"
+      stroke="hsl(var(--accent-foreground))"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d={pathToSVGPathData(points)}
+    />
+  );
+});

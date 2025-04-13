@@ -19,7 +19,7 @@ import {
   Trash,
   Undo,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CelebrationDialog } from "./CelebrationDialog";
 import HelpButton from "./HelpButton";
@@ -91,74 +91,112 @@ export function Canvas() {
       },
     });
 
-  const onCheck = (dataUrl: string) => {
-    if (activeProblem) {
-      submit({
-        problemId: activeProblem.id,
-        exerciseText: activeProblem.problem,
-        solutionImage: dataUrl,
-        referenceSolution: activeProblem.referenceSolution ?? "N/A",
-      });
-    }
-  };
+  const onCheck = useCallback(
+    (dataUrl: string) => {
+      if (activeProblem) {
+        submit({
+          problemId: activeProblem.id,
+          exerciseText: activeProblem.problem,
+          solutionImage: dataUrl,
+          referenceSolution: activeProblem.referenceSolution ?? "N/A",
+        });
+      }
+    },
+    [activeProblem, submit],
+  );
 
-  return (
-    <div className="canvas-section relative h-full w-full overflow-hidden">
-      {canvas}
-
-      <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
-        <Button
-          variant={isEraser ? "default" : "outline"}
-          onClick={toggleEraser}
-          title={isEraser ? "Switch to Pen" : "Switch to Eraser"}
-        >
-          {isEraser ? (
-            <Pencil className="h-4 w-4" />
-          ) : (
-            <Eraser className="h-4 w-4" />
-          )}
-        </Button>
-        <Button variant="outline" onClick={clear} disabled={isEmpty}>
-          <Trash className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" onClick={undo} disabled={!canUndo}>
-          <Undo className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" onClick={redo} disabled={!canRedo}>
-          <Redo className="h-4 w-4" />
-        </Button>
-        <Button
-          onClick={async () => {
-            trackEvent("clicked_check_solution");
-            const dataUrl = await getDataUrl();
-            if (!dataUrl) return;
-            updateProblem({
-              id: activeProblemId ?? "",
-              assignmentId: activeAssignmentId ?? "",
-              canvas: { paths },
-            });
-            onCheck(dataUrl);
-          }}
-          disabled={isEmpty || isSubmitting}
-          className="check-answer-button"
-        >
-          {isSubmitting ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="h-4 w-4" />
-          )}
-          <Trans i18nKey="check" />
-        </Button>
-      </div>
-      <div className="absolute right-4 top-[4rem] z-10 flex max-h-[calc(100%-5rem)]">
-        <HelpButton
-          key={activeProblemId}
-          getCanvasDataUrl={getDataUrl}
-          open={helpOpen}
-          setOpen={setHelpOpen}
+  const controls = useMemo(
+    () => (
+      <>
+        <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
+          <Button
+            variant={isEraser ? "default" : "outline"}
+            onClick={toggleEraser}
+            title={isEraser ? "Switch to Pen" : "Switch to Eraser"}
+          >
+            {isEraser ? (
+              <Pencil className="h-4 w-4" />
+            ) : (
+              <Eraser className="h-4 w-4" />
+            )}
+          </Button>
+          <Button variant="outline" onClick={clear} disabled={isEmpty}>
+            <Trash className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" onClick={undo} disabled={!canUndo}>
+            <Undo className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" onClick={redo} disabled={!canRedo}>
+            <Redo className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={async () => {
+              trackEvent("clicked_check_solution");
+              const dataUrl = await getDataUrl();
+              if (!dataUrl) return;
+              updateProblem({
+                id: activeProblemId ?? "",
+                assignmentId: activeAssignmentId ?? "",
+                canvas: { paths },
+              });
+              onCheck(dataUrl);
+            }}
+            disabled={isEmpty || isSubmitting}
+            className="check-answer-button"
+          >
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            <Trans i18nKey="check" />
+          </Button>
+        </div>
+        <div className="absolute right-4 top-[4rem] z-10 flex max-h-[calc(100%-5rem)]">
+          <HelpButton
+            key={activeProblemId}
+            getCanvasDataUrl={getDataUrl}
+            open={helpOpen}
+            setOpen={setHelpOpen}
+          />
+        </div>
+        <CelebrationDialog
+          open={celebrationOpen}
+          setOpen={setCelebrationOpen}
         />
+      </>
+    ),
+    [
+      activeProblemId,
+      activeAssignmentId,
+      getDataUrl,
+      isEmpty,
+      isSubmitting,
+      helpOpen,
+      setHelpOpen,
+      celebrationOpen,
+      setCelebrationOpen,
+      paths,
+      canUndo,
+      canRedo,
+      toggleEraser,
+      clear,
+      isEraser,
+      updateProblem,
+      onCheck,
+      trackEvent,
+      undo,
+      redo,
+    ],
+  );
+  return useMemo(
+    () => (
+      <div className="canvas-section relative h-full w-full overflow-hidden">
+        {canvas}
+
+        {controls}
       </div>
-      <CelebrationDialog open={celebrationOpen} setOpen={setCelebrationOpen} />
-    </div>
+    ),
+    [canvas, controls],
   );
 }
