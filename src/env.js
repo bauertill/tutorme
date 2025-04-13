@@ -45,6 +45,10 @@ export const env = createEnv({
     NEXT_PUBLIC_URL: z.string().url(),
     NEXT_PUBLIC_POSTHOG_KEY: z.string(),
     NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID: z.string().default(""),
+    NEXT_PUBLIC_REACT_SCAN_ENABLED: z
+      .string()
+      .transform((val) => val === "true")
+      .default("false"),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
   },
 
@@ -73,6 +77,7 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID:
       process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID,
+    NEXT_PUBLIC_REACT_SCAN_ENABLED: process.env.NEXT_PUBLIC_REACT_SCAN_ENABLED,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

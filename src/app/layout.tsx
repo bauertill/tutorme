@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import { GoogleTagManager } from "./_components/GoogleTagManager";
 import { ClientOnly } from "./_components/providers/ClientOnly";
 import { I18nProvider } from "./_components/providers/I18nProvider";
+import { ReactScan } from "./_components/ReactScan";
 
 export const metadata: Metadata = {
   title: "Tutor Me Good",
@@ -34,6 +35,7 @@ export default function RootLayout({
       className={`${GeistSans.variable}`}
       suppressHydrationWarning
     >
+      <ReactScan />
       <body className="select-none [-webkit-user-select:none]">
         <GoogleTagManager />
         <PostHogProvider>
