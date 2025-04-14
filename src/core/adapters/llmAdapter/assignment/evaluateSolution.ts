@@ -8,7 +8,7 @@ import {
 import { z } from "zod";
 import { model } from "../model";
 
-const schema = z.object({
+export const EvaluateSolutionSchema = z.object({
   studentSolution: z
     .string()
     .describe(
@@ -35,6 +35,7 @@ const schema = z.object({
       "The questions that the student will most likely ask next, if any.",
     ),
 });
+export type EvaluateSolutionOutput = z.infer<typeof EvaluateSolutionSchema>;
 
 // Define the system prompt template for evaluating exercise solutions
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(`
@@ -86,7 +87,7 @@ export type EvaluateSolutionInput = {
 // Function to evaluate the solution using the multimodal LLM
 export async function evaluateSolution(
   input: EvaluateSolutionInput,
-): Promise<z.infer<typeof schema>> {
+): Promise<z.infer<typeof EvaluateSolutionSchema>> {
   const {
     problemId,
     exerciseText,
@@ -126,7 +127,7 @@ export async function evaluateSolution(
 
   // Make the call to the multimodal LLM
   const response = await model
-    .withStructuredOutput(schema)
+    .withStructuredOutput(EvaluateSolutionSchema)
     .invoke(formattedPrompt, {
       metadata: {
         functionName: "evaluateSolution",
