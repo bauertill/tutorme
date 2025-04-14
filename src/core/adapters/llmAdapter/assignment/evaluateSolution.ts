@@ -81,7 +81,7 @@ Here is the student's (partial) solution attempt:
 );
 
 // Combine the templates into a single prompt template
-const evaluateSolutionPromptTemplate = ChatPromptTemplate.fromMessages([
+export const evaluateSolutionPromptTemplate = ChatPromptTemplate.fromMessages([
   systemPromptTemplate,
   humanPromptTemplate,
 ]);
