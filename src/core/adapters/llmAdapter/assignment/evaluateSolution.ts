@@ -5,6 +5,7 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
+import * as hub from "langchain/hub";
 import { z } from "zod";
 import { model } from "../model";
 
@@ -135,15 +136,22 @@ export async function evaluateSolution(
     ];
   }
 
-  // Make the call to the multimodal LLM
-  const response = await model
-    .withStructuredOutput(EvaluateSolutionSchema)
-    .invoke(formattedPrompt, {
-      metadata: {
-        functionName: "evaluateSolution",
-        problemId,
+  const prompt = await hub.pull("evaluate_solution");
+  const response = await prompt
+    .pipe(model.withStructuredOutput(EvaluateSolutionSchema))
+    .invoke(
+      {
+        exerciseText,
+        referenceSolution,
+        language: LanguageName[language],
       },
-    });
+      {
+        metadata: {
+          functionName: "evaluateSolution",
+          problemId,
+        },
+      },
+    );
 
   return response;
 }
