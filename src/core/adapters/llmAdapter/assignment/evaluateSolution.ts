@@ -1,5 +1,10 @@
 import { type Language, LanguageName } from "@/i18n/types";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { HumanMessage } from "@langchain/core/messages";
+import {
+  ChatPromptTemplate,
+  HumanMessagePromptTemplate,
+  SystemMessagePromptTemplate,
+} from "@langchain/core/prompts";
 import { z } from "zod";
 import { model } from "../model";
 
@@ -31,8 +36,8 @@ const schema = z.object({
     ),
 });
 
-// Define the system prompt for evaluating exercise solutions
-const EVALUATE_SOLUTION_SYSTEM_PROMPT = (language: Language) => `\
+// Define the system prompt template for evaluating exercise solutions
+const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(`
 You are an expert teacher helping a student learn a new concept.
 The student may still be confused about the terminology and general ideas.
 You will be given the problem statement, a reference solution, and an image of the student's handwritten or drawn (partial) solution attempt.
@@ -46,8 +51,29 @@ You will be given the problem statement, a reference solution, and an image of t
 
 Keep your output concise. Always wrap LaTeX in the appropriate delimiters.
 
-Write your response in ${LanguageName[language]} language only.
-`;
+Write your response in {language} language only.
+`);
+
+// Define the human message template with problem statement and reference solution
+const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(`
+Problem statement:
+"""
+{exerciseText}
+"""
+
+Reference solution:
+"""
+{referenceSolution}
+"""
+
+Here is the student's (partial) solution attempt:
+`);
+
+// Combine the templates into a single prompt template
+const evaluateSolutionPromptTemplate = ChatPromptTemplate.fromMessages([
+  systemPromptTemplate,
+  humanPromptTemplate,
+]);
 
 export type EvaluateSolutionInput = {
   problemId: string;
@@ -73,44 +99,40 @@ export async function evaluateSolution(
     ? solutionImage.split("base64,")[1]
     : solutionImage;
 
-  // Create messages for the LLM
-  const messages = [
-    new SystemMessage(EVALUATE_SOLUTION_SYSTEM_PROMPT(language)),
-    new HumanMessage({
-      content: [
-        {
-          type: "text",
-          text: `\
-Problem statement:
-"""
-${exerciseText}
-"""
+  // Create a formatted prompt using the prompt template
+  const formattedPrompt = await evaluateSolutionPromptTemplate.formatMessages({
+    language: LanguageName[language],
+    exerciseText,
+    referenceSolution,
+  });
 
-Reference solution:
-"""
-${referenceSolution}
-"""
-
-Here is the student's (partial) solution attempt:`,
+  // Add the image to the last message (which is the human message)
+  const lastMessage = formattedPrompt[formattedPrompt.length - 1];
+  if (lastMessage instanceof HumanMessage) {
+    lastMessage.content = [
+      {
+        type: "text",
+        text: lastMessage.content as string,
+      },
+      {
+        type: "image_url",
+        image_url: {
+          url: `data:image/png;base64,${base64Data}`,
+          detail: "high",
         },
-        {
-          type: "image_url",
-          image_url: {
-            url: `data:image/png;base64,${base64Data}`,
-            detail: "high",
-          },
-        },
-      ],
-    }),
-  ];
+      },
+    ];
+  }
 
   // Make the call to the multimodal LLM
-  const response = await model.withStructuredOutput(schema).invoke(messages, {
-    metadata: {
-      functionName: "evaluateSolution",
-      problemId,
-    },
-  });
+  const response = await model
+    .withStructuredOutput(schema)
+    .invoke(formattedPrompt, {
+      metadata: {
+        functionName: "evaluateSolution",
+        problemId,
+      },
+    });
 
   return response;
 }
