@@ -24,3 +24,5 @@ export async function pushPromptsToLangSmith() {
     throw error;
   }
 }
+
+await pushPromptsToLangSmith();
