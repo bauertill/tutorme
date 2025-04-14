@@ -38,7 +38,8 @@ export const EvaluateSolutionSchema = z.object({
 export type EvaluateSolutionOutput = z.infer<typeof EvaluateSolutionSchema>;
 
 // Define the system prompt template for evaluating exercise solutions
-const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(`
+const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
+  `
 You are an expert teacher helping a student learn a new concept.
 The student may still be confused about the terminology and general ideas.
 You will be given the problem statement, a reference solution, and an image of the student's handwritten or drawn (partial) solution attempt.
@@ -53,10 +54,15 @@ You will be given the problem statement, a reference solution, and an image of t
 Keep your output concise. Always wrap LaTeX in the appropriate delimiters.
 
 Write your response in {language} language only.
-`);
+`,
+  {
+    name: "evaluate_solution_system_prompt",
+  },
+);
 
 // Define the human message template with problem statement and reference solution
-const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(`
+const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(
+  `
 Problem statement:
 """
 {exerciseText}
@@ -68,7 +74,11 @@ Reference solution:
 """
 
 Here is the student's (partial) solution attempt:
-`);
+`,
+  {
+    name: "evaluate_solution_human_prompt",
+  },
+);
 
 // Combine the templates into a single prompt template
 const evaluateSolutionPromptTemplate = ChatPromptTemplate.fromMessages([
