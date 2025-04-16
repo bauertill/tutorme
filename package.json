@@ -21,8 +21,8 @@
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
     "start": "next start",
-    "push:prompts": "pnpm dlx tsx src/core/adapters/llmAdapter/uploadPrompts.ts",
-    "eval": "pnpm dlx tsx src/core/adapters/llmAdapter/assignment/__tests__/evaluateSolution.eval.ts",
+    "push:prompts": "dotenv -e .env -- pnpm dlx tsx src/core/adapters/llmAdapter/uploadPrompts.ts",
+    "eval": "dotenv -e .env -- pnpm dlx tsx src/core/adapters/llmAdapter/assignment/__tests__/evaluateSolution.eval.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest"
   },
@@ -118,6 +118,7 @@
     "@typescript-eslint/eslint-plugin": "^8.1.0",
     "@typescript-eslint/parser": "^8.1.0",
     "dotenv": "^16.5.0",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.0.1",
     "husky": "^9.1.7",
