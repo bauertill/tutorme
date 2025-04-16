@@ -5,9 +5,8 @@ import { evaluateSolutionPromptTemplate } from "./assignment/evaluateSolution";
 export async function pushPromptsToLangSmith() {
   const client = new Client();
   const promptName = "evaluate_solution";
-  console.log(`Checking for updates to ${promptName} prompt...`);
-
   try {
+    console.log(`Pushing prompt to LangSmith ${promptName}...`);
     // Push the prompt - LangSmith will handle change detection internally
     await client.pushPrompt(promptName, {
       object: evaluateSolutionPromptTemplate,
@@ -25,4 +24,12 @@ export async function pushPromptsToLangSmith() {
   }
 }
 
-await pushPromptsToLangSmith();
+pushPromptsToLangSmith()
+  .then(() => {
+    console.log("Prompts pushed to LangSmith successfully");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("Error pushing prompts to LangSmith:", error);
+    process.exit(1);
+  });

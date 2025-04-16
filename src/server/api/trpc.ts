@@ -13,6 +13,7 @@ import { ZodError } from "zod";
 
 import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { llmAdapter } from "@/core/adapters/llmAdapter";
+import { pushPromptsToLangSmith } from "@/core/adapters/llmAdapter/uploadPrompts";
 import { ocrAdapter } from "@/core/adapters/ocrAdapter";
 import { paymentAdapter } from "@/core/adapters/paymentAdapter";
 import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
@@ -43,6 +44,8 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
   const userLanguage =
     Language.safeParse(opts.headers.get("x-user-language")).data ?? "en";
+
+  await pushPromptsToLangSmith();
 
   return {
     session,
