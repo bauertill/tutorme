@@ -23,7 +23,8 @@
     "start": "next start",
     "push:prompts": "ts-node src/core/adapters/llmAdapter/uploadPrompts.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest"
+    "test": "vitest",
+    "eval": "vitest run --config ls.vitest.config.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.2",
@@ -116,6 +117,7 @@
     "@types/react-dom": "^19.0.4",
     "@typescript-eslint/eslint-plugin": "^8.1.0",
     "@typescript-eslint/parser": "^8.1.0",
+    "dotenv": "^16.5.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.0.1",
     "husky": "^9.1.7",
