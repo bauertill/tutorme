@@ -3,6 +3,7 @@ import { HumanMessage } from "@langchain/core/messages";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
+  MessagesPlaceholder,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
 import * as hub from "langchain/hub";
@@ -73,8 +74,8 @@ Reference solution:
 """
 {referenceSolution}
 """
-
-Here is the student's (partial) solution attempt:
+Here is the student's (partial) solution attempt. Please analyse the image below and provide your feedback.
+If the image does not contain any solution, state that isComplete is false and provide a hint to the student to help him get started.
 `,
   {
     name: "evaluate_solution_human_prompt",
@@ -85,6 +86,7 @@ Here is the student's (partial) solution attempt:
 export const evaluateSolutionPromptTemplate = ChatPromptTemplate.fromMessages([
   systemPromptTemplate,
   humanPromptTemplate,
+  new MessagesPlaceholder("solutionImage"),
 ]);
 
 export type EvaluateSolutionInput = {
@@ -106,35 +108,6 @@ export async function evaluateSolution(
     referenceSolution,
     language,
   } = input;
-  // Extract the base64 data part (remove the prefix if it exists)
-  const base64Data = solutionImage.includes("base64,")
-    ? solutionImage.split("base64,")[1]
-    : solutionImage;
-
-  // Create a formatted prompt using the prompt template
-  const formattedPrompt = await evaluateSolutionPromptTemplate.formatMessages({
-    language: LanguageName[language],
-    exerciseText,
-    referenceSolution,
-  });
-
-  // Add the image to the last message (which is the human message)
-  const lastMessage = formattedPrompt[formattedPrompt.length - 1];
-  if (lastMessage instanceof HumanMessage) {
-    lastMessage.content = [
-      {
-        type: "text",
-        text: lastMessage.content as string,
-      },
-      {
-        type: "image_url",
-        image_url: {
-          url: `data:image/png;base64,${base64Data}`,
-          detail: "high",
-        },
-      },
-    ];
-  }
 
   const prompt = await hub.pull("evaluate_solution");
   const response = await prompt
@@ -144,6 +117,17 @@ export async function evaluateSolution(
         exerciseText,
         referenceSolution,
         language: LanguageName[language],
+        solutionImage: new HumanMessage({
+          content: [
+            {
+              type: "image_url",
+              image_url: {
+                url: solutionImage,
+                detail: "high",
+              },
+            },
+          ],
+        }),
       },
       {
         metadata: {
