@@ -75,7 +75,7 @@ Reference solution:
 {referenceSolution}
 """
 Here is the student's (partial) solution attempt. Please analyse the image below and provide your feedback.
-If the image does not contain any solution, state that isComplete is false and provide a hint to the student to help him get started.
+If the image does not contain any solution, state that isComplete is false and provide a hint to the student to help him get started...
 `,
   {
     name: "evaluate_solution_human_prompt",
