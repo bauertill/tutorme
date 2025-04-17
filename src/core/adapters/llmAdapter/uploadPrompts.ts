@@ -24,7 +24,7 @@ export async function pushPromptsToLangSmith() {
     } catch (error) {
       if (error instanceof Error && error.message.includes("has not changed")) {
         console.log(`No changes detected in ${promptName} prompt`);
-        return;
+        continue;
       }
       console.error(`Error pushing ${promptName} prompt to LangSmith:`, error);
       throw error;
