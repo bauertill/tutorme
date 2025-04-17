@@ -1,15 +1,18 @@
 import { type Message } from "@/core/help/types";
 import { type Language, LanguageName } from "@/i18n/types";
+import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import {
-  AIMessage,
-  HumanMessage,
-  SystemMessage,
-} from "@langchain/core/messages";
+  ChatPromptTemplate,
+  MessagesPlaceholder,
+  SystemMessagePromptTemplate,
+} from "@langchain/core/prompts";
+import * as hub from "langchain/hub";
 import { z } from "zod";
 import { model } from "../model";
 
-const SYSTEM_PROMPT = (language: Language) => `\
-You are an expert teacher helping a student learn a new concept.
+// Define the system prompt template
+const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
+  `You are an expert teacher helping a student learn a new concept.
 The student may still be confused about the terminology and general ideas.
 
 Instructions:
@@ -18,10 +21,24 @@ Instructions:
 - Keep it as short as possible and rather expect the user to ask follow up questions if needed.
 - Anticipate the questions that the student will ask next, list them in the \`followUpQuestions\` field. At most 3 questions.
 
-Write your response in ${LanguageName[language]} language only.
-`;
+The student is working on the following problem:
+{problem}
 
-const schema = z.object({
+Write your response in {language} language only.`,
+  {
+    name: "generate_reply_system_prompt",
+  },
+);
+
+// Create base prompt template
+export const generateReplyPromptTemplate = ChatPromptTemplate.fromMessages([
+  systemPromptTemplate,
+  new MessagesPlaceholder("solutionImage"),
+  new MessagesPlaceholder("conversation"),
+]);
+
+// Define the output schema
+const GenerateReplySchema = z.object({
   reply: z.string().describe("The reply to the student's question."),
   followUpQuestions: z
     .array(z.string())
@@ -33,70 +50,63 @@ const schema = z.object({
 export type GenerateReplyInput = {
   problemId: string;
   messages: Message[];
-  problem: string | null;
+  problem: string;
   solutionImage: string | null;
   language: Language;
 };
-export type GenerateReplyResponse = z.infer<typeof schema>;
+export type GenerateReplyResponse = z.infer<typeof GenerateReplySchema>;
 
 export async function generateReply(
   input: GenerateReplyInput,
 ): Promise<GenerateReplyResponse> {
   const { problemId, messages, problem, solutionImage, language } = input;
-  const base64Data = solutionImage?.includes("base64,")
-    ? solutionImage.split("base64,")[1]
-    : solutionImage;
 
-  const prompt = [
-    new SystemMessage(SYSTEM_PROMPT(language)),
-    ...(problem
-      ? [
-          new HumanMessage({
-            content: [
-              {
-                type: "text",
-                text: `\
-Problem statement:
-"""
-${problem}
-"""
-`,
-              },
-            ],
-          }),
-        ]
-      : []),
-    ...(solutionImage
-      ? [
-          new HumanMessage({
-            content: [
-              {
-                type: "text",
-                text: `Here is the student's (partial) solution attempt:`,
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/png;base64,${base64Data}`,
-                  detail: "high",
-                },
-              },
-            ],
-          }),
-        ]
-      : []),
-    ...messages.map((message) =>
-      message.role === "user"
-        ? new HumanMessage(message.content)
-        : new AIMessage(message.content),
-    ),
-  ];
+  // Use hub to pull the prompt
+  const promptFromHub = await hub.pull("generate_reply");
 
-  const response = await model.withStructuredOutput(schema).invoke(prompt, {
-    metadata: {
-      functionName: "generateReply",
-      problemId,
-    },
-  });
+  const solutionMessage = solutionImage
+    ? [
+        new HumanMessage({
+          content: [
+            {
+              type: "text",
+              text: `Here is the student's (partial) solution attempt:`,
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: solutionImage,
+                detail: "high",
+              },
+            },
+          ],
+        }),
+      ]
+    : [];
+
+  const conversationMessages = messages.map((message) =>
+    message.role === "user"
+      ? new HumanMessage(message.content)
+      : new AIMessage(message.content),
+  );
+
+  // Invoke the model with the prompt
+  const response = await promptFromHub
+    .pipe(model.withStructuredOutput(GenerateReplySchema))
+    .invoke(
+      {
+        language: LanguageName[language],
+        problem,
+        solutionImage: solutionMessage,
+        conversation: conversationMessages,
+      },
+      {
+        metadata: {
+          functionName: "generateReply",
+          problemId,
+        },
+      },
+    );
+
   return response;
 }

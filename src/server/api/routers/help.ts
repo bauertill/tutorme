@@ -13,7 +13,7 @@ export const helpRouter = createTRPCRouter({
       z.object({
         problemId: z.string(),
         messages: z.array(Message),
-        problem: z.string().nullable(),
+        problem: z.string(),
         solutionImage: z.string().nullable(), // Base64 encoded image data
       }),
     )

@@ -4,6 +4,7 @@ import { evaluateSolutionPromptTemplate } from "./assignment/evaluateSolution";
 import { explainHintDetailPromptTemplate } from "./assignment/explainHintDetail";
 import { extractAssignmentPromptTemplate } from "./assignment/extractAssignmentFromImage";
 import { solveProblemPromptTemplate } from "./assignment/solveProblem";
+import { generateReplyPromptTemplate } from "./help/generateReply";
 import { recommendQuestionsPromptTemplate } from "./help/recommendQuestions";
 // Function to push all prompts to LangSmith
 export async function pushPromptsToLangSmith() {
@@ -14,6 +15,7 @@ export async function pushPromptsToLangSmith() {
     extract_assignment: extractAssignmentPromptTemplate,
     solve_problem: solveProblemPromptTemplate,
     recommend_questions: recommendQuestionsPromptTemplate,
+    generate_reply: generateReplyPromptTemplate,
   };
   for (const [promptName, promptTemplate] of Object.entries(promptsByName)) {
     try {
