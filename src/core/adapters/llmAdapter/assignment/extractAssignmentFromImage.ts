@@ -85,7 +85,7 @@ const RawAssignment = z.object({
 type RawAssignment = z.infer<typeof RawAssignment>;
 
 export async function extractAssignmentFromImage(
-  documentUrl: string,
+  imageUrl: string,
   language: Language,
   userId?: string,
 ): Promise<RawAssignment> {
@@ -98,7 +98,7 @@ export async function extractAssignmentFromImage(
         content: [
           {
             type: "image_url",
-            image_url: { url: documentUrl, detail: "high" },
+            image_url: { url: imageUrl, detail: "high" },
           },
         ],
       }),
@@ -106,7 +106,6 @@ export async function extractAssignmentFromImage(
     {
       metadata: {
         userId,
-        documentUrl,
         functionName: "extractAssignmentFromImage",
       },
     },
