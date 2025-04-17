@@ -36,7 +36,7 @@ export default function HelpBox({
     askMutation.mutate({
       problemId: activeProblem?.id ?? "",
       messages: updatedMessages,
-      problem: activeProblem?.problem ?? null,
+      problem: activeProblem?.problem ?? "",
       solutionImage: await getCanvasDataUrl(),
     });
   };
