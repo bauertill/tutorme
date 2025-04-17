@@ -23,7 +23,7 @@ For example when given:
 # EXERCISE 2 \n
 '(a) Consider the numbers 24 and 504 .\n' +
 '(1) Write both numbers as a product of primes.\n' +
-'(2) Write \\( \\frac{24}{504} \\) in decimal form.\n' +
+'(2) Write \\( \\frac{{24}}{{504}} \\) in decimal form.\n' +
 
 Your response should be:
 [
