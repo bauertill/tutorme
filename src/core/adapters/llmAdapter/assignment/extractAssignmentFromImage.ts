@@ -32,7 +32,7 @@ Your response should be:
         "problemNumber": "(a) (1)",
     }},
     {{  
-        "problemText": "Consider the numbers 24 and 504. Write \\( \\frac{24}{504} \\) in decimal form.",
+        "problemText": "Consider the numbers 24 and 504. Write \\( \\frac{{24}}{{504}} \\) in decimal form.",
         "problemNumber": "(a) (2)",
     }}
 ]
