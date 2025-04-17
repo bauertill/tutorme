@@ -1,10 +1,17 @@
-import { type Language, LanguageName } from "@/i18n/types";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { z } from "node_modules/zod/lib";
+import { LanguageName, type Language } from "@/i18n/types";
+import { HumanMessage } from "@langchain/core/messages";
+import {
+  ChatPromptTemplate,
+  MessagesPlaceholder,
+  SystemMessagePromptTemplate,
+} from "@langchain/core/prompts";
+import * as hub from "langchain/hub";
+import { z } from "zod";
 import { model } from "../model";
 
-const SYSTEM_PROMPT = (language: Language) => `\
-You are an expert teacher helping a student learn a new concept.
+// Define the system prompt template
+const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
+  `You are an expert teacher helping a student learn a new concept.
 The student may still be confused about the terminology and general ideas.
 
 Instructions:
@@ -14,17 +21,30 @@ Instructions:
 - Generate at most 3 questions.
 - Always wrap LaTeX in the appropriate delimiters.
 
-Write your response in ${LanguageName[language]} language only.
-`;
+The student is working on the following problem:
 
-const schema = z.object({
+{problem}
+
+Write your response in {language} language only.`,
+  {
+    name: "recommend_questions_system_prompt",
+  },
+);
+
+// Create base prompt template
+export const recommendQuestionsPromptTemplate = ChatPromptTemplate.fromMessages(
+  [systemPromptTemplate, new MessagesPlaceholder("solutionImage")],
+);
+
+// Define the output schema
+const RecommendQuestionsSchema = z.object({
   questions: z
     .array(z.string())
     .describe("The questions that the student will most likely ask next."),
 });
 
 export async function recommendQuestions(
-  problem: string | null,
+  problem: string,
   solutionImage: string | null,
   language: Language,
 ): Promise<string[]> {
@@ -32,46 +52,50 @@ export async function recommendQuestions(
     ? solutionImage.split("base64,")[1]
     : solutionImage;
 
-  const prompt = [
-    new SystemMessage(SYSTEM_PROMPT(language)),
-    ...(problem
-      ? [
-          new HumanMessage({
-            content: [
-              {
-                type: "text",
-                text: `\
-Problem statement:
-"""
-${problem}
-"""
-`,
-              },
-            ],
-          }),
-        ]
-      : []),
-    ...(solutionImage
-      ? [
-          new HumanMessage({
-            content: [
-              {
-                type: "text",
-                text: `Here is the student's (partial) solution attempt:`,
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/png;base64,${base64Data}`,
-                  detail: "high",
-                },
-              },
-            ],
-          }),
-        ]
-      : []),
-  ];
+  // Use hub to pull the prompt
+  const promptFromHub = await hub.pull("recommend_questions");
 
-  const response = await model.withStructuredOutput(schema).invoke(prompt);
+  // Create content array for human message based on available data
+  const additionalMessages = [];
+
+  if (solutionImage) {
+    additionalMessages.push({
+      type: "text",
+      text: "Here is the student's (partial) solution attempt:",
+    });
+
+    additionalMessages.push({
+      type: "image_url",
+      image_url: {
+        url: `data:image/png;base64,${base64Data}`,
+        detail: "high",
+      },
+    });
+  } else {
+    additionalMessages.push({
+      type: "text",
+      text: "The student has not attempted to answer the question yet",
+    });
+  }
+
+  // Create messages array with system prompt and human message
+
+  // Invoke the model with the messages
+  const response = await promptFromHub
+    .pipe(model.withStructuredOutput(RecommendQuestionsSchema))
+    .invoke(
+      {
+        language: LanguageName[language],
+        problem,
+        solutionImage: new HumanMessage({
+          content: additionalMessages,
+        }),
+      },
+      {
+        metadata: {
+          functionName: "recommendQuestions",
+        },
+      },
+    );
   return response.questions;
 }

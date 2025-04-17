@@ -4,6 +4,7 @@ import { evaluateSolutionPromptTemplate } from "./assignment/evaluateSolution";
 import { explainHintDetailPromptTemplate } from "./assignment/explainHintDetail";
 import { extractAssignmentPromptTemplate } from "./assignment/extractAssignmentFromImage";
 import { solveProblemPromptTemplate } from "./assignment/solveProblem";
+import { recommendQuestionsPromptTemplate } from "./help/recommendQuestions";
 // Function to push all prompts to LangSmith
 export async function pushPromptsToLangSmith() {
   const client = new Client();
@@ -12,6 +13,7 @@ export async function pushPromptsToLangSmith() {
     explain_hint_detail: explainHintDetailPromptTemplate,
     extract_assignment: extractAssignmentPromptTemplate,
     solve_problem: solveProblemPromptTemplate,
+    recommend_questions: recommendQuestionsPromptTemplate,
   };
   for (const [promptName, promptTemplate] of Object.entries(promptsByName)) {
     try {
@@ -19,7 +21,6 @@ export async function pushPromptsToLangSmith() {
       // Push the prompt - LangSmith will handle change detection internally
       await client.pushPrompt(promptName, {
         object: promptTemplate,
-        tags: ["system", "evaluation"],
       });
 
       console.log(`Prompt ${promptName} pushed to LangSmith successfully`);
