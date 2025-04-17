@@ -27,14 +27,14 @@ For example when given:
 
 Your response should be:
 [
-    {
+    {{
         "problemText": "Consider the numbers 24 and 504. Write both numbers as a product of primes.",
         "problemNumber": "(a) (1)",
-    },
-    {
-        "problemText": "Consider the numbers 24 and 504. Write \\( \\frac{24}{504} \\) in decimal form." ,
+    }},
+    {{  
+        "problemText": "Consider the numbers 24 and 504. Write \\( \\frac{24}{504} \\) in decimal form.",
         "problemNumber": "(a) (2)",
-    }   
+    }}
 ]
 
 For an image with geometric content like:
@@ -44,14 +44,14 @@ For an image with geometric content like:
 
 Your response should be:
 [
-    {
+    {{
         "problemText": "Find the area of the shaded triangle in the figure.",
         "problemNumber": "(a)",
-        "relevantImageSegment": {
-            "topLeft": {"x": 0.2, "y": 0.4},
-            "bottomRight": {"x": 0.8, "y": 0.9}
-        }
-    }
+        "relevantImageSegment": {{  
+            "topLeft": {{"x": 0.2, "y": 0.4}},
+            "bottomRight": {{"x": 0.8, "y": 0.9}}
+        }}
+    }}
 ]
 
 Write your response in {language} language only.
