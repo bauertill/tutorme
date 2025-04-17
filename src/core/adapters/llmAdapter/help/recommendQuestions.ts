@@ -48,10 +48,6 @@ export async function recommendQuestions(
   solutionImage: string | null,
   language: Language,
 ): Promise<string[]> {
-  const base64Data = solutionImage?.includes("base64,")
-    ? solutionImage.split("base64,")[1]
-    : solutionImage;
-
   // Use hub to pull the prompt
   const promptFromHub = await hub.pull("recommend_questions");
 
@@ -67,7 +63,7 @@ export async function recommendQuestions(
     additionalMessages.push({
       type: "image_url",
       image_url: {
-        url: `data:image/png;base64,${base64Data}`,
+        url: solutionImage,
         detail: "high",
       },
     });
