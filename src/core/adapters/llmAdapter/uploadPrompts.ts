@@ -3,6 +3,7 @@ import { Client } from "langsmith";
 import { evaluateSolutionPromptTemplate } from "./assignment/evaluateSolution";
 import { explainHintDetailPromptTemplate } from "./assignment/explainHintDetail";
 import { extractAssignmentPromptTemplate } from "./assignment/extractAssignmentFromImage";
+import { solveProblemPromptTemplate } from "./assignment/solveProblem";
 // Function to push all prompts to LangSmith
 export async function pushPromptsToLangSmith() {
   const client = new Client();
@@ -10,6 +11,7 @@ export async function pushPromptsToLangSmith() {
     evaluate_solution: evaluateSolutionPromptTemplate,
     explain_hint_detail: explainHintDetailPromptTemplate,
     extract_assignment: extractAssignmentPromptTemplate,
+    solve_problem: solveProblemPromptTemplate,
   };
   for (const [promptName, promptTemplate] of Object.entries(promptsByName)) {
     try {
