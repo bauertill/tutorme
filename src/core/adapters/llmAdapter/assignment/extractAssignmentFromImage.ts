@@ -1,12 +1,17 @@
 import { ImageRegion } from "@/core/assignment/types";
 import { type Language, LanguageName } from "@/i18n/types";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { HumanMessage } from "@langchain/core/messages";
+import {
+  ChatPromptTemplate,
+  MessagesPlaceholder,
+  SystemMessagePromptTemplate,
+} from "@langchain/core/prompts";
+import * as hub from "langchain/hub";
 import { z } from "zod";
 import { model } from "../model";
 
-const EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT = (
-  language: Language,
-) => `You are an AI assistant that translates an image of math problems into a list of problems. 
+const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
+  `You are an AI assistant that translates an image of math problems into a list of problems. 
 Go through the image and extract all the problems. Problems might be nested, in this case you should flatten the data structure and reformulate the problems so they are standalone.
 Also come up with a title for the assignment.
 
@@ -49,8 +54,18 @@ Your response should be:
     }
 ]
 
-Write your response in ${LanguageName[language]} language only.
-`;
+Write your response in {language} language only.
+Here is the image of the problems:
+`,
+  {
+    name: "extract_assignment_system_prompt",
+  },
+);
+
+export const extractAssignmentPromptTemplate = ChatPromptTemplate.fromMessages([
+  systemPromptTemplate,
+  new MessagesPlaceholder("uploadedImage"),
+]);
 
 const RawProblem = z.object({
   problemText: z
@@ -74,22 +89,20 @@ export async function extractAssignmentFromImage(
   language: Language,
   userId?: string,
 ): Promise<RawAssignment> {
-  return await model.withStructuredOutput(RawAssignment).invoke(
-    [
-      new SystemMessage(EXTRACT_PROBLEMS_FROM_MARKDOWN_PROMPT(language)),
-      new HumanMessage({
+  const prompt = await hub.pull("extract_assignment");
+
+  return await prompt.pipe(model.withStructuredOutput(RawAssignment)).invoke(
+    {
+      language: LanguageName[language],
+      uploadedImage: new HumanMessage({
         content: [
-          {
-            type: "text",
-            text: "Here is the image of the problems:",
-          },
           {
             type: "image_url",
             image_url: { url: documentUrl, detail: "high" },
           },
         ],
       }),
-    ],
+    },
     {
       metadata: {
         userId,
