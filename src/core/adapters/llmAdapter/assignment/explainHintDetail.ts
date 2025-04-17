@@ -1,9 +1,16 @@
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import {
+  ChatPromptTemplate,
+  HumanMessagePromptTemplate,
+  SystemMessagePromptTemplate,
+} from "@langchain/core/prompts";
+import * as hub from "langchain/hub";
+import { z } from "zod";
 import { type EvaluationResult } from "../../../assignment/types";
 import { model } from "../model";
 
-// Define the system prompt for explaining hints in more detail
-const EXPLAIN_HINT_SYSTEM_PROMPT = `You are an expert teacher providing detailed explanations to help students understand concepts they're struggling with.
+// Define the system prompt template for explaining hints in more detail
+const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
+  `You are an expert teacher providing detailed explanations to help students understand concepts they're struggling with.
 You will be given:
 1. The original problem statement
 2. An evaluation of the student's solution, including any hints already provided
@@ -17,7 +24,53 @@ Your task is to:
 
 Always wrap LaTeX in the appropriate delimiters.
 Do not start your response with "Certainly!" or any other greeting, get straight to explaining the hint.
-`;
+`,
+  {
+    name: "explain_hint_detail_system_prompt",
+  },
+);
+
+// Define the human message template
+const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(
+  `\
+Problem statement:
+"""
+{problemText}
+"""
+
+Evaluation of student's solution:
+"""
+{analysis}
+"""
+
+Original hint:
+"""
+{hint}
+"""
+
+The student has highlighted this specific part for more explanation:
+"""
+{highlightedText}
+"""
+
+Please provide a more detailed explanation of this highlighted text:`,
+  {
+    name: "explain_hint_detail_human_prompt",
+  },
+);
+
+// Combine the templates into a single prompt template
+export const explainHintDetailPromptTemplate = ChatPromptTemplate.fromMessages([
+  systemPromptTemplate,
+  humanPromptTemplate,
+]);
+
+// Define the output schema
+export const ExplainHintDetailSchema = z.object({
+  explanation: z
+    .string()
+    .describe("A detailed explanation of the highlighted text"),
+});
 
 export type ExplainHintDetailInput = {
   problemId: string;
@@ -37,49 +90,27 @@ export async function explainHintDetail(
   input: ExplainHintDetailInput,
 ): Promise<string> {
   const { problemId, problemText, evaluation, highlightedText } = input;
-  // Create messages for the LLM
-  const messages = [
-    new SystemMessage(EXPLAIN_HINT_SYSTEM_PROMPT),
-    new HumanMessage({
-      content: [
-        {
-          type: "text",
-          text: `\
-Problem statement:
-"""
-${problemText}
-"""
 
-Evaluation of student's solution:
-"""
-${evaluation.analysis}
-"""
+  // Use hub to pull the prompt
+  const prompt = await hub.pull("explain_hint_detail");
 
-Original hint:
-"""
-${evaluation.hint ?? "No hint was provided."}
-"""
-
-The student has highlighted this specific part for more explanation:
-"""
-${highlightedText}
-"""
-
-Please provide a more detailed explanation of this highlighted text:`,
+  // Invoke the model with structured output
+  const response = await prompt
+    .pipe(model.withStructuredOutput(ExplainHintDetailSchema))
+    .invoke(
+      {
+        problemText,
+        analysis: evaluation.analysis,
+        hint: evaluation.hint ?? "No hint was provided.",
+        highlightedText,
+      },
+      {
+        metadata: {
+          functionName: "explainHintDetail",
+          problemId,
         },
-      ],
-    }),
-  ];
+      },
+    );
 
-  // Make the call to the LLM
-  const response = await model.invoke(messages, {
-    metadata: {
-      functionName: "explainHintDetail",
-      problemId,
-    },
-  });
-
-  // Ensure we're properly converting the content to string
-  const content = response.content;
-  return typeof content === "string" ? content : JSON.stringify(content);
+  return response.explanation;
 }
