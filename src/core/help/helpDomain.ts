@@ -24,7 +24,7 @@ export async function generateHelpReply(
 }
 
 export async function recommendQuestions(
-  problem: string | null,
+  problem: string,
   solutionImage: string | null,
   llmAdapter: LLMAdapter,
   language: Language,

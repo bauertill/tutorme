@@ -29,7 +29,7 @@ export const helpRouter = createTRPCRouter({
   recommendQuestions: publicProcedure
     .input(
       z.object({
-        problem: z.string().nullable(),
+        problem: z.string(),
         solutionImage: z.string().nullable(),
       }),
     )
