@@ -1,12 +1,13 @@
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { Client } from "langsmith";
 import { evaluateSolutionPromptTemplate } from "./assignment/evaluateSolution";
-
+import { explainHintDetailPromptTemplate } from "./assignment/explainHintDetail";
 // Function to push all prompts to LangSmith
 export async function pushPromptsToLangSmith() {
   const client = new Client();
   const promptsByName: Record<string, ChatPromptTemplate> = {
     evaluate_solution: evaluateSolutionPromptTemplate,
+    explain_hint_detail: explainHintDetailPromptTemplate,
   };
   for (const [promptName, promptTemplate] of Object.entries(promptsByName)) {
     try {
