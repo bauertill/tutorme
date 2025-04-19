@@ -5,8 +5,6 @@ import numpy as np
 import os
 
 from flask import Flask, request, jsonify
-import base64
-import io
 from PIL import Image
 
 app = Flask(__name__)
