@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import { GoogleTagManager } from "./_components/GoogleTagManager";
 import { ClientOnly } from "./_components/providers/ClientOnly";
 import { I18nProvider } from "./_components/providers/I18nProvider";
+import { OpenCVProvider } from "./_components/providers/OpenCV";
 import { ReactScan } from "./_components/ReactScan";
 
 export const metadata: Metadata = {
@@ -35,25 +36,27 @@ export default function RootLayout({
       className={`${GeistSans.variable}`}
       suppressHydrationWarning
     >
-      <ReactScan />
-      <body className="select-none [-webkit-user-select:none]">
-        <GoogleTagManager />
-        <PostHogProvider>
-          <ThemeProvider>
-            <ProgressProvider>
-              <TRPCReactProvider>
-                <ClientOnly>
-                  <I18nProvider>
-                    {children}
-                    <Toaster />
-                  </I18nProvider>
-                </ClientOnly>
-              </TRPCReactProvider>
-            </ProgressProvider>
-          </ThemeProvider>
-          <SpeedInsights />
-        </PostHogProvider>
-      </body>
+      <OpenCVProvider>
+        <ReactScan />
+        <body className="select-none [-webkit-user-select:none]">
+          <GoogleTagManager />
+          <PostHogProvider>
+            <ThemeProvider>
+              <ProgressProvider>
+                <TRPCReactProvider>
+                  <ClientOnly>
+                    <I18nProvider>
+                      {children}
+                      <Toaster />
+                    </I18nProvider>
+                  </ClientOnly>
+                </TRPCReactProvider>
+              </ProgressProvider>
+            </ThemeProvider>
+            <SpeedInsights />
+          </PostHogProvider>
+        </body>
+      </OpenCVProvider>
     </html>
   );
 }
