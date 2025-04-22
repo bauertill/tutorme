@@ -1,0 +1,11 @@
+services:
+  image-processing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
+    volumes:
+      - ./:/app

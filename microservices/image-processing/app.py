@@ -1,11 +1,11 @@
-# Entrypoint for the image processing microservice
-
-import cv2
-import numpy as np
 import os
-
 from flask import Flask, request, jsonify
 from PIL import Image
+
+from straighten_image import straighten_image
+from crop_image import crop_image
+from clean_image import clean_image
+from upload import upload_to_blob_storage
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ def health_check():
     return jsonify({"status": "healthy"}), 200
 
 
-@app.route("/process-image", methods=["POST"])
+@app.route("/straighten-image", methods=["POST"])
 def process_image():
     """
     A simple image processing endpoint that returns the image info.
@@ -27,22 +27,13 @@ def process_image():
     file = request.files["image"]
     img = Image.open(file.stream)
 
-    # Get basic image information
-    width, height = img.size
-    format_type = img.format
-    mode = img.mode
+    cleaned_image = clean_image(img)
+    straightened_image = straighten_image(cleaned_image)
+    cropped_image = crop_image(straightened_image)
 
-    return jsonify(
-        {
-            "message": "Hello World! Image processing service is working",
-            "image_info": {
-                "width": width,
-                "height": height,
-                "format": format_type,
-                "mode": mode,
-            },
-        }
-    )
+    url = upload_to_blob_storage(cropped_image)
+
+    return jsonify({"url": url})
 
 
 if __name__ == "__main__":
