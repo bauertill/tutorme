@@ -24,14 +24,18 @@ def process_image():
     if "image" not in request.files:
         return jsonify({"error": "No image provided"}), 400
 
+    print("Processing image")
     file = request.files["image"]
     img = Image.open(file.stream)
+    print("Image opened")
 
     cleaned_image = clean_image(img)
     straightened_image = straighten_image(cleaned_image)
     cropped_image = crop_image(straightened_image)
+    print("Image cropped")
 
     url = upload_to_blob_storage(cropped_image)
+    print("Image uploaded", url, flush=True)
 
     return jsonify({"url": url})
 
