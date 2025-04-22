@@ -4,7 +4,7 @@ Flask==3.1.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.2
-numpy @ file:///home/conda/feedstock_root/build_artifacts/numpy_1742254787379/work/dist/numpy-2.2.4-cp313-cp313-linux_x86_64.whl#sha256=f76ad032934da2c4719e50abb4142164ac1b039dc18f5fc412a5048a8bade5ae
+numpy==2.2.0
 opencv-python==4.11.0
 opencv-python-headless==4.11.0
 pillow==11.2.1
