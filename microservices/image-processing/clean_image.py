@@ -27,80 +27,72 @@ def _cv_to_pil(mat: np.ndarray) -> Image.Image:
 # ────────────────────────────────────────────────────────────────────────────────
 def clean_image(image: Image.Image) -> Image.Image:
     """
-    Clean & enhance a photo of a textbook page so that the result looks like the
-    original printed page: crisp black text on a clean white background.
+    Clean & enhance a photo of a textbook page, optimized for high readability
+    while preserving natural text appearance.
 
-    Steps
-    -----
-    1.  Convert to gray and apply CLAHE for local contrast boost.
-    2.  Median‑blur to weaken isolated noise pixels.
-    3.  Adaptive threshold → binarise text robustly under uneven lighting.
-    4.  Morphology: open + close to drop pepper noise & fill tiny holes.
-    5.  Dilate (1 px) to make strokes solid.
-    6.  (Optional) automatic crop to remove dark vignette / border.
-    7.  Mild global contrast tweak.
+    This function intelligently detects image quality and only applies processing
+    when needed. High-quality images like screenshots are minimally processed,
+    while photos with uneven lighting receive adaptive enhancement.
 
     Returns
     -------
     PIL.Image.Image
-        The cleaned, RGB image.
+        The cleaned, enhanced image with improved text readability
     """
-    # ---------------------------- 1–2. Pre‑process ----------------------------
-    cv_img = _pil_to_cv(image)  # → BGR
-    gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)  # → GRAY
+    # Convert to OpenCV format
+    cv_img = _pil_to_cv(image)
 
-    # CLAHE (local contrast equalisation)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    gray = clahe.apply(gray)
+    # Convert to grayscale
+    gray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
 
-    # Light median blur to squash isolated sensor noise (radius 1)
-    gray = cv2.medianBlur(gray, 3)
+    # Detect if image is already high quality (like a screenshot)
+    # Calculate image quality metrics
+    blur_score = cv2.Laplacian(gray, cv2.CV_64F).var()  # Measure blurriness
+    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    histogram = cv2.calcHist([gray], [0], None, [256], [0, 256])
+    histogram_peaks = np.sum(histogram > np.mean(histogram) * 2)  # Count strong peaks
 
-    # --------------------------- 3. Adaptive thresh ---------------------------
-    bin_img = cv2.adaptiveThreshold(
-        gray,
-        maxValue=255,
-        adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        thresholdType=cv2.THRESH_BINARY_INV,  # we want text→white for morph ops
-        blockSize=17,  # odd number; tweakable
-        C=15,  # subtract from mean
-    )
+    # Check if image has characteristics of a screenshot (sharp, bimodal histogram)
+    is_high_quality = blur_score > 500 and histogram_peaks < 10
 
-    # --------------------------- 4–5. Morphology ------------------------------
-    kernel = np.ones((2, 2), np.uint8)
-    bin_img = cv2.morphologyEx(bin_img, cv2.MORPH_OPEN, kernel, iterations=1)
-    bin_img = cv2.morphologyEx(bin_img, cv2.MORPH_CLOSE, kernel, iterations=1)
-    bin_img = cv2.dilate(bin_img, kernel, iterations=1)
+    if is_high_quality:
+        # For high-quality images, apply minimal processing
+        # Just normalize contrast slightly
+        p5, p95 = np.percentile(gray, [5, 95])
+        normalized = np.clip((gray - p5) * 255.0 / (p95 - p5), 0, 255).astype(np.uint8)
+        result = _cv_to_pil(normalized)
 
-    # Invert back → black text on white
-    bin_img = cv2.bitwise_not(bin_img)
+        # Very subtle enhancement
+        result = ImageEnhance.Contrast(result).enhance(1.05)
 
-    # --------------------------- 6. Auto‑crop (optional) ----------------------
-    def _autocrop(mat: np.ndarray, border_pad: int = 10) -> np.ndarray:
-        """
-        Remove thick black/very dark borders (vignettes). Works by finding the
-        largest bright area and cropping to its bounding box.
-        """
-        # Pixels that are almost white in the *binarised* image
-        bright_mask = bin_img > 250
-        coords = cv2.findNonZero(bright_mask.astype(np.uint8) * 255)
-        if coords is None:  # fallback: nothing to crop
-            return mat
-        x, y, w, h = cv2.boundingRect(coords)
-        x = max(x - border_pad, 0)
-        y = max(y - border_pad, 0)
-        return mat[y : y + h + border_pad, x : x + w + border_pad]
+    else:
+        # For photos with uneven lighting, apply full processing pipeline
 
-    # Crop using the mask derived from bin_img
-    bin_img = _autocrop(bin_img)
-    # (We need the same crop applied to a grayscale/RGB version if downstream
-    #  colour images are required. For this pipeline the bin_img is already the
-    #  final rendition, so we're done.)
+        # Apply adaptive histogram equalization to handle uneven lighting
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        equalized = clahe.apply(gray)
 
-    # --------------------------- 7. Final touches -----------------------------
-    pil_out = _cv_to_pil(bin_img)  # bin_img is GRAY→RGB
+        # Apply denoising while preserving edges
+        denoised = cv2.fastNlMeansDenoising(
+            equalized, None, h=10, templateWindowSize=7, searchWindowSize=21
+        )
+        denoised = cv2.medianBlur(denoised, 3)
 
-    # Subtle global contrast boost (already high contrast so keep gentle)
-    pil_out = ImageEnhance.Contrast(pil_out).enhance(1.05)
+        # Apply adaptive thresholding to handle lighting gradients
+        adaptive = cv2.adaptiveThreshold(
+            denoised,
+            255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            cv2.THRESH_BINARY,
+            blockSize=25,
+            C=5,
+        )
 
-    return pil_out
+        # Apply morphological operations to clean up noise
+        kernel = np.ones((2, 2), np.uint8)
+        cleaned = cv2.morphologyEx(adaptive, cv2.MORPH_CLOSE, kernel)
+
+        result = _cv_to_pil(cleaned)
+        result = ImageEnhance.Sharpness(result).enhance(1.1)
+
+    return result

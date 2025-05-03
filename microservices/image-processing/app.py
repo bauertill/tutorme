@@ -17,10 +17,6 @@ def health_check():
 
 @app.route("/straighten-image", methods=["POST"])
 def process_image():
-    """
-    A simple image processing endpoint that returns the image info.
-    This is a placeholder for more complex image processing.
-    """
     if "image" not in request.files:
         return jsonify({"error": "No image provided"}), 400
 
