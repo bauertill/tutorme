@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedAdminProcedure } from "../trpc";
 
 export const adminRouter = createTRPCRouter({
-  getUsers: protectedAdminProcedure.query(async ({ ctx }) => {
+  getUsers: protectedAdminProcedure.query(async () => {
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -24,7 +24,7 @@ export const adminRouter = createTRPCRouter({
     return users;
   }),
 
-  getGroups: protectedAdminProcedure.query(async ({ ctx }) => {
+  getGroups: protectedAdminProcedure.query(async () => {
     const groups = await prisma.group.findMany({
       include: {
         users: {
@@ -69,6 +69,7 @@ export const adminRouter = createTRPCRouter({
           users: true,
         },
       });
+      return group;
     }),
 
   deleteGroup: protectedAdminProcedure
