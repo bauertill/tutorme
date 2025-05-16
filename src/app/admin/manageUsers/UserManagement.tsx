@@ -78,6 +78,18 @@ export function UserManagement() {
     },
   });
 
+  const allSelected = users.length > 0 && selectedUsers.size === users.length;
+  const someSelected =
+    selectedUsers.size > 0 && selectedUsers.size < users.length;
+
+  const handleSelectAll = () => {
+    if (selectedUsers.size === users.length) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(users.map((u) => u.id)));
+    }
+  };
+
   const handleUserSelect = (userId: string) => {
     const newSelected = new Set(selectedUsers);
     if (newSelected.has(userId)) {
@@ -219,7 +231,13 @@ export function UserManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-[50px]">
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={handleSelectAll}
+                    aria-label="Select all users"
+                  />
+                </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Subscription Status</TableHead>
