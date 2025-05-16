@@ -255,53 +255,6 @@ export function UserManagement() {
                           </Button>
                         </div>
                       ))}
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                          >
-                            Add User
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Add User to Group</DialogTitle>
-                            <DialogDescription>
-                              Select a user to add to this group.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="max-h-[300px] overflow-y-auto">
-                            {users
-                              .filter(
-                                (user) =>
-                                  !group.users.some(
-                                    (groupUser) => groupUser.id === user.id,
-                                  ),
-                              )
-                              .map((user) => (
-                                <div
-                                  key={user.id}
-                                  className="flex items-center justify-between py-2"
-                                >
-                                  <span>
-                                    {user.name ?? user.email ?? "Unknown User"}
-                                  </span>
-                                  <Button
-                                    size="sm"
-                                    onClick={() =>
-                                      handleAddUser(group.id, user.id)
-                                    }
-                                    disabled={addUserToGroup.isPending}
-                                  >
-                                    Add
-                                  </Button>
-                                </div>
-                              ))}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
                     </div>
                   </TableCell>
                   <TableCell>
