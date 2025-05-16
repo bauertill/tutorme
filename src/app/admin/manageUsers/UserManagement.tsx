@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/modal";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -40,9 +41,13 @@ export function UserManagement() {
     description: string;
   } | null>(null);
 
-  const { data: users = [] } = api.admin.getUsers.useQuery();
-  const { data: groups = [], refetch: refetchGroups } =
-    api.admin.getGroups.useQuery();
+  const { data: users = [], isLoading: usersLoading } =
+    api.admin.getUsers.useQuery();
+  const {
+    data: groups = [],
+    isLoading: groupsLoading,
+    refetch: refetchGroups,
+  } = api.admin.getGroups.useQuery();
 
   const createGroup = api.admin.createGroup.useMutation({
     onSuccess: () => {
@@ -245,24 +250,44 @@ export function UserManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedUsers.has(user.id)}
-                      onCheckedChange={() => handleUserSelect(user.id)}
-                    />
-                  </TableCell>
-                  <TableCell>{user.name ?? "N/A"}</TableCell>
-                  <TableCell>{user.email ?? "N/A"}</TableCell>
-                  <TableCell>
-                    {user.subscription?.status ?? "No Subscription"}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {usersLoading
+                ? Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-4 rounded-sm" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                : users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedUsers.has(user.id)}
+                          onCheckedChange={() => handleUserSelect(user.id)}
+                        />
+                      </TableCell>
+                      <TableCell>{user.name ?? "N/A"}</TableCell>
+                      <TableCell>{user.email ?? "N/A"}</TableCell>
+                      <TableCell>
+                        {user.subscription?.status ?? "No Subscription"}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
             </TableBody>
           </Table>
         </CardContent>
@@ -282,71 +307,95 @@ export function UserManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {groups.map((group) => (
-                <TableRow key={group.id} className="h-full">
-                  <TableCell className="w-[40%]">
-                    <div className="space-y-1">
-                      <div className="font-medium">{group.name}</div>
-                      {group.description && (
-                        <div className="text-sm text-muted-foreground">
-                          {group.description}
+              {groupsLoading
+                ? Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="w-[40%]">
+                        <Skeleton className="mb-2 h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </TableCell>
+                      <TableCell className="w-[60%]">
+                        <div className="flex flex-wrap gap-2">
+                          {Array.from({ length: 3 }).map((_, j) => (
+                            <Skeleton
+                              key={j}
+                              className="h-6 w-20 rounded px-2"
+                            />
+                          ))}
                         </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="w-[60%]">
-                    <div className="flex flex-wrap gap-2">
-                      {group.users.map((user) => (
-                        <div
-                          key={user.id}
-                          className="mb-1 flex items-center gap-1 rounded bg-muted px-2 py-1 text-sm"
-                        >
-                          <span>
-                            {user.name ?? user.email ?? "Unknown User"}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRemoveUser(group.id, user.id)}
-                            disabled={removeUserFromGroup.isPending}
-                            className="h-6 w-6 p-0"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                      </TableCell>
+                      <TableCell className="w-[50px]">
+                        <Skeleton className="h-6 w-6 rounded-full" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                : groups.map((group) => (
+                    <TableRow key={group.id} className="h-full">
+                      <TableCell className="w-[40%]">
+                        <div className="space-y-1">
+                          <div className="font-medium">{group.name}</div>
+                          {group.description && (
+                            <div className="text-sm text-muted-foreground">
+                              {group.description}
+                            </div>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="w-[50px]">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleEditGroup(
-                              group.id,
-                              group.name,
-                              group.description ?? "",
-                            )
-                          }
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => handleDeleteGroup(group.id)}
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                      </TableCell>
+                      <TableCell className="w-[60%]">
+                        <div className="flex flex-wrap gap-2">
+                          {group.users.map((user) => (
+                            <div
+                              key={user.id}
+                              className="mb-1 flex items-center gap-1 rounded bg-muted px-2 py-1 text-sm"
+                            >
+                              <span>
+                                {user.name ?? user.email ?? "Unknown User"}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  handleRemoveUser(group.id, user.id)
+                                }
+                                disabled={removeUserFromGroup.isPending}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[50px]">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleEditGroup(
+                                  group.id,
+                                  group.name,
+                                  group.description ?? "",
+                                )
+                              }
+                            >
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDeleteGroup(group.id)}
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
             </TableBody>
           </Table>
         </CardContent>
