@@ -312,7 +312,7 @@ export function UserManagement() {
                             handleEditGroup(
                               group.id,
                               group.name,
-                              group.description || "",
+                              group.description ?? "",
                             )
                           }
                         >
