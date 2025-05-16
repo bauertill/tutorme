@@ -1,9 +1,10 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedAdminProcedure } from "../trpc";
 
 export const adminRouter = createTRPCRouter({
-  getUsers: publicProcedure.query(async () => {
+  getUsers: protectedAdminProcedure.query(async ({ ctx }) => {
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -23,7 +24,7 @@ export const adminRouter = createTRPCRouter({
     return users;
   }),
 
-  getGroups: publicProcedure.query(async () => {
+  getGroups: protectedAdminProcedure.query(async ({ ctx }) => {
     const groups = await prisma.group.findMany({
       include: {
         users: {
@@ -40,14 +41,17 @@ export const adminRouter = createTRPCRouter({
           },
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
     return groups;
   }),
 
-  createGroup: publicProcedure
+  createGroup: protectedAdminProcedure
     .input(
       z.object({
-        name: z.string(),
+        name: z.string().min(1),
         description: z.string().optional(),
         userIds: z.array(z.string()),
       }),
@@ -62,21 +66,92 @@ export const adminRouter = createTRPCRouter({
           },
         },
         include: {
-          users: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              createdAt: true,
-              subscription: {
-                select: {
-                  status: true,
-                },
-              },
-            },
-          },
+          users: true,
         },
       });
-      return group;
+    }),
+
+  deleteGroup: protectedAdminProcedure
+    .input(z.object({ groupId: z.string() }))
+    .mutation(async ({ input }) => {
+      const group = await prisma.group.findUnique({
+        where: { id: input.groupId },
+      });
+
+      if (!group) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Group not found",
+        });
+      }
+
+      return prisma.group.delete({
+        where: { id: input.groupId },
+      });
+    }),
+
+  removeUserFromGroup: protectedAdminProcedure
+    .input(
+      z.object({
+        groupId: z.string(),
+        userId: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const group = await prisma.group.findUnique({
+        where: { id: input.groupId },
+        include: { users: true },
+      });
+
+      if (!group) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Group not found",
+        });
+      }
+
+      return prisma.group.update({
+        where: { id: input.groupId },
+        data: {
+          users: {
+            disconnect: { id: input.userId },
+          },
+        },
+        include: {
+          users: true,
+        },
+      });
+    }),
+
+  addUserToGroup: protectedAdminProcedure
+    .input(
+      z.object({
+        groupId: z.string(),
+        userId: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const group = await prisma.group.findUnique({
+        where: { id: input.groupId },
+      });
+
+      if (!group) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Group not found",
+        });
+      }
+
+      return prisma.group.update({
+        where: { id: input.groupId },
+        data: {
+          users: {
+            connect: { id: input.userId },
+          },
+        },
+        include: {
+          users: true,
+        },
+      });
     }),
 });
