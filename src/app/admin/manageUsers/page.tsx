@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import prisma from "@/lib/prisma";
-import { SubscriptionStatus } from "@prisma/client";
+import { type SubscriptionStatus } from "@prisma/client";
 
 interface User {
   id: string;
@@ -63,10 +63,10 @@ export default async function ManageUsersPage() {
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>{user.name || "N/A"}</TableCell>
-                  <TableCell>{user.email || "N/A"}</TableCell>
+                  <TableCell>{user.name ?? "N/A"}</TableCell>
+                  <TableCell>{user.email ?? "N/A"}</TableCell>
                   <TableCell>
-                    {user.subscription?.status || "No Subscription"}
+                    {user.subscription?.status ?? "No Subscription"}
                   </TableCell>
                   <TableCell>{user.createdAt.toLocaleDateString()}</TableCell>
                 </TableRow>

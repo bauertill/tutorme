@@ -1,4 +1,4 @@
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { type ChatPromptTemplate } from "@langchain/core/prompts";
 import { Client } from "langsmith";
 import { evaluateSolutionPromptTemplate } from "./assignment/evaluateSolution";
 import { explainHintDetailPromptTemplate } from "./assignment/explainHintDetail";
