@@ -27,7 +27,6 @@ export function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDescription, setNewGroupDescription] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
   const { data: users = [] } = api.admin.getUsers.useQuery();
   const { data: groups = [], refetch: refetchGroups } =
