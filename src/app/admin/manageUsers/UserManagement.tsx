@@ -281,7 +281,7 @@ export function UserManagement() {
                       {group.users.map((user) => (
                         <div
                           key={user.id}
-                          className="flex items-center justify-between text-sm"
+                          className="flex items-center gap-1 text-sm"
                         >
                           <span>
                             {user.name ?? user.email ?? "Unknown User"}
