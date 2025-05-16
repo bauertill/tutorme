@@ -8,7 +8,11 @@ const { auth: uncachedAuth, handlers, signIn, signOut } = NextAuth(authConfig);
 
 const auth = cache(uncachedAuth);
 
-export const ADMINS = ["max@mxgr.de", "bauertill@gmail.com"];
+export const ADMINS = [
+  "max@mxgr.de",
+  "bauertill@gmail.com",
+  "maksymiukdavid@gmail.com",
+];
 
 export const requireSession = async () => {
   const session = await auth();
