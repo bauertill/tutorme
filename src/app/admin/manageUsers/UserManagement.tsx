@@ -256,69 +256,80 @@ export function UserManagement() {
         </CardHeader>
         <CardContent>
           <Table>
-            {groups.map((group) => (
-              <TableRow key={group.id}>
-                <TableCell>
-                  <div className="space-y-1">
-                    <div className="font-medium">{group.name}</div>
-                    {group.description && (
-                      <div className="text-sm text-muted-foreground">
-                        {group.description}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    {group.users.map((user) => (
-                      <div
-                        key={user.id}
-                        className="flex items-center justify-between text-sm"
-                      >
-                        <span>{user.name ?? user.email ?? "Unknown User"}</span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveUser(group.id, user.id)}
-                          disabled={removeUserFromGroup.isPending}
-                          className="h-6 w-6"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleEditGroup(
-                            group.id,
-                            group.name,
-                            group.description || "",
-                          )
-                        }
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => handleDeleteGroup(group.id)}
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40%]">Group Details</TableHead>
+                <TableHead className="w-[60%]">Members</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
-            ))}
+            </TableHeader>
+            <TableBody>
+              {groups.map((group) => (
+                <TableRow key={group.id} className="h-full">
+                  <TableCell className="w-[40%]">
+                    <div className="space-y-1">
+                      <div className="font-medium">{group.name}</div>
+                      {group.description && (
+                        <div className="text-sm text-muted-foreground">
+                          {group.description}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="w-[60%]">
+                    <div className="space-y-1">
+                      {group.users.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center justify-between text-sm"
+                        >
+                          <span>
+                            {user.name ?? user.email ?? "Unknown User"}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveUser(group.id, user.id)}
+                            disabled={removeUserFromGroup.isPending}
+                            className="h-6 w-6"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell className="w-[50px]">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleEditGroup(
+                              group.id,
+                              group.name,
+                              group.description || "",
+                            )
+                          }
+                        >
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => handleDeleteGroup(group.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
           </Table>
         </CardContent>
       </Card>
