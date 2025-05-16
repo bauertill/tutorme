@@ -27,7 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/trpc/react";
-import { MoreVertical, X } from "lucide-react";
+import { MoreVertical, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 export function UserManagement() {
@@ -133,51 +133,87 @@ export function UserManagement() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>User Management</CardTitle>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>Create Group</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Group</DialogTitle>
-                <DialogDescription>
-                  Create a new group and add selected users to it.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">
-                    Group Name
-                  </label>
-                  <input
-                    id="name"
-                    value={newGroupName}
-                    onChange={(e) => setNewGroupName(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="description" className="text-sm font-medium">
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
-                    value={newGroupDescription}
-                    onChange={(e) => setNewGroupDescription(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  onClick={handleCreateGroup}
-                  disabled={createGroup.isPending}
-                >
-                  {createGroup.isPending ? "Creating..." : "Create Group"}
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" disabled={selectedUsers.size === 0}>
+                  Add to Group
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                {groups.map((group) => (
+                  <DropdownMenuItem
+                    key={group.id}
+                    onClick={() => {
+                      // Add selected users to the group, ignoring those already in it
+                      const usersToAdd = Array.from(selectedUsers).filter(
+                        (userId) =>
+                          !group.users.some((user) => user.id === userId),
+                      );
+                      if (usersToAdd.length > 0) {
+                        usersToAdd.forEach((userId) => {
+                          handleAddUser(group.id, userId);
+                        });
+                      }
+                    }}
+                  >
+                    {group.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button disabled={selectedUsers.size === 0}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Group
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Group</DialogTitle>
+                  <DialogDescription>
+                    Create a new group and add selected users to it.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label htmlFor="name" className="text-sm font-medium">
+                      Group Name
+                    </label>
+                    <input
+                      id="name"
+                      value={newGroupName}
+                      onChange={(e) => setNewGroupName(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="description"
+                      className="text-sm font-medium"
+                    >
+                      Description
+                    </label>
+                    <textarea
+                      id="description"
+                      value={newGroupDescription}
+                      onChange={(e) => setNewGroupDescription(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    onClick={handleCreateGroup}
+                    disabled={createGroup.isPending || !newGroupName}
+                  >
+                    {createGroup.isPending ? "Creating..." : "Create Group"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
