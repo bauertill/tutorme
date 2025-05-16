@@ -277,11 +277,11 @@ export function UserManagement() {
                     </div>
                   </TableCell>
                   <TableCell className="w-[60%]">
-                    <div className="space-y-1">
+                    <div className="flex flex-wrap gap-2">
                       {group.users.map((user) => (
                         <div
                           key={user.id}
-                          className="flex items-center gap-1 text-sm"
+                          className="mb-1 flex items-center gap-1 rounded bg-muted px-2 py-1 text-sm"
                         >
                           <span>
                             {user.name ?? user.email ?? "Unknown User"}
@@ -291,7 +291,7 @@ export function UserManagement() {
                             size="icon"
                             onClick={() => handleRemoveUser(group.id, user.id)}
                             disabled={removeUserFromGroup.isPending}
-                            className="h-6 w-6"
+                            className="h-6 w-6 p-0"
                           >
                             <X className="h-4 w-4" />
                           </Button>
