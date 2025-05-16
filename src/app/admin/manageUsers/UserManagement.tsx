@@ -27,7 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/trpc/react";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, X } from "lucide-react";
 import { useState } from "react";
 
 export function UserManagement() {
@@ -222,8 +222,7 @@ export function UserManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead className="w-[40%]">Group Details</TableHead>
                 <TableHead>Members</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
@@ -231,9 +230,15 @@ export function UserManagement() {
             <TableBody>
               {groups.map((group) => (
                 <TableRow key={group.id}>
-                  <TableCell className="font-medium">{group.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {group.description || "No description"}
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="font-medium">{group.name}</div>
+                      {group.description && (
+                        <div className="text-sm text-muted-foreground">
+                          {group.description}
+                        </div>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
@@ -247,11 +252,12 @@ export function UserManagement() {
                           </span>
                           <Button
                             variant="ghost"
-                            size="sm"
+                            size="icon"
                             onClick={() => handleRemoveUser(group.id, user.id)}
                             disabled={removeUserFromGroup.isPending}
+                            className="h-6 w-6"
                           >
-                            Remove
+                            <X className="h-4 w-4" />
                           </Button>
                         </div>
                       ))}
