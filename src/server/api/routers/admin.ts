@@ -155,4 +155,36 @@ export const adminRouter = createTRPCRouter({
         },
       });
     }),
+
+  editGroup: protectedAdminProcedure
+    .input(
+      z.object({
+        groupId: z.string(),
+        name: z.string().min(1),
+        description: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const group = await prisma.group.findUnique({
+        where: { id: input.groupId },
+      });
+
+      if (!group) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Group not found",
+        });
+      }
+
+      return prisma.group.update({
+        where: { id: input.groupId },
+        data: {
+          name: input.name,
+          description: input.description,
+        },
+        include: {
+          users: true,
+        },
+      });
+    }),
 });

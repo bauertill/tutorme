@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -21,12 +27,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/trpc/react";
+import { MoreVertical } from "lucide-react";
 import { useState } from "react";
 
 export function UserManagement() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDescription, setNewGroupDescription] = useState("");
+  const [editingGroup, setEditingGroup] = useState<{
+    id: string;
+    name: string;
+    description: string;
+  } | null>(null);
 
   const { data: users = [] } = api.admin.getUsers.useQuery();
   const { data: groups = [], refetch: refetchGroups } =
@@ -44,6 +56,13 @@ export function UserManagement() {
   const deleteGroup = api.admin.deleteGroup.useMutation({
     onSuccess: () => {
       void refetchGroups();
+    },
+  });
+
+  const editGroup = api.admin.editGroup.useMutation({
+    onSuccess: () => {
+      void refetchGroups();
+      setEditingGroup(null);
     },
   });
 
@@ -89,6 +108,24 @@ export function UserManagement() {
 
   const handleAddUser = (groupId: string, userId: string) => {
     addUserToGroup.mutate({ groupId, userId });
+  };
+
+  const handleEditGroup = (
+    groupId: string,
+    name: string,
+    description: string,
+  ) => {
+    setEditingGroup({ id: groupId, name, description });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingGroup) {
+      editGroup.mutate({
+        groupId: editingGroup.id,
+        name: editingGroup.name,
+        description: editingGroup.description,
+      });
+    }
   };
 
   return (
@@ -182,98 +219,171 @@ export function UserManagement() {
           <CardTitle>Groups</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {groups.map((group) => (
-              <div key={group.id} className="rounded-lg border p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold">{group.name}</h3>
-                    {group.description && (
-                      <p className="text-sm text-muted-foreground">
-                        {group.description}
-                      </p>
-                    )}
-                  </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteGroup(group.id)}
-                    disabled={deleteGroup.isPending}
-                  >
-                    Delete Group
-                  </Button>
-                </div>
-                <div className="mt-4">
-                  <h4 className="mb-2 text-sm font-medium">Members:</h4>
-                  <ul className="space-y-2">
-                    {group.users.map((user) => (
-                      <li
-                        key={user.id}
-                        className="flex items-center justify-between text-sm"
-                      >
-                        <span>{user.name ?? user.email ?? "Unknown User"}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRemoveUser(group.id, user.id)}
-                          disabled={removeUserFromGroup.isPending}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Members</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {groups.map((group) => (
+                <TableRow key={group.id}>
+                  <TableCell className="font-medium">{group.name}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {group.description || "No description"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      {group.users.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center justify-between text-sm"
                         >
-                          Remove
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-4">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          Add User
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add User to Group</DialogTitle>
-                          <DialogDescription>
-                            Select a user to add to this group.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="max-h-[300px] overflow-y-auto">
-                          {users
-                            .filter(
-                              (user) =>
-                                !group.users.some(
-                                  (groupUser) => groupUser.id === user.id,
-                                ),
-                            )
-                            .map((user) => (
-                              <div
-                                key={user.id}
-                                className="flex items-center justify-between py-2"
-                              >
-                                <span>
-                                  {user.name ?? user.email ?? "Unknown User"}
-                                </span>
-                                <Button
-                                  size="sm"
-                                  onClick={() =>
-                                    handleAddUser(group.id, user.id)
-                                  }
-                                  disabled={addUserToGroup.isPending}
-                                >
-                                  Add
-                                </Button>
-                              </div>
-                            ))}
+                          <span>
+                            {user.name ?? user.email ?? "Unknown User"}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveUser(group.id, user.id)}
+                            disabled={removeUserFromGroup.isPending}
+                          >
+                            Remove
+                          </Button>
                         </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                      ))}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                          >
+                            Add User
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Add User to Group</DialogTitle>
+                            <DialogDescription>
+                              Select a user to add to this group.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="max-h-[300px] overflow-y-auto">
+                            {users
+                              .filter(
+                                (user) =>
+                                  !group.users.some(
+                                    (groupUser) => groupUser.id === user.id,
+                                  ),
+                              )
+                              .map((user) => (
+                                <div
+                                  key={user.id}
+                                  className="flex items-center justify-between py-2"
+                                >
+                                  <span>
+                                    {user.name ?? user.email ?? "Unknown User"}
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    onClick={() =>
+                                      handleAddUser(group.id, user.id)
+                                    }
+                                    disabled={addUserToGroup.isPending}
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                              ))}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleEditGroup(
+                              group.id,
+                              group.name,
+                              group.description || "",
+                            )
+                          }
+                        >
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => handleDeleteGroup(group.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={!!editingGroup} onOpenChange={() => setEditingGroup(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Group</DialogTitle>
+            <DialogDescription>
+              Update the group name and description.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="edit-name" className="text-sm font-medium">
+                Group Name
+              </label>
+              <input
+                id="edit-name"
+                value={editingGroup?.name ?? ""}
+                onChange={(e) =>
+                  setEditingGroup((prev) =>
+                    prev ? { ...prev, name: e.target.value } : null,
+                  )
+                }
+                className="w-full rounded-md border border-input bg-background px-3 py-2"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="edit-description" className="text-sm font-medium">
+                Description
+              </label>
+              <textarea
+                id="edit-description"
+                value={editingGroup?.description ?? ""}
+                onChange={(e) =>
+                  setEditingGroup((prev) =>
+                    prev ? { ...prev, description: e.target.value } : null,
+                  )
+                }
+                className="w-full rounded-md border border-input bg-background px-3 py-2"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSaveEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
