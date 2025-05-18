@@ -112,7 +112,7 @@ export default function HelpBox({
       <Card
         ref={container}
         className={cn(
-          "max-h-full w-60 overflow-auto text-sm md:w-72 lg:w-80 xl:w-[30rem]",
+          "flex h-full w-60 flex-col justify-between overflow-auto text-sm md:w-72 lg:w-80 xl:w-[30rem]",
           "[scrollbar-width:thin]",
           "[scrollbar-color:hsl(var(--muted))_transparent]",
         )}

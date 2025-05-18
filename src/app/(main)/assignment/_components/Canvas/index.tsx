@@ -153,7 +153,7 @@ export function Canvas() {
             <Trans i18nKey="check" />
           </Button>
         </div>
-        <div className="absolute right-4 top-[4rem] z-10 flex max-h-[calc(100%-5rem)]">
+        <div className="absolute right-4 top-[4rem] z-10 flex h-[calc(100%-5rem)]">
           <HelpButton
             key={activeProblemId}
             getCanvasDataUrl={getDataUrl}
