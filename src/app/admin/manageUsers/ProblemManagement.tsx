@@ -147,9 +147,10 @@ export function ProblemManagement() {
   >(null);
   const { mutate: addToGroupMutation, isPending: addToGroupPending } =
     api.assignment.adminAddAssignmentToUserGroup.useMutation({
-      onSuccess: () => {
+      onSuccess: async () => {
         setAddToGroupAssignmentId(null);
-        refetch();
+        await refetch();
+        await refetchAssignments();
       },
     });
   const { data: userGroups = [], isLoading: groupsLoading } =
@@ -390,14 +391,8 @@ export function ProblemManagement() {
                     className="w-full rounded border p-2 text-left hover:bg-muted focus:outline-none"
                     onClick={() => {
                       if (!addToGroupAssignmentId) return;
-                      console.log(
-                        "Adding to group",
-                        group.id,
-                        "assignmentId",
-                        addToGroupAssignmentId,
-                      );
                       addToGroupMutation({
-                        assignmentId: addToGroupAssignmentId!,
+                        assignmentId: addToGroupAssignmentId,
                         userGroupId: group.id,
                       });
                     }}
