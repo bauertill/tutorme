@@ -45,7 +45,10 @@ export function ProblemManagement() {
     refetch,
   } = api.assignment.getUserProblems.useQuery();
   const deleteAllMutation = api.assignment.deleteAllUserProblems.useMutation({
-    onSuccess: () => refetch(),
+    onSuccess: () => {
+      refetch();
+      refetchAssignments();
+    },
   });
   const approveMutation = api.assignment.approveUserProblems.useMutation({
     onSuccess: () => refetch(),
@@ -88,7 +91,6 @@ export function ProblemManagement() {
   );
   const canApprove = selectedNewProblems.length > 0;
 
-  // Find all problems in modal mode (all problems, or just NEW ones?)
   const modalProblems = userProblems;
 
   const handleSelectAll = () => {
@@ -406,11 +408,6 @@ export function ProblemManagement() {
                       </div>
                     )}
                   </button>
-                  {addToGroupPending && (
-                    <div className="text-sm text-muted-foreground">
-                      Adding to group...
-                    </div>
-                  )}
                 </div>
               ))}
           </div>
@@ -418,8 +415,9 @@ export function ProblemManagement() {
             <Button
               variant="outline"
               onClick={() => setAddToGroupAssignmentId(null)}
+              disabled={addToGroupPending}
             >
-              Cancel
+              {addToGroupPending ? "Adding..." : "Cancel"}
             </Button>
           </ModalFooter>
         </ModalContent>

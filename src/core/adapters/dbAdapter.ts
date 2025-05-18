@@ -201,26 +201,16 @@ export class DBAdapter {
     problem: Draft<UserProblem>,
     userId: string,
   ): Promise<UserProblem> {
-    const existingProblem = await this.db.userProblem.findFirst({
-      where: {
+    const dbProblem = await this.db.userProblem.create({
+      data: {
+        ...problem,
         userId,
-        problem: problem.problem,
+        canvas: { paths: [] },
+        evaluation: undefined,
+        relevantImageSegment: problem.relevantImageSegment ?? undefined,
       },
     });
-
-    if (!existingProblem) {
-      const dbProblem = await this.db.userProblem.create({
-        data: {
-          ...problem,
-          userId,
-          canvas: { paths: [] },
-          evaluation: undefined,
-          relevantImageSegment: problem.relevantImageSegment ?? undefined,
-        },
-      });
-      return parseProblem(dbProblem);
-    }
-    return parseProblem(existingProblem);
+    return parseProblem(dbProblem);
   }
 
   async updateUserProblems(

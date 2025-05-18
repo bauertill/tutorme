@@ -38,14 +38,16 @@ export async function adminCreateAssignment(
   problems: UserProblem[],
   dbAdapter: DBAdapter,
 ) {
-  await dbAdapter.createAssignment(
+  const assignmentId = `${userId}-${assignmentName}`;
+  const assignment = await dbAdapter.createAssignment(
     {
       name: assignmentName,
-      id: `${userId}-${assignmentName}`,
+      id: assignmentId,
       problems: problems.map((p) => ({
         ...p,
-        id: `${p.id}-${userId}`,
-        assignmentId: `${userId}-${assignmentName}`,
+        userId,
+        id: uuidv4(),
+        assignmentId,
       })),
       createdAt: new Date(),
       updatedAt: new Date(),
