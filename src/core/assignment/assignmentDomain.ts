@@ -38,8 +38,15 @@ export async function adminUploadProblems(
       evaluation: null,
     });
   }
-  await dbAdapter.createUserProblems(userProblems, userId);
-  return userProblems;
+  const assignment: Assignment = {
+    id: assignmentId,
+    name: assignmentTitle,
+    problems: userProblems,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  await dbAdapter.createAssignment(assignment, userId);
+  return assignment.problems;
 }
 
 export async function createAssignmentFromUpload(

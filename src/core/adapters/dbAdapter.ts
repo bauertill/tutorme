@@ -367,6 +367,13 @@ export class DBAdapter {
   async getUserByEmail(email: string): Promise<User> {
     return await this.db.user.findUniqueOrThrow({ where: { email } });
   }
+
+  async getUserProblemsByUserId(userId: string): Promise<UserProblem[]> {
+    const dbProblems = await this.db.userProblem.findMany({
+      where: { userId },
+    });
+    return dbProblems.map((problem) => parseProblem(problem));
+  }
 }
 
 const parseProblem = (problem: UserProblemDB): UserProblem => ({

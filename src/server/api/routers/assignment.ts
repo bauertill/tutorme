@@ -112,4 +112,10 @@ export const assignmentRouter = createTRPCRouter({
         ctx.userLanguage,
       );
     }),
+
+  getUserProblems: protectedAdminProcedure.query(async ({ ctx }) => {
+    if (!ctx.session.user.id)
+      throw new Error("User must be present for admin actions");
+    return await ctx.dbAdapter.getUserProblemsByUserId(ctx.session.user.id);
+  }),
 });
