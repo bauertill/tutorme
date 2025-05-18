@@ -39,7 +39,7 @@ export async function adminCreateAssignment(
   dbAdapter: DBAdapter,
 ) {
   const assignmentId = `${userId}-${assignmentName}`;
-  const assignment = await dbAdapter.createAssignment(
+  await dbAdapter.createAssignment(
     {
       name: assignmentName,
       id: assignmentId,

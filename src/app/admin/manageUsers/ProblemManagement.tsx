@@ -45,13 +45,15 @@ export function ProblemManagement() {
     refetch,
   } = api.assignment.getUserProblems.useQuery();
   const deleteAllMutation = api.assignment.deleteAllUserProblems.useMutation({
-    onSuccess: () => {
-      refetch();
-      refetchAssignments();
+    onSuccess: async () => {
+      await refetch();
+      await refetchAssignments();
     },
   });
   const approveMutation = api.assignment.approveUserProblems.useMutation({
-    onSuccess: () => refetch(),
+    onSuccess: async () => {
+      await refetch();
+    },
   });
   const [open, setOpen] = React.useState(false);
   const [selectedProblems, setSelectedProblems] = React.useState<Set<string>>(
