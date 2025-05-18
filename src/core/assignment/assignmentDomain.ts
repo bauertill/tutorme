@@ -82,7 +82,7 @@ export async function createAssignmentFromUpload(
   }
   const assignment: Assignment = {
     id: assignmentId,
-    name: assignmentTitle,
+    name: `Upload @ ${new Date().toLocaleString()}`,
     problems: userProblems,
     createdAt: new Date(),
     updatedAt: new Date(),
