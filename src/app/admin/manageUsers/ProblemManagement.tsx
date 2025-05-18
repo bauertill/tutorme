@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -10,13 +11,21 @@ import {
   DialogTitle as DialogTitleUI,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { api } from "@/trpc/react";
 import React from "react";
 import { UploadAdminProblems } from "./UploadAdminProblems";
 
 export function ProblemManagement() {
   const {
-    data: userProblems,
+    data: userProblems = [],
     isLoading,
     error,
     refetch,
@@ -25,6 +34,44 @@ export function ProblemManagement() {
     onSuccess: () => refetch(),
   });
   const [open, setOpen] = React.useState(false);
+  const [selectedProblems, setSelectedProblems] = React.useState<Set<string>>(
+    new Set(),
+  );
+
+  const allSelected =
+    userProblems.length > 0 && selectedProblems.size === userProblems.length;
+  const someSelected =
+    selectedProblems.size > 0 && selectedProblems.size < userProblems.length;
+
+  const handleSelectAll = () => {
+    if (selectedProblems.size === userProblems.length) {
+      setSelectedProblems(new Set());
+    } else {
+      setSelectedProblems(new Set(userProblems.map((p) => p.id)));
+    }
+  };
+
+  const handleProblemSelect = (problemId: string) => {
+    const newSelected = new Set(selectedProblems);
+    if (newSelected.has(problemId)) {
+      newSelected.delete(problemId);
+    } else {
+      newSelected.add(problemId);
+    }
+    setSelectedProblems(newSelected);
+  };
+
+  const selectAllCheckboxRef = React.useCallback(
+    (el: HTMLButtonElement | null) => {
+      if (el) {
+        const input = el.querySelector(
+          'input[type="checkbox"]',
+        ) as HTMLInputElement | null;
+        if (input) input.indeterminate = someSelected;
+      }
+    },
+    [someSelected],
+  );
 
   return (
     <div className="space-y-4">
@@ -72,29 +119,56 @@ export function ProblemManagement() {
       </div>
       {isLoading && <div>Loading user problems...</div>}
       {error && <div className="text-red-500">Error loading user problems</div>}
-      {userProblems && userProblems.length === 0 && (
+      {userProblems.length === 0 && !isLoading && (
         <div>No user problems found.</div>
       )}
-      <div className="grid grid-cols-1 gap-4">
-        {userProblems &&
-          userProblems.map((problem) => (
-            <Card key={problem.id}>
-              <CardContent>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <div className="font-semibold">{problem.problem}</div>
-                    <div className="text-sm text-gray-500">
-                      Status: {problem.status}
-                    </div>
-                  </div>
-                  <div className="mt-2 text-xs text-gray-400 md:mt-0">
-                    Created: {new Date(problem.createdAt).toLocaleString()}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-      </div>
+      {userProblems.length > 0 && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Select all problems"
+                  ref={selectAllCheckboxRef}
+                />
+              </TableHead>
+              <TableHead>Problem</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {userProblems.map((problem) => (
+              <TableRow
+                key={problem.id}
+                data-state={
+                  selectedProblems.has(problem.id) ? "selected" : undefined
+                }
+              >
+                <TableCell>
+                  <Checkbox
+                    checked={selectedProblems.has(problem.id)}
+                    onCheckedChange={() => handleProblemSelect(problem.id)}
+                    aria-label={`Select problem ${problem.id}`}
+                  />
+                </TableCell>
+                <TableCell
+                  className="max-w-xs truncate"
+                  title={problem.problem}
+                >
+                  {problem.problem}
+                </TableCell>
+                <TableCell>{problem.status}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {new Date(problem.createdAt).toLocaleString()}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 }
