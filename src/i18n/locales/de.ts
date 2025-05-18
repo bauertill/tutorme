@@ -9,7 +9,7 @@ const translation = {
     "Oder fang direkt an mit deinen eigenen Hausaufgaben:",
   upload_assignment: "Hausaufgaben hochladen",
   upload_problems_card_description_admin: "Aufgaben für Ihre Schüler hochladen",
-  upload_problems_admin: "Aufgaben hochladen",
+  upload_problems_admin: "Hochladen",
   try_example_now: "Jetzt Beispielaufgabe lösen",
   search_exercises: "Aufgaben durchsuchen...",
   assignments: "Aufgaben",

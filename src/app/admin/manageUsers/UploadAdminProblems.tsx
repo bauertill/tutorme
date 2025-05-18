@@ -114,11 +114,7 @@ export function UploadAdminProblems({ onSuccess }: { onSuccess?: () => void }) {
         className="hidden"
       />
 
-      <Button
-        onClick={handleButtonClick}
-        type="button"
-        className="flex h-9 w-full items-center justify-start px-2 transition-all duration-200 ease-linear"
-      >
+      <Button onClick={handleButtonClick} type="button" variant="outline">
         <CameraIcon className="h-5 w-5 flex-shrink-0" />
         <SidebarText className="ml-2 overflow-hidden">
           <Trans i18nKey="upload_problems_admin" />
