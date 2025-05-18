@@ -7,6 +7,21 @@ import { type LLMAdapter } from "../adapters/llmAdapter";
 import { getExampleProblems } from "./getExampleProblems";
 import { type Assignment, type UserProblem } from "./types";
 
+export async function adminAddAssignmentToUserGroup(
+  assignmentId: string,
+  userGroupId: string,
+  dbAdapter: DBAdapter,
+) {
+  const assignment = await dbAdapter.getAssignmentById(assignmentId);
+  if (!assignment) {
+    throw new Error("Assignment not found");
+  }
+  const users = await dbAdapter.getUsersByUserGroupId(userGroupId);
+  for (const user of users) {
+    await dbAdapter.createAssignment(assignment, user.id);
+  }
+}
+
 export async function adminUploadProblems(
   uploadPath: string,
   userId: string,
@@ -56,7 +71,7 @@ export async function createAssignmentFromUpload(
   llmAdapter: LLMAdapter,
   language: Language,
 ): Promise<Assignment> {
-  const { assignmentTitle, problems: rawProblems } =
+  const { problems: rawProblems } =
     await llmAdapter.assignment.extractAssignmentFromImage(
       uploadPath,
       language,

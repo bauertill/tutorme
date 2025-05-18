@@ -1,4 +1,5 @@
 import {
+  adminAddAssignmentToUserGroup,
   adminUploadProblems,
   createAssignmentFromUpload,
   getExampleAssignment,
@@ -110,6 +111,18 @@ export const assignmentRouter = createTRPCRouter({
         ctx.dbAdapter,
         ctx.llmAdapter,
         ctx.userLanguage,
+      );
+    }),
+
+  adminAddAssignmentToUserGroup: protectedAdminProcedure
+    .input(z.object({ assignmentId: z.string(), userGroupId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session.user.id)
+        throw new Error("User must be present for admin actions");
+      return await adminAddAssignmentToUserGroup(
+        input.assignmentId,
+        input.userGroupId,
+        ctx.dbAdapter,
       );
     }),
 

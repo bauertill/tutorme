@@ -308,6 +308,25 @@ export class DBAdapter {
     }));
   }
 
+  async getAssignmentById(assignmentId: string): Promise<Assignment | null> {
+    const dbAssignment = await this.db.assignment.findUnique({
+      where: { id: assignmentId },
+      include: { problems: true },
+    });
+    if (!dbAssignment) {
+      return null;
+    }
+    return {
+      ...dbAssignment,
+      problems: dbAssignment.problems.map((problem) => parseProblem(problem)),
+    };
+  }
+  async getUsersByUserGroupId(userGroupId: string): Promise<User[]> {
+    return await this.db.user.findMany({
+      where: { groups: { some: { id: userGroupId } } },
+    });
+  }
+
   async getAppUsageByFingerprint(
     fingerprint: string,
   ): Promise<AppUsage | null> {

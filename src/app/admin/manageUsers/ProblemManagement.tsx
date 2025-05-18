@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { type UserProblem } from "@/core/assignment/types";
 import { api } from "@/trpc/react";
 import { MoreVertical } from "lucide-react";
 import React from "react";
@@ -65,16 +66,16 @@ export function ProblemManagement() {
   });
   const createAssignmentMutation =
     api.assignment.createAssignmentFromProblems.useMutation({
-      onSuccess: () => {
+      onSuccess: async () => {
         setCreateAssignmentOpen(false);
         setSelectedProblems(new Set());
-        refetchAssignments();
+        await refetchAssignments();
       },
     });
   const { data: assignments = [], refetch: refetchAssignments } =
     api.assignment.list.useQuery();
   const filteredAssignments = assignments.filter(
-    (a: any) => !a.name.startsWith("Upload @"),
+    (a) => !a.name.startsWith("Upload @"),
   );
 
   const allSelected =
@@ -89,7 +90,6 @@ export function ProblemManagement() {
 
   // Find all problems in modal mode (all problems, or just NEW ones?)
   const modalProblems = userProblems;
-  const allApproved = modalProblems.every((p) => p.status !== "NEW");
 
   const handleSelectAll = () => {
     if (selectedProblems.size === userProblems.length) {
@@ -120,7 +120,7 @@ export function ProblemManagement() {
     [someSelected],
   );
 
-  const handleOpenModal = (problem: any) => {
+  const handleOpenModal = (problem: UserProblem) => {
     const idx = modalProblems.findIndex((p) => p.id === problem.id);
     setSelectedProblemModalIndex(idx !== -1 ? idx : null);
   };
@@ -142,14 +142,16 @@ export function ProblemManagement() {
     setSelectedProblemModalIndex(null);
   };
 
-  // Placeholder for adding assignment to user group
-  const addAssignmentToUserGroup = (assignmentId: string) => {
-    console.log("Add to User Group:", assignmentId);
-  };
-
   const [addToGroupAssignmentId, setAddToGroupAssignmentId] = React.useState<
     string | null
   >(null);
+  const { mutate: addToGroupMutation } =
+    api.assignment.adminAddAssignmentToUserGroup.useMutation({
+      onSuccess: () => {
+        setAddToGroupAssignmentId(null);
+        refetch();
+      },
+    });
   const { data: userGroups = [], isLoading: groupsLoading } =
     api.admin.getGroups.useQuery();
 
@@ -360,7 +362,7 @@ export function ProblemManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAssignments.map((a: any) => (
+              {filteredAssignments.map((a) => (
                 <TableRow key={a.id}>
                   <TableCell>{a.name}</TableCell>
                   <TableCell className="whitespace-nowrap">
@@ -397,11 +399,16 @@ export function ProblemManagement() {
               <div>No groups found.</div>
             )}
             {!groupsLoading &&
-              userGroups.map((group: any) => (
+              userGroups.map((group) => (
                 <button
                   key={group.id}
                   className="w-full rounded border p-2 text-left hover:bg-muted focus:outline-none"
-                  onClick={() => handleSelectGroup(group.id)}
+                  onClick={() =>
+                    addToGroupMutation({
+                      assignmentId: addToGroupAssignmentId!,
+                      userGroupId: group.id,
+                    })
+                  }
                 >
                   <div className="font-medium">{group.name}</div>
                   {group.description && (
