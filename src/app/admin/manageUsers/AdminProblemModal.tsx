@@ -54,6 +54,8 @@ export function AdminProblemModal({
                 src={problem.imageUrl}
                 alt="Uploaded problem"
                 className="max-h-64 rounded border"
+                width={400}
+                height={400}
               />
             </div>
           )}

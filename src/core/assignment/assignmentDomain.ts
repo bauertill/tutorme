@@ -32,6 +32,27 @@ export async function adminAddAssignmentToUserGroup(
     );
   }
 }
+export async function adminCreateAssignment(
+  userId: string,
+  assignmentName: string,
+  problems: UserProblem[],
+  dbAdapter: DBAdapter,
+) {
+  await dbAdapter.createAssignment(
+    {
+      name: assignmentName,
+      id: `${userId}-${assignmentName}`,
+      problems: problems.map((p) => ({
+        ...p,
+        id: `${p.id}-${userId}`,
+        assignmentId: `${userId}-${assignmentName}`,
+      })),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    userId,
+  );
+}
 
 export async function adminUploadProblems(
   uploadPath: string,

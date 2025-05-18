@@ -167,14 +167,13 @@ export function ProblemManagement() {
               approveMutation.mutate(selectedNewProblems.map((p) => p.id))
             }
             disabled={!canApprove || approveMutation.isPending}
-            variant="default"
+            variant="outline"
           >
             {approveMutation.isPending ? "Approving..." : "Approve"}
           </Button>
           <Button
             onClick={() => setCreateAssignmentOpen(true)}
             disabled={selectedProblems.size === 0}
-            variant="secondary"
           >
             Create Assignment
           </Button>
@@ -316,11 +315,14 @@ export function ProblemManagement() {
               onClick={() =>
                 createAssignmentMutation.mutate({
                   name: assignmentName,
-                  problemIds: Array.from(selectedProblems),
+                  problems: userProblems.filter((p) =>
+                    selectedProblems.has(p.id),
+                  ),
                 })
               }
               disabled={
                 assignmentName.trim() === "" ||
+                !!assignments.find((a) => a.name === assignmentName) ||
                 createAssignmentMutation.isPending
               }
             >
