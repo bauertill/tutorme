@@ -18,7 +18,11 @@ import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadToBlob } from "./uploadToBlob";
 
-export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
+export function UploadUserProblems({
+  trigger,
+}: {
+  trigger: "button" | "card";
+}) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<
