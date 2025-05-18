@@ -145,7 +145,7 @@ export function ProblemManagement() {
   const [addToGroupAssignmentId, setAddToGroupAssignmentId] = React.useState<
     string | null
   >(null);
-  const { mutate: addToGroupMutation } =
+  const { mutate: addToGroupMutation, isPending: addToGroupPending } =
     api.assignment.adminAddAssignmentToUserGroup.useMutation({
       onSuccess: () => {
         setAddToGroupAssignmentId(null);
@@ -154,21 +154,6 @@ export function ProblemManagement() {
     });
   const { data: userGroups = [], isLoading: groupsLoading } =
     api.admin.getGroups.useQuery();
-
-  const handleAddToUserGroup = (assignmentId: string) => {
-    setAddToGroupAssignmentId(assignmentId);
-  };
-  const handleSelectGroup = (groupId: string) => {
-    if (addToGroupAssignmentId) {
-      console.log(
-        "Add assignment",
-        addToGroupAssignmentId,
-        "to group",
-        groupId,
-      );
-      setAddToGroupAssignmentId(null);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -373,7 +358,7 @@ export function ProblemManagement() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleAddToUserGroup(a.id)}
+                      onClick={() => setAddToGroupAssignmentId(a.id)}
                     >
                       Add to User Group
                     </Button>
@@ -400,23 +385,36 @@ export function ProblemManagement() {
             )}
             {!groupsLoading &&
               userGroups.map((group) => (
-                <button
-                  key={group.id}
-                  className="w-full rounded border p-2 text-left hover:bg-muted focus:outline-none"
-                  onClick={() =>
-                    addToGroupMutation({
-                      assignmentId: addToGroupAssignmentId!,
-                      userGroupId: group.id,
-                    })
-                  }
-                >
-                  <div className="font-medium">{group.name}</div>
-                  {group.description && (
+                <div key={group.id}>
+                  <button
+                    className="w-full rounded border p-2 text-left hover:bg-muted focus:outline-none"
+                    onClick={() => {
+                      if (!addToGroupAssignmentId) return;
+                      console.log(
+                        "Adding to group",
+                        group.id,
+                        "assignmentId",
+                        addToGroupAssignmentId,
+                      );
+                      addToGroupMutation({
+                        assignmentId: addToGroupAssignmentId!,
+                        userGroupId: group.id,
+                      });
+                    }}
+                  >
+                    <div className="font-medium">{group.name}</div>
+                    {group.description && (
+                      <div className="text-sm text-muted-foreground">
+                        {group.description}
+                      </div>
+                    )}
+                  </button>
+                  {addToGroupPending && (
                     <div className="text-sm text-muted-foreground">
-                      {group.description}
+                      Adding to group...
                     </div>
                   )}
-                </button>
+                </div>
               ))}
           </div>
           <ModalFooter>

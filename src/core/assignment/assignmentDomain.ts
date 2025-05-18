@@ -18,7 +18,18 @@ export async function adminAddAssignmentToUserGroup(
   }
   const users = await dbAdapter.getUsersByUserGroupId(userGroupId);
   for (const user of users) {
-    await dbAdapter.createAssignment(assignment, user.id);
+    await dbAdapter.createAssignment(
+      {
+        ...assignment,
+        id: `${assignmentId}-${user.id}`,
+        problems: assignment.problems.map((p) => ({
+          ...p,
+          id: `${p.id}-${user.id}`,
+          assignmentId: `${assignmentId}-${user.id}`,
+        })),
+      },
+      user.id,
+    );
   }
 }
 
@@ -29,7 +40,7 @@ export async function adminUploadProblems(
   llmAdapter: LLMAdapter,
   language: Language,
 ): Promise<UserProblem[]> {
-  const { assignmentTitle, problems: rawProblems } =
+  const { problems: rawProblems } =
     await llmAdapter.assignment.extractAssignmentFromImage(
       uploadPath,
       language,
@@ -55,7 +66,7 @@ export async function adminUploadProblems(
   }
   const assignment: Assignment = {
     id: assignmentId,
-    name: assignmentTitle,
+    name: `Upload @ ${new Date().toLocaleString()}`,
     problems: userProblems,
     createdAt: new Date(),
     updatedAt: new Date(),
