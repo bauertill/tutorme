@@ -142,6 +142,32 @@ export function ProblemManagement() {
     setSelectedProblemModalIndex(null);
   };
 
+  // Placeholder for adding assignment to user group
+  const addAssignmentToUserGroup = (assignmentId: string) => {
+    console.log("Add to User Group:", assignmentId);
+  };
+
+  const [addToGroupAssignmentId, setAddToGroupAssignmentId] = React.useState<
+    string | null
+  >(null);
+  const { data: userGroups = [], isLoading: groupsLoading } =
+    api.admin.getGroups.useQuery();
+
+  const handleAddToUserGroup = (assignmentId: string) => {
+    setAddToGroupAssignmentId(assignmentId);
+  };
+  const handleSelectGroup = (groupId: string) => {
+    if (addToGroupAssignmentId) {
+      console.log(
+        "Add assignment",
+        addToGroupAssignmentId,
+        "to group",
+        groupId,
+      );
+      setAddToGroupAssignmentId(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex w-full flex-row items-start justify-between">
@@ -330,6 +356,7 @@ export function ProblemManagement() {
                 <TableHead>Name</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead># Problems</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -340,12 +367,61 @@ export function ProblemManagement() {
                     {new Date(a.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell>{a.problems?.length ?? 0}</TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleAddToUserGroup(a.id)}
+                    >
+                      Add to User Group
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       )}
+      {/* Add to User Group Modal */}
+      <Modal
+        open={!!addToGroupAssignmentId}
+        onOpenChange={(open) => !open && setAddToGroupAssignmentId(null)}
+      >
+        <ModalContent>
+          <ModalHeader>
+            <ModalTitle>Select a User Group</ModalTitle>
+          </ModalHeader>
+          <div className="space-y-2 py-2">
+            {groupsLoading && <div>Loading groups...</div>}
+            {!groupsLoading && userGroups.length === 0 && (
+              <div>No groups found.</div>
+            )}
+            {!groupsLoading &&
+              userGroups.map((group: any) => (
+                <button
+                  key={group.id}
+                  className="w-full rounded border p-2 text-left hover:bg-muted focus:outline-none"
+                  onClick={() => handleSelectGroup(group.id)}
+                >
+                  <div className="font-medium">{group.name}</div>
+                  {group.description && (
+                    <div className="text-sm text-muted-foreground">
+                      {group.description}
+                    </div>
+                  )}
+                </button>
+              ))}
+          </div>
+          <ModalFooter>
+            <Button
+              variant="outline"
+              onClick={() => setAddToGroupAssignmentId(null)}
+            >
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

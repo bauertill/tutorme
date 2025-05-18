@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { type UserProblem } from "@/core/assignment/types";
 
 export function AdminProblemModal({
   open,
@@ -20,7 +21,7 @@ export function AdminProblemModal({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  problems: any[];
+  problems: UserProblem[];
   activeIndex: number;
   onApprove: (problemId: string) => void;
   onDone: () => void;
@@ -52,7 +53,6 @@ export function AdminProblemModal({
                 src={problem.imageUrl}
                 alt="Uploaded problem"
                 className="max-h-64 rounded border"
-                style={{ maxWidth: "100%" }}
               />
             </div>
           )}
