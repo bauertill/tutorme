@@ -378,6 +378,17 @@ export class DBAdapter {
   async deleteAllUserProblemsByUserId(userId: string): Promise<void> {
     await this.db.userProblem.deleteMany({ where: { userId } });
   }
+
+  async approveUserProblemsByIds(userId: string, ids: string[]): Promise<void> {
+    await this.db.userProblem.updateMany({
+      where: {
+        id: { in: ids },
+        userId,
+        status: "NEW",
+      },
+      data: { status: "INITIAL" },
+    });
+  }
 }
 
 const parseProblem = (problem: UserProblemDB): UserProblem => ({

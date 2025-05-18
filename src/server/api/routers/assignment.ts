@@ -125,4 +125,13 @@ export const assignmentRouter = createTRPCRouter({
     await ctx.dbAdapter.deleteAllUserProblemsByUserId(ctx.session.user.id);
     return { success: true };
   }),
+
+  approveUserProblems: protectedAdminProcedure
+    .input(z.array(z.string()))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session.user.id)
+        throw new Error("User must be present for admin actions");
+      await ctx.dbAdapter.approveUserProblemsByIds(ctx.session.user.id, input);
+      return { success: true };
+    }),
 });

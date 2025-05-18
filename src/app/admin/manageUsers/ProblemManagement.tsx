@@ -40,6 +40,9 @@ export function ProblemManagement() {
   const deleteAllMutation = api.assignment.deleteAllUserProblems.useMutation({
     onSuccess: () => refetch(),
   });
+  const approveMutation = api.assignment.approveUserProblems.useMutation({
+    onSuccess: () => refetch(),
+  });
   const [open, setOpen] = React.useState(false);
   const [selectedProblems, setSelectedProblems] = React.useState<Set<string>>(
     new Set(),
@@ -49,6 +52,11 @@ export function ProblemManagement() {
     userProblems.length > 0 && selectedProblems.size === userProblems.length;
   const someSelected =
     selectedProblems.size > 0 && selectedProblems.size < userProblems.length;
+
+  const selectedNewProblems = userProblems.filter(
+    (p) => selectedProblems.has(p.id) && p.status === "NEW",
+  );
+  const canApprove = selectedNewProblems.length > 0;
 
   const handleSelectAll = () => {
     if (selectedProblems.size === userProblems.length) {
@@ -86,6 +94,15 @@ export function ProblemManagement() {
         <CardTitle>Problem Management</CardTitle>
         <div className="flex gap-2">
           <UploadAdminProblems onSuccess={refetch} />
+          <Button
+            onClick={() =>
+              approveMutation.mutate(selectedNewProblems.map((p) => p.id))
+            }
+            disabled={!canApprove || approveMutation.isPending}
+            variant="default"
+          >
+            {approveMutation.isPending ? "Approving..." : "Approve"}
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Open menu">
