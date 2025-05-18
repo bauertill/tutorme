@@ -102,9 +102,11 @@ export const assignmentRouter = createTRPCRouter({
   adminUploadProblems: protectedAdminProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session.user.id)
+        throw new Error("User must be present for admin actions");
       return await adminUploadProblems(
         input,
-        ctx.session?.user?.id,
+        ctx.session.user.id,
         ctx.dbAdapter,
         ctx.llmAdapter,
         ctx.userLanguage,

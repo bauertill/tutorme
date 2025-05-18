@@ -9,7 +9,7 @@ import { type Assignment, type UserProblem } from "./types";
 
 export async function adminUploadProblems(
   uploadPath: string,
-  userId: string | undefined,
+  userId: string,
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
   language: Language,
@@ -25,7 +25,7 @@ export async function adminUploadProblems(
   for (const problem of rawProblems) {
     userProblems.push({
       id: uuidv4(),
-      status: "INITIAL", // TODO: add stars 0-3
+      status: "NEW",
       problem: problem.problemText,
       problemNumber: problem.problemNumber,
       referenceSolution: null,
@@ -38,6 +38,7 @@ export async function adminUploadProblems(
       evaluation: null,
     });
   }
+  await dbAdapter.createUserProblems(userProblems, userId);
   return userProblems;
 }
 
