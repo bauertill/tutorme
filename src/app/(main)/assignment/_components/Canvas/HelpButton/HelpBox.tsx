@@ -1,3 +1,4 @@
+import ResizableDiv from "@/app/(main)/assignment/_components/Canvas/HelpButton/ResizableDiv";
 import { useScrollToBottom } from "@/app/_components/layout/useScrollToBottom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -109,35 +110,38 @@ export default function HelpBox({
       >
         <X className="h-4 w-4" />
       </Button>
-      <Card
-        ref={container}
-        className={cn(
-          "max-h-full w-60 overflow-auto text-sm md:w-72 lg:w-80 xl:w-96",
-          "[scrollbar-width:thin]",
-          "[scrollbar-color:hsl(var(--muted))_transparent]",
-        )}
-      >
-        <CardContent className="p-4">
-          {messages.length === 0 && (
-            <p>
-              <Trans i18nKey="help_box_empty_message" />
-            </p>
+      <ResizableDiv className={cn("h-full w-[35vw] overflow-hidden")}>
+        <Card
+          ref={container}
+          className={cn(
+            "flex h-full w-full flex-col justify-between overflow-auto text-sm",
+            "[scrollbar-width:thin]",
+            "[scrollbar-color:hsl(var(--muted))_transparent]",
           )}
-          <MessageList messages={messages} />
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4 px-4 pb-4">
-          <TextInput
-            disabled={askMutation.isPending}
-            onSend={(question) => ask(question)}
-            isLoading={askMutation.isPending}
-          />
-          <RecommendedQuestionsList
-            disabled={askMutation.isPending}
-            onAsk={(question) => ask(question)}
-            questions={recommendedQuestions}
-          />
-        </CardFooter>
-      </Card>
+        >
+          {messages.length === 0 ? (
+            <CardContent className="flex h-full w-full items-center justify-center p-4">
+              <Trans i18nKey="help_box_empty_message" />
+            </CardContent>
+          ) : (
+            <CardContent className="p-4">
+              <MessageList messages={messages} />
+            </CardContent>
+          )}
+          <CardFooter className="flex flex-col gap-4 px-4 pb-4">
+            <RecommendedQuestionsList
+              disabled={askMutation.isPending}
+              onAsk={(question) => ask(question)}
+              questions={recommendedQuestions}
+            />
+            <TextInput
+              disabled={askMutation.isPending}
+              onSend={(question) => ask(question)}
+              isLoading={askMutation.isPending}
+            />
+          </CardFooter>
+        </Card>
+      </ResizableDiv>
     </div>
   );
 }

@@ -11,12 +11,12 @@ export default function RecommendedQuestionsList({
   questions: RecommendedQuestion[];
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-wrap gap-2">
       {questions.map((question) => (
         <Button
           key={question.question}
           variant="outline"
-          className="h-auto w-full whitespace-normal font-normal text-muted-foreground"
+          className="min-w-30 h-auto flex-1 basis-36 whitespace-normal font-normal text-muted-foreground"
           onClick={() => onAsk(question.question)}
           disabled={disabled}
         >
