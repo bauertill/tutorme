@@ -139,7 +139,7 @@ export function Canvas() {
               onCheck(dataUrl);
             }}
             disabled={isEmpty || isSubmitting}
-            className="check-answer-button"
+            className="check-answer-button flex items-center gap-2"
           >
             {isSubmitting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
