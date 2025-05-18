@@ -162,6 +162,7 @@ export function ProblemManagement() {
                   ref={selectAllCheckboxRef}
                 />
               </TableHead>
+              <TableHead>#</TableHead>
               <TableHead>Problem</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
@@ -181,6 +182,9 @@ export function ProblemManagement() {
                     onCheckedChange={() => handleProblemSelect(problem.id)}
                     aria-label={`Select problem ${problem.id}`}
                   />
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {problem.problemNumber}
                 </TableCell>
                 <TableCell
                   className="max-w-xs truncate"
