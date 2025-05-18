@@ -6,6 +6,8 @@ import assert from "assert";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AnimatedScrollIcon from "./AnimatedScrollIcon";
 import PointingTool from "./PointingTool";
+import RestrictedScrollContainer from "./RestrictedScrollContainer";
+
 import {
   isPointCloseToPath,
   pathToSVGPathData,
@@ -172,62 +174,66 @@ export function useCanvas() {
 
   const canvas = useMemo(
     () => (
-      <div
-        ref={containerRef}
-        className={cn(
-          "relative h-full w-full overflow-x-auto overflow-y-scroll",
-          "[scrollbar-color:hsl(var(--muted))_transparent]",
-          "[scrollbar-width:thin]",
-        )}
-      >
-        <svg
-          ref={svgRef}
-          className={`absolute inset-0 bg-[length:25px_25px]`}
-          style={{
-            backgroundImage:
-              "linear-gradient(0deg, hsl(var(--muted)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--muted)) 1px, transparent 1px)",
-          }}
-          width={viewBox.width}
-          height={viewBox.height}
-          viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
+      <div className="relative h-full w-full">
+        <RestrictedScrollContainer
+          ref={containerRef}
+          className={cn(
+            "relative h-full w-full overflow-x-auto overflow-y-scroll",
+            "[scrollbar-color:hsl(var(--muted))_transparent]",
+            "[scrollbar-width:thin]",
+          )}
         >
-          {svgContents}
-        </svg>
-        {isEraser ? (
-          <PointingTool
-            className="absolute inset-0 cursor-none"
-            style={{ width: viewBox.width, height: viewBox.height }}
-            onStartDrawing={startErasing}
-            onDraw={eraseAtPoint}
-            onStopDrawing={stopErasing}
-            onCancelDrawing={cancelErasing}
-            transform={transform}
+          <svg
+            ref={svgRef}
+            className={`bg-[length:25px_25px]`}
+            style={{
+              backgroundImage:
+                "linear-gradient(0deg, hsl(var(--muted)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--muted)) 1px, transparent 1px)",
+            }}
+            width={viewBox.width}
+            height={viewBox.height}
+            viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
           >
-            <div
-              className={cn(
-                "rounded-full border-2 border-accent-foreground bg-background opacity-70",
-                "group-[.is-drawing]:border-destructive",
-              )}
-              style={{
-                width: `${ERASER_RADIUS * 2}px`,
-                height: `${ERASER_RADIUS * 2}px`,
-                transform: "translate(-50%, -50%)",
-              }}
+            {svgContents}
+          </svg>
+          {isEraser ? (
+            <PointingTool
+              className="absolute inset-0 cursor-none"
+              style={{ width: viewBox.width, height: viewBox.height }}
+              onStartDrawing={startErasing}
+              onDraw={eraseAtPoint}
+              onStopDrawing={stopErasing}
+              onCancelDrawing={cancelErasing}
+              transform={transform}
+            >
+              <div
+                className={cn(
+                  "rounded-full border-2 border-accent-foreground bg-background opacity-70",
+                  "group-[.is-drawing]:border-destructive",
+                )}
+                style={{
+                  width: `${ERASER_RADIUS * 2}px`,
+                  height: `${ERASER_RADIUS * 2}px`,
+                  transform: "translate(-50%, -50%)",
+                }}
+              />
+            </PointingTool>
+          ) : (
+            <PointingTool
+              className="absolute inset-0"
+              style={{ width: viewBox.width, height: viewBox.height }}
+              onStartDrawing={startDrawing}
+              onDraw={addPoint}
+              onStopDrawing={stopDrawing}
+              onCancelDrawing={cancelDrawing}
+              transform={transform}
             />
-          </PointingTool>
-        ) : (
-          <PointingTool
-            className="absolute inset-0"
-            style={{ width: viewBox.width, height: viewBox.height }}
-            onStartDrawing={startDrawing}
-            onDraw={addPoint}
-            onStopDrawing={stopDrawing}
-            onCancelDrawing={cancelDrawing}
-            transform={transform}
-          />
-        )}
+          )}
+        </RestrictedScrollContainer>
         {!userHasScrolled && isScrollable && (
-          <AnimatedScrollIcon className="pointer-events-none absolute bottom-4 left-20" />
+          <div className="pointer-events-none absolute inset-0">
+            <AnimatedScrollIcon className="pointer-events-none absolute bottom-4 left-20" />
+          </div>
         )}
       </div>
     ),
