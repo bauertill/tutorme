@@ -4,7 +4,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -34,40 +33,31 @@ export function AdminProblemModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Problem Details</DialogTitle>
-          <DialogDescription>
-            Review the original problem and image before approving.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <span className="font-semibold">Problem Number:</span>{" "}
-            {problem.problemNumber}
-          </div>
-          <div>
-            <span className="font-semibold">Status:</span> {problem.status}
-          </div>
-          <div>
-            <span className="font-semibold">Problem:</span>
-            <div className="mt-1 rounded bg-muted p-2">
-              <Latex>{problem.problem}</Latex>
+          <DialogTitle className="flex flex-row items-center gap-2">
+            <div className="text-s text-muted-foreground">
+              {problem.problemNumber}
             </div>
+            <div className="text-sm text-muted-foreground">
+              {problem.status === "NEW" ? "NEW" : "APPROVED"}
+            </div>
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          <div className="rounded">
+            <Latex>{problem.problem}</Latex>
           </div>
           {problem.imageUrl && (
-            <div>
-              <span className="font-semibold">Original Image:</span>
-              <div className="mt-2">
-                <img
-                  src={problem.imageUrl}
-                  alt="Uploaded problem"
-                  className="max-h-64 rounded border"
-                  style={{ maxWidth: "100%" }}
-                />
-              </div>
+            <div className="mt-2">
+              <img
+                src={problem.imageUrl}
+                alt="Uploaded problem"
+                className="max-h-64 rounded border"
+                style={{ maxWidth: "100%" }}
+              />
             </div>
           )}
         </div>
-        <DialogFooter>
+        <DialogFooter className="mt-4">
           <DialogClose asChild>
             <Button variant="outline">Close</Button>
           </DialogClose>
