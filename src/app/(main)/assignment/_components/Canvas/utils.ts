@@ -67,7 +67,6 @@ export async function toDataUrl(
 }
 
 export function pathToSVGPathData(path: Path): string {
-  console.log("path");
   let pathData = "";
 
   const firstPoint = path[0];
