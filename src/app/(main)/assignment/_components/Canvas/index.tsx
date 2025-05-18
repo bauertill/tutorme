@@ -41,7 +41,7 @@ export function Canvas() {
   } = useCanvas();
   const storeCurrentPathsOnProblem = useStore.use.storeCurrentPathsOnProblem();
   const activeProblemId = useStore.use.activeProblemId();
-  const { setEvaluationResult } = useEvaluationResult();
+  const { evaluationResult, setEvaluationResult } = useEvaluationResult();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const activeProblem = useActiveProblem();
   const [helpOpen, setHelpOpen] = useState(true);
@@ -162,6 +162,7 @@ export function Canvas() {
           />
         </div>
         <CelebrationDialog
+          evaluationResult={evaluationResult}
           open={celebrationOpen}
           setOpen={setCelebrationOpen}
         />
@@ -186,6 +187,7 @@ export function Canvas() {
       trackEvent,
       undo,
       redo,
+      evaluationResult,
     ],
   );
   return useMemo(

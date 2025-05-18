@@ -8,13 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { type EvaluationResult } from "@/core/assignment/types";
 import { useTranslation } from "@/i18n/react";
 import { useProblemController } from "@/store/selectors";
 
 export function CelebrationDialog({
+  evaluationResult,
   open,
   setOpen,
 }: {
+  evaluationResult: EvaluationResult | null;
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
@@ -27,7 +30,10 @@ export function CelebrationDialog({
         <DialogHeader>
           <DialogTitle>{t("celebrationDialog.title")}</DialogTitle>
         </DialogHeader>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col gap-2">
+          {evaluationResult?.successMessage && (
+            <p>{evaluationResult.successMessage}</p>
+          )}
           <p>
             {gotoNextUnsolvedProblem
               ? t("celebrationDialog.description_one_problem_solved")

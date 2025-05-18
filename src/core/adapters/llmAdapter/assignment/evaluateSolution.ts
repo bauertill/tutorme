@@ -27,6 +27,12 @@ export const EvaluateSolutionSchema = z.object({
     .describe(
       "A hint to help the student correct the mistakes in their solution, if any.",
     ),
+  successMessage: z
+    .string()
+    .optional()
+    .describe(
+      "If the solution is correct, briefly state the student's correct solution.",
+    ),
   hasMistakes: z.boolean().describe("Whether the solution has mistakes"),
   isComplete: z
     .boolean()

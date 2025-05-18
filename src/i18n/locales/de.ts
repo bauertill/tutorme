@@ -42,7 +42,7 @@ const translation = {
   celebrationDialog: {
     title: "Gut gemacht!",
     description_one_problem_solved:
-      "Großartig, du hast die Aufgabe gelöst! Du kannst jetzt mit der nächsten Aufgabe weitermachen.",
+      "Du kannst jetzt mit der nächsten Aufgabe weitermachen.",
     description_all_problems_solved: "Großartig, du hast alle Aufgaben gelöst!",
     close: "Schließen",
     next_problem: "Nächste Aufgabe",

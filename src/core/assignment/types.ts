@@ -13,6 +13,7 @@ export type Canvas = z.infer<typeof Canvas>;
 
 export const EvaluationResult = z.object({
   hint: z.string().optional(),
+  successMessage: z.string().optional(),
   hasMistakes: z.boolean(),
   isComplete: z.boolean(),
   analysis: z.string(),

@@ -41,8 +41,7 @@ const translation = {
   help_box_empty_message: "Are you stuck? Ask for help!",
   celebrationDialog: {
     title: "Congratulations!",
-    description_one_problem_solved:
-      "Great work, you solved the problem! You can now move on to the next one.",
+    description_one_problem_solved: "You can now move on to the next problem.",
     description_all_problems_solved:
       "Great work, you solved all problems of the assignment!",
     close: "Close",
