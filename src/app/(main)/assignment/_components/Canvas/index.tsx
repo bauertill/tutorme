@@ -19,7 +19,7 @@ import {
   Trash,
   Undo,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CelebrationDialog } from "./CelebrationDialog";
 import HelpButton from "./HelpButton";
@@ -44,7 +44,7 @@ export function Canvas() {
   const { setEvaluationResult } = useEvaluationResult();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const activeProblem = useActiveProblem();
-  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
   const {
     messages,
@@ -88,6 +88,10 @@ export function Canvas() {
         }
       },
     });
+
+  useEffect(() => {
+    setHelpOpen(true);
+  }, [activeProblemId]);
 
   const onCheck = useCallback(
     (dataUrl: string) => {
