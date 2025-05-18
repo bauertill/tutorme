@@ -11,7 +11,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
 import { Trans } from "@/i18n/react";
-import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { ArrowRight, CameraIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -33,21 +32,12 @@ export function UploadAdminProblems({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const addAssignment = useStore.use.addAssignment();
-  const setUsageLimitReached = useStore.use.setUsageLimitReached();
-  const { mutate: deleteAssignment } =
-    api.assignment.deleteAssignment.useMutation();
   const { mutateAsync: createAssignmentFromUpload } =
-    api.assignment.createFromUpload.useMutation({
+    api.assignment.adminUploadProblems.useMutation({
       onSuccess: (assignment) => {
-        if (isCancelled) {
-          deleteAssignment(assignment.id);
-          return;
-        }
         setUploadState("success");
         toast.success("Problems uploaded successfully!");
         setOpen(false);
-        addAssignment(assignment);
       },
     });
 
@@ -86,7 +76,6 @@ export function UploadAdminProblems({
         error instanceof Error &&
         error.message === "Free tier limit reached"
       ) {
-        setUsageLimitReached(true);
         setOpen(false);
       } else {
         if (error instanceof Error) {

@@ -7,6 +7,40 @@ import { type LLMAdapter } from "../adapters/llmAdapter";
 import { getExampleProblems } from "./getExampleProblems";
 import { type Assignment, type UserProblem } from "./types";
 
+export async function adminUploadProblems(
+  uploadPath: string,
+  userId: string | undefined,
+  dbAdapter: DBAdapter,
+  llmAdapter: LLMAdapter,
+  language: Language,
+): Promise<UserProblem[]> {
+  const { assignmentTitle, problems: rawProblems } =
+    await llmAdapter.assignment.extractAssignmentFromImage(
+      uploadPath,
+      language,
+      userId,
+    );
+  const assignmentId = uuidv4();
+  const userProblems: UserProblem[] = [];
+  for (const problem of rawProblems) {
+    userProblems.push({
+      id: uuidv4(),
+      status: "INITIAL", // TODO: add stars 0-3
+      problem: problem.problemText,
+      problemNumber: problem.problemNumber,
+      referenceSolution: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      relevantImageSegment: problem.relevantImageSegment ?? undefined,
+      imageUrl: uploadPath,
+      assignmentId,
+      canvas: { paths: [] },
+      evaluation: null,
+    });
+  }
+  return userProblems;
+}
+
 export async function createAssignmentFromUpload(
   uploadPath: string,
   userId: string | undefined,

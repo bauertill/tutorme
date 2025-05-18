@@ -1,4 +1,5 @@
 import {
+  adminUploadProblems,
   createAssignmentFromUpload,
   getExampleAssignment,
   syncAssignments,
@@ -13,6 +14,7 @@ import {
 import {
   createTRPCRouter,
   limitedPublicProcedure,
+  protectedAdminProcedure,
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
@@ -96,4 +98,16 @@ export const assignmentRouter = createTRPCRouter({
   getExampleAssignment: publicProcedure.query(async ({ ctx }) => {
     return getExampleAssignment(ctx.userLanguage);
   }),
+
+  adminUploadProblems: protectedAdminProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      return await adminUploadProblems(
+        input,
+        ctx.session?.user?.id,
+        ctx.dbAdapter,
+        ctx.llmAdapter,
+        ctx.userLanguage,
+      );
+    }),
 });
