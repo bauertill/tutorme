@@ -10,6 +10,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle as DialogTitleUI,
+  Dialog as Modal,
+  DialogContent as ModalContent,
+  DialogFooter as ModalFooter,
+  DialogHeader as ModalHeader,
+  DialogTitle as ModalTitle,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -53,6 +58,24 @@ export function ProblemManagement() {
   const approveSingleMutation = api.assignment.approveUserProblems.useMutation({
     onSuccess: () => refetch(),
   });
+  const [createAssignmentOpen, setCreateAssignmentOpen] = React.useState(false);
+  const [assignmentName, setAssignmentName] = React.useState(() => {
+    const today = new Date();
+    return `Homework - ${today.toLocaleDateString("en-GB")}`;
+  });
+  const createAssignmentMutation =
+    api.assignment.createAssignmentFromProblems.useMutation({
+      onSuccess: () => {
+        setCreateAssignmentOpen(false);
+        setSelectedProblems(new Set());
+        refetchAssignments();
+      },
+    });
+  const { data: assignments = [], refetch: refetchAssignments } =
+    api.assignment.list.useQuery();
+  const filteredAssignments = assignments.filter(
+    (a: any) => !a.name.startsWith("Upload @"),
+  );
 
   const allSelected =
     userProblems.length > 0 && selectedProblems.size === userProblems.length;
@@ -133,6 +156,13 @@ export function ProblemManagement() {
             variant="default"
           >
             {approveMutation.isPending ? "Approving..." : "Approve"}
+          </Button>
+          <Button
+            onClick={() => setCreateAssignmentOpen(true)}
+            disabled={selectedProblems.size === 0}
+            variant="secondary"
+          >
+            Create Assignment
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -254,6 +284,68 @@ export function ProblemManagement() {
         onDone={handleDoneModal}
         isApproving={approveSingleMutation.isPending}
       />
+      <Modal open={createAssignmentOpen} onOpenChange={setCreateAssignmentOpen}>
+        <ModalContent>
+          <ModalHeader>
+            <ModalTitle>Create Assignment</ModalTitle>
+          </ModalHeader>
+          <div className="space-y-2 py-2">
+            <label className="block text-sm font-medium">Assignment Name</label>
+            <input
+              className="w-full rounded border px-2 py-1"
+              value={assignmentName}
+              onChange={(e) => setAssignmentName(e.target.value)}
+            />
+          </div>
+          <ModalFooter>
+            <Button
+              onClick={() =>
+                createAssignmentMutation.mutate({
+                  name: assignmentName,
+                  problemIds: Array.from(selectedProblems),
+                })
+              }
+              disabled={
+                assignmentName.trim() === "" ||
+                createAssignmentMutation.isPending
+              }
+            >
+              {createAssignmentMutation.isPending ? "Creating..." : "Create"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setCreateAssignmentOpen(false)}
+            >
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      {filteredAssignments.length > 0 && (
+        <div>
+          <div className="mb-2 text-lg font-semibold">Assignments</div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead># Problems</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAssignments.map((a: any) => (
+                <TableRow key={a.id}>
+                  <TableCell>{a.name}</TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {new Date(a.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>{a.problems?.length ?? 0}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }

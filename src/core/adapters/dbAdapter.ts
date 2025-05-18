@@ -281,6 +281,7 @@ export class DBAdapter {
       problems: createdProblems,
     };
   }
+
   async deleteAssignmentById(assignmentId: string): Promise<void> {
     await this.db.assignment.delete({
       where: {
@@ -376,7 +377,10 @@ export class DBAdapter {
   }
 
   async deleteAllUserProblemsByUserId(userId: string): Promise<void> {
-    await this.db.userProblem.deleteMany({ where: { userId } });
+    await this.db.$transaction([
+      this.db.assignment.deleteMany({ where: { userId } }),
+      this.db.userProblem.deleteMany({ where: { userId } }),
+    ]);
   }
 
   async approveUserProblemsByIds(userId: string, ids: string[]): Promise<void> {
@@ -387,6 +391,23 @@ export class DBAdapter {
         status: "NEW",
       },
       data: { status: "INITIAL" },
+    });
+  }
+
+  async createAssignmentFromProblems(
+    userId: string,
+    name: string,
+    problemIds: string[],
+  ) {
+    return await this.db.assignment.create({
+      data: {
+        name,
+        userId,
+        problems: {
+          connect: problemIds.map((id) => ({ id })),
+        },
+      },
+      include: { problems: true },
     });
   }
 }
