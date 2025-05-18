@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { type UserProblem } from "@/core/assignment/types";
+import Image from "next/image";
 
 export function AdminProblemModal({
   open,
@@ -49,7 +50,7 @@ export function AdminProblemModal({
           </div>
           {problem.imageUrl && (
             <div className="mt-2">
-              <img
+              <Image
                 src={problem.imageUrl}
                 alt="Uploaded problem"
                 className="max-h-64 rounded border"
