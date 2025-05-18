@@ -1,5 +1,17 @@
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle as DialogTitleUI,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { api } from "@/trpc/react";
+import React from "react";
 import { UploadAdminProblems } from "./UploadAdminProblems";
 
 export function ProblemManagement() {
@@ -7,13 +19,56 @@ export function ProblemManagement() {
     data: userProblems,
     isLoading,
     error,
+    refetch,
   } = api.assignment.getUserProblems.useQuery();
+  const deleteAllMutation = api.assignment.deleteAllUserProblems.useMutation({
+    onSuccess: () => refetch(),
+  });
+  const [open, setOpen] = React.useState(false);
 
   return (
     <div className="space-y-4">
       <div className="flex w-full flex-row items-start justify-between">
         <CardTitle>Problem Management</CardTitle>
-        <UploadAdminProblems />
+        <div className="flex gap-2">
+          <UploadAdminProblems />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="destructive"
+                disabled={deleteAllMutation.isPending}
+              >
+                {deleteAllMutation.isPending
+                  ? "Deleting..."
+                  : "Delete All Problems"}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitleUI>Are you sure?</DialogTitleUI>
+                <DialogDescription>
+                  This will permanently delete all user problems for your
+                  account. This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    deleteAllMutation.mutate();
+                    setOpen(false);
+                  }}
+                  disabled={deleteAllMutation.isPending}
+                >
+                  Yes, delete all
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       {isLoading && <div>Loading user problems...</div>}
       {error && <div className="text-red-500">Error loading user problems</div>}

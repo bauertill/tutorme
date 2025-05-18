@@ -374,6 +374,10 @@ export class DBAdapter {
     });
     return dbProblems.map((problem) => parseProblem(problem));
   }
+
+  async deleteAllUserProblemsByUserId(userId: string): Promise<void> {
+    await this.db.userProblem.deleteMany({ where: { userId } });
+  }
 }
 
 const parseProblem = (problem: UserProblemDB): UserProblem => ({

@@ -118,4 +118,11 @@ export const assignmentRouter = createTRPCRouter({
       throw new Error("User must be present for admin actions");
     return await ctx.dbAdapter.getUserProblemsByUserId(ctx.session.user.id);
   }),
+
+  deleteAllUserProblems: protectedAdminProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.session.user.id)
+      throw new Error("User must be present for admin actions");
+    await ctx.dbAdapter.deleteAllUserProblemsByUserId(ctx.session.user.id);
+    return { success: true };
+  }),
 });
