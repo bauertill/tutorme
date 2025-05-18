@@ -31,7 +31,7 @@ export function ProblemManagement() {
       <div className="flex w-full flex-row items-start justify-between">
         <CardTitle>Problem Management</CardTitle>
         <div className="flex gap-2">
-          <UploadAdminProblems />
+          <UploadAdminProblems onSuccess={refetch} />
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button

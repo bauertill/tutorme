@@ -16,7 +16,7 @@ import Image from "next/image";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 
-export function UploadAdminProblems() {
+export function UploadAdminProblems({ onSuccess }: { onSuccess?: () => void }) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<
@@ -33,6 +33,7 @@ export function UploadAdminProblems() {
         setUploadState("success");
         toast.success("Problems uploaded successfully!");
         setOpen(false);
+        if (onSuccess) onSuccess();
       },
     });
 
