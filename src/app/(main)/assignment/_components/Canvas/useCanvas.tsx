@@ -4,6 +4,7 @@ import { useStore } from "@/store";
 import { type Path, type Point } from "@/store/canvas";
 import assert from "assert";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import AnimatedScrollIcon from "./AnimatedScrollIcon";
 import PointingTool from "./PointingTool";
 import {
   isPointCloseToPath,
@@ -35,6 +36,7 @@ export function useCanvas() {
   const [isUntouched_, setIsUntouched] = useState(true);
   const isUntouched =
     isUntouched_ && paths.length === 0 && undoStack.length === 0;
+  const [userHasScrolled, setUserHasScrolled] = useState(false);
 
   const [currentPath, setCurrentPath] = useState<Path>();
   const currentPathRef = useRef<Path>(undefined);
@@ -118,6 +120,10 @@ export function useCanvas() {
     return { x: 0, y: 0, width, height };
   }, [paths, containerSize]);
 
+  const isScrollable = useMemo(() => {
+    return viewBox.height > containerSize.height + 500;
+  }, [viewBox, containerSize]);
+
   // Set up resize observer and prevent default events
   useEffect(() => {
     const container = containerRef.current;
@@ -130,8 +136,11 @@ export function useCanvas() {
     handleResize();
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
+    const handleScroll = () => setUserHasScrolled(true);
+    container.addEventListener("scroll", handleScroll);
     return () => {
       resizeObserver.disconnect();
+      container.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
@@ -217,6 +226,9 @@ export function useCanvas() {
             transform={transform}
           />
         )}
+        {!userHasScrolled && isScrollable && (
+          <AnimatedScrollIcon className="pointer-events-none absolute bottom-4 left-20" />
+        )}
       </div>
     ),
     [
@@ -232,6 +244,8 @@ export function useCanvas() {
       cancelDrawing,
       transform,
       svgContents,
+      userHasScrolled,
+      isScrollable,
     ],
   );
 
