@@ -28,6 +28,7 @@ import {
 import { api } from "@/trpc/react";
 import { MoreVertical } from "lucide-react";
 import React from "react";
+import { AdminProblemModal } from "./AdminProblemModal";
 import { UploadAdminProblems } from "./UploadAdminProblems";
 
 export function ProblemManagement() {
@@ -47,6 +48,11 @@ export function ProblemManagement() {
   const [selectedProblems, setSelectedProblems] = React.useState<Set<string>>(
     new Set(),
   );
+  const [selectedProblemModalIndex, setSelectedProblemModalIndex] =
+    React.useState<number | null>(null);
+  const approveSingleMutation = api.assignment.approveUserProblems.useMutation({
+    onSuccess: () => refetch(),
+  });
 
   const allSelected =
     userProblems.length > 0 && selectedProblems.size === userProblems.length;
@@ -57,6 +63,10 @@ export function ProblemManagement() {
     (p) => selectedProblems.has(p.id) && p.status === "NEW",
   );
   const canApprove = selectedNewProblems.length > 0;
+
+  // Find all problems in modal mode (all problems, or just NEW ones?)
+  const modalProblems = userProblems;
+  const allApproved = modalProblems.every((p) => p.status !== "NEW");
 
   const handleSelectAll = () => {
     if (selectedProblems.size === userProblems.length) {
@@ -86,6 +96,28 @@ export function ProblemManagement() {
     },
     [someSelected],
   );
+
+  const handleOpenModal = (problem: any) => {
+    const idx = modalProblems.findIndex((p) => p.id === problem.id);
+    setSelectedProblemModalIndex(idx !== -1 ? idx : null);
+  };
+
+  const handleApproveModal = async (problemId: string) => {
+    await approveSingleMutation.mutateAsync([problemId]);
+    // Find next NEW problem
+    const nextIdx = modalProblems.findIndex(
+      (p, i) => i > (selectedProblemModalIndex ?? 0) && p.status === "NEW",
+    );
+    if (nextIdx !== -1) {
+      setSelectedProblemModalIndex(nextIdx);
+    } else {
+      setSelectedProblemModalIndex(null);
+    }
+  };
+
+  const handleDoneModal = () => {
+    setSelectedProblemModalIndex(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -175,6 +207,16 @@ export function ProblemManagement() {
                 data-state={
                   selectedProblems.has(problem.id) ? "selected" : undefined
                 }
+                className="cursor-pointer"
+                onClick={(e) => {
+                  if (
+                    (e.target as HTMLElement).closest(
+                      'button,input[type="checkbox"]',
+                    )
+                  )
+                    return;
+                  handleOpenModal(problem);
+                }}
               >
                 <TableCell>
                   <Checkbox
@@ -201,6 +243,17 @@ export function ProblemManagement() {
           </TableBody>
         </Table>
       )}
+      <AdminProblemModal
+        open={selectedProblemModalIndex !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedProblemModalIndex(null);
+        }}
+        problems={modalProblems}
+        activeIndex={selectedProblemModalIndex ?? 0}
+        onApprove={handleApproveModal}
+        onDone={handleDoneModal}
+        isApproving={approveSingleMutation.isPending}
+      />
     </div>
   );
 }
