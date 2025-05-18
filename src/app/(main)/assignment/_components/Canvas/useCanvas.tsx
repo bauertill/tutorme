@@ -187,6 +187,7 @@ export function useCanvas() {
         {isEraser ? (
           <PointingTool
             className="absolute inset-0 cursor-none"
+            style={{ width: viewBox.width, height: viewBox.height }}
             onStartDrawing={startErasing}
             onDraw={eraseAtPoint}
             onStopDrawing={stopErasing}
@@ -208,6 +209,7 @@ export function useCanvas() {
         ) : (
           <PointingTool
             className="absolute inset-0"
+            style={{ width: viewBox.width, height: viewBox.height }}
             onStartDrawing={startDrawing}
             onDraw={addPoint}
             onStopDrawing={stopDrawing}
