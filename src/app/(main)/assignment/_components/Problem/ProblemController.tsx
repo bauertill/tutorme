@@ -10,6 +10,8 @@ export default function ProblemController() {
   const {
     activeAssignment,
     activeProblem,
+    nextProblem,
+    previousProblem,
     gotoNextProblem,
     gotoPreviousProblem,
   } = useProblemController();
@@ -33,15 +35,15 @@ export default function ProblemController() {
         <ProblemStatusIcon status={activeProblem.status} />
         <Button
           variant="outline"
-          disabled={!gotoPreviousProblem}
-          onClick={() => gotoPreviousProblem && gotoPreviousProblem()}
+          disabled={!previousProblem}
+          onClick={() => previousProblem && gotoPreviousProblem()}
         >
           <Trans i18nKey="back" />
         </Button>
         <Button
           variant="outline"
-          disabled={!gotoNextProblem}
-          onClick={() => gotoNextProblem && gotoNextProblem()}
+          disabled={!nextProblem}
+          onClick={() => nextProblem && gotoNextProblem()}
         >
           <Trans i18nKey="next" />
         </Button>

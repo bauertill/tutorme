@@ -25,9 +25,11 @@ export const useActiveProblem = (): UserProblem | null => {
 export const useProblemController = (): {
   activeAssignment: Assignment | null;
   activeProblem: UserProblem | null;
-  gotoNextProblem?: () => void;
+  nextProblem?: UserProblem;
+  previousProblem?: UserProblem;
+  gotoNextProblem: () => void;
   gotoNextUnsolvedProblem?: () => void;
-  gotoPreviousProblem?: () => void;
+  gotoPreviousProblem: () => void;
   setActiveProblemWithCanvas: (problem: UserProblem) => void;
 } => {
   const setActiveProblem = useStore.use.setActiveProblem();
@@ -60,13 +62,17 @@ export const useProblemController = (): {
         setCanvas(nextUnsolvedProblem.canvas ?? { paths: [] });
       }
     : undefined;
-  const gotoPreviousProblem = previousProblem
-    ? () => {
-        storeCurrentPathsOnProblem();
-        setActiveProblem(previousProblem);
-        setCanvas(previousProblem.canvas ?? { paths: [] });
-      }
-    : undefined;
+  const gotoPreviousProblem = useCallback(() => {
+    if (!previousProblem) return;
+    storeCurrentPathsOnProblem();
+    setActiveProblem(previousProblem);
+    setCanvas(previousProblem.canvas ?? { paths: [] });
+  }, [
+    previousProblem,
+    setActiveProblem,
+    setCanvas,
+    storeCurrentPathsOnProblem,
+  ]);
 
   const setActiveProblemWithCanvas = (problem: UserProblem) => {
     storeCurrentPathsOnProblem();
@@ -77,6 +83,8 @@ export const useProblemController = (): {
   return {
     activeAssignment,
     activeProblem,
+    nextProblem,
+    previousProblem,
     gotoNextProblem,
     gotoNextUnsolvedProblem,
     gotoPreviousProblem,
