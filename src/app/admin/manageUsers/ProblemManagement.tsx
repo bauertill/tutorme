@@ -78,12 +78,11 @@ export function ProblemManagement() {
 
   const selectAllCheckboxRef = React.useCallback(
     (el: HTMLButtonElement | null) => {
-      if (el) {
-        const input = el.querySelector(
-          'input[type="checkbox"]',
-        ) as HTMLInputElement | null;
-        if (input) input.indeterminate = someSelected;
-      }
+      if (!el) return;
+      const input: HTMLInputElement | null = el.querySelector(
+        'input[type="checkbox"]',
+      );
+      if (input) input.indeterminate = someSelected;
     },
     [someSelected],
   );

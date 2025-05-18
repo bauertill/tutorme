@@ -22,14 +22,13 @@ export function UploadAdminProblems({ onSuccess }: { onSuccess?: () => void }) {
   const [uploadState, setUploadState] = useState<
     "idle" | "uploading" | "success" | "error"
   >("idle");
-  const [isCancelled, setIsCancelled] = useState(false);
   const trackEvent = useTrackEvent();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: createAssignmentFromUpload } =
     api.assignment.adminUploadProblems.useMutation({
-      onSuccess: (assignment) => {
+      onSuccess: () => {
         setUploadState("success");
         toast.success("Problems uploaded successfully!");
         setOpen(false);
@@ -43,7 +42,6 @@ export function UploadAdminProblems({ onSuccess }: { onSuccess?: () => void }) {
     const file = event.target.files?.[0] ?? null;
     if (!file) return;
     setUploadState("idle");
-    setIsCancelled(false);
     setOpen(true);
 
     const reader = new FileReader();
@@ -92,7 +90,6 @@ export function UploadAdminProblems({ onSuccess }: { onSuccess?: () => void }) {
 
   const handleCancelUpload = () => {
     setOpen(false);
-    setIsCancelled(true);
     toast.info("Upload cancelled");
   };
 
