@@ -1,3 +1,4 @@
+import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
 import { CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,8 +10,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle as DialogTitleUI,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -20,6 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { api } from "@/trpc/react";
+import { MoreVertical } from "lucide-react";
 import React from "react";
 import { UploadAdminProblems } from "./UploadAdminProblems";
 
@@ -79,17 +86,22 @@ export function ProblemManagement() {
         <CardTitle>Problem Management</CardTitle>
         <div className="flex gap-2">
           <UploadAdminProblems onSuccess={refetch} />
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="destructive"
-                disabled={deleteAllMutation.isPending}
-              >
-                {deleteAllMutation.isPending
-                  ? "Deleting..."
-                  : "Delete All Problems"}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Open menu">
+                <MoreVertical className="h-5 w-5" />
               </Button>
-            </DialogTrigger>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setOpen(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                Delete All Problems
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitleUI>Are you sure?</DialogTitleUI>
@@ -158,7 +170,7 @@ export function ProblemManagement() {
                   className="max-w-xs truncate"
                   title={problem.problem}
                 >
-                  {problem.problem}
+                  <Latex>{problem.problem}</Latex>
                 </TableCell>
                 <TableCell>{problem.status}</TableCell>
                 <TableCell className="whitespace-nowrap">
