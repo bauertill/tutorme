@@ -33,7 +33,7 @@ export function AdminProblemModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex flex-row items-center gap-2">
+          <DialogTitle className="mr-4 flex flex-row items-center justify-between">
             <div className="text-s text-muted-foreground">
               {problem.problemNumber}
             </div>
