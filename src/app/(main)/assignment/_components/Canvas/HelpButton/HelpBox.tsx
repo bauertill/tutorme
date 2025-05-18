@@ -112,7 +112,7 @@ export default function HelpBox({
       <Card
         ref={container}
         className={cn(
-          "max-h-full w-60 overflow-auto text-sm md:w-72 lg:w-80 xl:w-96",
+          "max-h-full w-60 overflow-auto text-sm md:w-72 lg:w-80 xl:w-[30rem]",
           "[scrollbar-width:thin]",
           "[scrollbar-color:hsl(var(--muted))_transparent]",
         )}
@@ -126,15 +126,15 @@ export default function HelpBox({
           <MessageList messages={messages} />
         </CardContent>
         <CardFooter className="flex flex-col gap-4 px-4 pb-4">
-          <TextInput
-            disabled={askMutation.isPending}
-            onSend={(question) => ask(question)}
-            isLoading={askMutation.isPending}
-          />
           <RecommendedQuestionsList
             disabled={askMutation.isPending}
             onAsk={(question) => ask(question)}
             questions={recommendedQuestions}
+          />
+          <TextInput
+            disabled={askMutation.isPending}
+            onSend={(question) => ask(question)}
+            isLoading={askMutation.isPending}
           />
         </CardFooter>
       </Card>
