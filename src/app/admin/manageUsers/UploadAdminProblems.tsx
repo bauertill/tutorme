@@ -1,7 +1,6 @@
 import { uploadToBlob } from "@/app/(main)/assignment/_components/Problem/uploadToBlob";
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -12,16 +11,12 @@ import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
 import { Trans } from "@/i18n/react";
 import { api } from "@/trpc/react";
-import { ArrowRight, CameraIcon, Loader2 } from "lucide-react";
+import { CameraIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 
-export function UploadAdminProblems({
-  trigger,
-}: {
-  trigger: "button" | "card";
-}) {
+export function UploadAdminProblems() {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<
@@ -109,7 +104,7 @@ export function UploadAdminProblems({
   };
 
   return (
-    <>
+    <div className="self-start">
       <Input
         ref={fileInputRef}
         type="file"
@@ -118,41 +113,16 @@ export function UploadAdminProblems({
         className="hidden"
       />
 
-      {trigger === "button" && (
-        <Button
-          variant="ghost"
-          onClick={handleButtonClick}
-          type="button"
-          className="flex h-9 w-full items-center justify-start px-2 transition-all duration-200 ease-linear"
-        >
-          <CameraIcon className="h-5 w-5 flex-shrink-0" />
-          <SidebarText className="ml-2 overflow-hidden">
-            <Trans i18nKey="upload_assignment" />
-          </SidebarText>
-        </Button>
-      )}
-      {trigger === "card" && (
-        <Card
-          className="cursor-pointer transition-colors hover:bg-accent/50"
-          onClick={handleButtonClick}
-        >
-          <CardContent className="flex items-center gap-4 p-6 pb-4 2xl:pb-6">
-            <p className="">
-              <Trans i18nKey="upload_problems_card_description_admin" />
-            </p>
-          </CardContent>
-          <CardFooter className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 font-semibold"
-            >
-              <CameraIcon className="h-5 w-5 flex-shrink-0" />
-              <Trans i18nKey="upload_problems_admin" />
-              <ArrowRight className="size-4" />
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
+      <Button
+        onClick={handleButtonClick}
+        type="button"
+        className="flex h-9 w-full items-center justify-start px-2 transition-all duration-200 ease-linear"
+      >
+        <CameraIcon className="h-5 w-5 flex-shrink-0" />
+        <SidebarText className="ml-2 overflow-hidden">
+          <Trans i18nKey="upload_problems_admin" />
+        </SidebarText>
+      </Button>
       <Dialog
         open={open}
         onOpenChange={(isOpen) => {
@@ -194,6 +164,6 @@ export function UploadAdminProblems({
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
