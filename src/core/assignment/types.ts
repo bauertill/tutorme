@@ -39,7 +39,7 @@ export const UserProblem = z.object({
   problem: z.string(),
   problemNumber: z.string(),
   referenceSolution: z.string().nullable(),
-  status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
+  status: z.enum(["NEW", "INITIAL", "IN_PROGRESS", "SOLVED", "FAILED"]),
   canvas: Canvas,
   evaluation: EvaluationResult.nullable(),
   imageUrl: z.string().nullable().optional(),

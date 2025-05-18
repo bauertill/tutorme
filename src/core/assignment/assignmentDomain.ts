@@ -7,6 +7,97 @@ import { type LLMAdapter } from "../adapters/llmAdapter";
 import { getExampleProblems } from "./getExampleProblems";
 import { type Assignment, type UserProblem } from "./types";
 
+export async function adminAddAssignmentToUserGroup(
+  assignmentId: string,
+  userGroupId: string,
+  dbAdapter: DBAdapter,
+) {
+  const assignment = await dbAdapter.getAssignmentById(assignmentId);
+  if (!assignment) {
+    throw new Error("Assignment not found");
+  }
+  const users = await dbAdapter.getUsersByUserGroupId(userGroupId);
+  for (const user of users) {
+    await dbAdapter.createAssignment(
+      {
+        ...assignment,
+        id: `${assignmentId}-${user.id}`,
+        problems: assignment.problems.map((p) => ({
+          ...p,
+          id: `${p.id}-${user.id}`,
+          assignmentId: `${assignmentId}-${user.id}`,
+        })),
+      },
+      user.id,
+    );
+  }
+}
+export async function adminCreateAssignment(
+  userId: string,
+  assignmentName: string,
+  problems: UserProblem[],
+  dbAdapter: DBAdapter,
+) {
+  const assignmentId = `${userId}-${assignmentName}`;
+  await dbAdapter.createAssignment(
+    {
+      name: assignmentName,
+      id: assignmentId,
+      problems: problems.map((p) => ({
+        ...p,
+        userId,
+        id: uuidv4(),
+        assignmentId,
+      })),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    userId,
+  );
+}
+
+export async function adminUploadProblems(
+  uploadPath: string,
+  userId: string,
+  dbAdapter: DBAdapter,
+  llmAdapter: LLMAdapter,
+  language: Language,
+): Promise<UserProblem[]> {
+  const { problems: rawProblems } =
+    await llmAdapter.assignment.extractAssignmentFromImage(
+      uploadPath,
+      language,
+      userId,
+    );
+  const assignmentId = uuidv4();
+  const userProblems: UserProblem[] = [];
+  for (const problem of rawProblems) {
+    userProblems.push({
+      id: uuidv4(),
+      status: "NEW",
+      problem: problem.problemText,
+      problemNumber: problem.problemNumber,
+      referenceSolution: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      relevantImageSegment: problem.relevantImageSegment ?? undefined,
+      imageUrl: uploadPath,
+      assignmentId,
+      canvas: { paths: [] },
+      evaluation: null,
+    });
+  }
+  const assignment: Assignment = {
+    id: assignmentId,
+    name: `Upload @ ${new Date().toLocaleString()}`,
+    problems: userProblems,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  await dbAdapter.createAssignment(assignment, userId);
+  return assignment.problems;
+}
+
 export async function createAssignmentFromUpload(
   uploadPath: string,
   userId: string | undefined,
@@ -14,7 +105,7 @@ export async function createAssignmentFromUpload(
   llmAdapter: LLMAdapter,
   language: Language,
 ): Promise<Assignment> {
-  const { assignmentTitle, problems: rawProblems } =
+  const { problems: rawProblems } =
     await llmAdapter.assignment.extractAssignmentFromImage(
       uploadPath,
       language,
@@ -40,7 +131,7 @@ export async function createAssignmentFromUpload(
   }
   const assignment: Assignment = {
     id: assignmentId,
-    name: assignmentTitle,
+    name: `Upload @ ${new Date().toLocaleString()}`,
     problems: userProblems,
     createdAt: new Date(),
     updatedAt: new Date(),

@@ -201,26 +201,16 @@ export class DBAdapter {
     problem: Draft<UserProblem>,
     userId: string,
   ): Promise<UserProblem> {
-    const existingProblem = await this.db.userProblem.findFirst({
-      where: {
+    const dbProblem = await this.db.userProblem.create({
+      data: {
+        ...problem,
         userId,
-        problem: problem.problem,
+        canvas: { paths: [] },
+        evaluation: undefined,
+        relevantImageSegment: problem.relevantImageSegment ?? undefined,
       },
     });
-
-    if (!existingProblem) {
-      const dbProblem = await this.db.userProblem.create({
-        data: {
-          ...problem,
-          userId,
-          canvas: { paths: [] },
-          evaluation: undefined,
-          relevantImageSegment: problem.relevantImageSegment ?? undefined,
-        },
-      });
-      return parseProblem(dbProblem);
-    }
-    return parseProblem(existingProblem);
+    return parseProblem(dbProblem);
   }
 
   async updateUserProblems(
@@ -281,6 +271,7 @@ export class DBAdapter {
       problems: createdProblems,
     };
   }
+
   async deleteAssignmentById(assignmentId: string): Promise<void> {
     await this.db.assignment.delete({
       where: {
@@ -305,6 +296,25 @@ export class DBAdapter {
       ...assignment,
       problems: assignment.problems.map((problem) => parseProblem(problem)),
     }));
+  }
+
+  async getAssignmentById(assignmentId: string): Promise<Assignment | null> {
+    const dbAssignment = await this.db.assignment.findUnique({
+      where: { id: assignmentId },
+      include: { problems: true },
+    });
+    if (!dbAssignment) {
+      return null;
+    }
+    return {
+      ...dbAssignment,
+      problems: dbAssignment.problems.map((problem) => parseProblem(problem)),
+    };
+  }
+  async getUsersByUserGroupId(userGroupId: string): Promise<User[]> {
+    return await this.db.user.findMany({
+      where: { groups: { some: { id: userGroupId } } },
+    });
   }
 
   async getAppUsageByFingerprint(
@@ -366,6 +376,48 @@ export class DBAdapter {
 
   async getUserByEmail(email: string): Promise<User> {
     return await this.db.user.findUniqueOrThrow({ where: { email } });
+  }
+
+  async getUserProblemsByUserId(userId: string): Promise<UserProblem[]> {
+    const dbProblems = await this.db.userProblem.findMany({
+      where: { userId },
+    });
+    return dbProblems.map((problem) => parseProblem(problem));
+  }
+
+  async deleteAllUserProblemsByUserId(userId: string): Promise<void> {
+    await this.db.$transaction([
+      this.db.assignment.deleteMany({ where: { userId } }),
+      this.db.userProblem.deleteMany({ where: { userId } }),
+    ]);
+  }
+
+  async approveUserProblemsByIds(userId: string, ids: string[]): Promise<void> {
+    await this.db.userProblem.updateMany({
+      where: {
+        id: { in: ids },
+        userId,
+        status: "NEW",
+      },
+      data: { status: "INITIAL" },
+    });
+  }
+
+  async createAssignmentFromProblems(
+    userId: string,
+    name: string,
+    problemIds: string[],
+  ) {
+    return await this.db.assignment.create({
+      data: {
+        name,
+        userId,
+        problems: {
+          connect: problemIds.map((id) => ({ id })),
+        },
+      },
+      include: { problems: true },
+    });
   }
 }
 

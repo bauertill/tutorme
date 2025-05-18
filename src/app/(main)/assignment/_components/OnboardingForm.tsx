@@ -5,7 +5,7 @@ import { Trans } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import ExampleProblemCard from "./Problem/ExampleProblemCard";
-import { UploadProblems } from "./Problem/UploadProblems";
+import { UploadUserProblems } from "./Problem/UploadUserProblems";
 export function OnboardingForm({
   className,
   ...props
@@ -31,7 +31,7 @@ export function OnboardingForm({
         </div>
         <div className="flex flex-col items-center justify-center gap-5 2xl:gap-10">
           <ExampleProblemCard />
-          <UploadProblems trigger="card" />
+          <UploadUserProblems trigger="card" />
         </div>
       </div>
 

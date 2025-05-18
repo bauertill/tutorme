@@ -1,6 +1,6 @@
 "use client";
 
-import { UploadProblems } from "@/app/(main)/assignment/_components/Problem/UploadProblems";
+import { UploadUserProblems } from "@/app/(main)/assignment/_components/Problem/UploadUserProblems";
 import { CollapsibleAssignment } from "@/app/_components/layout/AppSidebar/CollapsibleAssignment";
 import { CollapsibleSettings } from "@/app/_components/layout/AppSidebar/CollapsibleSettings";
 import { Footer } from "@/app/_components/layout/Footer";
@@ -120,7 +120,7 @@ export function AppSidebar() {
         </SidebarHeader>
         <SidebarGroup className="transition-all duration-200 ease-linear">
           <SidebarGroupContent>
-            <UploadProblems trigger="button" />
+            <UploadUserProblems trigger="button" />
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup className="transition-all duration-200 ease-linear">

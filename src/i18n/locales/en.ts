@@ -8,6 +8,8 @@ const translation = {
   upload_problems_card_description:
     "Or start with your own homework assignment:",
   upload_assignment: "Upload Assignment",
+  upload_problems_card_description_admin: "Upload problems for your students",
+  upload_problems_admin: "Upload",
   try_example_now: "Try Example Now",
   search_exercises: "Search exercises...",
   assignments: "Assignments",

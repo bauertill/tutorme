@@ -84,8 +84,6 @@ export function UserManagement() {
   });
 
   const allSelected = users.length > 0 && selectedUsers.size === users.length;
-  const someSelected =
-    selectedUsers.size > 0 && selectedUsers.size < users.length;
 
   const handleSelectAll = () => {
     if (selectedUsers.size === users.length) {

@@ -1,4 +1,7 @@
 import {
+  adminAddAssignmentToUserGroup,
+  adminCreateAssignment,
+  adminUploadProblems,
   createAssignmentFromUpload,
   getExampleAssignment,
   syncAssignments,
@@ -13,6 +16,7 @@ import {
 import {
   createTRPCRouter,
   limitedPublicProcedure,
+  protectedAdminProcedure,
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
@@ -96,4 +100,66 @@ export const assignmentRouter = createTRPCRouter({
   getExampleAssignment: publicProcedure.query(async ({ ctx }) => {
     return getExampleAssignment(ctx.userLanguage);
   }),
+
+  adminUploadProblems: protectedAdminProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session.user.id)
+        throw new Error("User must be present for admin actions");
+      return await adminUploadProblems(
+        input,
+        ctx.session.user.id,
+        ctx.dbAdapter,
+        ctx.llmAdapter,
+        ctx.userLanguage,
+      );
+    }),
+
+  adminAddAssignmentToUserGroup: protectedAdminProcedure
+    .input(z.object({ assignmentId: z.string(), userGroupId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session.user.id)
+        throw new Error("User must be present for admin actions");
+      return await adminAddAssignmentToUserGroup(
+        input.assignmentId,
+        input.userGroupId,
+        ctx.dbAdapter,
+      );
+    }),
+
+  getUserProblems: protectedAdminProcedure.query(async ({ ctx }) => {
+    if (!ctx.session.user.id)
+      throw new Error("User must be present for admin actions");
+    return await ctx.dbAdapter.getUserProblemsByUserId(ctx.session.user.id);
+  }),
+
+  deleteAllUserProblems: protectedAdminProcedure.mutation(async ({ ctx }) => {
+    if (!ctx.session.user.id)
+      throw new Error("User must be present for admin actions");
+    await ctx.dbAdapter.deleteAllUserProblemsByUserId(ctx.session.user.id);
+    return { success: true };
+  }),
+
+  approveUserProblems: protectedAdminProcedure
+    .input(z.array(z.string()))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session.user.id)
+        throw new Error("User must be present for admin actions");
+      await ctx.dbAdapter.approveUserProblemsByIds(ctx.session.user.id, input);
+      return { success: true };
+    }),
+
+  createAssignmentFromProblems: protectedAdminProcedure
+    .input(z.object({ name: z.string(), problems: z.array(UserProblem) }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session.user.id)
+        throw new Error("User must be present for admin actions");
+      const assignment = await adminCreateAssignment(
+        ctx.session.user.id,
+        input.name,
+        input.problems,
+        ctx.dbAdapter,
+      );
+      return assignment;
+    }),
 });

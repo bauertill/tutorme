@@ -1,6 +1,6 @@
+import { uploadToBlob } from "@/app/(main)/assignment/_components/Problem/uploadToBlob";
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -10,40 +10,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
 import { Trans } from "@/i18n/react";
-import { useStore } from "@/store";
 import { api } from "@/trpc/react";
-import { ArrowRight, CameraIcon, Loader2 } from "lucide-react";
+import { CameraIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
-import { uploadToBlob } from "./uploadToBlob";
 
-export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
+export function UploadAdminProblems({ onSuccess }: { onSuccess?: () => void }) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<
     "idle" | "uploading" | "success" | "error"
   >("idle");
-  const [isCancelled, setIsCancelled] = useState(false);
   const trackEvent = useTrackEvent();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const addAssignment = useStore.use.addAssignment();
-  const setUsageLimitReached = useStore.use.setUsageLimitReached();
-  const { mutate: deleteAssignment } =
-    api.assignment.deleteAssignment.useMutation();
   const { mutateAsync: createAssignmentFromUpload } =
-    api.assignment.createFromUpload.useMutation({
-      onSuccess: (assignment) => {
-        if (isCancelled) {
-          deleteAssignment(assignment.id);
-          return;
-        }
+    api.assignment.adminUploadProblems.useMutation({
+      onSuccess: () => {
         setUploadState("success");
         toast.success("Problems uploaded successfully!");
         setOpen(false);
-        addAssignment(assignment);
+        if (onSuccess) onSuccess();
       },
     });
 
@@ -53,7 +42,6 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
     const file = event.target.files?.[0] ?? null;
     if (!file) return;
     setUploadState("idle");
-    setIsCancelled(false);
     setOpen(true);
 
     const reader = new FileReader();
@@ -82,7 +70,6 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
         error instanceof Error &&
         error.message === "Free tier limit reached"
       ) {
-        setUsageLimitReached(true);
         setOpen(false);
       } else {
         if (error instanceof Error) {
@@ -103,7 +90,6 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
 
   const handleCancelUpload = () => {
     setOpen(false);
-    setIsCancelled(true);
     toast.info("Upload cancelled");
   };
 
@@ -116,7 +102,7 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
   };
 
   return (
-    <>
+    <div className="self-start">
       <Input
         ref={fileInputRef}
         type="file"
@@ -125,41 +111,12 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
         className="hidden"
       />
 
-      {trigger === "button" && (
-        <Button
-          variant="ghost"
-          onClick={handleButtonClick}
-          type="button"
-          className="flex h-9 w-full items-center justify-start px-2 transition-all duration-200 ease-linear"
-        >
-          <CameraIcon className="h-5 w-5 flex-shrink-0" />
-          <SidebarText className="ml-2 overflow-hidden">
-            <Trans i18nKey="upload_assignment" />
-          </SidebarText>
-        </Button>
-      )}
-      {trigger === "card" && (
-        <Card
-          className="cursor-pointer transition-colors hover:bg-accent/50"
-          onClick={handleButtonClick}
-        >
-          <CardContent className="flex items-center gap-4 p-6 pb-4 2xl:pb-6">
-            <p className="">
-              <Trans i18nKey="upload_problems_card_description" />
-            </p>
-          </CardContent>
-          <CardFooter className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 font-semibold"
-            >
-              <CameraIcon className="h-5 w-5 flex-shrink-0" />
-              <Trans i18nKey="upload_assignment" />
-              <ArrowRight className="size-4" />
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
+      <Button onClick={handleButtonClick} type="button" variant="outline">
+        <CameraIcon className="h-5 w-5 flex-shrink-0" />
+        <SidebarText className="ml-2 overflow-hidden">
+          <Trans i18nKey="upload_problems_admin" />
+        </SidebarText>
+      </Button>
       <Dialog
         open={open}
         onOpenChange={(isOpen) => {
@@ -201,6 +158,6 @@ export function UploadProblems({ trigger }: { trigger: "button" | "card" }) {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
