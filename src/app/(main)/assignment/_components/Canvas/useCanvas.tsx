@@ -62,7 +62,12 @@ export function useCanvas() {
     }
   }, [addPath, setCurrentPath]);
   const [isEraser, setIsEraser] = useState(false);
-  const toggleEraser = useCallback(() => setIsEraser(!isEraser), [isEraser]);
+
+  const toggleEraser = useCallback(
+    (enabled?: boolean) => setIsEraser(enabled ?? !isEraser),
+    [isEraser],
+  );
+
   const eraseAtPoint = useCallback(
     (point: Point) => {
       setErasedPaths((erasedPaths) => [

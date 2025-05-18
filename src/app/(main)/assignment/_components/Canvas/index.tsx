@@ -108,15 +108,18 @@ export function Canvas() {
       <>
         <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
           <Button
-            variant={isEraser ? "default" : "outline"}
-            onClick={toggleEraser}
-            title={isEraser ? "Switch to Pen" : "Switch to Eraser"}
+            variant={!isEraser ? "default" : "outline"}
+            onClick={() => void toggleEraser(false)}
+            title={"Switch to Pencil"}
           >
-            {isEraser ? (
-              <Pencil className="h-4 w-4" />
-            ) : (
-              <Eraser className="h-4 w-4" />
-            )}
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={isEraser ? "default" : "outline"}
+            onClick={() => void toggleEraser(true)}
+            title={"Switch to Eraser"}
+          >
+            <Eraser className="h-4 w-4" />
           </Button>
           <Button variant="outline" onClick={clear} disabled={isEmpty}>
             <Trash className="h-4 w-4" />
