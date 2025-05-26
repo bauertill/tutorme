@@ -61,6 +61,8 @@ const translation = {
     checkAnswerButton:
       "Here you can check your answer, or check if you are on the right track",
     checkAnswerButtonTitle: "Check Answer",
+    getHelpSection: "Here you can ask the AI for explanations, help and hints",
+    getHelpSectionTitle: "Get Help",
   },
 };
 

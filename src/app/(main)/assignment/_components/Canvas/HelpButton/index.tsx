@@ -29,7 +29,7 @@ export default function HelpButton({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.1 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="flex origin-top-right"
+            className="get-help-section flex origin-top-right"
           >
             <HelpBox
               onClose={() => setOpen(false)}
@@ -45,7 +45,7 @@ export default function HelpButton({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute right-0 top-0"
+            className="get-help-section absolute right-0 top-0"
           >
             <Button
               onClick={onClick}

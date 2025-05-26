@@ -60,6 +60,8 @@ const translation = {
     checkAnswerButton:
       "Hier kannst du deine Antwort überprüfen, oder schauen ob du auf dem richtigen Weg bist",
     checkAnswerButtonTitle: "Antwort überprüfen",
+    getHelpSection: "Hier kannst du der KI fragen stellen und Hilfe bekommen",
+    getHelpSectionTitle: "Hilfe bekommen",
   },
 };
 export default translation;

@@ -19,9 +19,16 @@ export const steps: JoyrideProps["steps"] = [
     offset: -40,
   },
   {
+    target: ".get-help-section",
+    content: t("onboarding.getHelpSection"),
+    title: t("onboarding.getHelpSectionTitle"),
+    placement: "left-start",
+  },
+  {
     target: ".check-answer-button",
     content: t("onboarding.checkAnswerButton"),
     title: t("onboarding.checkAnswerButtonTitle"),
+    placement: "left-start",
   },
 ];
 
