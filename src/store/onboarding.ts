@@ -26,8 +26,12 @@ export const steps: JoyrideProps["steps"] = [
 ];
 
 export interface OnboardingSlice {
+  isTourRunning: boolean;
+  setIsTourRunning: (running: boolean) => void;
   hasCompletedOnboarding: boolean;
   setHasCompletedOnboarding: (completed: boolean) => void;
+  hasShownScrollFingers: boolean;
+  setHasShownScrollFingers: (shown: boolean) => void;
 }
 
 export const createOnboardingSlice: StateCreator<
@@ -36,9 +40,19 @@ export const createOnboardingSlice: StateCreator<
   [],
   OnboardingSlice
 > = (set) => ({
+  isTourRunning: false,
+  setIsTourRunning: (running) =>
+    set((draft) => {
+      draft.isTourRunning = running;
+    }),
   hasCompletedOnboarding: false,
   setHasCompletedOnboarding: (completed) =>
     set((draft) => {
       draft.hasCompletedOnboarding = completed;
+    }),
+  hasShownScrollFingers: false,
+  setHasShownScrollFingers: (shown) =>
+    set((draft) => {
+      draft.hasShownScrollFingers = shown;
     }),
 });

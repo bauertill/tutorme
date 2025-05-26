@@ -26,6 +26,7 @@ export function CollapsibleSettings() {
     api.assignment.deleteAllAssignments.useMutation();
   const [isDeleting, setIsDeleting] = useState(false);
   const setHasCompletedOnboarding = useStore.use.setHasCompletedOnboarding();
+  const setHasShownScrollFingers = useStore.use.setHasShownScrollFingers();
   const { state } = useSidebar();
 
   const handleDelete = () => {
@@ -33,6 +34,7 @@ export function CollapsibleSettings() {
       setIsDeleting(true);
       clearAssignments();
       setHasCompletedOnboarding(false);
+      setHasShownScrollFingers(false);
       if (session.data?.user?.id) {
         deleteAllAssignments();
       }

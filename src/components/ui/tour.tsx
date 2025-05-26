@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { steps } from "@/store/onboarding";
 import { useActiveProblem } from "@/store/selectors";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect } from "react";
 import Joyride, { type CallBackProps, STATUS } from "react-joyride";
 import { Button } from "./button";
 import { Card } from "./card";
@@ -19,8 +19,14 @@ export function Tour({ className }: TourProps) {
   const { t } = useTranslation();
   const addPath = useStore.use.addPath();
   const activeProblem = useActiveProblem();
+  const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
   const setHasCompletedOnboarding = useStore.use.setHasCompletedOnboarding();
-  const [run, setRun] = useState(true);
+  const isTourRunning = useStore.use.isTourRunning();
+  const setIsTourRunning = useStore.use.setIsTourRunning();
+
+  useEffect(() => {
+    if (!hasCompletedOnboarding) setIsTourRunning(true);
+  }, [hasCompletedOnboarding, setIsTourRunning]);
 
   const handleJoyrideCallback = useCallback(
     async (data: CallBackProps) => {
@@ -48,7 +54,7 @@ export function Tour({ className }: TourProps) {
       ];
 
       if (finishedStatuses.includes(status)) {
-        setRun(false);
+        setIsTourRunning(false);
         if (status === STATUS.FINISHED) {
           setHasCompletedOnboarding(true);
         }
@@ -64,7 +70,7 @@ export function Tour({ className }: TourProps) {
     <Joyride
       callback={handleJoyrideCallback}
       continuous
-      run={run}
+      run={isTourRunning}
       scrollToFirstStep
       showProgress
       showSkipButton
@@ -99,7 +105,15 @@ export function Tour({ className }: TourProps) {
             <div className="flex items-center justify-between">
               <div>
                 {!isLastStep && (
-                  <Button variant="ghost" {...skipProps}>
+                  <Button
+                    variant="ghost"
+                    {...skipProps}
+                    onClick={(e) => {
+                      setIsTourRunning(false);
+                      setHasCompletedOnboarding(true);
+                      skipProps.onClick(e);
+                    }}
+                  >
                     {t("skip")}
                   </Button>
                 )}
