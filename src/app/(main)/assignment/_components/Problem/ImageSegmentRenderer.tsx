@@ -12,7 +12,7 @@ const DEFAULT_SEGMENT = {
 
 export function ImageSegmentRenderer({ problem }: { problem: UserProblem }) {
   const IMAGE_HEIGHT = 240;
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
 
   // Calculate the aspect ratio of the cropped segment
   const [originalAspectRatio, setOriginalAspectRatio] = useState(0);
