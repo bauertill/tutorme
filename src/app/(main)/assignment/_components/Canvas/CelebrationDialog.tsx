@@ -1,3 +1,4 @@
+import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
 import Confetti from "@/components/ui/confetti";
 import {
@@ -32,7 +33,7 @@ export function CelebrationDialog({
         </DialogHeader>
         <div className="flex flex-col gap-2">
           {evaluationResult?.successMessage && (
-            <p>{evaluationResult.successMessage}</p>
+            <Latex>{evaluationResult.successMessage}</Latex>
           )}
           <p>
             {gotoNextUnsolvedProblem
