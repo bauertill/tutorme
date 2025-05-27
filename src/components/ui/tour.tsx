@@ -63,7 +63,7 @@ export function Tour({ className }: TourProps) {
         }
       }
     },
-    [addPath, setHasCompletedOnboarding, activeProblem],
+    [addPath, setHasCompletedOnboarding, activeProblem, setIsTourRunning],
   );
 
   return (
