@@ -17,7 +17,8 @@ export async function pushPromptsToLangSmith() {
     recommend_questions: recommendQuestionsPromptTemplate,
     generate_reply: generateReplyPromptTemplate,
   };
-  for (const [promptName, promptTemplate] of Object.entries(promptsByName)) {
+  const pushPromises = Object.entries(promptsByName).map(
+    async ([promptName, promptTemplate]) => {
     try {
       console.log(`Pushing prompt to LangSmith ${promptName}...`);
       // Push the prompt - LangSmith will handle change detection internally
@@ -27,14 +28,23 @@ export async function pushPromptsToLangSmith() {
 
       console.log(`Prompt ${promptName} pushed to LangSmith successfully`);
     } catch (error) {
-      if (error instanceof Error && error.message.includes("has not changed")) {
+        if (
+          error instanceof Error &&
+          error.message.includes("has not changed")
+        ) {
         console.log(`No changes detected in ${promptName} prompt`);
-        continue;
+          return;
       }
-      console.error(`Error pushing ${promptName} prompt to LangSmith:`, error);
+        console.error(
+          `Error pushing ${promptName} prompt to LangSmith:`,
+          error,
+        );
       throw error;
     }
-  }
+    },
+  );
+
+  await Promise.all(pushPromises);
 }
 
 pushPromptsToLangSmith()
