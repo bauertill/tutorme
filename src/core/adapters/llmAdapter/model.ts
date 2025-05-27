@@ -21,7 +21,7 @@ export const fastModel = new ChatOpenAI({
 });
 
 export const reasoningModel = new ChatOpenAI({
-  modelName: "o3-mini",
+  modelName: "o4-mini",
   cache,
 });
 

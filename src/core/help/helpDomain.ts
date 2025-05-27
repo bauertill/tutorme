@@ -3,6 +3,7 @@ import { type BaseMessage, SystemMessage } from "@langchain/core/messages";
 import { v4 as uuidv4 } from "uuid";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type GenerateReplyResponse } from "../adapters/llmAdapter/help/generateReply";
+import { type HandleThumbsDownResponse } from "../adapters/llmAdapter/help/handleThumbsDown";
 import { type Draft } from "../utils";
 import { type Message } from "./types";
 import { messageToLangchainMessage } from "./utils";
@@ -53,14 +54,14 @@ export async function setMessageThumbsDown(
     language: Language;
   },
   llmAdapter: LLMAdapter,
-): Promise<GenerateReplyResponse> {
+): Promise<HandleThumbsDownResponse> {
   const updatedMessages: BaseMessage[] = [
     ...input.messages.map(messageToLangchainMessage),
     new SystemMessage(
       "The user thinks you made a mistake. Double check your previous messages for any errors you may have made. If you did, call these errors out and fix them.",
     ),
   ];
-  return await llmAdapter.help.generateReply({
+  return await llmAdapter.help.handleThumbsDown({
     ...input,
     messages: updatedMessages,
   });
