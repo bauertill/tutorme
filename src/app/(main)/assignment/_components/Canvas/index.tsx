@@ -1,7 +1,6 @@
 "use client";
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
-import { type Message } from "@/core/help/types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import {
@@ -59,23 +58,21 @@ export function Canvas() {
       onSuccess: (result) => {
         setEvaluationResult(activeProblem?.id ?? "", result);
         console.log(result);
-        const newMessages: Message[] = [];
-        if (result.hasMistakes) {
-          newMessages.push(
-            newAssistantMessage(t("assignment.feedback.hasMistakes")),
-          );
-        } else if (!result.isComplete) {
-          newMessages.push(
-            newAssistantMessage(t("assignment.feedback.notComplete")),
-          );
-        } else {
+        if (!result.hasMistakes && result.isComplete) {
           setCelebrationOpen(true);
-        }
-        if (newMessages.length > 0) {
-          if (result.hint) {
-            newMessages.push(newAssistantMessage(result.hint));
+        } else {
+          let message = "";
+          if (result.hasMistakes) {
+            message = t("assignment.feedback.hasMistakes");
+          } else if (!result.isComplete) {
+            message = t("assignment.feedback.notComplete");
           }
-          setMessages([...messages, ...newMessages]);
+          if (result.hint) {
+            message += `\n${result.hint}`;
+          }
+          if (message) {
+            setMessages([...messages, newAssistantMessage(message)]);
+          }
           setRecommendedQuestions(result.followUpQuestions);
           setHelpOpen(true);
         }
