@@ -14,12 +14,15 @@ import { useTranslation } from "react-i18next";
 export default function MessageList({ messages }: { messages: Message[] }) {
   return (
     <div className="flex flex-col gap-2">
-      {messages.map((message) => (
+      {messages.map((message, idx, { length }) => (
         <Fragment key={message.id}>
           {message.role === "user" ? (
             <UserMessage message={message} />
           ) : (
-            <AssistantMessage message={message} />
+            <AssistantMessage
+              message={message}
+              showThumbs={idx === length - 1}
+            />
           )}
         </Fragment>
       ))}
@@ -37,7 +40,13 @@ function UserMessage({ message }: { message: Message }) {
   );
 }
 
-function AssistantMessage({ message }: { message: Message }) {
+function AssistantMessage({
+  message,
+  showThumbs,
+}: {
+  message: Message;
+  showThumbs: boolean;
+}) {
   const { t } = useTranslation();
   const handleThumbsUp = () => {
     // TODO: Implement thumbs up functionality
@@ -52,38 +61,40 @@ function AssistantMessage({ message }: { message: Message }) {
   return (
     <div className="whitespace-pre-wrap">
       <Latex>{message.content}</Latex>
-      <TooltipProvider delayDuration={0}>
-        <div className="flex gap-1 pt-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleThumbsUp}
-                className="group rounded p-1 transition-colors hover:bg-muted"
-                aria-label="Thumbs up"
-              >
-                <ThumbsUp className="h-3 w-3 text-muted-foreground group-hover:text-green-600" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>{t("goodResponseButton")}</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={handleThumbsDown}
-                className="group rounded p-1 transition-colors hover:bg-muted"
-                aria-label="Thumbs down"
-              >
-                <ThumbsDown className="h-3 w-3 text-muted-foreground group-hover:text-red-600" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>{t("badResponseButton")}</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </TooltipProvider>
+      {showThumbs && (
+        <TooltipProvider delayDuration={0}>
+          <div className="flex gap-1 pt-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleThumbsUp}
+                  className="group rounded p-1 transition-colors hover:bg-muted"
+                  aria-label="Thumbs up"
+                >
+                  <ThumbsUp className="h-3 w-3 text-muted-foreground group-hover:text-green-600" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>{t("goodResponseButton")}</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleThumbsDown}
+                  className="group rounded p-1 transition-colors hover:bg-muted"
+                  aria-label="Thumbs down"
+                >
+                  <ThumbsDown className="h-3 w-3 text-muted-foreground group-hover:text-red-600" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>{t("badResponseButton")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
+      )}
     </div>
   );
 }
