@@ -37,8 +37,8 @@ export interface OnboardingSlice {
   setIsTourRunning: (running: boolean) => void;
   hasCompletedOnboarding: boolean;
   setHasCompletedOnboarding: (completed: boolean) => void;
-  hasShownScrollFingers: boolean;
-  setHasShownScrollFingers: (shown: boolean) => void;
+  userHasScrolled: boolean;
+  setUserHasScrolled: (shown: boolean) => void;
 }
 
 export const createOnboardingSlice: StateCreator<
@@ -57,9 +57,9 @@ export const createOnboardingSlice: StateCreator<
     set((draft) => {
       draft.hasCompletedOnboarding = completed;
     }),
-  hasShownScrollFingers: false,
-  setHasShownScrollFingers: (shown) =>
+  userHasScrolled: false,
+  setUserHasScrolled: (shown) =>
     set((draft) => {
-      draft.hasShownScrollFingers = shown;
+      draft.userHasScrolled = shown;
     }),
 });

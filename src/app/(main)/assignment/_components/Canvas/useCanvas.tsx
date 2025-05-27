@@ -38,8 +38,8 @@ export function useCanvas() {
   const [isUntouched_, setIsUntouched] = useState(true);
   const isUntouched =
     isUntouched_ && paths.length === 0 && undoStack.length === 0;
-  const hasShownScrollFingers = useStore.use.hasShownScrollFingers();
-  const setHasShownScrollFingers = useStore.use.setHasShownScrollFingers();
+  const userHasScrolled = useStore.use.userHasScrolled();
+  const setUserHasScrolled = useStore.use.setUserHasScrolled();
 
   const [currentPath, setCurrentPath] = useState<Path>();
   const currentPathRef = useRef<Path>(undefined);
@@ -139,13 +139,13 @@ export function useCanvas() {
     handleResize();
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
-    const handleScroll = () => setHasShownScrollFingers(true);
+    const handleScroll = () => setUserHasScrolled(true);
     container.addEventListener("scroll", handleScroll);
     return () => {
       resizeObserver.disconnect();
       container.removeEventListener("scroll", handleScroll);
     };
-  }, [setHasShownScrollFingers]);
+  }, [setUserHasScrolled]);
 
   const pathsToDisplay = useMemo(() => {
     const pathsToDisplay = currentPath ? [...paths, currentPath] : paths;
@@ -231,7 +231,7 @@ export function useCanvas() {
             />
           )}
         </RestrictedScrollContainer>
-        {!hasShownScrollFingers && isScrollable && (
+        {!userHasScrolled && isScrollable && (
           <div className="pointer-events-none absolute inset-0">
             <AnimatedScrollIcon className="pointer-events-none absolute bottom-4 left-20" />
           </div>
@@ -251,7 +251,7 @@ export function useCanvas() {
       cancelDrawing,
       transform,
       svgContents,
-      hasShownScrollFingers,
+      userHasScrolled,
       isScrollable,
     ],
   );
