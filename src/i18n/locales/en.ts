@@ -64,6 +64,8 @@ const translation = {
     getHelpSection: "Here you can ask the AI for explanations, help and hints",
     getHelpSectionTitle: "Get Help",
   },
+  goodResponseButton: "Good response",
+  badResponseButton: "I think that's wrong",
 };
 
 export default translation;

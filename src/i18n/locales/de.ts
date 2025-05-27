@@ -63,5 +63,7 @@ const translation = {
     getHelpSection: "Hier kannst du der KI fragen stellen und Hilfe bekommen",
     getHelpSectionTitle: "Hilfe bekommen",
   },
+  goodResponseButton: "Gute Antwort",
+  badResponseButton: "Ich denke, das ist falsch",
 };
 export default translation;

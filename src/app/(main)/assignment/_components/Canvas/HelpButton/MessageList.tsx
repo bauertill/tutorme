@@ -1,7 +1,15 @@
+"use client";
 import { Latex } from "@/app/_components/richtext/Latex";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { type Message } from "@/core/help/types";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { Fragment } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function MessageList({ messages }: { messages: Message[] }) {
   return (
@@ -30,6 +38,7 @@ function UserMessage({ message }: { message: Message }) {
 }
 
 function AssistantMessage({ message }: { message: Message }) {
+  const { t } = useTranslation();
   const handleThumbsUp = () => {
     // TODO: Implement thumbs up functionality
     console.log("Thumbs up for message:", message.id);
@@ -43,22 +52,38 @@ function AssistantMessage({ message }: { message: Message }) {
   return (
     <div className="whitespace-pre-wrap">
       <Latex>{message.content}</Latex>
-      <div className="flex gap-1 pt-1">
-        <button
-          onClick={handleThumbsUp}
-          className="group rounded p-1 transition-colors hover:bg-muted"
-          aria-label="Thumbs up"
-        >
-          <ThumbsUp className="h-3 w-3 text-muted-foreground group-hover:text-green-600" />
-        </button>
-        <button
-          onClick={handleThumbsDown}
-          className="group rounded p-1 transition-colors hover:bg-muted"
-          aria-label="Thumbs down"
-        >
-          <ThumbsDown className="h-3 w-3 text-muted-foreground group-hover:text-red-600" />
-        </button>
-      </div>
+      <TooltipProvider delayDuration={0}>
+        <div className="flex gap-1 pt-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleThumbsUp}
+                className="group rounded p-1 transition-colors hover:bg-muted"
+                aria-label="Thumbs up"
+              >
+                <ThumbsUp className="h-3 w-3 text-muted-foreground group-hover:text-green-600" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>{t("goodResponseButton")}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleThumbsDown}
+                className="group rounded p-1 transition-colors hover:bg-muted"
+                aria-label="Thumbs down"
+              >
+                <ThumbsDown className="h-3 w-3 text-muted-foreground group-hover:text-red-600" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>{t("badResponseButton")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
     </div>
   );
 }
