@@ -1,5 +1,6 @@
 import { Latex } from "@/app/_components/richtext/Latex";
 import { type Message } from "@/core/help/types";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { Fragment } from "react";
 
 export default function MessageList({ messages }: { messages: Message[] }) {
@@ -29,9 +30,35 @@ function UserMessage({ message }: { message: Message }) {
 }
 
 function AssistantMessage({ message }: { message: Message }) {
+  const handleThumbsUp = () => {
+    // TODO: Implement thumbs up functionality
+    console.log("Thumbs up for message:", message.id);
+  };
+
+  const handleThumbsDown = () => {
+    // TODO: Implement thumbs down functionality
+    console.log("Thumbs down for message:", message.id);
+  };
+
   return (
     <div className="whitespace-pre-wrap">
       <Latex>{message.content}</Latex>
+      <div className="flex gap-1 pt-1">
+        <button
+          onClick={handleThumbsUp}
+          className="group rounded p-1 transition-colors hover:bg-muted"
+          aria-label="Thumbs up"
+        >
+          <ThumbsUp className="h-3 w-3 text-muted-foreground group-hover:text-green-600" />
+        </button>
+        <button
+          onClick={handleThumbsDown}
+          className="group rounded p-1 transition-colors hover:bg-muted"
+          aria-label="Thumbs down"
+        >
+          <ThumbsDown className="h-3 w-3 text-muted-foreground group-hover:text-red-600" />
+        </button>
+      </div>
     </div>
   );
 }
