@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { type Message } from "@/core/help/types";
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { ThumbsDown } from "lucide-react";
 import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -57,11 +57,6 @@ function AssistantMessage({
   onThumbsDown: (messageId: string) => void;
 }) {
   const { t } = useTranslation();
-  const handleThumbsUp = () => {
-    // TODO: Implement thumbs up functionality
-    console.log("Thumbs up for message:", message.id);
-  };
-
   const handleThumbsDown = () => {
     onThumbsDown(message.id);
   };
@@ -72,20 +67,6 @@ function AssistantMessage({
       {showThumbs && (
         <TooltipProvider delayDuration={0}>
           <div className="flex gap-1 pt-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleThumbsUp}
-                  className="group rounded p-1 transition-colors hover:bg-muted"
-                  aria-label="Thumbs up"
-                >
-                  <ThumbsUp className="h-3 w-3 text-muted-foreground group-hover:text-green-600" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>{t("goodResponseButton")}</p>
-              </TooltipContent>
-            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
