@@ -2,7 +2,7 @@ import ResizableDiv from "@/app/(main)/assignment/_components/Canvas/HelpButton/
 import { useScrollToBottom } from "@/app/_components/layout/useScrollToBottom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Trans } from "@/i18n/react";
+import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { useHelp } from "@/store/selectors";
@@ -41,6 +41,7 @@ export default function HelpBox({
       solutionImage: await getCanvasDataUrl(),
     });
   };
+  const { t } = useTranslation();
   const askMutation = api.help.ask.useMutation({
     onMutate: () => {
       setRecommendedQuestions([]);
@@ -125,7 +126,10 @@ export default function HelpBox({
             </CardContent>
           ) : (
             <CardContent className="p-4">
-              <MessageList messages={messages} />
+              <MessageList
+                messages={messages}
+                onThumbsDown={() => void ask(t("badResponseButton"))}
+              />
             </CardContent>
           )}
           <CardFooter className="flex flex-col gap-4 px-4 pb-4">

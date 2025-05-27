@@ -11,7 +11,13 @@ import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 
-export default function MessageList({ messages }: { messages: Message[] }) {
+export default function MessageList({
+  messages,
+  onThumbsDown,
+}: {
+  messages: Message[];
+  onThumbsDown: (messageId: string) => void;
+}) {
   return (
     <div className="flex flex-col gap-2">
       {messages.map((message, idx, { length }) => (
@@ -22,6 +28,7 @@ export default function MessageList({ messages }: { messages: Message[] }) {
             <AssistantMessage
               message={message}
               showThumbs={idx === length - 1}
+              onThumbsDown={onThumbsDown}
             />
           )}
         </Fragment>
@@ -43,9 +50,11 @@ function UserMessage({ message }: { message: Message }) {
 function AssistantMessage({
   message,
   showThumbs,
+  onThumbsDown,
 }: {
   message: Message;
   showThumbs: boolean;
+  onThumbsDown: (messageId: string) => void;
 }) {
   const { t } = useTranslation();
   const handleThumbsUp = () => {
@@ -54,8 +63,7 @@ function AssistantMessage({
   };
 
   const handleThumbsDown = () => {
-    // TODO: Implement thumbs down functionality
-    console.log("Thumbs down for message:", message.id);
+    onThumbsDown(message.id);
   };
 
   return (
