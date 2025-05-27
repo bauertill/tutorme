@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { motion } from "motion/react";
-import { useEffect } from "react";
 
 const SVG = () => (
   <svg
@@ -25,17 +24,7 @@ export default function AnimatedScrollIcon(
   props: React.HTMLAttributes<HTMLDivElement>,
 ) {
   const isTourRunning = useStore.use.isTourRunning();
-  const hasShownScrollFingers = useStore.use.hasShownScrollFingers();
-  const setHasShownScrollFingers = useStore.use.setHasShownScrollFingers();
-  console.log("hasShownScrollFingers", hasShownScrollFingers);
-  useEffect(() => {
-    return () => {
-      if (!isTourRunning && !hasShownScrollFingers) {
-        setHasShownScrollFingers(true);
-      }
-    };
-  }, [isTourRunning]);
-  if (isTourRunning || hasShownScrollFingers) return null;
+  if (isTourRunning) return null;
 
   return (
     <div {...props} className={cn("", props.className)}>
