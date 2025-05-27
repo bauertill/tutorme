@@ -1,4 +1,8 @@
-import { generateHelpReply, recommendQuestions } from "@/core/help/helpDomain";
+import {
+  generateHelpReply,
+  recommendQuestions,
+  setMessageThumbsDown,
+} from "@/core/help/helpDomain";
 import { Message } from "@/core/help/types";
 import {
   createTRPCRouter,
@@ -19,6 +23,24 @@ export const helpRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       return await generateHelpReply(
+        {
+          ...input,
+          language: ctx.userLanguage,
+        },
+        ctx.llmAdapter,
+      );
+    }),
+  setMessageThumbsDown: limitedPublicProcedure
+    .input(
+      z.object({
+        problemId: z.string(),
+        messages: z.array(Message),
+        problem: z.string(),
+        solutionImage: z.string().nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await setMessageThumbsDown(
         {
           ...input,
           language: ctx.userLanguage,

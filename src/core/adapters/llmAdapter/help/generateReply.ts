@@ -1,6 +1,5 @@
-import { type Message } from "@/core/help/types";
 import { type Language, LanguageName } from "@/i18n/types";
-import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { type BaseMessage, HumanMessage } from "@langchain/core/messages";
 import {
   ChatPromptTemplate,
   MessagesPlaceholder,
@@ -49,7 +48,7 @@ const GenerateReplySchema = z.object({
 
 export type GenerateReplyInput = {
   problemId: string;
-  messages: Message[];
+  messages: BaseMessage[];
   problem: string;
   solutionImage: string | null;
   language: Language;
@@ -84,12 +83,6 @@ export async function generateReply(
       ]
     : [];
 
-  const conversationMessages = messages.map((message) =>
-    message.role === "user"
-      ? new HumanMessage(message.content)
-      : new AIMessage(message.content),
-  );
-
   // Invoke the model with the prompt
   const response = await promptFromHub
     .pipe(model.withStructuredOutput(GenerateReplySchema))
@@ -98,7 +91,7 @@ export async function generateReply(
         language: LanguageName[language],
         problem,
         solutionImage: solutionMessage,
-        conversation: conversationMessages,
+        conversation: messages,
       },
       {
         metadata: {

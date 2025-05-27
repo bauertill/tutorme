@@ -1,12 +1,11 @@
 import { type Language } from "@/i18n/types";
+import { type BaseMessage, SystemMessage } from "@langchain/core/messages";
 import { v4 as uuidv4 } from "uuid";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import {
-  type GenerateReplyInput,
-  type GenerateReplyResponse,
-} from "../adapters/llmAdapter/help/generateReply";
+import { type GenerateReplyResponse } from "../adapters/llmAdapter/help/generateReply";
 import { type Draft } from "../utils";
 import { type Message } from "./types";
+import { messageToLangchainMessage } from "./utils";
 
 export function newMessage(draft: Draft<Message>): Message {
   return {
@@ -17,10 +16,19 @@ export function newMessage(draft: Draft<Message>): Message {
 }
 
 export async function generateHelpReply(
-  input: GenerateReplyInput,
+  input: {
+    problemId: string;
+    messages: Message[];
+    problem: string;
+    solutionImage: string | null;
+    language: Language;
+  },
   llmAdapter: LLMAdapter,
 ): Promise<GenerateReplyResponse> {
-  return await llmAdapter.help.generateReply(input);
+  return await llmAdapter.help.generateReply({
+    ...input,
+    messages: input.messages.map(messageToLangchainMessage),
+  });
 }
 
 export async function recommendQuestions(
@@ -34,4 +42,26 @@ export async function recommendQuestions(
     solutionImage,
     language,
   );
+}
+
+export async function setMessageThumbsDown(
+  input: {
+    problemId: string;
+    messages: Message[];
+    problem: string;
+    solutionImage: string | null;
+    language: Language;
+  },
+  llmAdapter: LLMAdapter,
+): Promise<GenerateReplyResponse> {
+  const updatedMessages: BaseMessage[] = [
+    ...input.messages.map(messageToLangchainMessage),
+    new SystemMessage(
+      "The user thinks you made a mistake. Double check your previous messages for any errors you may have made. If you did, call these errors out and fix them.",
+    ),
+  ];
+  return await llmAdapter.help.generateReply({
+    ...input,
+    messages: updatedMessages,
+  });
 }

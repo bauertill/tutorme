@@ -58,6 +58,35 @@ export default function HelpBox({
       }
     },
   });
+  const thumbsDownMutation = api.help.setMessageThumbsDown.useMutation({
+    onMutate: () => {
+      setRecommendedQuestions([]);
+    },
+    onSuccess: (reply) => {
+      setMessages([...messages, newAssistantMessage(reply.reply)]);
+      setRecommendedQuestions(reply.followUpQuestions);
+    },
+    onError: (error) => {
+      if (error.message === "Free tier limit reached") {
+        setUsageLimitReached(true);
+      } else {
+        setMessages([...messages, newAssistantMessage(error.message)]);
+      }
+    },
+  });
+  const handleThumbsDown = async () => {
+    const updatedMessages = [
+      ...messages,
+      newUserMessage(t("badResponseButton")),
+    ];
+    setMessages(updatedMessages);
+    thumbsDownMutation.mutate({
+      problemId: activeProblem?.id ?? "",
+      messages: updatedMessages,
+      problem: activeProblem?.problem ?? "",
+      solutionImage: await getCanvasDataUrl(),
+    });
+  };
   const { mutate: recommendQuestions, isPending: isRecommendQuestionsPending } =
     api.help.recommendQuestions.useMutation({
       onSuccess: (questions) => {
@@ -128,7 +157,7 @@ export default function HelpBox({
             <CardContent className="p-4">
               <MessageList
                 messages={messages}
-                onThumbsDown={() => void ask(t("badResponseButton"))}
+                onThumbsDown={() => void handleThumbsDown()}
               />
             </CardContent>
           )}
