@@ -19,7 +19,7 @@ export default function MessageList({
   onThumbsDown: (messageId: string) => void;
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex select-text flex-col gap-2 [-webkit-user-select:text]">
       {messages.map((message, idx, { length }) => (
         <Fragment key={message.id}>
           {message.role === "user" ? (
