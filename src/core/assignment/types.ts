@@ -16,6 +16,7 @@ export const EvaluationResult = z.object({
   successMessage: z.string().optional(),
   hasMistakes: z.boolean(),
   isComplete: z.boolean(),
+  isLegible: z.boolean(),
   analysis: z.string(),
   studentSolution: z.string(),
   followUpQuestions: z.array(z.string()),

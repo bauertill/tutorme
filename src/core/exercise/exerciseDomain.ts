@@ -9,7 +9,24 @@ export async function evaluateSolution(
   input: EvaluateSolutionInput,
   llmAdapter: LLMAdapter,
 ): Promise<EvaluationResult> {
-  return await llmAdapter.assignment.evaluateSolution(input);
+  const [evaluation, handwriting] = await Promise.all([
+    llmAdapter.assignment.evaluateSolution(input),
+    llmAdapter.assignment.judgeHandwriting(input),
+  ]);
+
+  if (handwriting.agreement) {
+    return {
+      ...evaluation,
+      isLegible: true,
+    };
+  }
+
+  return {
+    ...evaluation,
+    isComplete: false,
+    isLegible: false,
+    hint: handwriting.clarifying_request,
+  };
 }
 
 export async function getRandomProblem(dbAdapter: DBAdapter): Promise<Problem> {

@@ -3,6 +3,7 @@ import { Client } from "langsmith";
 import { evaluateSolutionPromptTemplate } from "./assignment/evaluateSolution";
 import { explainHintDetailPromptTemplate } from "./assignment/explainHintDetail";
 import { extractAssignmentPromptTemplate } from "./assignment/extractAssignmentFromImage";
+import { judgeHandwritingPromptTemplate } from "./assignment/judgeHandwriting";
 import { solveProblemPromptTemplate } from "./assignment/solveProblem";
 import { generateReplyPromptTemplate } from "./help/generateReply";
 import { handleThumbsDownPromptTemplate } from "./help/handleThumbsDown";
@@ -18,6 +19,7 @@ export async function pushPromptsToLangSmith() {
     recommend_questions: recommendQuestionsPromptTemplate,
     generate_reply: generateReplyPromptTemplate,
     handle_thumbs_down: handleThumbsDownPromptTemplate,
+    judge_handwriting: judgeHandwritingPromptTemplate,
   };
   const pushPromises = Object.entries(promptsByName).map(
     async ([promptName, promptTemplate]) => {

@@ -29,7 +29,8 @@ const translation = {
   check: "Check",
   assignment: {
     feedback: {
-      hasMistakes: "That's not quite correct",
+      hasMistakes: "That's not quite correct.",
+      notLegible: "Your handwriting is not clear enough.",
       isComplete: "That's correct!",
       notComplete: "Keep going!",
     },

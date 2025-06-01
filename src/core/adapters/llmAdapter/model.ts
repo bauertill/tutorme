@@ -14,6 +14,11 @@ export const model = new ChatOpenAI({
   cache,
 });
 
+export const nondeterministicModel = new ChatOpenAI({
+  modelName: "gpt-4o",
+  temperature: 1.0,
+});
+
 export const fastModel = new ChatOpenAI({
   modelName: "gpt-4o-mini",
   temperature: 0.0,
