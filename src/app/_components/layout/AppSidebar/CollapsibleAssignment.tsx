@@ -1,22 +1,31 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
 import { type Assignment, type UserProblem } from "@/core/assignment/types";
 import { cn } from "@/lib/utils";
+import { api } from "@/trpc/react";
 import { CheckCircle, ChevronRight, Circle, MoreVertical } from "lucide-react";
+import { useState } from "react";
 import Latex from "react-latex-next";
-import { ProblemStatusIcon } from "../ProblemStatusIcon";
 
 interface CollapsibleAssignmentProps {
   assignment: Assignment;
@@ -33,6 +42,24 @@ export function CollapsibleAssignment({
   activeProblem,
   setActiveProblem,
 }: CollapsibleAssignmentProps) {
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [newName, setNewName] = useState(assignment.name);
+  const utils = api.useUtils();
+
+  const renameMutation = api.assignment.renameAssignment.useMutation({
+    onSuccess: () => {
+      setIsRenameDialogOpen(false);
+      void utils.assignment.list.invalidate();
+    },
+  });
+
+  const handleRename = () => {
+    renameMutation.mutate({
+      assignmentId: assignment.id,
+      name: newName,
+    });
+  };
+
   const solvedProblemsCount = assignment.problems.filter(
     (problem) => problem.status === "SOLVED",
   ).length;
@@ -40,40 +67,45 @@ export function CollapsibleAssignment({
 
   return (
     <Collapsible open={isOpen} onOpenChange={onOpenChange}>
-      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg py-1 pl-2 text-left text-sm hover:bg-accent">
-        <ChevronRight
-          className={cn(
-            "h-4 w-4 flex-shrink-0 transition-transform duration-200",
-            isOpen && "rotate-90",
-          )}
-        />
-        {isSolved ? (
-          <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-500" />
-        ) : (
-          <Circle className="h-4 w-4 flex-shrink-0 text-yellow-500" />
-        )}
-        <SidebarText className="flex-1 truncate font-semibold">
-          {assignment.name}
-        </SidebarText>
-        <div className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap">
-          <SidebarText className="min-w-[44px] flex-shrink-0 text-right text-xs text-muted-foreground">
-            {solvedProblemsCount} / {assignment.problems.length}
-          </SidebarText>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent">
-                <MoreVertical className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Rename</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CollapsibleTrigger>
+      <div className="mb-1 flex flex-1 flex-row items-center gap-2 rounded-lg py-2 pl-2 pr-1 text-left text-sm hover:bg-accent">
+        <CollapsibleTrigger
+          asChild
+          className="flex flex-row items-center gap-2"
+        >
+          <div className="flex flex-1 flex-row items-center gap-2">
+            <ChevronRight
+              className={cn(
+                "h-4 w-4 flex-shrink-0 transition-transform duration-200",
+                isOpen && "rotate-90",
+              )}
+            />
+            {isSolved ? (
+              <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-500" />
+            ) : (
+              <Circle className="h-4 w-4 flex-shrink-0 text-yellow-500" />
+            )}
+            <SidebarText className="flex-1 truncate font-semibold">
+              {assignment.name}
+            </SidebarText>
+            <SidebarText className="min-w-[44px] flex-shrink-0 text-right text-xs text-muted-foreground">
+              {solvedProblemsCount} / {assignment.problems.length}
+            </SidebarText>
+          </div>
+        </CollapsibleTrigger>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <MoreVertical className="h-4 w-4 cursor-pointer" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setIsRenameDialogOpen(true)}>
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive">
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       <CollapsibleContent>
         <div className="space-y-1 pl-6">
           {assignment.problems.map((problem) => (
@@ -91,11 +123,30 @@ export function CollapsibleAssignment({
                 </span>
                 <Latex>{problem.problem}</Latex>
               </SidebarText>
-              <ProblemStatusIcon status={problem.status} />
             </button>
           ))}
         </div>
       </CollapsibleContent>
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Assignment</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Enter new name"
+            />
+            <Button
+              onClick={handleRename}
+              disabled={renameMutation.isPending || newName === assignment.name}
+            >
+              {renameMutation.isPending ? "Renaming..." : "Rename"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Collapsible>
   );
 }
