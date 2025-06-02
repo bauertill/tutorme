@@ -43,6 +43,11 @@ export const assignmentRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return await ctx.dbAdapter.deleteAssignmentById(input);
     }),
+  renameAssignment: protectedProcedure
+    .input(z.object({ assignmentId: z.string(), name: z.string() }))
+    .mutation(async ({ ctx, input: { assignmentId, name } }) => {
+      return await ctx.dbAdapter.updateAssignmentName(assignmentId, name);
+    }),
   deleteAllAssignments: protectedProcedure.mutation(async ({ ctx }) => {
     if (!ctx.session.user.id) return;
     return await ctx.dbAdapter.deleteAllAssignments(ctx.session.user.id);

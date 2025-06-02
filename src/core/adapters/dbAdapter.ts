@@ -280,6 +280,16 @@ export class DBAdapter {
     });
   }
 
+  async updateAssignmentName(
+    assignmentId: string,
+    name: string,
+  ): Promise<void> {
+    await this.db.assignment.update({
+      where: { id: assignmentId },
+      data: { name },
+    });
+  }
+
   async deleteAllAssignments(userId: string): Promise<void> {
     await this.db.assignment.deleteMany({
       where: { userId },
