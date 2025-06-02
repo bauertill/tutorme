@@ -22,9 +22,10 @@ import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
 import { type Assignment, type UserProblem } from "@/core/assignment/types";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { CheckCircle, ChevronRight, Circle, MoreVertical } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Latex from "react-latex-next";
 
 interface CollapsibleAssignmentProps {
@@ -44,21 +45,23 @@ export function CollapsibleAssignment({
 }: CollapsibleAssignmentProps) {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [newName, setNewName] = useState(assignment.name);
-  const utils = api.useUtils();
-
-  const renameMutation = api.assignment.renameAssignment.useMutation({
-    onSuccess: () => {
+  const editAssignment = useStore.use.editAssignment();
+  useEffect(() => {
+    return () => {
       setIsRenameDialogOpen(false);
-      void utils.assignment.list.invalidate();
-    },
-  });
+    };
+  }, []);
 
-  const handleRename = () => {
-    renameMutation.mutate({
-      assignmentId: assignment.id,
-      name: newName,
+  const { mutate: renameAssignment, isPending: isRenaming } =
+    api.assignment.renameAssignment.useMutation({
+      onSuccess: () => {
+        setIsRenameDialogOpen(false);
+        editAssignment({
+          ...assignment,
+          name: newName,
+        });
+      },
     });
-  };
 
   const solvedProblemsCount = assignment.problems.filter(
     (problem) => problem.status === "SOLVED",
@@ -139,10 +142,15 @@ export function CollapsibleAssignment({
               placeholder="Enter new name"
             />
             <Button
-              onClick={handleRename}
-              disabled={renameMutation.isPending || newName === assignment.name}
+              onClick={() =>
+                renameAssignment({
+                  assignmentId: assignment.id,
+                  name: newName,
+                })
+              }
+              disabled={isRenaming || newName === assignment.name}
             >
-              {renameMutation.isPending ? "Renaming..." : "Rename"}
+              {isRenaming ? "Renaming..." : "Rename"}
             </Button>
           </div>
         </DialogContent>

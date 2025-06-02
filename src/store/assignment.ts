@@ -11,6 +11,7 @@ export interface AssignmentSlice {
   clearAssignments: () => void;
   upsertAssignments: (assignments: Assignment[]) => void;
   addAssignment: (assignment: Assignment) => void;
+  editAssignment: (assignment: Assignment) => void;
   setActiveProblem: (problem: UserProblem) => void;
   updateProblem: (
     problem: Partial<UserProblem> & { id: string; assignmentId: string },
@@ -50,6 +51,13 @@ export const createAssignmentSlice: StateCreator<
       draft.activeProblemId = assignment.problems[0]?.id ?? null;
     });
     get().setCanvas({ paths: [] });
+  },
+  editAssignment: (assignment: Assignment) => {
+    set((draft) => {
+      draft.assignments = draft.assignments.map((a) =>
+        a.id === assignment.id ? assignment : a,
+      );
+    });
   },
   setActiveProblem: (problem: UserProblem) => {
     set((draft) => {
