@@ -4,7 +4,7 @@ const translation = {
   welcome_to_tutor_me_good_description:
     "Dein persönlicher Mathe-Buddy, der dir Aufgaben endlich so erklärt, dass du sie wirklich verstehst.",
   learn_the_basics_by_working_through_a_guided_example_problem:
-    "Probier’s gleich aus – mit echten Beispielen, die wir gemeinsam lösen können:",
+    "Probier's gleich aus – mit echten Beispielen, die wir gemeinsam lösen können:",
   upload_problems_card_description:
     "Oder fang direkt an mit deinen eigenen Hausaufgaben:",
   upload_assignment: "Hausaufgaben hochladen",
@@ -33,6 +33,22 @@ const translation = {
       notLegible: "Deine Handschrift ist nicht klar genug.",
       isComplete: "Das ist korrekt!",
       notComplete: "Mach weiter!",
+    },
+    rename: {
+      title: "Aufgabe umbenennen",
+      description:
+        "Gib einen neuen Namen für deine Aufgabe ein. Das hilft dir, deine Arbeit besser zu organisieren.",
+      button: "Umbenennen",
+      button_loading: "Wird umbenannt...",
+      placeholder: "Neuen Namen eingeben",
+    },
+    delete: {
+      title: "Aufgabe löschen",
+      description:
+        "Bist du sicher, dass du diese Aufgabe löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden und alle deine Arbeit geht verloren.",
+      button: "Löschen",
+      button_loading: "Wird gelöscht...",
+      cancel: "Abbrechen",
     },
   },
   delete_all_assignments_confirmation:

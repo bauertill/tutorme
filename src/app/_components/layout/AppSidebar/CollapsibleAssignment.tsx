@@ -9,6 +9,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -21,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
 import { type Assignment, type UserProblem } from "@/core/assignment/types";
+import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
@@ -43,6 +45,7 @@ export function CollapsibleAssignment({
   activeProblem,
   setActiveProblem,
 }: CollapsibleAssignmentProps) {
+  const { t } = useTranslation();
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [newName, setNewName] = useState(assignment.name);
@@ -141,13 +144,13 @@ export function CollapsibleAssignment({
               onClick={() => setIsRenameDialogOpen(true)}
               className="cursor-pointer hover:bg-accent"
             >
-              Rename
+              <Trans i18nKey="assignment.rename.button" />
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer text-destructive hover:bg-accent"
               onClick={() => setIsDeleteDialogOpen(true)}
             >
-              Delete
+              <Trans i18nKey="assignment.delete.button" />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -184,13 +187,18 @@ export function CollapsibleAssignment({
       >
         <DialogContent className="rounded-lg">
           <DialogHeader>
-            <DialogTitle>Rename Assignment</DialogTitle>
+            <DialogTitle>
+              <Trans i18nKey="assignment.rename.title" />
+            </DialogTitle>
+            <DialogDescription>
+              <Trans i18nKey="assignment.rename.description" />
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Enter new name"
+              placeholder={t("assignment.rename.placeholder")}
             />
             <Button
               onClick={() =>
@@ -201,7 +209,11 @@ export function CollapsibleAssignment({
               }
               disabled={isRenaming || newName === assignment.name}
             >
-              {isRenaming ? "Renaming..." : "Rename"}
+              {isRenaming ? (
+                <Trans i18nKey="assignment.rename.button_loading" />
+              ) : (
+                <Trans i18nKey="assignment.rename.button" />
+              )}
             </Button>
           </div>
         </DialogContent>
@@ -209,21 +221,30 @@ export function CollapsibleAssignment({
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="rounded-lg">
           <DialogHeader>
-            <DialogTitle>Delete Assignment?</DialogTitle>
+            <DialogTitle>
+              <Trans i18nKey="assignment.delete.title" />
+            </DialogTitle>
+            <DialogDescription>
+              <Trans i18nKey="assignment.delete.description" />
+            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-row justify-end gap-4 py-4">
             <Button
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
             >
-              Cancel
+              <Trans i18nKey="assignment.delete.cancel" />
             </Button>
             <Button
               onClick={() => deleteAssignmentMutation(assignment.id)}
               disabled={isDeleting}
               variant="destructive"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? (
+                <Trans i18nKey="assignment.delete.button_loading" />
+              ) : (
+                <Trans i18nKey="assignment.delete.button" />
+              )}
             </Button>
           </div>
         </DialogContent>

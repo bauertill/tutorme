@@ -34,6 +34,22 @@ const translation = {
       isComplete: "That's correct!",
       notComplete: "Keep going!",
     },
+    rename: {
+      title: "Rename Assignment",
+      description:
+        "Enter a new name for your assignment. This will help you organize your work better.",
+      button: "Rename",
+      button_loading: "Renaming...",
+      placeholder: "Enter new name",
+    },
+    delete: {
+      title: "Delete Assignment",
+      description:
+        "Are you sure you want to delete this assignment? This action cannot be undone and all your work will be lost.",
+      button: "Delete",
+      button_loading: "Deleting...",
+      cancel: "Cancel",
+    },
   },
   delete_all_assignments_confirmation:
     "Are you sure you want to delete all assignments? This can not be undone.",
