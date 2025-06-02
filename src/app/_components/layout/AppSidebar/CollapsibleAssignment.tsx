@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { CheckCircle, ChevronRight, Circle, MoreVertical } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Latex from "react-latex-next";
 
 interface CollapsibleAssignmentProps {
@@ -48,26 +48,55 @@ export function CollapsibleAssignment({
   const [newName, setNewName] = useState(assignment.name);
   const editAssignment = useStore.use.editAssignment();
   const deleteAssignment = useStore.use.deleteAssignment();
+  const isMounted = useRef(true);
+
+  // Handle component mount/unmount
   useEffect(() => {
+    isMounted.current = true;
     return () => {
-      setIsRenameDialogOpen(false);
+      isMounted.current = false;
     };
   }, []);
+
+  // Reset newName when assignment changes
+  useEffect(() => {
+    if (isMounted.current) {
+      setNewName(assignment.name);
+    }
+  }, [assignment.name]);
 
   const { mutate: renameAssignment, isPending: isRenaming } =
     api.assignment.renameAssignment.useMutation({
       onSuccess: () => {
-        setIsRenameDialogOpen(false);
+        if (!isMounted.current) return;
+
+        // Update store first
         editAssignment({
           ...assignment,
           name: newName,
         });
+
+        // Then update local state
+        requestAnimationFrame(() => {
+          if (isMounted.current) {
+            setIsRenameDialogOpen(false);
+          }
+        });
+      },
+      onError: (error) => {
+        console.error("Failed to rename assignment:", error);
+        if (isMounted.current) {
+          setNewName(assignment.name);
+        }
       },
     });
+
   const { mutate: deleteAssignmentMutation, isPending: isDeleting } =
     api.assignment.deleteAssignment.useMutation({
       onSuccess: () => {
+        if (!isMounted.current) return;
         deleteAssignment(assignment.id);
+        setIsDeleteDialogOpen(false);
       },
     });
 
@@ -108,11 +137,14 @@ export function CollapsibleAssignment({
             <MoreVertical className="h-4 w-4 cursor-pointer" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setIsRenameDialogOpen(true)}>
+            <DropdownMenuItem
+              onClick={() => setIsRenameDialogOpen(true)}
+              className="cursor-pointer hover:bg-accent"
+            >
               Rename
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="text-destructive"
+              className="cursor-pointer text-destructive hover:bg-accent"
               onClick={() => setIsDeleteDialogOpen(true)}
             >
               Delete
@@ -141,30 +173,16 @@ export function CollapsibleAssignment({
           ))}
         </div>
       </CollapsibleContent>
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Assignment?</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-row justify-end gap-4 py-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => deleteAssignmentMutation(assignment.id)}
-              disabled={isDeleting}
-              variant="destructive"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
-        <DialogContent>
+      <Dialog
+        open={isRenameDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && !isRenaming) {
+            setIsRenameDialogOpen(false);
+            setNewName(assignment.name);
+          }
+        }}
+      >
+        <DialogContent className="rounded-lg">
           <DialogHeader>
             <DialogTitle>Rename Assignment</DialogTitle>
           </DialogHeader>
@@ -184,6 +202,28 @@ export function CollapsibleAssignment({
               disabled={isRenaming || newName === assignment.name}
             >
               {isRenaming ? "Renaming..." : "Rename"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="rounded-lg">
+          <DialogHeader>
+            <DialogTitle>Delete Assignment?</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-row justify-end gap-4 py-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => deleteAssignmentMutation(assignment.id)}
+              disabled={isDeleting}
+              variant="destructive"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </div>
         </DialogContent>
