@@ -12,6 +12,7 @@ export interface AssignmentSlice {
   upsertAssignments: (assignments: Assignment[]) => void;
   addAssignment: (assignment: Assignment) => void;
   editAssignment: (assignment: Assignment) => void;
+  deleteAssignment: (assignmentId: string) => void;
   setActiveProblem: (problem: UserProblem) => void;
   updateProblem: (
     problem: Partial<UserProblem> & { id: string; assignmentId: string },
@@ -56,6 +57,13 @@ export const createAssignmentSlice: StateCreator<
     set((draft) => {
       draft.assignments = draft.assignments.map((a) =>
         a.id === assignment.id ? assignment : a,
+      );
+    });
+  },
+  deleteAssignment: (assignmentId: string) => {
+    set((draft) => {
+      draft.assignments = draft.assignments.filter(
+        (a) => a.id !== assignmentId,
       );
     });
   },

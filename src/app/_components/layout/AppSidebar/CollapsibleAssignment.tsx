@@ -44,8 +44,10 @@ export function CollapsibleAssignment({
   setActiveProblem,
 }: CollapsibleAssignmentProps) {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [newName, setNewName] = useState(assignment.name);
   const editAssignment = useStore.use.editAssignment();
+  const deleteAssignment = useStore.use.deleteAssignment();
   useEffect(() => {
     return () => {
       setIsRenameDialogOpen(false);
@@ -60,6 +62,12 @@ export function CollapsibleAssignment({
           ...assignment,
           name: newName,
         });
+      },
+    });
+  const { mutate: deleteAssignmentMutation, isPending: isDeleting } =
+    api.assignment.deleteAssignment.useMutation({
+      onSuccess: () => {
+        deleteAssignment(assignment.id);
       },
     });
 
@@ -103,7 +111,10 @@ export function CollapsibleAssignment({
             <DropdownMenuItem onClick={() => setIsRenameDialogOpen(true)}>
               Rename
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -130,6 +141,28 @@ export function CollapsibleAssignment({
           ))}
         </div>
       </CollapsibleContent>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Assignment?</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-row justify-end gap-4 py-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => deleteAssignmentMutation(assignment.id)}
+              disabled={isDeleting}
+              variant="destructive"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
         <DialogContent>
           <DialogHeader>
