@@ -65,9 +65,10 @@ Additional context:
     },
   );
 
-const consolidatePromptTemplate = ChatPromptTemplate.fromMessages([
-  SystemMessagePromptTemplate.fromTemplate(
-    `\
+export const consolidateHandwritingPromptTemplate =
+  ChatPromptTemplate.fromMessages([
+    SystemMessagePromptTemplate.fromTemplate(
+      `\
 The student is working on a Math problem.
 You will receive several interpretations of the student's handwriting.
 If they all agree (apart from formatting differences), return the LaTeX code of the student's solution.
@@ -97,9 +98,9 @@ If they don't agree, apparently the handwriting wasn't legible enough and you ne
 - Wrap any LaTeX code in delimiters like $ or $$ to make it clear that it's LaTeX code.
 - Don't mention the fact that it was interpreted multiple times, just that it's not clear what's meant.
 `,
-  ),
-  new MessagesPlaceholder("responses"),
-]);
+    ),
+    new MessagesPlaceholder("responses"),
+  ]);
 
 export const judgeHandwritingPromptTemplate = ChatPromptTemplate.fromMessages([
   handwritingSystemPromptTemplate,
@@ -164,18 +165,19 @@ export async function judgeHandwriting(
     }),
   );
 
-  const consolidatePrompt = consolidatePromptTemplate.pipe(
-    model.withStructuredOutput(ConsolidateHandwritingSchema),
-  );
+  const consolidatePrompt = await hub.pull("consolidate_handwriting");
 
-  const response = await mapChain.pipe(consolidatePrompt).invoke(
-    { msgs, language, context },
-    {
-      metadata: {
-        functionName: "judgeHandwriting",
+  const response = await mapChain
+    .pipe(consolidatePrompt)
+    .pipe(model.withStructuredOutput(ConsolidateHandwritingSchema))
+    .invoke(
+      { msgs, language, context },
+      {
+        metadata: {
+          functionName: "judgeHandwriting",
+        },
       },
-    },
-  );
+    );
 
   return response;
 }
