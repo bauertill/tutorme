@@ -62,7 +62,9 @@ export function Canvas() {
           setCelebrationOpen(true);
         } else {
           let message = "";
-          if (result.hasMistakes) {
+          if (!result.isLegible) {
+            message = t("assignment.feedback.notLegible");
+          } else if (result.hasMistakes) {
             message = t("assignment.feedback.hasMistakes");
           } else if (!result.isComplete) {
             message = t("assignment.feedback.notComplete");
