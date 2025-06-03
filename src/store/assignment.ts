@@ -95,6 +95,7 @@ export const createAssignmentSlice: StateCreator<
         ?.problems.find((p) => p.id === draft.activeProblemId);
       if (problem) {
         problem.canvas = { paths: get().paths };
+        problem.updatedAt = new Date();
       }
     });
   },
