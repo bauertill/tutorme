@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { CheckCircle, ChevronRight, Circle, MoreVertical } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Latex from "react-latex-next";
 
 interface CollapsibleAssignmentProps {
@@ -46,17 +46,16 @@ export function CollapsibleAssignment({
   setActiveProblem,
 }: CollapsibleAssignmentProps) {
   const { t } = useTranslation();
-  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState<"rename" | "delete">("rename");
   const [newName, setNewName] = useState(assignment.name);
   const editAssignment = useStore.use.editAssignment();
   const deleteAssignment = useStore.use.deleteAssignment();
-  const dropdownOpen = useRef(false);
 
   const { mutate: renameAssignment, isPending: isRenaming } =
     api.assignment.renameAssignment.useMutation({
       onSuccess: () => {
-        setIsRenameDialogOpen(false);
+        setIsDialogOpen(false);
         editAssignment({
           ...assignment,
           name: newName,
@@ -71,35 +70,10 @@ export function CollapsibleAssignment({
   const { mutate: deleteAssignmentMutation, isPending: isDeleting } =
     api.assignment.deleteAssignment.useMutation({
       onSuccess: () => {
-        setIsDeleteDialogOpen(false);
+        setIsDialogOpen(false);
         deleteAssignment(assignment.id);
       },
     });
-
-  const handleRenameDialogChange = (open: boolean) => {
-    if (!open) {
-      setIsRenameDialogOpen(false);
-      setNewName(assignment.name);
-    } else {
-      // Ensure dropdown is closed before opening dialog
-      dropdownOpen.current = false;
-      setIsRenameDialogOpen(true);
-    }
-  };
-
-  const handleDeleteDialogChange = (open: boolean) => {
-    if (!open) {
-      setIsDeleteDialogOpen(false);
-    } else {
-      // Ensure dropdown is closed before opening dialog
-      dropdownOpen.current = false;
-      setIsDeleteDialogOpen(true);
-    }
-  };
-
-  const handleDropdownOpenChange = (open: boolean) => {
-    dropdownOpen.current = open;
-  };
 
   const solvedProblemsCount = assignment.problems.filter(
     (problem) => problem.status === "SOLVED",
@@ -133,31 +107,99 @@ export function CollapsibleAssignment({
             </SidebarText>
           </div>
         </CollapsibleTrigger>
-        <DropdownMenu onOpenChange={handleDropdownOpenChange}>
-          <DropdownMenuTrigger asChild>
-            <MoreVertical className="h-4 w-4 cursor-pointer" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => {
-                handleDropdownOpenChange(false);
-                setIsRenameDialogOpen(true);
-              }}
-              className="cursor-pointer hover:bg-accent"
-            >
-              <Trans i18nKey="assignment.rename.button" />
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer text-destructive hover:bg-accent"
-              onClick={() => {
-                handleDropdownOpenChange(false);
-                setIsDeleteDialogOpen(true);
-              }}
-            >
-              <Trans i18nKey="assignment.delete.button" />
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <MoreVertical className="h-4 w-4 cursor-pointer" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setDialogType("rename");
+                  setIsDialogOpen(true);
+                }}
+                className="cursor-pointer hover:bg-accent"
+              >
+                <Trans i18nKey="assignment.rename.button" />
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer text-destructive hover:bg-accent"
+                onClick={() => {
+                  setDialogType("delete");
+                  setIsDialogOpen(true);
+                }}
+              >
+                <Trans i18nKey="assignment.delete.button" />
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {dialogType === "rename" ? (
+            <DialogContent className="rounded-lg">
+              <DialogHeader>
+                <DialogTitle>
+                  <Trans i18nKey="assignment.rename.title" />
+                </DialogTitle>
+                <DialogDescription>
+                  <Trans i18nKey="assignment.rename.description" />
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder={t("assignment.rename.placeholder")}
+                  disabled={isRenaming}
+                />
+                <Button
+                  onClick={() =>
+                    renameAssignment({
+                      assignmentId: assignment.id,
+                      name: newName,
+                    })
+                  }
+                  disabled={isRenaming || newName === assignment.name}
+                >
+                  {isRenaming ? (
+                    <Trans i18nKey="assignment.rename.button_loading" />
+                  ) : (
+                    <Trans i18nKey="assignment.rename.button" />
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          ) : (
+            <DialogContent className="rounded-lg">
+              <DialogHeader>
+                <DialogTitle>
+                  <Trans i18nKey="assignment.delete.title" />
+                </DialogTitle>
+                <DialogDescription>
+                  <Trans i18nKey="assignment.delete.description" />
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-row justify-end gap-4 py-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isDeleting}
+                >
+                  <Trans i18nKey="assignment.delete.cancel" />
+                </Button>
+                <Button
+                  onClick={() => deleteAssignmentMutation(assignment.id)}
+                  disabled={isDeleting}
+                  variant="destructive"
+                >
+                  {isDeleting ? (
+                    <Trans i18nKey="assignment.delete.button_loading" />
+                  ) : (
+                    <Trans i18nKey="assignment.delete.button" />
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          )}
+        </Dialog>
       </div>
       <CollapsibleContent>
         <div className="space-y-1 pl-6">
@@ -180,83 +222,6 @@ export function CollapsibleAssignment({
           ))}
         </div>
       </CollapsibleContent>
-      {isRenameDialogOpen && (
-        <Dialog
-          open={isRenameDialogOpen}
-          onOpenChange={handleRenameDialogChange}
-        >
-          <DialogContent className="rounded-lg">
-            <DialogHeader>
-              <DialogTitle>
-                <Trans i18nKey="assignment.rename.title" />
-              </DialogTitle>
-              <DialogDescription>
-                <Trans i18nKey="assignment.rename.description" />
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder={t("assignment.rename.placeholder")}
-                disabled={isRenaming}
-              />
-              <Button
-                onClick={() =>
-                  renameAssignment({
-                    assignmentId: assignment.id,
-                    name: newName,
-                  })
-                }
-                disabled={isRenaming || newName === assignment.name}
-              >
-                {isRenaming ? (
-                  <Trans i18nKey="assignment.rename.button_loading" />
-                ) : (
-                  <Trans i18nKey="assignment.rename.button" />
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-      {isDeleteDialogOpen && (
-        <Dialog
-          open={isDeleteDialogOpen}
-          onOpenChange={handleDeleteDialogChange}
-        >
-          <DialogContent className="rounded-lg">
-            <DialogHeader>
-              <DialogTitle>
-                <Trans i18nKey="assignment.delete.title" />
-              </DialogTitle>
-              <DialogDescription>
-                <Trans i18nKey="assignment.delete.description" />
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-row justify-end gap-4 py-4">
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteDialogOpen(false)}
-                disabled={isDeleting}
-              >
-                <Trans i18nKey="assignment.delete.cancel" />
-              </Button>
-              <Button
-                onClick={() => deleteAssignmentMutation(assignment.id)}
-                disabled={isDeleting}
-                variant="destructive"
-              >
-                {isDeleting ? (
-                  <Trans i18nKey="assignment.delete.button_loading" />
-                ) : (
-                  <Trans i18nKey="assignment.delete.button" />
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </Collapsible>
   );
 }
