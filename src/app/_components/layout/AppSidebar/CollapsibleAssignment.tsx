@@ -115,6 +115,11 @@ export function CollapsibleAssignment({
                   setNewName(assignment.name);
                 }}
                 autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                inputMode="text"
               />
             ) : (
               <SidebarText className="flex-1 truncate font-semibold">
