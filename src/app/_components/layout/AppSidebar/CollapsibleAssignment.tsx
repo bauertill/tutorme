@@ -114,7 +114,6 @@ export function CollapsibleAssignment({
                   setIsEditing(false);
                   setNewName(assignment.name);
                 }}
-                className="h-6 flex-1"
                 autoFocus
               />
             ) : (
