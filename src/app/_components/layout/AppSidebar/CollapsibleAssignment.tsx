@@ -1,18 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,8 +38,7 @@ export function CollapsibleAssignment({
   setActiveProblem,
 }: CollapsibleAssignmentProps) {
   const { t } = useTranslation();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<"rename" | "delete">("rename");
+  const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(assignment.name);
   const editAssignment = useStore.use.editAssignment();
   const deleteAssignment = useStore.use.deleteAssignment();
@@ -55,7 +46,7 @@ export function CollapsibleAssignment({
   const { mutate: renameAssignment, isPending: isRenaming } =
     api.assignment.renameAssignment.useMutation({
       onSuccess: () => {
-        setIsDialogOpen(false);
+        setIsEditing(false);
         editAssignment({
           ...assignment,
           name: newName,
@@ -70,7 +61,6 @@ export function CollapsibleAssignment({
   const { mutate: deleteAssignmentMutation, isPending: isDeleting } =
     api.assignment.deleteAssignment.useMutation({
       onSuccess: () => {
-        setIsDialogOpen(false);
         deleteAssignment(assignment.id);
       },
     });
@@ -79,6 +69,12 @@ export function CollapsibleAssignment({
     (problem) => problem.status === "SOLVED",
   ).length;
   const isSolved = solvedProblemsCount === assignment.problems.length;
+
+  const handleDelete = () => {
+    if (window.confirm(t("assignment.delete.description"))) {
+      deleteAssignmentMutation(assignment.id);
+    }
+  };
 
   return (
     <Collapsible open={isOpen} onOpenChange={onOpenChange}>
@@ -99,107 +95,60 @@ export function CollapsibleAssignment({
             ) : (
               <Circle className="h-4 w-4 flex-shrink-0 text-yellow-500" />
             )}
-            <SidebarText className="flex-1 truncate font-semibold">
-              {assignment.name}
-            </SidebarText>
+            {isEditing ? (
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    renameAssignment({
+                      assignmentId: assignment.id,
+                      name: newName,
+                    });
+                  } else if (e.key === "Escape") {
+                    setIsEditing(false);
+                    setNewName(assignment.name);
+                  }
+                }}
+                onBlur={() => {
+                  setIsEditing(false);
+                  setNewName(assignment.name);
+                }}
+                className="h-6 flex-1"
+                autoFocus
+              />
+            ) : (
+              <SidebarText className="flex-1 truncate font-semibold">
+                {assignment.name}
+              </SidebarText>
+            )}
             <SidebarText className="min-w-[44px] flex-shrink-0 text-right text-xs text-muted-foreground">
               {solvedProblemsCount} / {assignment.problems.length}
             </SidebarText>
           </div>
         </CollapsibleTrigger>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <MoreVertical className="h-4 w-4 cursor-pointer" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  setDialogType("rename");
-                  setIsDialogOpen(true);
-                }}
-                className="cursor-pointer hover:bg-accent"
-              >
-                <Trans i18nKey="assignment.rename.button" />
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer text-destructive hover:bg-accent"
-                onClick={() => {
-                  setDialogType("delete");
-                  setIsDialogOpen(true);
-                }}
-              >
-                <Trans i18nKey="assignment.delete.button" />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {dialogType === "rename" ? (
-            <DialogContent className="rounded-lg">
-              <DialogHeader>
-                <DialogTitle>
-                  <Trans i18nKey="assignment.rename.title" />
-                </DialogTitle>
-                <DialogDescription>
-                  <Trans i18nKey="assignment.rename.description" />
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <Input
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder={t("assignment.rename.placeholder")}
-                  disabled={isRenaming}
-                />
-                <Button
-                  onClick={() =>
-                    renameAssignment({
-                      assignmentId: assignment.id,
-                      name: newName,
-                    })
-                  }
-                  disabled={isRenaming || newName === assignment.name}
-                >
-                  {isRenaming ? (
-                    <Trans i18nKey="assignment.rename.button_loading" />
-                  ) : (
-                    <Trans i18nKey="assignment.rename.button" />
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          ) : (
-            <DialogContent className="rounded-lg">
-              <DialogHeader>
-                <DialogTitle>
-                  <Trans i18nKey="assignment.delete.title" />
-                </DialogTitle>
-                <DialogDescription>
-                  <Trans i18nKey="assignment.delete.description" />
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex flex-row justify-end gap-4 py-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  disabled={isDeleting}
-                >
-                  <Trans i18nKey="assignment.delete.cancel" />
-                </Button>
-                <Button
-                  onClick={() => deleteAssignmentMutation(assignment.id)}
-                  disabled={isDeleting}
-                  variant="destructive"
-                >
-                  {isDeleting ? (
-                    <Trans i18nKey="assignment.delete.button_loading" />
-                  ) : (
-                    <Trans i18nKey="assignment.delete.button" />
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          )}
-        </Dialog>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <MoreVertical className="h-4 w-4 cursor-pointer" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => {
+                setIsEditing(true);
+                setNewName(assignment.name);
+              }}
+              className="cursor-pointer hover:bg-accent"
+            >
+              <Trans i18nKey="assignment.rename.button" />
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer text-destructive hover:bg-accent"
+              onClick={handleDelete}
+            >
+              <Trans i18nKey="assignment.delete.button" />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <CollapsibleContent>
         <div className="space-y-1 pl-6">
