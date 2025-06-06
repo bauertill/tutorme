@@ -59,6 +59,16 @@ model Subscription {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model AppUsage {
+  id          String   @id @default(cuid())
+  fingerprint String   @unique // IP address or userId if logged in
+  creditsUsed Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([fingerprint])
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -71,10 +81,8 @@ model User {
 
   accounts     Account[]
   sessions     Session[]
-  assignments  Assignment[]
-  userProblems UserProblem[]
   subscription Subscription?
-  groups       Group[]       @relation("UserGroups")
+  student      Student?
 }
 
 model VerificationToken {
@@ -110,78 +118,125 @@ enum Language {
   en
 }
 
-model Problem {
-  id         String                       @id @default(cuid())
-  dataSource String
-  problem    String
-  solution   String
-  level      String
-  language   Language                     @default(en)
-  type       String
-  vector     Unsupported("vector(3072)")?
-  createdAt  DateTime                     @default(now())
-
-  problemUploadId String
-  problemUpload   ProblemUpload @relation(fields: [problemUploadId], references: [id], onDelete: Cascade)
+model Student {
+  id                 String              @id @default(cuid())
+  userId             String              @unique
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentGroup       StudentGroup[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  studentAssignments StudentAssignment[]
 }
 
-model Assignment {
+model StudentGroup {
+  id               String            @id @default(cuid())
+  name             String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  students         Student[]
+  groupAssignments GroupAssignment[]
+}
+
+model GroupAssignment {
   id        String   @id @default(cuid())
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId   String
-  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  problems UserProblem[]
+  studentGroupId String
+  studentGroup   StudentGroup @relation(fields: [studentGroupId], references: [id], onDelete: Cascade)
+
+  problems           Problem[]
+  studentAssignments StudentAssignment[]
 }
 
-enum UserProblemStatus {
-  NEW
+model StudentAssignment {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  groupAssignmentId String?
+  groupAssignment   GroupAssignment? @relation(fields: [groupAssignmentId], references: [id], onDelete: Cascade)
+
+  problems         Problem[]
+  studentSolutions StudentSolution[]
+}
+
+model Book {
+  id          String        @id @default(cuid())
+  name        String
+  publisher   String
+  isbn        String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  BookChapter BookChapter[]
+}
+
+model BookChapter {
+  id           String         @id @default(cuid())
+  name         String
+  bookId       String
+  book         Book           @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  BookExercise BookExercise[]
+}
+
+model BookExercise {
+  id            String      @id @default(cuid())
+  name          String
+  bookChapterId String
+  bookChapter   BookChapter @relation(fields: [bookChapterId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  Problem       Problem[]
+}
+
+model Problem {
+  id                String                       @id @default(cuid())
+  dataSource        String
+  problem           String
+  solution          String
+  level             String
+  language          Language                     @default(en)
+  type              String
+  vector            Unsupported("vector(3072)")?
+  createdAt         DateTime                     @default(now())
+  problemNumber     String
+  referenceSolution String?
+  imageUrl          String?
+
+  bookExerciseId  String?
+  bookExercise    BookExercise?  @relation(fields: [bookExerciseId], references: [id], onDelete: Cascade)
+  ProblemUpload   ProblemUpload? @relation(fields: [problemUploadId], references: [id])
+  problemUploadId String?
+
+  groupAssignments    GroupAssignment[]
+  studentAssignment   StudentAssignment? @relation(fields: [studentAssignmentId], references: [id])
+  studentAssignmentId String?
+  studentSolutions    StudentSolution[]
+}
+
+model StudentSolution {
+  id        String                @id @default(cuid())
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  status    StudentSolutionStatus @default(INITIAL)
+  canvas    Json
+
+  studentAssignmentId String
+  studentAssignment   StudentAssignment @relation(fields: [studentAssignmentId], references: [id], onDelete: Cascade)
+
+  problem   Problem @relation(fields: [problemId], references: [id])
+  problemId String
+}
+
+enum StudentSolutionStatus {
   INITIAL
   IN_PROGRESS
   SOLVED
-  FAILED
-}
-
-model UserProblem {
-  id                   String            @id @default(cuid())
-  problem              String
-  problemNumber        String
-  referenceSolution    String?
-  status               UserProblemStatus @default(INITIAL)
-  canvas               Json
-  evaluation           Json?
-  relevantImageSegment Json?
-  imageUrl             String?
-  updatedAt            DateTime          @updatedAt
-  createdAt            DateTime          @default(now())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  assignmentId String
-  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model AppUsage {
-  id          String   @id @default(cuid())
-  fingerprint String   @unique // IP address or other fingerprinting method
-  creditsUsed Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([fingerprint])
-}
-
-model Group {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  users User[] @relation("UserGroups")
 }
