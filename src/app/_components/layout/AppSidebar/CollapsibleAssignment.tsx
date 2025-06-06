@@ -43,7 +43,7 @@ export function CollapsibleAssignment({
   const editAssignment = useStore.use.editAssignment();
   const deleteAssignment = useStore.use.deleteAssignment();
 
-  const { mutate: renameAssignment, isPending: isRenaming } =
+  const { mutate: renameAssignment } =
     api.assignment.renameAssignment.useMutation({
       onSuccess: () => {
         setIsEditing(false);
@@ -58,7 +58,7 @@ export function CollapsibleAssignment({
       },
     });
 
-  const { mutate: deleteAssignmentMutation, isPending: isDeleting } =
+  const { mutate: deleteAssignmentMutation } =
     api.assignment.deleteAssignment.useMutation({
       onSuccess: () => {
         deleteAssignment(assignment.id);
