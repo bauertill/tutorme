@@ -4,7 +4,7 @@ import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { type Problem } from "../problem/types";
+import { type Problem, type StudentSolution } from "../problem/types";
 import { type Draft } from "../utils";
 import { getExampleProblems } from "./getExampleProblems";
 import { type StudentAssignment } from "./types";
@@ -104,34 +104,17 @@ export async function createStudentAssignmentFromUpload(
   }
 }
 
-/**
- * The local assignments are updated or created in the DB.
- * Then all assignments are returned that are not in the local assignments
- * (This happens for new devices or when the user leaves the page before an upload is complete)
- * @param userId
- * @param dbAdapter
- * @param incomingAssignments
- * @returns
- */
 export async function syncAssignments(
   userId: string,
   dbAdapter: DBAdapter,
-  incomingAssignments: StudentAssignment[],
+  localAssignments: StudentAssignment[],
 ): Promise<{ assignmentsNotInLocal: StudentAssignment[] }> {
   const studentId = await dbAdapter.getStudentIdByUserIdOrThrow(userId);
-  const existingAssignments =
-    await dbAdapter.getStudentAssignmentsByUserId(userId);
-  const { newAssignments, updateAssignments } = getUpdatedAndNewAssignments(
-    existingAssignments,
-    incomingAssignments,
-  );
+  const remoteAssignments =
+    await dbAdapter.getStudentAssignmentsByStudentId(studentId);
+  const newAssignments = getNewAssignments(remoteAssignments, localAssignments);
 
-  for (const assignment of updateAssignments) {
-    // TODO: Implement update problems
-    // await dbAdapter.updateProblems(assignment.problems, userId, assignment.id);
-  }
   for (const assignment of newAssignments) {
-    // TODO: Implement create assignment
     await dbAdapter.createStudentAssignmentWithProblems(
       assignment,
       studentId,
@@ -139,55 +122,93 @@ export async function syncAssignments(
     );
   }
 
-  const assignmentsNotInLocal = existingAssignments.filter(
-    (assignment) => !incomingAssignments.find((a) => a.id === assignment.id),
+  const assignmentsNotInLocal = remoteAssignments.filter(
+    (assignment) => !localAssignments.find((a) => a.id === assignment.id),
   );
   console.log("assignmentsNotInLocal", assignmentsNotInLocal);
   return { assignmentsNotInLocal };
 }
-/**
- * Merge incoming assignments with existing assignments.
- * If an assignment is present in the incoming assignments, but not in the existing it is added.
- * If an assignment is present in both, the incoming one is kept.
- * @param existingAssignments
- * @param incomingAssignments
- * @returns
- */
-export function getUpdatedAndNewAssignments(
-  existingAssignments: StudentAssignment[],
-  incomingAssignments: StudentAssignment[],
-): {
-  updateAssignments: StudentAssignment[];
-  newAssignments: StudentAssignment[];
-} {
-  const existingAssignmentsMap = new Map<string, StudentAssignment>();
-  for (const assignment of existingAssignments) {
-    existingAssignmentsMap.set(assignment.id, assignment);
+
+export function getNewAssignments(
+  remoteAssignments: StudentAssignment[],
+  localAssignments: StudentAssignment[],
+): StudentAssignment[] {
+  const remoteAssignmentsMap = new Map<string, StudentAssignment>();
+  for (const assignment of remoteAssignments) {
+    remoteAssignmentsMap.set(assignment.id, assignment);
   }
-  const updateAssignments: StudentAssignment[] = [];
   const newAssignments: StudentAssignment[] = [];
 
-  for (const assignment of incomingAssignments) {
-    const existingAssignment = existingAssignmentsMap.get(assignment.id);
-    if (existingAssignment) {
-      if (!_.isEqual(existingAssignment, assignment)) {
-        updateAssignments.push(assignment);
-      }
-    } else {
+  for (const assignment of localAssignments) {
+    if (!remoteAssignmentsMap.has(assignment.id)) {
       newAssignments.push(assignment);
     }
   }
 
-  return { updateAssignments, newAssignments };
+  return newAssignments;
 }
 
-/**
- * Merge incoming assignments with existing assignments.
- * Add any userProblems from the incoming assignments if they are not already present in the existing assignments.
- * @param existingAssignments
- * @param incomingAssignments
- * @returns
- */
+export async function syncStudentSolutions(
+  userId: string,
+  dbAdapter: DBAdapter,
+  localSolutions: StudentSolution[],
+): Promise<{ studentSolutionsNotInLocal: StudentSolution[] }> {
+  const studentId = await dbAdapter.getStudentIdByUserIdOrThrow(userId);
+  const remoteSolutions =
+    await dbAdapter.getStudentSolutionsByStudentId(studentId);
+  const { solutionsToPush, solutionsToPull } = getStudentSolutionsToPushAndPull(
+    localSolutions,
+    remoteSolutions,
+  );
+  for (const solution of solutionsToPush) {
+    await dbAdapter.upsertStudentSolution(solution);
+  }
+  return { studentSolutionsNotInLocal: solutionsToPull };
+}
+export function getStudentSolutionsToPushAndPull(
+  localSolutions: StudentSolution[],
+  remoteSolutions: StudentSolution[],
+): {
+  solutionsToPush: StudentSolution[];
+  solutionsToPull: StudentSolution[];
+} {
+  const localSolutionsMap = new Map<string, StudentSolution>();
+  const remoteSolutionsMap = new Map<string, StudentSolution>();
+  for (const solution of localSolutions) {
+    localSolutionsMap.set(solution.id, solution);
+  }
+  for (const solution of remoteSolutions) {
+    remoteSolutionsMap.set(solution.id, solution);
+  }
+
+  const solutionsToPush: StudentSolution[] = [];
+  const solutionsToPull: StudentSolution[] = [];
+
+  for (const remoteSolution of remoteSolutions) {
+    const localSolution = localSolutionsMap.get(remoteSolution.id);
+    if (localSolution) {
+      if (!_.isEqual(localSolution, remoteSolution)) {
+        if (localSolution.updatedAt < remoteSolution.updatedAt) {
+          solutionsToPull.push(remoteSolution);
+        } else {
+          solutionsToPush.push(localSolution);
+        }
+      }
+    } else {
+      solutionsToPull.push(remoteSolution);
+    }
+  }
+
+  for (const localSolution of localSolutions) {
+    const remoteSolution = remoteSolutionsMap.get(localSolution.id);
+    if (!remoteSolution) {
+      solutionsToPush.push(localSolution);
+    }
+  }
+
+  return { solutionsToPush, solutionsToPull };
+}
+
 export function mergeAssignments(
   existingAssignments: StudentAssignment[],
   incomingAssignments: StudentAssignment[],

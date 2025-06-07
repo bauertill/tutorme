@@ -1,6 +1,7 @@
 import { parseStudentSolutionWithDefaults } from "@/core/problem/problemDomain";
 import {
   Problem,
+  StudentSolution,
   type ProblemQueryResult,
   type ProblemUpload,
   type ProblemUploadStatus,
@@ -269,11 +270,11 @@ export class DBAdapter {
     return dbAssignments;
   }
 
-  async getStudentAssignmentsByUserId(
-    userId: string,
+  async getStudentAssignmentsByStudentId(
+    studentId: string,
   ): Promise<StudentAssignmentWithStudentSolutions[]> {
     const dbAssignments = await this.db.studentAssignment.findMany({
-      where: { userId },
+      where: { studentId },
       include: { problems: true, studentSolutions: true },
     });
     return dbAssignments.map(
@@ -304,6 +305,31 @@ export class DBAdapter {
     return dbAssignment;
   }
 
+  async getStudentSolutionsByStudentId(
+    studentId: string,
+  ): Promise<StudentSolution[]> {
+    const results = await this.db.studentSolution.findMany({
+      where: { studentAssignment: { studentId } },
+    });
+    return results.map((s) => StudentSolution.parse(s));
+  }
+
+  async upsertStudentSolution(
+    solution: StudentSolution,
+  ): Promise<StudentSolution> {
+    const dbSolution = await this.db.studentSolution.upsert({
+      where: { id: solution.id },
+      update: {
+        ...solution,
+        evaluation: solution.evaluation ?? undefined,
+      },
+      create: {
+        ...solution,
+        evaluation: solution.evaluation ?? undefined,
+      },
+    });
+    return StudentSolution.parse(dbSolution);
+  }
   async getUsersByStudentGroupId(studentGroupId: string): Promise<User[]> {
     return await this.db.user.findMany({
       where: { student: { studentGroup: { some: { id: studentGroupId } } } },

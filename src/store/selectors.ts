@@ -5,7 +5,8 @@ import {
 import { newMessage } from "@/core/help/helpDomain";
 import { type Message } from "@/core/help/types";
 import { type Problem, type StudentSolution } from "@/core/problem/types";
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { useStore } from ".";
 
 export const useActiveAssignment = (): StudentAssignment | null => {
@@ -35,6 +36,7 @@ export const useProblemController = (): {
 } => {
   const setActiveProblem = useStore.use.setActiveProblem();
   const setCanvas = useStore.use.setCanvas();
+  const paths = useStore.use.paths();
   const storeCurrentPathsOnStudentSolution =
     useStore.use.storeCurrentPathsOnStudentSolution();
 
@@ -44,12 +46,34 @@ export const useProblemController = (): {
     activeAssignment?.problems.findIndex((p) => p.id === activeProblem?.id) ??
     0;
   const studentSolutions = useStore.use.studentSolutions();
-  const activeStudentSolution =
-    studentSolutions.find(
-      (s) =>
-        s.problemId === activeProblem?.id &&
-        s.studentAssignmentId === activeAssignment?.id,
-    ) ?? null;
+  const activeStudentSolution = useMemo(
+    () =>
+      studentSolutions.find(
+        (s) =>
+          s.problemId === activeProblem?.id &&
+          s.studentAssignmentId === activeAssignment?.id,
+      ) ?? null,
+    [activeProblem, activeAssignment, studentSolutions],
+  );
+
+  const debouncedStorePaths = useDebouncedCallback(
+    useCallback(() => {
+      if (!activeProblem || !activeAssignment) return;
+      storeCurrentPathsOnStudentSolution(
+        activeProblem.id,
+        activeAssignment.id,
+        paths,
+      );
+    }, [
+      activeProblem,
+      activeAssignment,
+      paths,
+      storeCurrentPathsOnStudentSolution,
+    ]),
+    5000,
+    { leading: true, trailing: true, maxWait: 5000 },
+  );
+  useEffect(debouncedStorePaths, [paths, debouncedStorePaths]);
 
   const nextProblem = activeAssignment?.problems[activeProblemIndex + 1];
   const nextUnsolvedProblem =
@@ -73,7 +97,11 @@ export const useProblemController = (): {
 
   const gotoNextProblem = useCallback(() => {
     if (!nextProblem || !activeAssignment) return;
-    storeCurrentPathsOnStudentSolution();
+    storeCurrentPathsOnStudentSolution(
+      activeProblem?.id ?? "",
+      activeAssignment.id,
+      paths,
+    );
     setActiveProblem(nextProblem, activeAssignment.id);
     const studentSolution = studentSolutions.find(
       (s) =>
@@ -82,6 +110,8 @@ export const useProblemController = (): {
     );
     setCanvas(studentSolution?.canvas ?? { paths: [] });
   }, [
+    activeProblem,
+    paths,
     nextProblem,
     setActiveProblem,
     setCanvas,
@@ -92,7 +122,11 @@ export const useProblemController = (): {
   const gotoNextUnsolvedProblem = nextUnsolvedProblem
     ? () => {
         if (!activeAssignment) return;
-        storeCurrentPathsOnStudentSolution();
+        storeCurrentPathsOnStudentSolution(
+          activeProblem?.id ?? "",
+          activeAssignment.id,
+          paths,
+        );
         setActiveProblem(nextUnsolvedProblem, activeAssignment.id);
         const studentSolution = studentSolutions.find(
           (s) =>
@@ -104,7 +138,11 @@ export const useProblemController = (): {
     : undefined;
   const gotoPreviousProblem = useCallback(() => {
     if (!previousProblem || !activeAssignment) return;
-    storeCurrentPathsOnStudentSolution();
+    storeCurrentPathsOnStudentSolution(
+      activeProblem?.id ?? "",
+      activeAssignment.id,
+      paths,
+    );
     setActiveProblem(previousProblem, activeAssignment.id);
     const studentSolution = studentSolutions.find(
       (s) =>
@@ -113,6 +151,8 @@ export const useProblemController = (): {
     );
     setCanvas(studentSolution?.canvas ?? { paths: [] });
   }, [
+    activeProblem,
+    paths,
     previousProblem,
     activeAssignment,
     setActiveProblem,
@@ -123,7 +163,11 @@ export const useProblemController = (): {
 
   const setActiveProblemWithCanvas = (problem: Problem) => {
     if (!activeAssignment) return;
-    storeCurrentPathsOnStudentSolution();
+    storeCurrentPathsOnStudentSolution(
+      activeProblem?.id ?? "",
+      activeAssignment.id,
+      paths,
+    );
     setActiveProblem(problem, activeAssignment.id);
     const studentSolution = studentSolutions.find(
       (s) =>

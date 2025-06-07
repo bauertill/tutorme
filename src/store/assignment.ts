@@ -4,6 +4,7 @@ import { type Problem, type StudentSolution } from "@/core/problem/types";
 import _ from "lodash";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
+import { type Path } from "./canvas";
 
 export interface AssignmentSlice {
   assignments: StudentAssignment[];
@@ -16,7 +17,11 @@ export interface AssignmentSlice {
   editAssignment: (assignment: StudentAssignment) => void;
   deleteAssignment: (assignmentId: string) => void;
   setActiveProblem: (problem: Problem, assignmentId: string) => void;
-  storeCurrentPathsOnStudentSolution: () => void;
+  storeCurrentPathsOnStudentSolution: (
+    problemId: string,
+    assignmentId: string,
+    paths: Path[],
+  ) => void;
   upsertStudentSolutions: (studentSolutions: StudentSolution[]) => void;
 }
 
@@ -44,6 +49,11 @@ export const createAssignmentSlice: StateCreator<
       );
       if (!_.isEqual(draft.assignments, mergedAssignments)) {
         draft.assignments = mergedAssignments;
+      }
+      const firstAssignment = draft.assignments[0];
+      if (!draft.activeAssignmentId && firstAssignment) {
+        draft.activeAssignmentId = firstAssignment.id;
+        draft.activeProblemId = firstAssignment.problems[0]?.id ?? null;
       }
     }),
   addAssignment: (assignment: StudentAssignment) => {
@@ -76,15 +86,33 @@ export const createAssignmentSlice: StateCreator<
     get().setCanvas({ paths: [] });
   },
 
-  storeCurrentPathsOnStudentSolution: () => {
+  storeCurrentPathsOnStudentSolution: (
+    problemId: string,
+    assignmentId: string,
+    paths: Path[],
+  ) => {
     set((draft) => {
+      if (!draft.activeProblemId || !draft.activeAssignmentId) return;
       const studentSolution = draft.studentSolutions.find(
         (s) =>
-          s.problemId === draft.activeProblemId &&
-          s.studentAssignmentId === draft.activeAssignmentId,
+          s.problemId === problemId && s.studentAssignmentId === assignmentId,
       );
-      if (studentSolution) {
-        studentSolution.canvas = { paths: get().paths };
+      if (!studentSolution) {
+        draft.studentSolutions = [
+          ...draft.studentSolutions,
+          {
+            id: crypto.randomUUID(),
+            problemId,
+            studentAssignmentId: assignmentId,
+            createdAt: new Date(),
+            status: "INITIAL",
+            evaluation: null,
+            canvas: { paths },
+            updatedAt: new Date(),
+          },
+        ];
+      } else {
+        studentSolution.canvas = { paths };
         studentSolution.updatedAt = new Date();
       }
     });

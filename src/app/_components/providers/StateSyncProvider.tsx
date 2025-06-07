@@ -10,11 +10,17 @@ const SYNC_INTERVAL = 60 * 1000;
 export function StateSyncProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const assignmentsLocal = useStore.use.assignments();
-  const pathsLocal = useStore.use.paths();
+  const studentSolutionsLocal = useStore.use.studentSolutions();
   const upsertAssignmentsLocal = useStore.use.upsertAssignments();
+  const upsertStudentSolutionsLocal = useStore.use.upsertStudentSolutions();
 
   const { data: assignmentsOnServer } =
     api.assignment.listStudentAssignments.useQuery(
+      session.data?.user.id ? undefined : skipToken,
+    );
+
+  const { data: studentSolutionsOnServer } =
+    api.assignment.listStudentSolutions.useQuery(
       session.data?.user.id ? undefined : skipToken,
     );
 
@@ -22,6 +28,17 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
     api.assignment.syncAssignments.useMutation({
       onSuccess: () => {
         console.log("syncAssignments success");
+      },
+      onError: (error) => {
+        console.error(error);
+      },
+    });
+
+  const { mutate: syncStudentSolutions } =
+    api.assignment.syncStudentSolutions.useMutation({
+      onSuccess: ({ studentSolutionsNotInLocal }) => {
+        console.log("syncStudentSolutions success");
+        upsertStudentSolutionsLocal(studentSolutionsNotInLocal);
       },
       onError: (error) => {
         console.error(error);
@@ -39,12 +56,15 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       console.log("syncing assignments");
-      syncAssignments(assignmentsLocal); // TODO: Don't send entire data, only changes
+      syncAssignments(assignmentsLocal);
+      syncStudentSolutions(studentSolutionsLocal);
     }, [
       session.data?.user.id,
       assignmentsLocal,
       assignmentsOnServer,
       syncAssignments,
+      syncStudentSolutions,
+      studentSolutionsLocal,
     ]),
     SYNC_INTERVAL,
     { leading: true, trailing: true, maxWait: SYNC_INTERVAL },
@@ -56,7 +76,17 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
     }
   }, [assignmentsOnServer, upsertAssignmentsLocal]);
 
-  useEffect(debouncedSync, [pathsLocal, debouncedSync]);
+  useEffect(() => {
+    if (studentSolutionsOnServer) {
+      upsertStudentSolutionsLocal(studentSolutionsOnServer);
+    }
+  }, [studentSolutionsOnServer, upsertStudentSolutionsLocal]);
+
+  useEffect(debouncedSync, [
+    assignmentsLocal,
+    studentSolutionsLocal,
+    debouncedSync,
+  ]);
 
   return <>{children}</>;
 }

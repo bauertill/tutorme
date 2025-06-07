@@ -3,6 +3,7 @@ import {
   createStudentAssignmentFromUpload,
   getExampleAssignment,
   syncAssignments,
+  syncStudentSolutions,
 } from "@/core/assignment/assignmentDomain";
 import { StudentAssignment, UserProblem } from "@/core/assignment/types";
 import {
@@ -11,6 +12,7 @@ import {
   explainHint,
   getRandomProblem,
 } from "@/core/exercise/exerciseDomain";
+import { StudentSolution } from "@/core/problem/types";
 import {
   createTRPCRouter,
   limitedPublicProcedure,
@@ -26,9 +28,10 @@ export const assignmentRouter = createTRPCRouter({
   }),
 
   listStudentAssignments: protectedAdminProcedure.query(async ({ ctx }) => {
-    return await ctx.dbAdapter.getStudentAssignmentsByUserId(
+    const studentId = await ctx.dbAdapter.getStudentIdByUserIdOrThrow(
       ctx.session.user.id,
     );
+    return await ctx.dbAdapter.getStudentAssignmentsByStudentId(studentId);
   }),
 
   createFromUpload: limitedPublicProcedure
@@ -112,6 +115,23 @@ export const assignmentRouter = createTRPCRouter({
     .input(z.array(StudentAssignment))
     .mutation(async ({ ctx, input }) => {
       return await syncAssignments(ctx.session.user.id, ctx.dbAdapter, input);
+    }),
+
+  listStudentSolutions: protectedProcedure.query(async ({ ctx }) => {
+    const studentId = await ctx.dbAdapter.getStudentIdByUserIdOrThrow(
+      ctx.session.user.id,
+    );
+    return await ctx.dbAdapter.getStudentSolutionsByStudentId(studentId);
+  }),
+
+  syncStudentSolutions: protectedProcedure
+    .input(z.array(StudentSolution))
+    .mutation(async ({ ctx, input }) => {
+      return await syncStudentSolutions(
+        ctx.session.user.id,
+        ctx.dbAdapter,
+        input,
+      );
     }),
 
   getExampleAssignment: publicProcedure.query(async ({ ctx }) => {
