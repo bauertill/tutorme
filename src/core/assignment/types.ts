@@ -80,6 +80,7 @@ export const StudentAssignment = z.object({
   updatedAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
   problems: z.array(Problem),
   groupAssignment: GroupAssignment.optional(),
+  studentId: z.string().optional(),
 });
 
 export const StudentAssignmentWithStudentSolutions = StudentAssignment.extend({

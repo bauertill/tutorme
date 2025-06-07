@@ -210,13 +210,12 @@ export class DBAdapter {
   async createStudentAssignmentWithProblems(
     {
       name,
-      studentId,
       problems,
     }: {
       name: string;
-      studentId: string;
       problems: Draft<Problem>[];
     },
+    studentId: string,
     userId: string,
   ): Promise<StudentAssignment> {
     const dbAssignment = await this.db.studentAssignment.create({

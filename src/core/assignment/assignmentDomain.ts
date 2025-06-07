@@ -39,8 +39,8 @@ export async function adminCreateAssignment(
 
 export async function createStudentAssignmentFromUpload(
   uploadPath: string,
-  userId: string,
-  studentId: string,
+  userId: string | undefined,
+  studentId: string | undefined,
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
   language: Language,
@@ -70,28 +70,53 @@ export async function createStudentAssignmentFromUpload(
   }
   const assignment = {
     name: `Upload @ ${new Date().toLocaleString()}`,
-    studentId,
     problems,
   };
-  const result = await dbAdapter.createStudentAssignmentWithProblems(
-    assignment,
-    userId,
-  );
-  return {
-    ...result,
-    problems: result.problems.map((problem) => ({
-      ...problem,
-      assignmentId: result.id,
-      studentSolution: {
-        id: crypto.randomUUID(),
-        status: "INITIAL",
-        canvas: { paths: [] },
-        evaluation: null,
+  if (userId && studentId) {
+    const result = await dbAdapter.createStudentAssignmentWithProblems(
+      assignment,
+      studentId,
+      userId,
+    );
+    return {
+      ...result,
+      problems: result.problems.map((problem) => ({
+        ...problem,
+        assignmentId: result.id,
+        studentSolution: {
+          id: crypto.randomUUID(),
+          status: "INITIAL",
+          canvas: { paths: [] },
+          evaluation: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      })),
+    };
+  } else {
+    const assignmentId = uuidv4();
+    return {
+      ...assignment,
+      id: assignmentId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      problems: assignment.problems.map((problem) => ({
+        ...problem,
+        assignmentId,
+        id: uuidv4(),
         createdAt: new Date(),
         updatedAt: new Date(),
-      },
-    })),
-  };
+        studentSolution: {
+          id: crypto.randomUUID(),
+          status: "INITIAL",
+          canvas: { paths: [] },
+          evaluation: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      })),
+    };
+  }
 }
 
 /**

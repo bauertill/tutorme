@@ -37,14 +37,13 @@ export const assignmentRouter = createTRPCRouter({
   createFromUpload: limitedPublicProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user.id)
-        throw new Error("User must be present for admin actions");
-      const studentId = await ctx.dbAdapter.getStudentIdByUserIdOrThrow(
-        ctx.session.user.id,
-      );
+      const userId = ctx.session?.user.id;
+      const studentId = userId
+        ? await ctx.dbAdapter.getStudentIdByUserIdOrThrow(userId)
+        : undefined;
       return await createStudentAssignmentFromUpload(
         input,
-        ctx.session.user.id,
+        userId,
         studentId,
         ctx.dbAdapter,
         ctx.llmAdapter,
