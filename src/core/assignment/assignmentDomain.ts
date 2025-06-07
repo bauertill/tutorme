@@ -249,7 +249,6 @@ const mergeProblemsByUpdatedAt = (
       existingProblemsById.set(problem.id, recentlyUpdatedProblem);
     }
   }
-  // TODO: Merge student solutions
   return Array.from(existingProblemsById.values());
 };
 

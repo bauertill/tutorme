@@ -11,6 +11,7 @@ export interface AssignmentSlice {
   studentSolutions: StudentSolution[];
   activeAssignmentId: string | null;
   activeProblemId: string | null;
+  referenceSolutions: Record<string, string>;
   clearAssignments: () => void;
   upsertAssignments: (assignments: StudentAssignment[]) => void;
   addAssignment: (assignment: StudentAssignment) => void;
@@ -23,6 +24,7 @@ export interface AssignmentSlice {
     paths: Path[],
   ) => void;
   upsertStudentSolutions: (studentSolutions: StudentSolution[]) => void;
+  addReferenceSolution: (problemId: string, referenceSolution: string) => void;
 }
 
 export const createAssignmentSlice: StateCreator<
@@ -35,6 +37,7 @@ export const createAssignmentSlice: StateCreator<
   studentSolutions: [],
   activeAssignmentId: null,
   activeProblemId: null,
+  referenceSolutions: {},
   clearAssignments: () => {
     set((draft) => {
       draft.assignments = [];
@@ -124,4 +127,9 @@ export const createAssignmentSlice: StateCreator<
         (s) => s.id,
       );
     }),
+  addReferenceSolution: (problemId: string, referenceSolution: string) => {
+    set((draft) => {
+      draft.referenceSolutions[problemId] = referenceSolution;
+    });
+  },
 });

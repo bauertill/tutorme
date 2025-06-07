@@ -1,4 +1,5 @@
 "use client";
+import { useStore } from "@/store";
 import { useActiveProblem } from "@/store/selectors";
 import { api } from "@/trpc/react";
 import { useEffect } from "react";
@@ -11,20 +12,27 @@ export default function Exercise() {
   const [debouncedProblem] = useDebounce(activeProblem, 5000);
   const { mutateAsync: createReferenceSolution } =
     api.assignment.createReferenceSolution.useMutation();
+  const addReferenceSolution = useStore.use.addReferenceSolution();
+  const referenceSolutions = useStore.use.referenceSolutions();
 
   useEffect(() => {
-    if (debouncedProblem?.referenceSolution === null) {
-      // TODO: Update problem server side
-      // void createReferenceSolution(debouncedProblem.problem).then(
-      //   (referenceSolution) => {
-      //     updateProblem({
-      //       id: debouncedProblem.id,
-      //       referenceSolution,
-      //     });
-      //   },
-      // );
+    if (debouncedProblem && !referenceSolutions[debouncedProblem.id]) {
+      void createReferenceSolution(debouncedProblem.problem).then(
+        (referenceSolution) => {
+          console.log("referenceSolution", referenceSolution);
+          addReferenceSolution(
+            debouncedProblem.id,
+            referenceSolution.substring(0, 30),
+          );
+        },
+      );
     }
-  }, [debouncedProblem, createReferenceSolution]);
+  }, [
+    debouncedProblem,
+    createReferenceSolution,
+    addReferenceSolution,
+    referenceSolutions,
+  ]);
 
   if (!activeProblem) {
     return <div className="p-4">No problem selected</div>;
