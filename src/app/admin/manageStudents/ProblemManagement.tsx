@@ -37,7 +37,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { type Problem } from "@/core/problem/types";
 import { api } from "@/trpc/react";
 import { MoreVertical } from "lucide-react";
 import React from "react";
@@ -61,8 +60,6 @@ export function ProblemManagement() {
   const [selectedProblems, setSelectedProblems] = React.useState<Set<string>>(
     new Set(),
   );
-  const [selectedProblemModalIndex, setSelectedProblemModalIndex] =
-    React.useState<number | null>(null);
   const [createAssignmentOpen, setCreateAssignmentOpen] = React.useState(false);
   const [assignmentName, setAssignmentName] = React.useState(() => {
     const today = new Date();
@@ -86,8 +83,6 @@ export function ProblemManagement() {
     userProblems.length > 0 && selectedProblems.size === userProblems.length;
   const someSelected =
     selectedProblems.size > 0 && selectedProblems.size < userProblems.length;
-
-  const modalProblems = userProblems;
 
   const handleSelectAll = () => {
     if (selectedProblems.size === userProblems.length) {
@@ -117,15 +112,6 @@ export function ProblemManagement() {
     },
     [someSelected],
   );
-
-  const handleOpenModal = (problem: Problem) => {
-    const idx = modalProblems.findIndex((p) => p.id === problem.id);
-    setSelectedProblemModalIndex(idx !== -1 ? idx : null);
-  };
-
-  const handleDoneModal = () => {
-    setSelectedProblemModalIndex(null);
-  };
 
   const { data: userGroups = [], isLoading: groupsLoading } =
     api.admin.getGroups.useQuery();
@@ -206,7 +192,6 @@ export function ProblemManagement() {
               </TableHead>
               <TableHead>#</TableHead>
               <TableHead>Problem</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
             </TableRow>
           </TableHeader>
@@ -225,7 +210,6 @@ export function ProblemManagement() {
                     )
                   )
                     return;
-                  handleOpenModal(problem);
                 }}
               >
                 <TableCell>

@@ -32,6 +32,20 @@ export async function adminCreateAssignment(
     },
     userId,
   );
+  const students = await dbAdapter.getStudentsByGroupId(studentGroupId);
+  await Promise.all(
+    students.map((student) =>
+      dbAdapter.createStudentAssignment(
+        {
+          id: `${assignmentId}-${student.id}`,
+          name,
+          problemIds,
+          studentId: student.id,
+        },
+        userId,
+      ),
+    ),
+  );
 }
 
 export async function createStudentAssignmentFromUpload(

@@ -10,7 +10,7 @@ import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
-import { Prisma, type PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient, type Student } from "@prisma/client";
 import assert from "assert";
 import { type AppUsage } from "../appUsage/types";
 import {
@@ -204,6 +204,35 @@ export class DBAdapter {
         },
       },
       include: { problems: true, studentGroup: true },
+    });
+    return dbAssignment;
+  }
+
+  async createStudentAssignment(
+    {
+      id,
+      name,
+      problemIds,
+      studentId,
+    }: {
+      id: string;
+      name: string;
+      problemIds: string[];
+      studentId: string;
+    },
+    userId: string,
+  ): Promise<StudentAssignment> {
+    const dbAssignment = await this.db.studentAssignment.create({
+      data: {
+        id,
+        name,
+        userId,
+        studentId,
+        problems: {
+          connect: problemIds.map((id) => ({ id })),
+        },
+      },
+      include: { problems: true },
     });
     return dbAssignment;
   }
@@ -431,6 +460,12 @@ export class DBAdapter {
           create: {},
         },
       },
+    });
+  }
+
+  async getStudentsByGroupId(groupId: string): Promise<Student[]> {
+    return await this.db.student.findMany({
+      where: { studentGroup: { some: { id: groupId } } },
     });
   }
 }
