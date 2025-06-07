@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Problem, ProblemWithStudentSolution } from "../problem/types";
 import { type Draft } from "../utils";
 
 export const Point = z.object({
@@ -60,8 +61,41 @@ export const Assignment = z.object({
   problems: z.array(UserProblem),
 });
 
+export const GroupAssignment = z.object({
+  id: z.string(),
+  name: z.string(),
+  createdAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
+  updatedAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
+  problems: z.array(Problem),
+  studentGroup: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+});
+
+export const StudentAssignment = z.object({
+  id: z.string(),
+  name: z.string(),
+  createdAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
+  updatedAt: z.union([z.string().transform((str) => new Date(str)), z.date()]),
+  problems: z.array(Problem),
+  groupAssignment: GroupAssignment.optional(),
+});
+
+export const StudentAssignmentWithStudentSolutions = StudentAssignment.extend({
+  problems: z.array(ProblemWithStudentSolution),
+});
+
 export type AssignmentDraft = Omit<Draft<Assignment>, "problems"> & {
   problems: UserProblemDraft[];
 };
 
 export type Assignment = z.infer<typeof Assignment>;
+
+export type GroupAssignment = z.infer<typeof GroupAssignment>;
+
+export type StudentAssignment = z.infer<typeof StudentAssignment>;
+
+export type StudentAssignmentWithStudentSolutions = z.infer<
+  typeof StudentAssignmentWithStudentSolutions
+>;

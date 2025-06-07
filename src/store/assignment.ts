@@ -1,21 +1,27 @@
 import { mergeAssignments } from "@/core/assignment/assignmentDomain";
-import { type Assignment, type UserProblem } from "@/core/assignment/types";
+import { type StudentAssignmentWithStudentSolutions } from "@/core/assignment/types";
+import { type ProblemWithStudentSolution } from "@/core/problem/types";
 import _ from "lodash";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
 
 export interface AssignmentSlice {
-  assignments: Assignment[];
+  assignments: StudentAssignmentWithStudentSolutions[];
   activeAssignmentId: string | null;
   activeProblemId: string | null;
   clearAssignments: () => void;
-  upsertAssignments: (assignments: Assignment[]) => void;
-  addAssignment: (assignment: Assignment) => void;
-  editAssignment: (assignment: Assignment) => void;
+  upsertAssignments: (
+    assignments: StudentAssignmentWithStudentSolutions[],
+  ) => void;
+  addAssignment: (assignment: StudentAssignmentWithStudentSolutions) => void;
+  editAssignment: (assignment: StudentAssignmentWithStudentSolutions) => void;
   deleteAssignment: (assignmentId: string) => void;
-  setActiveProblem: (problem: UserProblem) => void;
+  setActiveProblem: (problem: ProblemWithStudentSolution) => void;
   updateProblem: (
-    problem: Partial<UserProblem> & { id: string; assignmentId: string },
+    problem: Partial<ProblemWithStudentSolution> & {
+      id: string;
+      assignmentId: string;
+    },
   ) => void;
   storeCurrentPathsOnProblem: () => void;
 }
@@ -35,7 +41,7 @@ export const createAssignmentSlice: StateCreator<
     });
     get().setCanvas({ paths: [] });
   },
-  upsertAssignments: (assignments: Assignment[]) =>
+  upsertAssignments: (assignments: StudentAssignmentWithStudentSolutions[]) =>
     set((draft) => {
       const mergedAssignments = mergeAssignments(
         draft.assignments,
@@ -45,7 +51,7 @@ export const createAssignmentSlice: StateCreator<
         draft.assignments = mergedAssignments;
       }
     }),
-  addAssignment: (assignment: Assignment) => {
+  addAssignment: (assignment: StudentAssignmentWithStudentSolutions) => {
     set((draft) => {
       draft.assignments = [assignment, ...draft.assignments];
       draft.activeAssignmentId = assignment.id;
@@ -53,7 +59,7 @@ export const createAssignmentSlice: StateCreator<
     });
     get().setCanvas({ paths: [] });
   },
-  editAssignment: (assignment: Assignment) => {
+  editAssignment: (assignment: StudentAssignmentWithStudentSolutions) => {
     set((draft) => {
       draft.assignments = draft.assignments.map((a) =>
         a.id === assignment.id ? assignment : a,
@@ -67,7 +73,7 @@ export const createAssignmentSlice: StateCreator<
       );
     });
   },
-  setActiveProblem: (problem: UserProblem) => {
+  setActiveProblem: (problem: ProblemWithStudentSolution) => {
     set((draft) => {
       draft.activeAssignmentId = problem.assignmentId;
       draft.activeProblemId = problem.id;
@@ -76,7 +82,10 @@ export const createAssignmentSlice: StateCreator<
   },
 
   updateProblem: (
-    problem: Partial<UserProblem> & { id: string; assignmentId: string },
+    problem: Partial<ProblemWithStudentSolution> & {
+      id: string;
+      assignmentId: string;
+    },
   ) =>
     set((draft) => {
       const assignment = draft.assignments.find(
@@ -94,8 +103,8 @@ export const createAssignmentSlice: StateCreator<
         .find((a) => a.id === draft.activeAssignmentId)
         ?.problems.find((p) => p.id === draft.activeProblemId);
       if (problem) {
-        problem.canvas = { paths: get().paths };
-        problem.updatedAt = new Date();
+        problem.studentSolution.canvas = { paths: get().paths };
+        problem.studentSolution.updatedAt = new Date();
       }
     });
   },

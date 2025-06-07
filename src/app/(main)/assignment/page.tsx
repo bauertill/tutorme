@@ -22,8 +22,9 @@ export default function AssignmentPage() {
   }
 
   const solvedProblemsCount =
-    activeAssignment?.problems.filter((problem) => problem.status === "SOLVED")
-      .length ?? 0;
+    activeAssignment?.problems.filter(
+      (problem) => problem.studentSolution.status === "SOLVED",
+    ).length ?? 0;
   const totalProblems = activeAssignment?.problems.length ?? 0;
   const progressPercentage =
     totalProblems > 0 ? (solvedProblemsCount / totalProblems) * 100 : 0;

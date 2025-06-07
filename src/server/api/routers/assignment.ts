@@ -1,12 +1,13 @@
 import {
-  adminAddAssignmentToUserGroup,
   adminCreateAssignment,
-  adminUploadProblems,
-  createAssignmentFromUpload,
+  createStudentAssignmentFromUpload,
   getExampleAssignment,
   syncAssignments,
 } from "@/core/assignment/assignmentDomain";
-import { Assignment, UserProblem } from "@/core/assignment/types";
+import {
+  StudentAssignmentWithStudentSolutions,
+  UserProblem,
+} from "@/core/assignment/types";
 import {
   createReferenceSolution,
   evaluateSolution,
@@ -23,16 +24,28 @@ import {
 import { z } from "zod";
 
 export const assignmentRouter = createTRPCRouter({
-  list: protectedProcedure.query(async ({ ctx }) => {
-    return await ctx.dbAdapter.getAssignmentsByUserId(ctx.session.user.id);
+  listGroupAssignments: protectedAdminProcedure.query(async ({ ctx }) => {
+    return await ctx.dbAdapter.getGroupAssignmentsByUserId(ctx.session.user.id);
+  }),
+
+  listStudentAssignments: protectedAdminProcedure.query(async ({ ctx }) => {
+    return await ctx.dbAdapter.getStudentAssignmentsByUserId(
+      ctx.session.user.id,
+    );
   }),
 
   createFromUpload: limitedPublicProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      return await createAssignmentFromUpload(
+      if (!ctx.session?.user.id)
+        throw new Error("User must be present for admin actions");
+      const studentId = await ctx.dbAdapter.getStudentIdByUserIdOrThrow(
+        ctx.session.user.id,
+      );
+      return await createStudentAssignmentFromUpload(
         input,
-        ctx.session?.user?.id,
+        ctx.session.user.id,
+        studentId,
         ctx.dbAdapter,
         ctx.llmAdapter,
         ctx.userLanguage,
@@ -41,16 +54,18 @@ export const assignmentRouter = createTRPCRouter({
   deleteAssignment: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      return await ctx.dbAdapter.deleteAssignmentById(input);
+      return await ctx.dbAdapter.deleteGroupAssignmentById(input);
     }),
   renameAssignment: protectedProcedure
     .input(z.object({ assignmentId: z.string(), name: z.string() }))
     .mutation(async ({ ctx, input: { assignmentId, name } }) => {
-      return await ctx.dbAdapter.updateAssignmentName(assignmentId, name);
+      return await ctx.dbAdapter.updateGroupAssignmentName(assignmentId, name);
     }),
-  deleteAllAssignments: protectedProcedure.mutation(async ({ ctx }) => {
+  deleteAllStudentAssignments: protectedProcedure.mutation(async ({ ctx }) => {
     if (!ctx.session.user.id) return;
-    return await ctx.dbAdapter.deleteAllAssignments(ctx.session.user.id);
+    return await ctx.dbAdapter.deleteAllStudentAssignmentsByUserId(
+      ctx.session.user.id,
+    );
   }),
 
   getRandomProblem: publicProcedure.query(async ({ ctx }) => {
@@ -97,7 +112,7 @@ export const assignmentRouter = createTRPCRouter({
     }),
 
   syncAssignments: protectedProcedure
-    .input(z.array(Assignment))
+    .input(z.array(StudentAssignmentWithStudentSolutions))
     .mutation(async ({ ctx, input }) => {
       return await syncAssignments(ctx.session.user.id, ctx.dbAdapter, input);
     }),
@@ -111,58 +126,41 @@ export const assignmentRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session.user.id)
         throw new Error("User must be present for admin actions");
-      return await adminUploadProblems(
-        input,
+      // TODO: Implement admin upload problems
+      throw new Error("Not implemented");
+    }),
+
+  getProblems: protectedAdminProcedure.query(async ({ ctx }) => {
+    if (!ctx.session.user.id)
+      throw new Error("User must be present for admin actions");
+    return await ctx.dbAdapter.getProblemsByUserId(ctx.session.user.id);
+  }),
+
+  deleteAllProblemsAndAssignments: protectedAdminProcedure.mutation(
+    async ({ ctx }) => {
+      if (!ctx.session.user.id)
+        throw new Error("User must be present for admin actions");
+      await ctx.dbAdapter.deleteAllProblemsAndAssignmentsByUserId(
         ctx.session.user.id,
-        ctx.dbAdapter,
-        ctx.llmAdapter,
-        ctx.userLanguage,
       );
-    }),
-
-  adminAddAssignmentToUserGroup: protectedAdminProcedure
-    .input(z.object({ assignmentId: z.string(), userGroupId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session.user.id)
-        throw new Error("User must be present for admin actions");
-      return await adminAddAssignmentToUserGroup(
-        input.assignmentId,
-        input.userGroupId,
-        ctx.dbAdapter,
-      );
-    }),
-
-  getUserProblems: protectedAdminProcedure.query(async ({ ctx }) => {
-    if (!ctx.session.user.id)
-      throw new Error("User must be present for admin actions");
-    return await ctx.dbAdapter.getUserProblemsByUserId(ctx.session.user.id);
-  }),
-
-  deleteAllUserProblems: protectedAdminProcedure.mutation(async ({ ctx }) => {
-    if (!ctx.session.user.id)
-      throw new Error("User must be present for admin actions");
-    await ctx.dbAdapter.deleteAllUserProblemsByUserId(ctx.session.user.id);
-    return { success: true };
-  }),
-
-  approveUserProblems: protectedAdminProcedure
-    .input(z.array(z.string()))
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session.user.id)
-        throw new Error("User must be present for admin actions");
-      await ctx.dbAdapter.approveUserProblemsByIds(ctx.session.user.id, input);
       return { success: true };
-    }),
+    },
+  ),
 
   createAssignmentFromProblems: protectedAdminProcedure
-    .input(z.object({ name: z.string(), problems: z.array(UserProblem) }))
+    .input(
+      z.object({
+        name: z.string(),
+        problemIds: z.array(z.string()),
+        studentGroupId: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session.user.id)
         throw new Error("User must be present for admin actions");
       const assignment = await adminCreateAssignment(
+        input,
         ctx.session.user.id,
-        input.name,
-        input.problems,
         ctx.dbAdapter,
       );
       return assignment;

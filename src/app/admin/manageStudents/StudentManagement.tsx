@@ -31,8 +31,10 @@ import { api } from "@/trpc/react";
 import { MoreVertical, Plus, X } from "lucide-react";
 import { useState } from "react";
 
-export function UserManagement() {
-  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+export function StudentManagement() {
+  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(
+    new Set(),
+  );
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDescription, setNewGroupDescription] = useState("");
   const [editingGroup, setEditingGroup] = useState<{
@@ -41,8 +43,8 @@ export function UserManagement() {
     description: string;
   } | null>(null);
 
-  const { data: users = [], isLoading: usersLoading } =
-    api.admin.getUsers.useQuery();
+  const { data: students = [], isLoading: studentsLoading } =
+    api.admin.getStudents.useQuery();
   const {
     data: groups = [],
     isLoading: groupsLoading,
@@ -51,7 +53,7 @@ export function UserManagement() {
 
   const createGroup = api.admin.createGroup.useMutation({
     onSuccess: () => {
-      setSelectedUsers(new Set());
+      setSelectedStudents(new Set());
       setNewGroupName("");
       setNewGroupDescription("");
       void refetchGroups();
@@ -71,43 +73,44 @@ export function UserManagement() {
     },
   });
 
-  const removeUserFromGroup = api.admin.removeUserFromGroup.useMutation({
+  const removeStudentFromGroup = api.admin.removeStudentFromGroup.useMutation({
     onSuccess: () => {
       void refetchGroups();
     },
   });
 
-  const addUserToGroup = api.admin.addUserToGroup.useMutation({
+  const addStudentToGroup = api.admin.addStudentToGroup.useMutation({
     onSuccess: () => {
       void refetchGroups();
     },
   });
 
-  const allSelected = users.length > 0 && selectedUsers.size === users.length;
+  const allSelected =
+    students.length > 0 && selectedStudents.size === students.length;
 
   const handleSelectAll = () => {
-    if (selectedUsers.size === users.length) {
-      setSelectedUsers(new Set());
+    if (selectedStudents.size === students.length) {
+      setSelectedStudents(new Set());
     } else {
-      setSelectedUsers(new Set(users.map((u) => u.id)));
+      setSelectedStudents(new Set(students.map((u) => u.id)));
     }
   };
 
-  const handleUserSelect = (userId: string) => {
-    const newSelected = new Set(selectedUsers);
-    if (newSelected.has(userId)) {
-      newSelected.delete(userId);
+  const handleStudentSelect = (studentId: string) => {
+    const newSelected = new Set(selectedStudents);
+    if (newSelected.has(studentId)) {
+      newSelected.delete(studentId);
     } else {
-      newSelected.add(userId);
+      newSelected.add(studentId);
     }
-    setSelectedUsers(newSelected);
+    setSelectedStudents(newSelected);
   };
 
   const handleCreateGroup = () => {
     createGroup.mutate({
       name: newGroupName,
       description: newGroupDescription,
-      userIds: Array.from(selectedUsers),
+      studentIds: Array.from(selectedStudents),
     });
   };
 
@@ -117,12 +120,12 @@ export function UserManagement() {
     }
   };
 
-  const handleRemoveUser = (groupId: string, userId: string) => {
-    removeUserFromGroup.mutate({ groupId, userId });
+  const handleRemoveStudent = (groupId: string, studentId: string) => {
+    removeStudentFromGroup.mutate({ groupId, studentId });
   };
 
-  const handleAddUser = (groupId: string, userId: string) => {
-    addUserToGroup.mutate({ groupId, userId });
+  const handleAddStudent = (groupId: string, studentId: string) => {
+    addStudentToGroup.mutate({ groupId, studentId });
   };
 
   const handleEditGroup = (
@@ -147,11 +150,14 @@ export function UserManagement() {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>User Management</CardTitle>
+          <CardTitle>Student Management</CardTitle>
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" disabled={selectedUsers.size === 0}>
+                <Button
+                  variant="outline"
+                  disabled={selectedStudents.size === 0}
+                >
                   Add to Group
                 </Button>
               </DropdownMenuTrigger>
@@ -160,14 +166,16 @@ export function UserManagement() {
                   <DropdownMenuItem
                     key={group.id}
                     onClick={() => {
-                      // Add selected users to the group, ignoring those already in it
-                      const usersToAdd = Array.from(selectedUsers).filter(
-                        (userId) =>
-                          !group.users.some((user) => user.id === userId),
+                      // Add selected students to the group, ignoring those already in it
+                      const studentsToAdd = Array.from(selectedStudents).filter(
+                        (studentId) =>
+                          !group.students.some(
+                            (student) => student.id === studentId,
+                          ),
                       );
-                      if (usersToAdd.length > 0) {
-                        usersToAdd.forEach((userId) => {
-                          handleAddUser(group.id, userId);
+                      if (studentsToAdd.length > 0) {
+                        studentsToAdd.forEach((studentId) => {
+                          handleAddStudent(group.id, studentId);
                         });
                       }
                     }}
@@ -179,7 +187,7 @@ export function UserManagement() {
             </DropdownMenu>
             <Dialog>
               <DialogTrigger asChild>
-                <Button disabled={selectedUsers.size === 0}>
+                <Button disabled={selectedStudents.size === 0}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Group
                 </Button>
@@ -188,7 +196,7 @@ export function UserManagement() {
                 <DialogHeader>
                   <DialogTitle>Create New Group</DialogTitle>
                   <DialogDescription>
-                    Create a new group and add selected users to it.
+                    Create a new group and add selected students to it.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -238,7 +246,7 @@ export function UserManagement() {
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={handleSelectAll}
-                    aria-label="Select all users"
+                    aria-label="Select all students"
                   />
                 </TableHead>
                 <TableHead>Name</TableHead>
@@ -248,7 +256,7 @@ export function UserManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {usersLoading
+              {studentsLoading
                 ? Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell>
@@ -268,12 +276,12 @@ export function UserManagement() {
                       </TableCell>
                     </TableRow>
                   ))
-                : users.map((user) => (
-                    <TableRow key={user.id}>
+                : students.map(({ id, user, createdAt }) => (
+                    <TableRow key={id}>
                       <TableCell>
                         <Checkbox
-                          checked={selectedUsers.has(user.id)}
-                          onCheckedChange={() => handleUserSelect(user.id)}
+                          checked={selectedStudents.has(id)}
+                          onCheckedChange={() => handleStudentSelect(id)}
                         />
                       </TableCell>
                       <TableCell>{user.name ?? "N/A"}</TableCell>
@@ -282,7 +290,7 @@ export function UserManagement() {
                         {user.subscription?.status ?? "No Subscription"}
                       </TableCell>
                       <TableCell>
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {new Date(createdAt).toLocaleDateString()}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -341,9 +349,9 @@ export function UserManagement() {
                       </TableCell>
                       <TableCell className="w-[60%]">
                         <div className="flex flex-wrap gap-2">
-                          {group.users.map((user) => (
+                          {group.students.map(({ id, user }) => (
                             <div
-                              key={user.id}
+                              key={id}
                               className="mb-1 flex items-center gap-1 rounded bg-muted px-2 py-1 text-sm"
                             >
                               <span>
@@ -353,9 +361,9 @@ export function UserManagement() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() =>
-                                  handleRemoveUser(group.id, user.id)
+                                  handleRemoveStudent(group.id, id)
                                 }
-                                disabled={removeUserFromGroup.isPending}
+                                disabled={removeStudentFromGroup.isPending}
                                 className="h-6 w-6 p-0"
                               >
                                 <X className="h-3 w-3" />

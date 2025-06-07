@@ -4,30 +4,11 @@ import { z } from "zod";
 import { createTRPCRouter, protectedAdminProcedure } from "../trpc";
 
 export const adminRouter = createTRPCRouter({
-  getUsers: protectedAdminProcedure.query(async () => {
-    const users = await prisma.user.findMany({
+  getStudents: protectedAdminProcedure.query(async () => {
+    const students = await prisma.student.findMany({
       select: {
         id: true,
-        name: true,
-        email: true,
-        createdAt: true,
-        subscription: {
-          select: {
-            status: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-    return users;
-  }),
-
-  getGroups: protectedAdminProcedure.query(async () => {
-    const groups = await prisma.group.findMany({
-      include: {
-        users: {
+        user: {
           select: {
             id: true,
             name: true,
@@ -38,6 +19,35 @@ export const adminRouter = createTRPCRouter({
                 status: true,
               },
             },
+          },
+        },
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    return students;
+  }),
+
+  getGroups: protectedAdminProcedure.query(async () => {
+    const groups = await prisma.studentGroup.findMany({
+      include: {
+        students: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                name: true,
+                email: true,
+                subscription: {
+                  select: {
+                    status: true,
+                  },
+                },
+              },
+            },
+            createdAt: true,
           },
         },
       },
@@ -53,20 +63,20 @@ export const adminRouter = createTRPCRouter({
       z.object({
         name: z.string().min(1),
         description: z.string().optional(),
-        userIds: z.array(z.string()),
+        studentIds: z.array(z.string()),
       }),
     )
     .mutation(async ({ input }) => {
-      const group = await prisma.group.create({
+      const group = await prisma.studentGroup.create({
         data: {
           name: input.name,
           description: input.description,
-          users: {
-            connect: input.userIds.map((id) => ({ id })),
+          students: {
+            connect: input.studentIds.map((id) => ({ id })),
           },
         },
         include: {
-          users: true,
+          students: true,
         },
       });
       return group;
@@ -75,7 +85,7 @@ export const adminRouter = createTRPCRouter({
   deleteGroup: protectedAdminProcedure
     .input(z.object({ groupId: z.string() }))
     .mutation(async ({ input }) => {
-      const group = await prisma.group.findUnique({
+      const group = await prisma.studentGroup.findUnique({
         where: { id: input.groupId },
       });
 
@@ -86,22 +96,22 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      return prisma.group.delete({
+      return prisma.studentGroup.delete({
         where: { id: input.groupId },
       });
     }),
 
-  removeUserFromGroup: protectedAdminProcedure
+  removeStudentFromGroup: protectedAdminProcedure
     .input(
       z.object({
         groupId: z.string(),
-        userId: z.string(),
+        studentId: z.string(),
       }),
     )
     .mutation(async ({ input }) => {
-      const group = await prisma.group.findUnique({
+      const group = await prisma.studentGroup.findUnique({
         where: { id: input.groupId },
-        include: { users: true },
+        include: { students: true },
       });
 
       if (!group) {
@@ -111,28 +121,28 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      return prisma.group.update({
+      return prisma.studentGroup.update({
         where: { id: input.groupId },
         data: {
-          users: {
-            disconnect: { id: input.userId },
+          students: {
+            disconnect: { id: input.studentId },
           },
         },
         include: {
-          users: true,
+          students: true,
         },
       });
     }),
 
-  addUserToGroup: protectedAdminProcedure
+  addStudentToGroup: protectedAdminProcedure
     .input(
       z.object({
         groupId: z.string(),
-        userId: z.string(),
+        studentId: z.string(),
       }),
     )
     .mutation(async ({ input }) => {
-      const group = await prisma.group.findUnique({
+      const group = await prisma.studentGroup.findUnique({
         where: { id: input.groupId },
       });
 
@@ -143,15 +153,15 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      return prisma.group.update({
+      return prisma.studentGroup.update({
         where: { id: input.groupId },
         data: {
-          users: {
-            connect: { id: input.userId },
+          students: {
+            connect: { id: input.studentId },
           },
         },
         include: {
-          users: true,
+          students: true,
         },
       });
     }),
@@ -165,7 +175,7 @@ export const adminRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      const group = await prisma.group.findUnique({
+      const group = await prisma.studentGroup.findUnique({
         where: { id: input.groupId },
       });
 
@@ -176,14 +186,14 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      return prisma.group.update({
+      return prisma.studentGroup.update({
         where: { id: input.groupId },
         data: {
           name: input.name,
           description: input.description,
         },
         include: {
-          users: true,
+          students: true,
         },
       });
     }),

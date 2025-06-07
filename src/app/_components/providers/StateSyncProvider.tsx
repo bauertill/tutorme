@@ -13,9 +13,10 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
   const pathsLocal = useStore.use.paths();
   const upsertAssignmentsLocal = useStore.use.upsertAssignments();
 
-  const { data: assignmentsOnServer } = api.assignment.list.useQuery(
-    session.data?.user.id ? undefined : skipToken,
-  );
+  const { data: assignmentsOnServer } =
+    api.assignment.listStudentAssignments.useQuery(
+      session.data?.user.id ? undefined : skipToken,
+    );
 
   const { mutate: syncAssignments } =
     api.assignment.syncAssignments.useMutation({

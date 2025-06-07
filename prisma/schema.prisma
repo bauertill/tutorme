@@ -79,10 +79,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  accounts     Account[]
-  sessions     Session[]
-  subscription Subscription?
-  student      Student?
+  accounts           Account[]
+  sessions           Session[]
+  subscription       Subscription?
+  student            Student?
+  groupAssignments   GroupAssignment[]
+  studentAssignments StudentAssignment[]
+  Problem            Problem[]
 }
 
 model VerificationToken {
@@ -131,6 +134,7 @@ model Student {
 model StudentGroup {
   id               String            @id @default(cuid())
   name             String
+  description      String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   students         Student[]
@@ -142,6 +146,8 @@ model GroupAssignment {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   studentGroupId String
   studentGroup   StudentGroup @relation(fields: [studentGroupId], references: [id], onDelete: Cascade)
@@ -155,6 +161,8 @@ model StudentAssignment {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   studentId String
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -198,17 +206,15 @@ model BookExercise {
 
 model Problem {
   id                String                       @id @default(cuid())
-  dataSource        String
   problem           String
-  solution          String
-  level             String
-  language          Language                     @default(en)
-  type              String
-  vector            Unsupported("vector(3072)")?
-  createdAt         DateTime                     @default(now())
   problemNumber     String
   referenceSolution String?
-  imageUrl          String?
+  vector            Unsupported("vector(3072)")?
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   bookExerciseId  String?
   bookExercise    BookExercise?  @relation(fields: [bookExerciseId], references: [id], onDelete: Cascade)
@@ -222,11 +228,12 @@ model Problem {
 }
 
 model StudentSolution {
-  id        String                @id @default(cuid())
-  createdAt DateTime              @default(now())
-  updatedAt DateTime              @updatedAt
-  status    StudentSolutionStatus @default(INITIAL)
-  canvas    Json
+  id         String                @id @default(cuid())
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+  status     StudentSolutionStatus @default(INITIAL)
+  canvas     Json
+  evaluation Json?
 
   studentAssignmentId String
   studentAssignment   StudentAssignment @relation(fields: [studentAssignmentId], references: [id], onDelete: Cascade)

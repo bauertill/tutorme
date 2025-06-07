@@ -28,7 +28,7 @@ export default function ProblemController() {
       </div>
 
       <div className="flex flex-row items-center gap-2">
-        <ProblemStatusIcon status={activeProblem.status} />
+        <ProblemStatusIcon status={activeProblem.studentSolution.status} />
         <Button
           variant="outline"
           disabled={!previousProblem || isTourRunning}

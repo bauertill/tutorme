@@ -4,142 +4,94 @@ import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
+import { type ProblemWithStudentSolution } from "../problem/types";
+import { type Draft } from "../utils";
 import { getExampleProblems } from "./getExampleProblems";
-import { type Assignment, type UserProblem } from "./types";
+import {
+  type StudentAssignment,
+  type StudentAssignmentWithStudentSolutions,
+} from "./types";
 
-export async function adminAddAssignmentToUserGroup(
-  assignmentId: string,
-  userGroupId: string,
-  dbAdapter: DBAdapter,
-) {
-  const assignment = await dbAdapter.getAssignmentById(assignmentId);
-  if (!assignment) {
-    throw new Error("Assignment not found");
-  }
-  const users = await dbAdapter.getUsersByUserGroupId(userGroupId);
-  for (const user of users) {
-    await dbAdapter.createAssignment(
-      {
-        ...assignment,
-        id: `${assignmentId}-${user.id}`,
-        problems: assignment.problems.map((p) => ({
-          ...p,
-          id: `${p.id}-${user.id}`,
-          assignmentId: `${assignmentId}-${user.id}`,
-        })),
-      },
-      user.id,
-    );
-  }
-}
 export async function adminCreateAssignment(
+  {
+    name,
+    problemIds,
+    studentGroupId,
+  }: {
+    name: string;
+    problemIds: string[];
+    studentGroupId: string;
+  },
   userId: string,
-  assignmentName: string,
-  problems: UserProblem[],
   dbAdapter: DBAdapter,
 ) {
-  const assignmentId = `${userId}-${assignmentName}`;
-  await dbAdapter.createAssignment(
+  const assignmentId = `${userId}-${name}`;
+  await dbAdapter.createGroupAssignment(
     {
-      name: assignmentName,
       id: assignmentId,
-      problems: problems.map((p) => ({
-        ...p,
-        userId,
-        id: uuidv4(),
-        assignmentId,
-      })),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      name,
+      problemIds,
+      studentGroupId,
     },
     userId,
   );
 }
 
-export async function adminUploadProblems(
+export async function createStudentAssignmentFromUpload(
   uploadPath: string,
   userId: string,
+  studentId: string,
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
   language: Language,
-): Promise<UserProblem[]> {
+): Promise<StudentAssignmentWithStudentSolutions> {
   const { problems: rawProblems } =
     await llmAdapter.assignment.extractAssignmentFromImage(
       uploadPath,
       language,
       userId,
     );
-  const assignmentId = uuidv4();
-  const userProblems: UserProblem[] = [];
+  const problems: Draft<ProblemWithStudentSolution>[] = [];
   for (const problem of rawProblems) {
-    userProblems.push({
-      id: uuidv4(),
-      status: "NEW",
+    problems.push({
       problem: problem.problemText,
       problemNumber: problem.problemNumber,
       referenceSolution: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      relevantImageSegment: problem.relevantImageSegment ?? undefined,
-      imageUrl: uploadPath,
-      assignmentId,
-      canvas: { paths: [] },
-      evaluation: null,
+      assignmentId: "asdsad",
+      studentSolution: {
+        id: crypto.randomUUID(),
+        status: "INITIAL",
+        canvas: { paths: [] },
+        evaluation: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
     });
   }
-  const assignment: Assignment = {
-    id: assignmentId,
+  const assignment = {
     name: `Upload @ ${new Date().toLocaleString()}`,
-    problems: userProblems,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    studentId,
+    problems,
   };
-  await dbAdapter.createAssignment(assignment, userId);
-  return assignment.problems;
-}
-
-export async function createAssignmentFromUpload(
-  uploadPath: string,
-  userId: string | undefined,
-  dbAdapter: DBAdapter,
-  llmAdapter: LLMAdapter,
-  language: Language,
-): Promise<Assignment> {
-  const { problems: rawProblems } =
-    await llmAdapter.assignment.extractAssignmentFromImage(
-      uploadPath,
-      language,
-      userId,
-    );
-  const assignmentId = uuidv4();
-  const userProblems: UserProblem[] = [];
-  for (const problem of rawProblems) {
-    userProblems.push({
-      id: uuidv4(),
-      status: "INITIAL", // TODO: add stars 0-3
-      problem: problem.problemText,
-      problemNumber: problem.problemNumber,
-      referenceSolution: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      relevantImageSegment: problem.relevantImageSegment ?? undefined,
-      imageUrl: uploadPath,
-      assignmentId,
-      canvas: { paths: [] },
-      evaluation: null,
-    });
-  }
-  const assignment: Assignment = {
-    id: assignmentId,
-    name: `Upload @ ${new Date().toLocaleString()}`,
-    problems: userProblems,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+  const result = await dbAdapter.createStudentAssignmentWithProblems(
+    assignment,
+    userId,
+  );
+  return {
+    ...result,
+    problems: result.problems.map((problem) => ({
+      ...problem,
+      assignmentId: result.id,
+      studentSolution: {
+        id: crypto.randomUUID(),
+        status: "INITIAL",
+        canvas: { paths: [] },
+        evaluation: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    })),
   };
-  if (userId) {
-    return await dbAdapter.createAssignment(assignment, userId);
-  }
-  return assignment;
 }
 
 /**
@@ -154,23 +106,22 @@ export async function createAssignmentFromUpload(
 export async function syncAssignments(
   userId: string,
   dbAdapter: DBAdapter,
-  incomingAssignments: Assignment[],
-): Promise<{ assignmentsNotInLocal: Assignment[] }> {
-  const existingAssignments = await dbAdapter.getAssignmentsByUserId(userId);
+  incomingAssignments: StudentAssignment[],
+): Promise<{ assignmentsNotInLocal: StudentAssignment[] }> {
+  const existingAssignments =
+    await dbAdapter.getStudentAssignmentsByUserId(userId);
   const { newAssignments, updateAssignments } = getUpdatedAndNewAssignments(
     existingAssignments,
     incomingAssignments,
   );
 
   for (const assignment of updateAssignments) {
-    await dbAdapter.updateUserProblems(
-      assignment.problems,
-      userId,
-      assignment.id,
-    );
+    // TODO: Implement update problems
+    // await dbAdapter.updateProblems(assignment.problems, userId, assignment.id);
   }
   for (const assignment of newAssignments) {
-    await dbAdapter.createAssignment(assignment, userId);
+    // TODO: Implement create assignment
+    // await dbAdapter.createAssignment(assignment, userId);
   }
 
   const assignmentsNotInLocal = existingAssignments.filter(
@@ -188,15 +139,18 @@ export async function syncAssignments(
  * @returns
  */
 export function getUpdatedAndNewAssignments(
-  existingAssignments: Assignment[],
-  incomingAssignments: Assignment[],
-): { updateAssignments: Assignment[]; newAssignments: Assignment[] } {
-  const existingAssignmentsMap = new Map<string, Assignment>();
+  existingAssignments: StudentAssignment[],
+  incomingAssignments: StudentAssignment[],
+): {
+  updateAssignments: StudentAssignment[];
+  newAssignments: StudentAssignment[];
+} {
+  const existingAssignmentsMap = new Map<string, StudentAssignment>();
   for (const assignment of existingAssignments) {
     existingAssignmentsMap.set(assignment.id, assignment);
   }
-  const updateAssignments: Assignment[] = [];
-  const newAssignments: Assignment[] = [];
+  const updateAssignments: StudentAssignment[] = [];
+  const newAssignments: StudentAssignment[] = [];
 
   for (const assignment of incomingAssignments) {
     const existingAssignment = existingAssignmentsMap.get(assignment.id);
@@ -220,10 +174,13 @@ export function getUpdatedAndNewAssignments(
  * @returns
  */
 export function mergeAssignments(
-  existingAssignments: Assignment[],
-  incomingAssignments: Assignment[],
-): Assignment[] {
-  const mergedAssignmentsMap = new Map<string, Assignment>();
+  existingAssignments: StudentAssignmentWithStudentSolutions[],
+  incomingAssignments: StudentAssignmentWithStudentSolutions[],
+): StudentAssignmentWithStudentSolutions[] {
+  const mergedAssignmentsMap = new Map<
+    string,
+    StudentAssignmentWithStudentSolutions
+  >();
   for (const assignment of [...existingAssignments, ...incomingAssignments]) {
     const existingAssignment = mergedAssignmentsMap.get(assignment.id);
     if (!existingAssignment) {
@@ -243,10 +200,10 @@ export function mergeAssignments(
 }
 
 const mergeProblemsByUpdatedAt = (
-  existingProblems: UserProblem[],
-  incomingProblems: UserProblem[],
-): UserProblem[] => {
-  const existingProblemsById = new Map<string, UserProblem>();
+  existingProblems: ProblemWithStudentSolution[],
+  incomingProblems: ProblemWithStudentSolution[],
+): ProblemWithStudentSolution[] => {
+  const existingProblemsById = new Map<string, ProblemWithStudentSolution>();
   for (const problem of [...existingProblems, ...incomingProblems]) {
     const existingProblem = existingProblemsById.get(problem.id);
     if (!existingProblem) {
@@ -259,27 +216,33 @@ const mergeProblemsByUpdatedAt = (
       existingProblemsById.set(problem.id, recentlyUpdatedProblem);
     }
   }
+  // TODO: Merge student solutions
   return Array.from(existingProblemsById.values());
 };
 
 export async function getExampleAssignment(
   language: Language,
-): Promise<Assignment> {
+): Promise<StudentAssignmentWithStudentSolutions> {
   const t = i18n.getFixedT(language);
   const problems = getExampleProblems(language);
   const assignmentId = uuidv4();
-  const assignment: Assignment = {
+  const assignment: StudentAssignmentWithStudentSolutions = {
     id: assignmentId,
     name: t("example_assignment"),
     problems: problems.map((problem, i) => ({
       id: uuidv4(),
       assignmentId,
-      status: "INITIAL",
+      studentSolution: {
+        id: crypto.randomUUID(),
+        status: "INITIAL",
+        canvas: { paths: [] },
+        evaluation: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
       problem: problem.problem,
       problemNumber: `${i + 1}`,
       referenceSolution: null,
-      canvas: { paths: [] },
-      evaluation: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     })),

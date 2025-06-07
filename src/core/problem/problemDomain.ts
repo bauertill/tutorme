@@ -1,7 +1,14 @@
+import { createId } from "@paralleldrive/cuid2";
+import { type StudentSolution as PrismaStudentSolution } from "@prisma/client";
 import { sortBy } from "lodash-es";
 import type { DBAdapter } from "../adapters/dbAdapter";
 import { Draft, parseCsv } from "../utils";
-import { Problem, type ProblemUpload, ProblemUploadStatus } from "./types";
+import {
+  Problem,
+  type ProblemUpload,
+  ProblemUploadStatus,
+  StudentSolution,
+} from "./types";
 
 const UPLOAD_BATCH_SIZE = 128;
 
@@ -17,13 +24,7 @@ export async function createProblems(
   problems: Draft<Problem>[],
   dbAdapter: DBAdapter,
 ) {
-  const searchStringFn = (problem: Draft<Problem>) =>
-    `Type: ${problem.type};
-
-Problem: ${problem.problem};
-
-Solution: ${problem.solution};
-`;
+  const searchStringFn = (problem: Draft<Problem>) => `${problem.problem}`;
 
   for (let i = 0; i < problems.length; i += UPLOAD_BATCH_SIZE) {
     // check if the upload is cancelled
@@ -101,4 +102,20 @@ export async function deleteProblemUpload(
   dbAdapter: DBAdapter,
 ) {
   await dbAdapter.deleteProblemUpload(uploadId);
+}
+
+export function parseStudentSolutionWithDefaults(
+  studentSolution: PrismaStudentSolution | undefined,
+): StudentSolution {
+  if (!studentSolution) {
+    return {
+      id: createId(),
+      status: "INITIAL",
+      canvas: { paths: [] },
+      evaluation: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+  return StudentSolution.parse(studentSolution);
 }

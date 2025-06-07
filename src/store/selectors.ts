@@ -1,21 +1,22 @@
 import {
-  type Assignment,
   type EvaluationResult,
-  type UserProblem,
+  type StudentAssignmentWithStudentSolutions,
 } from "@/core/assignment/types";
 import { newMessage } from "@/core/help/helpDomain";
 import { type Message } from "@/core/help/types";
+import { type ProblemWithStudentSolution } from "@/core/problem/types";
 import { useCallback } from "react";
 import { useStore } from ".";
 
-export const useActiveAssignment = (): Assignment | null => {
-  const assignmentId = useStore.use.activeAssignmentId();
-  const assignments = useStore.use.assignments();
-  const assignment = assignments.find((a) => a.id === assignmentId);
-  return assignment ?? assignments[0] ?? null;
-};
+export const useActiveAssignment =
+  (): StudentAssignmentWithStudentSolutions | null => {
+    const assignmentId = useStore.use.activeAssignmentId();
+    const assignments = useStore.use.assignments();
+    const assignment = assignments.find((a) => a.id === assignmentId);
+    return assignment ?? assignments[0] ?? null;
+  };
 
-export const useActiveProblem = (): UserProblem | null => {
+export const useActiveProblem = (): ProblemWithStudentSolution | null => {
   const assignment = useActiveAssignment();
   const problemId = useStore.use.activeProblemId();
   const problem = assignment?.problems.find((p) => p.id === problemId) ?? null;
@@ -23,14 +24,14 @@ export const useActiveProblem = (): UserProblem | null => {
 };
 
 export const useProblemController = (): {
-  activeAssignment: Assignment | null;
-  activeProblem: UserProblem | null;
-  nextProblem?: UserProblem;
-  previousProblem?: UserProblem;
+  activeAssignment: StudentAssignmentWithStudentSolutions | null;
+  activeProblem: ProblemWithStudentSolution | null;
+  nextProblem?: ProblemWithStudentSolution;
+  previousProblem?: ProblemWithStudentSolution;
   gotoNextProblem: () => void;
   gotoNextUnsolvedProblem?: () => void;
   gotoPreviousProblem: () => void;
-  setActiveProblemWithCanvas: (problem: UserProblem) => void;
+  setActiveProblemWithCanvas: (problem: ProblemWithStudentSolution) => void;
 } => {
   const setActiveProblem = useStore.use.setActiveProblem();
   const setCanvas = useStore.use.setCanvas();
@@ -45,28 +46,32 @@ export const useProblemController = (): {
   const nextProblem = activeAssignment?.problems[activeProblemIndex + 1];
   const nextUnsolvedProblem =
     activeAssignment?.problems.find(
-      (p, idx) => p.status !== "SOLVED" && idx > activeProblemIndex,
-    ) ?? activeAssignment?.problems.find((p) => p.status !== "SOLVED");
+      (p, idx) =>
+        p.studentSolution?.status !== "SOLVED" && idx > activeProblemIndex,
+    ) ??
+    activeAssignment?.problems.find(
+      (p) => p.studentSolution?.status !== "SOLVED",
+    );
   const previousProblem = activeAssignment?.problems[activeProblemIndex - 1];
 
   const gotoNextProblem = useCallback(() => {
     if (!nextProblem) return;
     storeCurrentPathsOnProblem();
     setActiveProblem(nextProblem);
-    setCanvas(nextProblem.canvas ?? { paths: [] });
+    setCanvas(nextProblem.studentSolution?.canvas ?? { paths: [] });
   }, [nextProblem, setActiveProblem, setCanvas, storeCurrentPathsOnProblem]);
   const gotoNextUnsolvedProblem = nextUnsolvedProblem
     ? () => {
         storeCurrentPathsOnProblem();
         setActiveProblem(nextUnsolvedProblem);
-        setCanvas(nextUnsolvedProblem.canvas ?? { paths: [] });
+        setCanvas(nextUnsolvedProblem.studentSolution?.canvas ?? { paths: [] });
       }
     : undefined;
   const gotoPreviousProblem = useCallback(() => {
     if (!previousProblem) return;
     storeCurrentPathsOnProblem();
     setActiveProblem(previousProblem);
-    setCanvas(previousProblem.canvas ?? { paths: [] });
+    setCanvas(previousProblem.studentSolution?.canvas ?? { paths: [] });
   }, [
     previousProblem,
     setActiveProblem,
@@ -74,10 +79,10 @@ export const useProblemController = (): {
     storeCurrentPathsOnProblem,
   ]);
 
-  const setActiveProblemWithCanvas = (problem: UserProblem) => {
+  const setActiveProblemWithCanvas = (problem: ProblemWithStudentSolution) => {
     storeCurrentPathsOnProblem();
     setActiveProblem(problem);
-    setCanvas(problem.canvas ?? { paths: [] });
+    setCanvas(problem.studentSolution?.canvas ?? { paths: [] });
   };
 
   return {
@@ -101,7 +106,7 @@ export const useEvaluationResult = (): {
 } => {
   const activeProblem = useActiveProblem();
   const updateProblem = useStore.use.updateProblem();
-  const evaluationResult = activeProblem?.evaluation ?? null;
+  const evaluationResult = activeProblem?.studentSolution?.evaluation ?? null;
   if (!activeProblem) {
     return { evaluationResult, setEvaluationResult: () => null };
   }
@@ -112,16 +117,19 @@ export const useEvaluationResult = (): {
     if (activeProblem.id !== problemId) {
       return;
     }
-    const newProblem: UserProblem = {
+    const newProblem: ProblemWithStudentSolution = {
       ...activeProblem,
-      evaluation: evaluationResult,
+      studentSolution: {
+        ...activeProblem.studentSolution,
+        evaluation: evaluationResult,
+      },
       updatedAt: new Date(),
     };
     const isCorrect =
       evaluationResult.isComplete && !evaluationResult.hasMistakes;
-    if (isCorrect) newProblem.status = "SOLVED";
-    else newProblem.status = "IN_PROGRESS";
-    updateProblem(newProblem);
+    if (isCorrect) newProblem.studentSolution.status = "SOLVED";
+    else newProblem.studentSolution.status = "IN_PROGRESS";
+    updateProblem({ ...newProblem, assignmentId: activeProblem.assignmentId });
   };
   return { evaluationResult, setEvaluationResult };
 };

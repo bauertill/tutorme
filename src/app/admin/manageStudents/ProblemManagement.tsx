@@ -23,6 +23,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -30,11 +37,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { type UserProblem } from "@/core/assignment/types";
+import { type Problem } from "@/core/problem/types";
 import { api } from "@/trpc/react";
 import { MoreVertical } from "lucide-react";
 import React from "react";
-import { AdminProblemModal } from "./AdminProblemModal";
 import { UploadAdminProblems } from "./UploadAdminProblems";
 
 export function ProblemManagement() {
@@ -43,27 +49,20 @@ export function ProblemManagement() {
     isLoading,
     error,
     refetch,
-  } = api.assignment.getUserProblems.useQuery();
-  const deleteAllMutation = api.assignment.deleteAllUserProblems.useMutation({
-    onSuccess: async () => {
-      await refetch();
-      await refetchAssignments();
-    },
-  });
-  const approveMutation = api.assignment.approveUserProblems.useMutation({
-    onSuccess: async () => {
-      await refetch();
-    },
-  });
+  } = api.assignment.getProblems.useQuery();
+  const deleteAllMutation =
+    api.assignment.deleteAllProblemsAndAssignments.useMutation({
+      onSuccess: async () => {
+        await refetch();
+        await refetchAssignments();
+      },
+    });
   const [open, setOpen] = React.useState(false);
   const [selectedProblems, setSelectedProblems] = React.useState<Set<string>>(
     new Set(),
   );
   const [selectedProblemModalIndex, setSelectedProblemModalIndex] =
     React.useState<number | null>(null);
-  const approveSingleMutation = api.assignment.approveUserProblems.useMutation({
-    onSuccess: () => refetch(),
-  });
   const [createAssignmentOpen, setCreateAssignmentOpen] = React.useState(false);
   const [assignmentName, setAssignmentName] = React.useState(() => {
     const today = new Date();
@@ -78,7 +77,7 @@ export function ProblemManagement() {
       },
     });
   const { data: assignments = [], refetch: refetchAssignments } =
-    api.assignment.list.useQuery();
+    api.assignment.listGroupAssignments.useQuery();
   const filteredAssignments = assignments.filter(
     (a) => !a.name.startsWith("Upload @"),
   );
@@ -87,11 +86,6 @@ export function ProblemManagement() {
     userProblems.length > 0 && selectedProblems.size === userProblems.length;
   const someSelected =
     selectedProblems.size > 0 && selectedProblems.size < userProblems.length;
-
-  const selectedNewProblems = userProblems.filter(
-    (p) => selectedProblems.has(p.id) && p.status === "NEW",
-  );
-  const canApprove = selectedNewProblems.length > 0;
 
   const modalProblems = userProblems;
 
@@ -124,41 +118,19 @@ export function ProblemManagement() {
     [someSelected],
   );
 
-  const handleOpenModal = (problem: UserProblem) => {
+  const handleOpenModal = (problem: Problem) => {
     const idx = modalProblems.findIndex((p) => p.id === problem.id);
     setSelectedProblemModalIndex(idx !== -1 ? idx : null);
-  };
-
-  const handleApproveModal = async (problemId: string) => {
-    await approveSingleMutation.mutateAsync([problemId]);
-    // Find next NEW problem
-    const nextIdx = modalProblems.findIndex(
-      (p, i) => i > (selectedProblemModalIndex ?? 0) && p.status === "NEW",
-    );
-    if (nextIdx !== -1) {
-      setSelectedProblemModalIndex(nextIdx);
-    } else {
-      setSelectedProblemModalIndex(null);
-    }
   };
 
   const handleDoneModal = () => {
     setSelectedProblemModalIndex(null);
   };
 
-  const [addToGroupAssignmentId, setAddToGroupAssignmentId] = React.useState<
-    string | null
-  >(null);
-  const { mutate: addToGroupMutation, isPending: addToGroupPending } =
-    api.assignment.adminAddAssignmentToUserGroup.useMutation({
-      onSuccess: async () => {
-        setAddToGroupAssignmentId(null);
-        await refetch();
-        await refetchAssignments();
-      },
-    });
   const { data: userGroups = [], isLoading: groupsLoading } =
     api.admin.getGroups.useQuery();
+  const [selectedStudentGroupId, setSelectedStudentGroupId] =
+    React.useState<string>();
 
   return (
     <div className="space-y-4">
@@ -166,15 +138,6 @@ export function ProblemManagement() {
         <CardTitle>Problem Management</CardTitle>
         <div className="flex gap-2">
           <UploadAdminProblems onSuccess={refetch} />
-          <Button
-            onClick={() =>
-              approveMutation.mutate(selectedNewProblems.map((p) => p.id))
-            }
-            disabled={!canApprove || approveMutation.isPending}
-            variant="outline"
-          >
-            {approveMutation.isPending ? "Approving..." : "Approve"}
-          </Button>
           <Button
             onClick={() => setCreateAssignmentOpen(true)}
             disabled={selectedProblems.size === 0}
@@ -281,7 +244,6 @@ export function ProblemManagement() {
                 >
                   <Latex>{problem.problem}</Latex>
                 </TableCell>
-                <TableCell>{problem.status}</TableCell>
                 <TableCell className="whitespace-nowrap">
                   {new Date(problem.createdAt).toLocaleString()}
                 </TableCell>
@@ -290,17 +252,6 @@ export function ProblemManagement() {
           </TableBody>
         </Table>
       )}
-      <AdminProblemModal
-        open={selectedProblemModalIndex !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelectedProblemModalIndex(null);
-        }}
-        problems={modalProblems}
-        activeIndex={selectedProblemModalIndex ?? 0}
-        onApprove={handleApproveModal}
-        onDone={handleDoneModal}
-        isApproving={approveSingleMutation.isPending}
-      />
       <Modal open={createAssignmentOpen} onOpenChange={setCreateAssignmentOpen}>
         <ModalContent>
           <ModalHeader>
@@ -313,20 +264,43 @@ export function ProblemManagement() {
               value={assignmentName}
               onChange={(e) => setAssignmentName(e.target.value)}
             />
+            <label className="block text-sm font-medium">
+              Select a User Group
+            </label>
+            <Select
+              value={selectedStudentGroupId}
+              onValueChange={(value) => setSelectedStudentGroupId(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a user group" />
+              </SelectTrigger>
+              <SelectContent>
+                {groupsLoading ? (
+                  <SelectItem value="">Loading...</SelectItem>
+                ) : (
+                  userGroups.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      {group.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
           </div>
           <ModalFooter>
             <Button
               onClick={() =>
+                selectedStudentGroupId &&
                 createAssignmentMutation.mutate({
                   name: assignmentName,
-                  problems: userProblems.filter((p) =>
-                    selectedProblems.has(p.id),
-                  ),
+                  problemIds: Array.from(selectedProblems),
+                  studentGroupId: selectedStudentGroupId,
                 })
               }
               disabled={
                 assignmentName.trim() === "" ||
                 !!assignments.find((a) => a.name === assignmentName) ||
+                !selectedStudentGroupId ||
                 createAssignmentMutation.isPending
               }
             >
@@ -361,69 +335,13 @@ export function ProblemManagement() {
                     {new Date(a.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell>{a.problems?.length ?? 0}</TableCell>
-                  <TableCell>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setAddToGroupAssignmentId(a.id)}
-                    >
-                      Add to User Group
-                    </Button>
-                  </TableCell>
+                  <TableCell>{a.studentGroup.name}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       )}
-      {/* Add to User Group Modal */}
-      <Modal
-        open={!!addToGroupAssignmentId}
-        onOpenChange={(open) => !open && setAddToGroupAssignmentId(null)}
-      >
-        <ModalContent>
-          <ModalHeader>
-            <ModalTitle>Select a User Group</ModalTitle>
-          </ModalHeader>
-          <div className="space-y-2 py-2">
-            {groupsLoading && <div>Loading groups...</div>}
-            {!groupsLoading && userGroups.length === 0 && (
-              <div>No groups found.</div>
-            )}
-            {!groupsLoading &&
-              userGroups.map((group) => (
-                <div key={group.id}>
-                  <button
-                    className="w-full rounded border p-2 text-left hover:bg-muted focus:outline-none"
-                    onClick={() => {
-                      if (!addToGroupAssignmentId) return;
-                      addToGroupMutation({
-                        assignmentId: addToGroupAssignmentId,
-                        userGroupId: group.id,
-                      });
-                    }}
-                  >
-                    <div className="font-medium">{group.name}</div>
-                    {group.description && (
-                      <div className="text-sm text-muted-foreground">
-                        {group.description}
-                      </div>
-                    )}
-                  </button>
-                </div>
-              ))}
-          </div>
-          <ModalFooter>
-            <Button
-              variant="outline"
-              onClick={() => setAddToGroupAssignmentId(null)}
-              disabled={addToGroupPending}
-            >
-              {addToGroupPending ? "Adding..." : "Cancel"}
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </div>
   );
 }

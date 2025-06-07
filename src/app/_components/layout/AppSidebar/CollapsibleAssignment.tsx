@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
-import { type Assignment, type UserProblem } from "@/core/assignment/types";
+import { type StudentAssignmentWithStudentSolutions } from "@/core/assignment/types";
+import { type ProblemWithStudentSolution } from "@/core/problem/types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
@@ -23,11 +24,11 @@ import { useState } from "react";
 import Latex from "react-latex-next";
 
 interface CollapsibleAssignmentProps {
-  assignment: Assignment;
+  assignment: StudentAssignmentWithStudentSolutions;
   isOpen: boolean;
   onOpenChange: () => void;
-  activeProblem: UserProblem | null;
-  setActiveProblem: (problem: UserProblem) => void;
+  activeProblem: ProblemWithStudentSolution | null;
+  setActiveProblem: (problem: ProblemWithStudentSolution) => void;
 }
 
 export function CollapsibleAssignment({
@@ -66,7 +67,7 @@ export function CollapsibleAssignment({
     });
 
   const solvedProblemsCount = assignment.problems.filter(
-    (problem) => problem.status === "SOLVED",
+    (problem) => problem.studentSolution.status === "SOLVED",
   ).length;
   const isSolved = solvedProblemsCount === assignment.problems.length;
 

@@ -1,8 +1,11 @@
 import { Latex } from "@/app/_components/richtext/Latex";
-import { type UserProblem } from "@/core/assignment/types";
-import { ImageSegmentRenderer } from "./ImageSegmentRenderer";
+import { type ProblemWithStudentSolution } from "@/core/problem/types";
 
-export function ProblemRenderer({ problem }: { problem: UserProblem }) {
+export function ProblemRenderer({
+  problem,
+}: {
+  problem: ProblemWithStudentSolution;
+}) {
   return (
     <div>
       <div className="current-problem flex select-text flex-row items-center gap-1 [-webkit-user-select:text]">
@@ -11,7 +14,6 @@ export function ProblemRenderer({ problem }: { problem: UserProblem }) {
         </span>
         <Latex className="whitespace-pre-wrap">{problem.problem}</Latex>
       </div>
-      <ImageSegmentRenderer problem={problem} />
     </div>
   );
 }

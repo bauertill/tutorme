@@ -1,3 +1,4 @@
+import { parseStudentSolutionWithDefaults } from "@/core/problem/problemDomain";
 import {
   Problem,
   type ProblemQueryResult,
@@ -5,23 +6,16 @@ import {
   type ProblemUploadStatus,
 } from "@/core/problem/types";
 import type { Draft } from "@/core/utils";
-import { type Language } from "@/i18n/types";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
-import {
-  Prisma,
-  type PrismaClient,
-  type UserProblem as UserProblemDB,
-} from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import assert from "assert";
 import { type AppUsage } from "../appUsage/types";
 import {
-  Canvas,
-  EvaluationResult,
-  ImageRegion,
-  type Assignment,
-  type UserProblem,
+  type GroupAssignment,
+  type StudentAssignment,
+  type StudentAssignmentWithStudentSolutions,
 } from "../assignment/types";
 import {
   type Subscription,
@@ -94,12 +88,11 @@ export class DBAdapter {
     }));
 
     await this.db.$executeRaw`INSERT INTO "Problem"
-    ("id", "problemUploadId", "dataSource", "problem", "solution", "level", "type", "language", "vector") VALUES
+    ("id", "problemUploadId", "problem", "problemNumber", "referenceSolution", "vector") VALUES
     ${Prisma.join(
       problemsWithVectors.map(
         (problem) =>
-          Prisma.sql`(${createId()}, ${problemUploadId}, ${problem.dataSource}, ${problem.problem}, ${problem.solution},
-          ${problem.level}, ${problem.type}, ${problem.language}::"Language", ${JSON.stringify(problem.vector)}::vector)`,
+          Prisma.sql`(${createId()}, ${problemUploadId}, ${problem.problem}, ${problem.problemNumber}, ${problem.referenceSolution}, ${JSON.stringify(problem.vector)}::vector)`,
       ),
     )}`;
   }
@@ -114,16 +107,14 @@ export class DBAdapter {
     const results = await this.db.$queryRaw<
       {
         id: string;
-        dataSource: string;
         problem: string;
-        solution: string;
-        level: string;
-        type: string;
-        language: Language;
+        problemNumber: string;
+        referenceSolution: string;
         createdAt: Date;
+        updatedAt: Date;
         score: number;
       }[]
-    >`SELECT "id", "dataSource", "problem", "solution", "level", "type", "language", "createdAt",
+    >`SELECT "id", "problem", "problemNumber", "referenceSolution", "createdAt",
         1 - ("vector" <=> ${queryVector}::vector) as "score"
         FROM "Problem"
         WHERE "vector" IS NOT NULL
@@ -134,13 +125,11 @@ export class DBAdapter {
     return results.map((result) => ({
       problem: {
         id: result.id,
-        dataSource: result.dataSource,
         problem: result.problem,
-        solution: result.solution,
-        level: result.level,
-        type: result.type,
-        language: result.language,
+        problemNumber: result.problemNumber,
+        referenceSolution: result.referenceSolution,
         createdAt: result.createdAt,
+        updatedAt: result.createdAt,
       },
       score: result.score,
     }));
@@ -164,18 +153,6 @@ export class DBAdapter {
     return problem;
   }
 
-  async getProblems(
-    language: Language,
-    level: string,
-    limit: number,
-  ): Promise<Problem[]> {
-    return this.db.problem.findMany({
-      where: { language, level },
-      take: limit,
-      orderBy: { createdAt: "asc" },
-    });
-  }
-
   async getProblemUploadFiles(): Promise<ProblemUpload[]> {
     return this.db.problemUpload.findMany();
   }
@@ -188,142 +165,147 @@ export class DBAdapter {
     return this.db.problemUpload.findUniqueOrThrow({ where: { id: uploadId } });
   }
 
-  async createUserProblems(
-    problems: Draft<UserProblem>[],
+  async createProblem(
+    problem: Draft<Problem>,
     userId: string,
-  ): Promise<void> {
-    for (const problem of problems) {
-      await this.createUserProblem(problem, userId);
-    }
-  }
-
-  async createUserProblem(
-    problem: Draft<UserProblem>,
-    userId: string,
-  ): Promise<UserProblem> {
-    const dbProblem = await this.db.userProblem.create({
+  ): Promise<Problem> {
+    const dbProblem = await this.db.problem.create({
       data: {
         ...problem,
         userId,
-        canvas: { paths: [] },
-        evaluation: undefined,
-        relevantImageSegment: problem.relevantImageSegment ?? undefined,
       },
     });
-    return parseProblem(dbProblem);
+    return dbProblem;
   }
 
-  async updateUserProblems(
-    problems: UserProblem[],
+  async createGroupAssignment(
+    {
+      id,
+      name,
+      problemIds,
+      studentGroupId,
+    }: {
+      id: string;
+      name: string;
+      problemIds: string[];
+      studentGroupId: string;
+    },
     userId: string,
-    assignmentId: string,
-  ): Promise<void> {
-    await this.db.$transaction(
-      problems.map((cur) =>
-        this.db.userProblem.upsert({
-          where: { id: cur.id },
-          update: {
-            ...cur,
-            canvas: cur.canvas,
-            evaluation: cur.evaluation ?? undefined,
-            relevantImageSegment: cur.relevantImageSegment ?? undefined,
-          },
-          create: {
-            ...cur,
-            canvas: cur.canvas,
-            evaluation: cur.evaluation ?? undefined,
-            userId,
-            assignmentId,
-            relevantImageSegment: cur.relevantImageSegment ?? undefined,
-          },
-        }),
-      ),
-    );
-  }
-
-  async createAssignment(
-    assignment: Assignment,
-    userId: string,
-  ): Promise<Assignment> {
-    const { problems, ...rest } = assignment;
-
-    const dbAssignment = await this.db.assignment.create({
+  ): Promise<GroupAssignment> {
+    const dbAssignment = await this.db.groupAssignment.create({
       data: {
-        ...rest,
+        id,
+        name,
         userId,
-      },
-    });
-
-    const createdProblems: UserProblem[] = [];
-    for (const problem of problems) {
-      const createdProblem = await this.createUserProblem(
-        {
-          ...problem,
-          assignmentId: dbAssignment.id,
+        studentGroupId,
+        problems: {
+          connect: problemIds.map((id) => ({ id })),
         },
-        userId,
-      );
-      createdProblems.push(createdProblem);
-    }
-
-    return {
-      ...dbAssignment,
-      problems: createdProblems,
-    };
+      },
+      include: { problems: true, studentGroup: true },
+    });
+    return dbAssignment;
   }
 
-  async deleteAssignmentById(assignmentId: string): Promise<void> {
-    await this.db.assignment.delete({
+  async createStudentAssignmentWithProblems(
+    {
+      name,
+      studentId,
+      problems,
+    }: {
+      name: string;
+      studentId: string;
+      problems: Draft<Problem>[];
+    },
+    userId: string,
+  ): Promise<StudentAssignment> {
+    const dbAssignment = await this.db.studentAssignment.create({
+      data: {
+        name,
+        userId,
+        studentId,
+        problems: {
+          create: problems.map((problem) => ({
+            ...problem,
+            userId,
+          })),
+        },
+      },
+      include: { problems: true },
+    });
+    return dbAssignment;
+  }
+
+  async deleteGroupAssignmentById(assignmentId: string): Promise<void> {
+    await this.db.groupAssignment.delete({
       where: {
         id: assignmentId,
       },
     });
   }
 
-  async updateAssignmentName(
+  async updateGroupAssignmentName(
     assignmentId: string,
     name: string,
   ): Promise<void> {
-    await this.db.assignment.update({
+    await this.db.groupAssignment.update({
       where: { id: assignmentId },
       data: { name },
     });
   }
 
-  async deleteAllAssignments(userId: string): Promise<void> {
-    await this.db.assignment.deleteMany({
+  async deleteAllStudentAssignmentsByUserId(userId: string): Promise<void> {
+    await this.db.studentAssignment.deleteMany({
       where: { userId },
     });
   }
 
-  async getAssignmentsByUserId(userId: string): Promise<Assignment[]> {
-    const dbAssignments = await this.db.assignment.findMany({
+  async getGroupAssignmentsByUserId(
+    userId: string,
+  ): Promise<GroupAssignment[]> {
+    const dbAssignments = await this.db.groupAssignment.findMany({
       where: { userId },
-      include: { problems: true },
+      include: { problems: true, studentGroup: true },
     });
-
-    return dbAssignments.map((assignment) => ({
-      ...assignment,
-      problems: assignment.problems.map((problem) => parseProblem(problem)),
-    }));
+    return dbAssignments;
   }
 
-  async getAssignmentById(assignmentId: string): Promise<Assignment | null> {
-    const dbAssignment = await this.db.assignment.findUnique({
+  async getStudentAssignmentsByUserId(
+    userId: string,
+  ): Promise<StudentAssignmentWithStudentSolutions[]> {
+    const dbAssignments = await this.db.studentAssignment.findMany({
+      where: { userId },
+      include: { problems: true, studentSolutions: true },
+    });
+    return dbAssignments.map(
+      ({ studentSolutions, problems, ...assignment }) => ({
+        ...assignment,
+        problems: problems.map((problem) => ({
+          ...problem,
+          assignmentId: assignment.id,
+          studentSolution: parseStudentSolutionWithDefaults(
+            studentSolutions.find(
+              (solution) => solution.problemId === problem.id,
+            ),
+          ),
+        })),
+      }),
+    );
+  }
+
+  async getStudentAssignmentById(
+    assignmentId: string,
+  ): Promise<StudentAssignment | null> {
+    const dbAssignment = await this.db.studentAssignment.findUnique({
       where: { id: assignmentId },
       include: { problems: true },
     });
-    if (!dbAssignment) {
-      return null;
-    }
-    return {
-      ...dbAssignment,
-      problems: dbAssignment.problems.map((problem) => parseProblem(problem)),
-    };
+    return dbAssignment;
   }
-  async getUsersByUserGroupId(userGroupId: string): Promise<User[]> {
+
+  async getUsersByStudentGroupId(studentGroupId: string): Promise<User[]> {
     return await this.db.user.findMany({
-      where: { groups: { some: { id: userGroupId } } },
+      where: { student: { studentGroup: { some: { id: studentGroupId } } } },
     });
   }
 
@@ -388,55 +370,31 @@ export class DBAdapter {
     return await this.db.user.findUniqueOrThrow({ where: { email } });
   }
 
-  async getUserProblemsByUserId(userId: string): Promise<UserProblem[]> {
-    const dbProblems = await this.db.userProblem.findMany({
+  async getProblemsByUserId(userId: string): Promise<Problem[]> {
+    const dbProblems = await this.db.problem.findMany({
       where: { userId },
     });
-    return dbProblems.map((problem) => parseProblem(problem));
+    return dbProblems;
   }
 
-  async deleteAllUserProblemsByUserId(userId: string): Promise<void> {
+  async deleteAllProblemsAndAssignmentsByUserId(userId: string): Promise<void> {
     await this.db.$transaction([
-      this.db.assignment.deleteMany({ where: { userId } }),
-      this.db.userProblem.deleteMany({ where: { userId } }),
+      this.db.groupAssignment.deleteMany({ where: { userId } }),
+      this.db.studentAssignment.deleteMany({ where: { userId } }),
+      this.db.problem.deleteMany({ where: { userId } }),
     ]);
   }
 
-  async approveUserProblemsByIds(userId: string, ids: string[]): Promise<void> {
-    await this.db.userProblem.updateMany({
-      where: {
-        id: { in: ids },
-        userId,
-        status: "NEW",
-      },
-      data: { status: "INITIAL" },
+  async getStudentIdByUserIdOrThrow(userId: string): Promise<string> {
+    const user = await this.db.user.findUnique({
+      where: { id: userId },
+      include: { student: true },
     });
-  }
-
-  async createAssignmentFromProblems(
-    userId: string,
-    name: string,
-    problemIds: string[],
-  ) {
-    return await this.db.assignment.create({
-      data: {
-        name,
-        userId,
-        problems: {
-          connect: problemIds.map((id) => ({ id })),
-        },
-      },
-      include: { problems: true },
-    });
+    if (!user?.student) {
+      throw new Error("User does not have a student");
+    }
+    return user.student.id;
   }
 }
-
-const parseProblem = (problem: UserProblemDB): UserProblem => ({
-  ...problem,
-  canvas: Canvas.parse(problem.canvas),
-  evaluation: EvaluationResult.safeParse(problem.evaluation).data ?? null,
-  relevantImageSegment:
-    ImageRegion.safeParse(problem.relevantImageSegment).data ?? null,
-});
 
 export const dbAdapter = new DBAdapter(db);
