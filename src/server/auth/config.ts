@@ -1,7 +1,9 @@
+import { type Adapter } from "@auth/core/adapters";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
+import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { db } from "@/server/db";
 import type { User } from "@prisma/client";
 
@@ -22,6 +24,21 @@ declare module "next-auth" {
   // }
 }
 
+const prismaAdapter = PrismaAdapter(db);
+const adapter: Adapter = {
+  ...prismaAdapter,
+  createUser: async (data) => {
+    console.log("Creating user", data);
+    const user = await dbAdapter.createUser({
+      name: data.name ?? null,
+      email: data.email,
+      emailVerified: data.emailVerified ?? null,
+      image: data.image ?? null,
+    });
+    return user;
+  },
+};
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -40,7 +57,7 @@ export const authConfig = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
-  adapter: PrismaAdapter(db),
+  adapter,
   callbacks: {
     session: ({ session, user }) => ({
       ...session,

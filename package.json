@@ -27,6 +27,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@auth/core": "^0.39.1",
     "@auth/prisma-adapter": "^2.7.2",
     "@bprogress/next": "^3.2.4",
     "@langchain/community": "^0.3.34",

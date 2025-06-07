@@ -394,6 +394,17 @@ export class DBAdapter {
     }
     return user.student.id;
   }
+
+  async createUser(data: Draft<User>): Promise<User> {
+    return await this.db.user.create({
+      data: {
+        ...data,
+        student: {
+          create: {},
+        },
+      },
+    });
+  }
 }
 
 export const dbAdapter = new DBAdapter(db);
