@@ -10,6 +10,7 @@ export default function ProblemController() {
   const {
     activeAssignment,
     activeProblem,
+    activeStudentSolution,
     nextProblem,
     previousProblem,
     gotoNextProblem,
@@ -28,7 +29,9 @@ export default function ProblemController() {
       </div>
 
       <div className="flex flex-row items-center gap-2">
-        <ProblemStatusIcon status={activeProblem.studentSolution.status} />
+        <ProblemStatusIcon
+          status={activeStudentSolution?.status ?? "INITIAL"}
+        />
         <Button
           variant="outline"
           disabled={!previousProblem || isTourRunning}

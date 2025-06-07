@@ -4,13 +4,10 @@ import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { type ProblemWithStudentSolution } from "../problem/types";
+import { type Problem } from "../problem/types";
 import { type Draft } from "../utils";
 import { getExampleProblems } from "./getExampleProblems";
-import {
-  type StudentAssignment,
-  type StudentAssignmentWithStudentSolutions,
-} from "./types";
+import { type StudentAssignment } from "./types";
 
 export async function adminCreateAssignment(
   {
@@ -44,28 +41,19 @@ export async function createStudentAssignmentFromUpload(
   dbAdapter: DBAdapter,
   llmAdapter: LLMAdapter,
   language: Language,
-): Promise<StudentAssignmentWithStudentSolutions> {
+): Promise<StudentAssignment> {
   const { problems: rawProblems } =
     await llmAdapter.assignment.extractAssignmentFromImage(
       uploadPath,
       language,
       userId,
     );
-  const problems: Draft<ProblemWithStudentSolution>[] = [];
+  const problems: Draft<Problem>[] = [];
   for (const problem of rawProblems) {
     problems.push({
       problem: problem.problemText,
       problemNumber: problem.problemNumber,
       referenceSolution: null,
-      assignmentId: "asdsad",
-      studentSolution: {
-        id: crypto.randomUUID(),
-        status: "INITIAL",
-        canvas: { paths: [] },
-        evaluation: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
     });
   }
   const assignment = {
@@ -82,7 +70,6 @@ export async function createStudentAssignmentFromUpload(
       ...result,
       problems: result.problems.map((problem) => ({
         ...problem,
-        assignmentId: result.id,
         studentSolution: {
           id: crypto.randomUUID(),
           status: "INITIAL",
@@ -94,15 +81,13 @@ export async function createStudentAssignmentFromUpload(
       })),
     };
   } else {
-    const assignmentId = uuidv4();
     return {
       ...assignment,
-      id: assignmentId,
+      id: uuidv4(),
       createdAt: new Date(),
       updatedAt: new Date(),
       problems: assignment.problems.map((problem) => ({
         ...problem,
-        assignmentId,
         id: uuidv4(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -133,6 +118,7 @@ export async function syncAssignments(
   dbAdapter: DBAdapter,
   incomingAssignments: StudentAssignment[],
 ): Promise<{ assignmentsNotInLocal: StudentAssignment[] }> {
+  const studentId = await dbAdapter.getStudentIdByUserIdOrThrow(userId);
   const existingAssignments =
     await dbAdapter.getStudentAssignmentsByUserId(userId);
   const { newAssignments, updateAssignments } = getUpdatedAndNewAssignments(
@@ -146,7 +132,11 @@ export async function syncAssignments(
   }
   for (const assignment of newAssignments) {
     // TODO: Implement create assignment
-    // await dbAdapter.createAssignment(assignment, userId);
+    await dbAdapter.createStudentAssignmentWithProblems(
+      assignment,
+      studentId,
+      userId,
+    );
   }
 
   const assignmentsNotInLocal = existingAssignments.filter(
@@ -199,13 +189,10 @@ export function getUpdatedAndNewAssignments(
  * @returns
  */
 export function mergeAssignments(
-  existingAssignments: StudentAssignmentWithStudentSolutions[],
-  incomingAssignments: StudentAssignmentWithStudentSolutions[],
-): StudentAssignmentWithStudentSolutions[] {
-  const mergedAssignmentsMap = new Map<
-    string,
-    StudentAssignmentWithStudentSolutions
-  >();
+  existingAssignments: StudentAssignment[],
+  incomingAssignments: StudentAssignment[],
+): StudentAssignment[] {
+  const mergedAssignmentsMap = new Map<string, StudentAssignment>();
   for (const assignment of [...existingAssignments, ...incomingAssignments]) {
     const existingAssignment = mergedAssignmentsMap.get(assignment.id);
     if (!existingAssignment) {
@@ -225,10 +212,10 @@ export function mergeAssignments(
 }
 
 const mergeProblemsByUpdatedAt = (
-  existingProblems: ProblemWithStudentSolution[],
-  incomingProblems: ProblemWithStudentSolution[],
-): ProblemWithStudentSolution[] => {
-  const existingProblemsById = new Map<string, ProblemWithStudentSolution>();
+  existingProblems: Problem[],
+  incomingProblems: Problem[],
+): Problem[] => {
+  const existingProblemsById = new Map<string, Problem>();
   for (const problem of [...existingProblems, ...incomingProblems]) {
     const existingProblem = existingProblemsById.get(problem.id);
     if (!existingProblem) {
@@ -247,16 +234,14 @@ const mergeProblemsByUpdatedAt = (
 
 export async function getExampleAssignment(
   language: Language,
-): Promise<StudentAssignmentWithStudentSolutions> {
+): Promise<StudentAssignment> {
   const t = i18n.getFixedT(language);
   const problems = getExampleProblems(language);
-  const assignmentId = uuidv4();
-  const assignment: StudentAssignmentWithStudentSolutions = {
-    id: assignmentId,
+  const assignment: StudentAssignment = {
+    id: uuidv4(),
     name: t("example_assignment"),
     problems: problems.map((problem, i) => ({
       id: uuidv4(),
-      assignmentId,
       studentSolution: {
         id: crypto.randomUUID(),
         status: "INITIAL",

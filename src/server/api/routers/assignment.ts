@@ -4,10 +4,7 @@ import {
   getExampleAssignment,
   syncAssignments,
 } from "@/core/assignment/assignmentDomain";
-import {
-  StudentAssignmentWithStudentSolutions,
-  UserProblem,
-} from "@/core/assignment/types";
+import { StudentAssignment, UserProblem } from "@/core/assignment/types";
 import {
   createReferenceSolution,
   evaluateSolution,
@@ -75,6 +72,7 @@ export const assignmentRouter = createTRPCRouter({
     .input(
       z.object({
         problemId: z.string(),
+        studentAssignmentId: z.string(),
         exerciseText: z.string(),
         solutionImage: z.string(), // Base64 encoded image data
         referenceSolution: z.string(),
@@ -111,7 +109,7 @@ export const assignmentRouter = createTRPCRouter({
     }),
 
   syncAssignments: protectedProcedure
-    .input(z.array(StudentAssignmentWithStudentSolutions))
+    .input(z.array(StudentAssignment))
     .mutation(async ({ ctx, input }) => {
       return await syncAssignments(ctx.session.user.id, ctx.dbAdapter, input);
     }),

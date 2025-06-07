@@ -26,7 +26,7 @@ export default function ExampleProblemCard() {
     if (existingExampleAssignment) {
       const problem = existingExampleAssignment.problems[0];
       if (problem) {
-        setActiveProblem(problem);
+        setActiveProblem(problem, existingExampleAssignment.id);
       }
     } else {
       const exampleAssignment = await promise;

@@ -286,6 +286,8 @@ export class DBAdapter {
             studentSolutions.find(
               (solution) => solution.problemId === problem.id,
             ),
+            problem.id,
+            assignment.id,
           ),
         })),
       }),

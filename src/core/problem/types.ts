@@ -49,6 +49,8 @@ export const StudentSolution = z.object({
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED"]),
   canvas: Canvas,
   evaluation: EvaluationResult.nullable(),
+  studentAssignmentId: z.string(),
+  problemId: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -67,7 +69,6 @@ export const Problem = z.object({
 export type Problem = z.infer<typeof Problem>;
 
 export const ProblemWithStudentSolution = Problem.extend({
-  assignmentId: z.string(),
   studentSolution: StudentSolution,
 });
 

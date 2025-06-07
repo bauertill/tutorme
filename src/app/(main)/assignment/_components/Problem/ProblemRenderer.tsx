@@ -1,11 +1,7 @@
 import { Latex } from "@/app/_components/richtext/Latex";
-import { type ProblemWithStudentSolution } from "@/core/problem/types";
+import { type Problem } from "@/core/problem/types";
 
-export function ProblemRenderer({
-  problem,
-}: {
-  problem: ProblemWithStudentSolution;
-}) {
+export function ProblemRenderer({ problem }: { problem: Problem }) {
   return (
     <div>
       <div className="current-problem flex select-text flex-row items-center gap-1 [-webkit-user-select:text]">

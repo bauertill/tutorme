@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import {
+  useActiveAssignment,
   useActiveProblem,
   useEvaluationResult,
   useHelp,
@@ -38,7 +39,9 @@ export function Canvas() {
     isEraser,
     toggleEraser,
   } = useCanvas();
-  const storeCurrentPathsOnProblem = useStore.use.storeCurrentPathsOnProblem();
+  const activeAssignment = useActiveAssignment();
+  const storeCurrentPathsOnStudentSolution =
+    useStore.use.storeCurrentPathsOnStudentSolution();
   const activeProblemId = useStore.use.activeProblemId();
   const { evaluationResult, setEvaluationResult } = useEvaluationResult();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
@@ -55,8 +58,8 @@ export function Canvas() {
 
   const { mutate: submit, isPending: isSubmitting } =
     api.assignment.submitSolution.useMutation({
-      onSuccess: (result) => {
-        setEvaluationResult(activeProblem?.id ?? "", result);
+      onSuccess: (result, { problemId, studentAssignmentId }) => {
+        setEvaluationResult(problemId, studentAssignmentId, result);
         console.log(result);
         if (!result.hasMistakes && result.isComplete) {
           setCelebrationOpen(true);
@@ -94,16 +97,17 @@ export function Canvas() {
 
   const onCheck = useCallback(
     (dataUrl: string) => {
-      if (activeProblem) {
+      if (activeProblem && activeAssignment) {
         submit({
           problemId: activeProblem.id,
+          studentAssignmentId: activeAssignment.id,
           exerciseText: activeProblem.problem,
           solutionImage: dataUrl,
           referenceSolution: activeProblem.referenceSolution ?? "N/A",
         });
       }
     },
-    [activeProblem, submit],
+    [activeProblem, submit, activeAssignment],
   );
 
   const controls = useMemo(
@@ -138,7 +142,7 @@ export function Canvas() {
               trackEvent("clicked_check_solution");
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
-              storeCurrentPathsOnProblem();
+              storeCurrentPathsOnStudentSolution();
               onCheck(dataUrl);
             }}
             disabled={isEmpty || isSubmitting}
@@ -181,7 +185,7 @@ export function Canvas() {
       toggleEraser,
       clear,
       isEraser,
-      storeCurrentPathsOnProblem,
+      storeCurrentPathsOnStudentSolution,
       onCheck,
       trackEvent,
       undo,

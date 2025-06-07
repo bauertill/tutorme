@@ -15,6 +15,7 @@ import Onboarding from "./_components/Onboarding";
 export default function AssignmentPage() {
   const activeAssignment = useActiveAssignment();
   const assignments = useStore.use.assignments();
+  const studentSolutions = useStore.use.studentSolutions();
 
   const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
   if (assignments.length === 0) {
@@ -22,8 +23,10 @@ export default function AssignmentPage() {
   }
 
   const solvedProblemsCount =
-    activeAssignment?.problems.filter(
-      (problem) => problem.studentSolution.status === "SOLVED",
+    studentSolutions.filter(
+      (solution) =>
+        solution.status === "SOLVED" &&
+        solution.studentAssignmentId === activeAssignment?.id,
     ).length ?? 0;
   const totalProblems = activeAssignment?.problems.length ?? 0;
   const progressPercentage =

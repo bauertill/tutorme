@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
-import { type StudentAssignmentWithStudentSolutions } from "@/core/assignment/types";
-import { type ProblemWithStudentSolution } from "@/core/problem/types";
+import { type StudentAssignment } from "@/core/assignment/types";
+import { type Problem } from "@/core/problem/types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
@@ -24,11 +24,11 @@ import { useState } from "react";
 import Latex from "react-latex-next";
 
 interface CollapsibleAssignmentProps {
-  assignment: StudentAssignmentWithStudentSolutions;
+  assignment: StudentAssignment;
   isOpen: boolean;
   onOpenChange: () => void;
-  activeProblem: ProblemWithStudentSolution | null;
-  setActiveProblem: (problem: ProblemWithStudentSolution) => void;
+  activeProblem: Problem | null;
+  setActiveProblem: (problem: Problem) => void;
 }
 
 export function CollapsibleAssignment({
@@ -43,6 +43,7 @@ export function CollapsibleAssignment({
   const [newName, setNewName] = useState(assignment.name);
   const editAssignment = useStore.use.editAssignment();
   const deleteAssignment = useStore.use.deleteAssignment();
+  const studentSolutions = useStore.use.studentSolutions();
 
   const { mutate: renameAssignment } =
     api.assignment.renameAssignment.useMutation({
@@ -66,8 +67,10 @@ export function CollapsibleAssignment({
       },
     });
 
-  const solvedProblemsCount = assignment.problems.filter(
-    (problem) => problem.studentSolution.status === "SOLVED",
+  const solvedProblemsCount = studentSolutions.filter(
+    (solution) =>
+      solution.status === "SOLVED" &&
+      solution.studentAssignmentId === assignment.id,
   ).length;
   const isSolved = solvedProblemsCount === assignment.problems.length;
 

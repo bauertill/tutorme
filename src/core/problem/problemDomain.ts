@@ -106,6 +106,8 @@ export async function deleteProblemUpload(
 
 export function parseStudentSolutionWithDefaults(
   studentSolution: PrismaStudentSolution | undefined,
+  problemId: string,
+  studentAssignmentId: string,
 ): StudentSolution {
   if (!studentSolution) {
     return {
@@ -113,6 +115,8 @@ export function parseStudentSolutionWithDefaults(
       status: "INITIAL",
       canvas: { paths: [] },
       evaluation: null,
+      problemId,
+      studentAssignmentId,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
