@@ -12,7 +12,6 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { llmAdapter } from "@/core/adapters/llmAdapter";
-import { ocrAdapter } from "@/core/adapters/ocrAdapter";
 import { paymentAdapter } from "@/core/adapters/paymentAdapter";
 import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
 import { renderAsyAdapter } from "@/core/adapters/renderAsyAdapter";
@@ -50,7 +49,6 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     llmAdapter,
     pubsubAdapter,
     renderAsyAdapter,
-    ocrAdapter,
     clientIp,
     paymentAdapter,
     userLanguage,
