@@ -20,7 +20,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
-import { useActiveProblem, useProblemController } from "@/store/selectors";
+import {
+  useActiveProblem,
+  useProblemController,
+} from "@/store/problem.selectors";
 import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";

@@ -1,21 +1,10 @@
 import { type StudentAssignment } from "@/core/assignment/assignment.types";
-import { newMessage } from "@/core/help/help.domain";
-import { type Message } from "@/core/help/help.types";
 import { type Problem } from "@/core/problem/problem.types";
-import {
-  type EvaluationResult,
-  type StudentSolution,
-} from "@/core/studentSolution/studentSolution.types";
+import { type StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { useCallback, useEffect, useMemo } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useStore } from ".";
-
-export const useActiveAssignment = (): StudentAssignment | null => {
-  const assignmentId = useStore.use.activeAssignmentId();
-  const assignments = useStore.use.assignments();
-  const assignment = assignments.find((a) => a.id === assignmentId);
-  return assignment ?? assignments[0] ?? null;
-};
+import { useActiveAssignment } from "./assignment.selectors";
 
 export const useActiveProblem = (): Problem | null => {
   const assignment = useActiveAssignment();
@@ -191,77 +180,5 @@ export const useProblemController = (): {
     gotoNextUnsolvedProblem,
     gotoPreviousProblem,
     setActiveProblemWithCanvas,
-  };
-};
-
-export const useEvaluationResult = (): {
-  evaluationResult: EvaluationResult | null;
-  setEvaluationResult: (
-    problemId: string,
-    studentAssignmentId: string,
-    evaluationResult: EvaluationResult,
-  ) => void;
-} => {
-  const activeProblem = useActiveProblem();
-  const activeAssignment = useActiveAssignment();
-  const upsertStudentSolutions = useStore.use.upsertStudentSolutions();
-  const studentSolutions = useStore.use.studentSolutions();
-  const evaluationResult =
-    studentSolutions.find(
-      (s) =>
-        s.problemId === activeProblem?.id &&
-        s.studentAssignmentId === activeAssignment?.id,
-    )?.evaluation ?? null;
-  if (!activeProblem) {
-    return { evaluationResult, setEvaluationResult: () => null };
-  }
-  const setEvaluationResult = (
-    problemId: string,
-    studentAssignmentId: string,
-    evaluationResult: EvaluationResult,
-  ) => {
-    const studentSolution = studentSolutions.find(
-      (s) =>
-        s.problemId === problemId &&
-        s.studentAssignmentId === studentAssignmentId,
-    );
-    if (!studentSolution) {
-      return;
-    }
-    const newStudentSolution: StudentSolution = {
-      ...studentSolution,
-      evaluation: evaluationResult,
-      updatedAt: new Date(),
-    };
-    const isCorrect =
-      evaluationResult.isComplete && !evaluationResult.hasMistakes;
-    if (isCorrect) newStudentSolution.status = "SOLVED";
-    else newStudentSolution.status = "IN_PROGRESS";
-    upsertStudentSolutions([newStudentSolution]);
-  };
-  return { evaluationResult, setEvaluationResult };
-};
-
-export const useHelp = () => {
-  const messages = useStore.use.messages();
-  const recommendedQuestions = useStore.use.recommendedQuestions();
-  const setThreadMessages = useStore.use.setThreadMessages();
-  const setThreadRecommendedQuestions =
-    useStore.use.setThreadRecommendedQuestions();
-  const activeProblem = useActiveProblem();
-  const threadId = activeProblem?.id ?? "NONE";
-  return {
-    messages: messages.filter((m) => m.threadId === threadId),
-    recommendedQuestions: recommendedQuestions.filter(
-      (q) => q.threadId === threadId,
-    ),
-    newUserMessage: (content: string) =>
-      newMessage({ role: "user", content, threadId }),
-    newAssistantMessage: (content: string) =>
-      newMessage({ role: "assistant", content, threadId }),
-    setMessages: (messages: Message[]) => setThreadMessages(messages, threadId),
-    setRecommendedQuestions: (questions: string[]) =>
-      setThreadRecommendedQuestions(questions, threadId),
-    activeProblem,
   };
 };

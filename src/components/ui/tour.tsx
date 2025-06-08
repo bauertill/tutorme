@@ -5,7 +5,7 @@ import { useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
 import { steps } from "@/store/onboarding.slice";
-import { useActiveProblem } from "@/store/selectors";
+import { useActiveProblem } from "@/store/problem.selectors";
 import { useCallback, useEffect } from "react";
 import Joyride, { type CallBackProps, STATUS } from "react-joyride";
 import { Button } from "./button";

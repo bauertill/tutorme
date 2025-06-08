@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
-import { useHelp } from "@/store/selectors";
+import { useHelp } from "@/store/help.selectors";
 import { api } from "@/trpc/react";
 import { X } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";

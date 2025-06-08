@@ -1,6 +1,6 @@
 "use client";
 import { useStore } from "@/store";
-import { useActiveProblem } from "@/store/selectors";
+import { useActiveProblem } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import { useEffect } from "react";
 import { useDebounce } from "use-debounce";

@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
-import { useProblemController } from "@/store/selectors";
+import { useProblemController } from "@/store/problem.selectors";
 import { ProblemRenderer } from "./ProblemRenderer";
 import { ProblemStatusIcon } from "./ProblemStatusIcon";
 

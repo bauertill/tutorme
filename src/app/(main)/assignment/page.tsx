@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Tour } from "@/components/ui/tour";
 import { useStore } from "@/store";
-import { useActiveAssignment } from "@/store/selectors";
+import { useActiveAssignment } from "@/store/assignment.selectors";
 import Exercise from "./_components/Exercise";
 import Onboarding from "./_components/Onboarding";
 export default function AssignmentPage() {
