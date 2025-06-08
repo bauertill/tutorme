@@ -1,16 +1,16 @@
-import { type ChatPromptTemplate } from "@langchain/core/prompts";
-import { Client } from "langsmith";
-import { evaluateSolutionPromptTemplate } from "./assignment/evaluateSolution";
-import { explainHintDetailPromptTemplate } from "./assignment/explainHintDetail";
-import { extractAssignmentPromptTemplate } from "./assignment/extractAssignmentFromImage";
+import { extractAssignmentPromptTemplate } from "@/core/assignment/llm/extractAssignmentFromImage";
+import { solveProblemPromptTemplate } from "@/core/problem/llm/solveProblem";
+import { evaluateSolutionPromptTemplate } from "@/core/studentSolution/llm/evaluateSolution";
+import { explainHintDetailPromptTemplate } from "@/core/studentSolution/llm/explainHintDetail";
 import {
   consolidateHandwritingPromptTemplate,
   judgeHandwritingPromptTemplate,
-} from "./assignment/judgeHandwriting";
-import { solveProblemPromptTemplate } from "./assignment/solveProblem";
-import { generateReplyPromptTemplate } from "./help/generateReply";
-import { handleThumbsDownPromptTemplate } from "./help/handleThumbsDown";
-import { recommendQuestionsPromptTemplate } from "./help/recommendQuestions";
+} from "@/core/studentSolution/llm/judgeHandwriting";
+import { type ChatPromptTemplate } from "@langchain/core/prompts";
+import { Client } from "langsmith";
+import { generateReplyPromptTemplate } from "../../help/llm/generateReply";
+import { handleThumbsDownPromptTemplate } from "../../help/llm/handleThumbsDown";
+import { recommendQuestionsPromptTemplate } from "../../help/llm/recommendQuestions";
 // Function to push all prompts to LangSmith
 export async function pushPromptsToLangSmith() {
   const client = new Client();

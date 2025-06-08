@@ -1,3 +1,4 @@
+import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { type Language } from "@/i18n/types";
 import { HumanMessage } from "@langchain/core/messages";
 import {
@@ -6,9 +7,7 @@ import {
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
 import { RunnableLambda, RunnableParallel } from "@langchain/core/runnables";
-import * as hub from "langchain/hub";
 import { z } from "zod";
-import { model, nondeterministicModel } from "../model";
 
 export const JudgeHandwritingSchema = z.object({
   latex_code: z.string().describe("The LaTeX code of the student's solution"),
@@ -116,10 +115,11 @@ export type JudgeHandwritingInput = {
 
 export async function judgeHandwriting(
   input: JudgeHandwritingInput,
+  llmAdapter: LLMAdapter,
 ): Promise<z.infer<typeof ConsolidateHandwritingSchema>> {
   const { language, solutionImage, exerciseText, referenceSolution } = input;
   const context = `${exerciseText}\n\n${referenceSolution}`;
-  const prompt = await hub.pull("judge_handwriting");
+  const prompt = await llmAdapter.hub.pull("judge_handwriting");
   const msgs: HumanMessage[] = [
     new HumanMessage({
       content: [
@@ -143,11 +143,15 @@ export async function judgeHandwriting(
     },
   );
   const withContext = prompt.pipe(
-    model.withStructuredOutput(JudgeHandwritingSchema),
+    llmAdapter.models.model.withStructuredOutput(JudgeHandwritingSchema),
   );
   const withoutContext = dropContext
     .pipe(prompt)
-    .pipe(nondeterministicModel.withStructuredOutput(JudgeHandwritingSchema));
+    .pipe(
+      llmAdapter.models.nondeterministicModel.withStructuredOutput(
+        JudgeHandwritingSchema,
+      ),
+    );
   const mapChain = RunnableParallel.from({
     a: withoutContext,
     b: withoutContext,
@@ -165,11 +169,17 @@ export async function judgeHandwriting(
     }),
   );
 
-  const consolidatePrompt = await hub.pull("consolidate_handwriting");
+  const consolidatePrompt = await llmAdapter.hub.pull(
+    "consolidate_handwriting",
+  );
 
   const response = await mapChain
     .pipe(consolidatePrompt)
-    .pipe(model.withStructuredOutput(ConsolidateHandwritingSchema))
+    .pipe(
+      llmAdapter.models.model.withStructuredOutput(
+        ConsolidateHandwritingSchema,
+      ),
+    )
     .invoke(
       { msgs, language, context },
       {

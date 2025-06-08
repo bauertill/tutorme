@@ -1,3 +1,4 @@
+import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { type Language, LanguageName } from "@/i18n/types";
 import { type BaseMessage, HumanMessage } from "@langchain/core/messages";
 import {
@@ -5,9 +6,7 @@ import {
   MessagesPlaceholder,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import * as hub from "langchain/hub";
 import { z } from "zod";
-import { model } from "../model";
 
 // Define the system prompt template
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
@@ -25,19 +24,19 @@ The student is working on the following problem:
 
 Write your response in {language} language only.`,
   {
-    name: "generate_reply_system_prompt",
+    name: "handle_thumbs_down_system_prompt",
   },
 );
 
 // Create base prompt template
-export const generateReplyPromptTemplate = ChatPromptTemplate.fromMessages([
+export const handleThumbsDownPromptTemplate = ChatPromptTemplate.fromMessages([
   systemPromptTemplate,
   new MessagesPlaceholder("solutionImage"),
   new MessagesPlaceholder("conversation"),
 ]);
 
 // Define the output schema
-const GenerateReplySchema = z.object({
+const HandleThumbsDownSchema = z.object({
   reply: z.string().describe("The reply to the student's question."),
   followUpQuestions: z
     .array(z.string())
@@ -46,22 +45,23 @@ const GenerateReplySchema = z.object({
     ),
 });
 
-export type GenerateReplyInput = {
+export type HandleThumbsDownInput = {
   problemId: string;
   messages: BaseMessage[];
   problem: string;
   solutionImage: string | null;
   language: Language;
 };
-export type GenerateReplyResponse = z.infer<typeof GenerateReplySchema>;
+export type HandleThumbsDownResponse = z.infer<typeof HandleThumbsDownSchema>;
 
-export async function generateReply(
-  input: GenerateReplyInput,
-): Promise<GenerateReplyResponse> {
+export async function handleThumbsDown(
+  input: HandleThumbsDownInput,
+  llmAdapter: LLMAdapter,
+): Promise<HandleThumbsDownResponse> {
   const { problemId, messages, problem, solutionImage, language } = input;
 
   // Use hub to pull the prompt
-  const promptFromHub = await hub.pull("generate_reply");
+  const promptFromHub = await llmAdapter.hub.pull("handle_thumbs_down");
 
   const solutionMessage = solutionImage
     ? [
@@ -85,17 +85,22 @@ export async function generateReply(
 
   // Invoke the model with the prompt
   const response = await promptFromHub
-    .pipe(model.withStructuredOutput(GenerateReplySchema))
+    .pipe(
+      llmAdapter.models.reasoningModel.withStructuredOutput(
+        HandleThumbsDownSchema,
+      ),
+    )
     .invoke(
       {
         language: LanguageName[language],
         problem,
         solutionImage: solutionMessage,
         conversation: messages,
+        reasoning_effort: "high",
       },
       {
         metadata: {
-          functionName: "generateReply",
+          functionName: "handleThumbsDown",
           problemId,
         },
       },

@@ -1,7 +1,11 @@
 import { createId } from "@paralleldrive/cuid2";
 import { type StudentSolution as StudentSolutionPrisma } from "@prisma/client";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { type EvaluateSolutionInput } from "../adapters/llmAdapter/assignment/evaluateSolution";
+import {
+  evaluateSolution as evaluateSolutionLLM,
+  type EvaluateSolutionInput,
+} from "./llm/evaluateSolution";
+import { judgeHandwriting as judgeHandwritingLLM } from "./llm/judgeHandwriting";
 import {
   StudentSolution,
   type EvaluationResult,
@@ -32,8 +36,8 @@ export async function evaluateSolution(
   llmAdapter: LLMAdapter,
 ): Promise<EvaluationResult> {
   const [evaluation, handwriting] = await Promise.all([
-    llmAdapter.assignment.evaluateSolution(input),
-    llmAdapter.assignment.judgeHandwriting(input),
+    evaluateSolutionLLM(input, llmAdapter),
+    judgeHandwritingLLM(input, llmAdapter),
   ]);
 
   if (handwriting.agreement) {

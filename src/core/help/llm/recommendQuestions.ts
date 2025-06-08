@@ -1,3 +1,4 @@
+import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { LanguageName, type Language } from "@/i18n/types";
 import { HumanMessage } from "@langchain/core/messages";
 import {
@@ -5,9 +6,7 @@ import {
   MessagesPlaceholder,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import * as hub from "langchain/hub";
 import { z } from "zod";
-import { model } from "../model";
 
 // Define the system prompt template
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
@@ -47,9 +46,10 @@ export async function recommendQuestions(
   problem: string,
   solutionImage: string | null,
   language: Language,
+  llmAdapter: LLMAdapter,
 ): Promise<string[]> {
   // Use hub to pull the prompt
-  const promptFromHub = await hub.pull("recommend_questions");
+  const promptFromHub = await llmAdapter.hub.pull("recommend_questions");
 
   // Create content array for human message based on available data
   const additionalMessages = [];
@@ -78,7 +78,9 @@ export async function recommendQuestions(
 
   // Invoke the model with the messages
   const response = await promptFromHub
-    .pipe(model.withStructuredOutput(RecommendQuestionsSchema))
+    .pipe(
+      llmAdapter.models.model.withStructuredOutput(RecommendQuestionsSchema),
+    )
     .invoke(
       {
         language: LanguageName[language],

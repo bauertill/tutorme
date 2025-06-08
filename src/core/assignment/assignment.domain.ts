@@ -10,6 +10,7 @@ import { StudentRepository } from "../student/student.repository";
 import { type Draft } from "../utils";
 import { AssignmentRepository } from "./assignment.repository";
 import { type StudentAssignment } from "./assignment.types";
+import { extractAssignmentFromImage } from "./llm/extractAssignmentFromImage";
 
 export async function adminCreateAssignment(
   {
@@ -69,12 +70,12 @@ export async function createStudentAssignmentFromUpload(
   language: Language,
 ): Promise<StudentAssignment> {
   const dbAdapter = new AssignmentRepository(db);
-  const { problems: rawProblems } =
-    await llmAdapter.assignment.extractAssignmentFromImage(
-      uploadPath,
-      language,
-      userId,
-    );
+  const { problems: rawProblems } = await extractAssignmentFromImage(
+    uploadPath,
+    language,
+    userId,
+    llmAdapter,
+  );
   const problems: Draft<Problem>[] = [];
   for (const problem of rawProblems) {
     problems.push({

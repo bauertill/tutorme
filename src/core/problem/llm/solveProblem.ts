@@ -1,12 +1,11 @@
+import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { type Language, LanguageName } from "@/i18n/types";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import * as hub from "langchain/hub";
 import { z } from "zod";
-import { reasoningModel } from "../model";
 
 // Define the system prompt template
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
@@ -49,11 +48,12 @@ export const SolutionSchema = z.object({
 export async function solveProblem(
   exerciseText: string,
   language: Language,
+  llmAdapter: LLMAdapter,
 ): Promise<string> {
   // Use hub to pull the prompt
-  const prompt = await hub.pull("solve_problem");
+  const prompt = await llmAdapter.hub.pull("solve_problem");
 
-  const response = await prompt.pipe(reasoningModel).invoke(
+  const response = await prompt.pipe(llmAdapter.models.reasoningModel).invoke(
     {
       language: LanguageName[language],
       exerciseText,

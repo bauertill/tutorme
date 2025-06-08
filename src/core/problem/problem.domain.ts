@@ -1,6 +1,7 @@
 import { type Language } from "@/i18n/types";
 import { type PrismaClient } from "@prisma/client";
 import { type LLMAdapter } from "../adapters/llmAdapter";
+import { solveProblem } from "./llm/solveProblem";
 import { ProblemRepository } from "./problem.repository";
 
 export async function queryProblems(
@@ -18,9 +19,6 @@ export async function createReferenceSolution(
   llmAdapter: LLMAdapter,
   language: Language,
 ): Promise<string> {
-  const solution = await llmAdapter.assignment.solveProblem(
-    exerciseText,
-    language,
-  );
+  const solution = await solveProblem(exerciseText, language, llmAdapter);
   return solution;
 }

@@ -1,7 +1,7 @@
+import { model } from "@/core/adapters/llmAdapter/models";
 import * as hub from "langchain/hub";
 import { Client } from "langsmith";
 import { evaluate, type EvaluatorT } from "langsmith/evaluation";
-import { model } from "../../model";
 import { EvaluateSolutionSchema } from "../evaluateSolution";
 
 const hasMistakesEvaluator: EvaluatorT = async ({

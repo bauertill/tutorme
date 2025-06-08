@@ -1,3 +1,4 @@
+import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { ImageRegion } from "@/core/assignment/assignment.types";
 import { type Language, LanguageName } from "@/i18n/types";
 import { HumanMessage } from "@langchain/core/messages";
@@ -6,9 +7,7 @@ import {
   MessagesPlaceholder,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import * as hub from "langchain/hub";
 import { z } from "zod";
-import { model } from "../model";
 
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
   `You are an AI assistant that translates an image of math problems into a list of problems. 
@@ -87,27 +86,30 @@ type RawAssignment = z.infer<typeof RawAssignment>;
 export async function extractAssignmentFromImage(
   imageUrl: string,
   language: Language,
-  userId?: string,
+  userId: string | undefined,
+  llmAdapter: LLMAdapter,
 ): Promise<RawAssignment> {
-  const prompt = await hub.pull("extract_assignment");
+  const prompt = await llmAdapter.hub.pull("extract_assignment");
 
-  return await prompt.pipe(model.withStructuredOutput(RawAssignment)).invoke(
-    {
-      language: LanguageName[language],
-      uploadedImage: new HumanMessage({
-        content: [
-          {
-            type: "image_url",
-            image_url: { url: imageUrl, detail: "high" },
-          },
-        ],
-      }),
-    },
-    {
-      metadata: {
-        userId,
-        functionName: "extractAssignmentFromImage",
+  return await prompt
+    .pipe(llmAdapter.models.model.withStructuredOutput(RawAssignment))
+    .invoke(
+      {
+        language: LanguageName[language],
+        uploadedImage: new HumanMessage({
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: imageUrl, detail: "high" },
+            },
+          ],
+        }),
       },
-    },
-  );
+      {
+        metadata: {
+          userId,
+          functionName: "extractAssignmentFromImage",
+        },
+      },
+    );
 }

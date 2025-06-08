@@ -1,3 +1,4 @@
+import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { type Language, LanguageName } from "@/i18n/types";
 import { HumanMessage } from "@langchain/core/messages";
 import {
@@ -6,9 +7,7 @@ import {
   MessagesPlaceholder,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import * as hub from "langchain/hub";
 import { z } from "zod";
-import { model } from "../model";
 
 export const EvaluateSolutionSchema = z.object({
   studentSolution: z
@@ -106,6 +105,7 @@ export type EvaluateSolutionInput = {
 // Function to evaluate the solution using the multimodal LLM
 export async function evaluateSolution(
   input: EvaluateSolutionInput,
+  llmAdapter: LLMAdapter,
 ): Promise<z.infer<typeof EvaluateSolutionSchema>> {
   const {
     problemId,
@@ -115,9 +115,9 @@ export async function evaluateSolution(
     language,
   } = input;
 
-  const prompt = await hub.pull("evaluate_solution");
+  const prompt = await llmAdapter.hub.pull("evaluate_solution");
   const response = await prompt
-    .pipe(model.withStructuredOutput(EvaluateSolutionSchema))
+    .pipe(llmAdapter.models.model.withStructuredOutput(EvaluateSolutionSchema))
     .invoke(
       {
         exerciseText,

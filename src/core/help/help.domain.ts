@@ -2,11 +2,15 @@ import { type Language } from "@/i18n/types";
 import { type BaseMessage, SystemMessage } from "@langchain/core/messages";
 import { v4 as uuidv4 } from "uuid";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { type GenerateReplyResponse } from "../adapters/llmAdapter/help/generateReply";
-import { type HandleThumbsDownResponse } from "../adapters/llmAdapter/help/handleThumbsDown";
 import { type Draft } from "../utils";
 import { type Message } from "./help.types";
 import { messageToLangchainMessage } from "./help.utils";
+import { generateReply, type GenerateReplyResponse } from "./llm/generateReply";
+import {
+  handleThumbsDown,
+  type HandleThumbsDownResponse,
+} from "./llm/handleThumbsDown";
+import { recommendQuestions as recommendQuestionsLLM } from "./llm/recommendQuestions";
 
 export function newMessage(draft: Draft<Message>): Message {
   return {
@@ -26,10 +30,13 @@ export async function generateHelpReply(
   },
   llmAdapter: LLMAdapter,
 ): Promise<GenerateReplyResponse> {
-  return await llmAdapter.help.generateReply({
-    ...input,
-    messages: input.messages.map(messageToLangchainMessage),
-  });
+  return await generateReply(
+    {
+      ...input,
+      messages: input.messages.map(messageToLangchainMessage),
+    },
+    llmAdapter,
+  );
 }
 
 export async function recommendQuestions(
@@ -38,10 +45,11 @@ export async function recommendQuestions(
   llmAdapter: LLMAdapter,
   language: Language,
 ): Promise<string[]> {
-  return await llmAdapter.help.recommendQuestions(
+  return await recommendQuestionsLLM(
     problem,
     solutionImage,
     language,
+    llmAdapter,
   );
 }
 
@@ -61,8 +69,11 @@ export async function setMessageThumbsDown(
       "The user thinks you made a mistake. Double check your previous messages for any errors you may have made. If you did, call these errors out and fix them.",
     ),
   ];
-  return await llmAdapter.help.handleThumbsDown({
-    ...input,
-    messages: updatedMessages,
-  });
+  return await handleThumbsDown(
+    {
+      ...input,
+      messages: updatedMessages,
+    },
+    llmAdapter,
+  );
 }

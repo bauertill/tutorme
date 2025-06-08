@@ -1,12 +1,11 @@
+import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { type EvaluationResult } from "@/core/studentSolution/studentSolution.types";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import * as hub from "langchain/hub";
 import { z } from "zod";
-import { model } from "../model";
 
 // Define the system prompt template for explaining hints in more detail
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
@@ -88,15 +87,16 @@ export type ExplainHintDetailInput = {
  */
 export async function explainHintDetail(
   input: ExplainHintDetailInput,
+  llmAdapter: LLMAdapter,
 ): Promise<string> {
   const { problemId, problemText, evaluation, highlightedText } = input;
 
   // Use hub to pull the prompt
-  const prompt = await hub.pull("explain_hint_detail");
+  const prompt = await llmAdapter.hub.pull("explain_hint_detail");
 
   // Invoke the model with structured output
   const response = await prompt
-    .pipe(model.withStructuredOutput(ExplainHintDetailSchema))
+    .pipe(llmAdapter.models.model.withStructuredOutput(ExplainHintDetailSchema))
     .invoke(
       {
         problemText,
