@@ -23,7 +23,7 @@ export function CollapsibleSettings() {
   const [isOpen, setIsOpen] = useState(false);
   const session = useSession();
   const { mutate: deleteAllAssignments } =
-    api.assignment.deleteAllProblemsAndAssignments.useMutation();
+    api.assignment.deleteAllAssignmentsAndProblems.useMutation();
   const [isDeleting, setIsDeleting] = useState(false);
   const setHasCompletedOnboarding = useStore.use.setHasCompletedOnboarding();
   const setUserHasScrolled = useStore.use.setUserHasScrolled();

@@ -11,7 +11,7 @@ export default function Exercise() {
   const activeProblem = useActiveProblem();
   const [debouncedProblem] = useDebounce(activeProblem, 5000);
   const { mutateAsync: createReferenceSolution } =
-    api.assignment.createReferenceSolution.useMutation();
+    api.problem.createReferenceSolution.useMutation();
   const addReferenceSolution = useStore.use.addReferenceSolution();
   const referenceSolutions = useStore.use.referenceSolutions();
 

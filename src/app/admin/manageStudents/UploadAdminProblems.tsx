@@ -27,7 +27,7 @@ export function UploadAdminProblems({ onSuccess }: { onSuccess?: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutateAsync: createAssignmentFromUpload } =
-    api.assignment.adminUploadProblems.useMutation({
+    api.problem.adminUploadProblems.useMutation({
       onSuccess: () => {
         setUploadState("success");
         toast.success("Problems uploaded successfully!");

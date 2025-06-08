@@ -48,9 +48,9 @@ export function ProblemManagement() {
     isLoading,
     error,
     refetch,
-  } = api.assignment.getProblems.useQuery();
+  } = api.problem.getProblems.useQuery();
   const deleteAllMutation =
-    api.assignment.deleteAllProblemsAndAssignments.useMutation({
+    api.assignment.deleteAllAssignmentsAndProblems.useMutation({
       onSuccess: async () => {
         await refetch();
         await refetchAssignments();

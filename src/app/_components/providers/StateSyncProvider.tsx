@@ -20,7 +20,7 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
     );
 
   const { data: studentSolutionsOnServer } =
-    api.assignment.listStudentSolutions.useQuery(
+    api.studentSolution.listStudentSolutions.useQuery(
       session.data?.user.id ? undefined : skipToken,
     );
 
@@ -35,7 +35,7 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
     });
 
   const { mutate: syncStudentSolutions } =
-    api.assignment.syncStudentSolutions.useMutation({
+    api.studentSolution.syncStudentSolutions.useMutation({
       onSuccess: ({ studentSolutionsNotInLocal }) => {
         console.log("syncStudentSolutions success");
         upsertStudentSolutionsLocal(studentSolutionsNotInLocal);
