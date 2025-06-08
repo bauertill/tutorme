@@ -19,7 +19,6 @@ export default function Exercise() {
     if (debouncedProblem && !referenceSolutions[debouncedProblem.id]) {
       void createReferenceSolution(debouncedProblem.problem).then(
         (referenceSolution) => {
-          console.log("referenceSolution", referenceSolution);
           addReferenceSolution(
             debouncedProblem.id,
             referenceSolution.substring(0, 30),
