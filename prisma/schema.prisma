@@ -168,7 +168,7 @@ model StudentAssignment {
   student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   groupAssignmentId String?
-  groupAssignment   GroupAssignment? @relation(fields: [groupAssignmentId], references: [id], onDelete: Cascade)
+  groupAssignment   GroupAssignment? @relation(fields: [groupAssignmentId], references: [id], onDelete: SetNull)
 
   problems         Problem[]
   studentSolutions StudentSolution[]
