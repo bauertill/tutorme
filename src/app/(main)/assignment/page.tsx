@@ -13,13 +13,14 @@ import {
   useActiveAssignment,
   useAssignments,
 } from "@/store/assignment.selectors";
+import { useStudentSolutions } from "@/store/studentSolution.selectors";
 import Exercise from "./_components/Exercise";
 import Onboarding from "./_components/Onboarding";
 
 export default function AssignmentPage() {
   const activeAssignment = useActiveAssignment();
   const assignments = useAssignments();
-  const studentSolutions = useStore.use.studentSolutions();
+  const studentSolutions = useStudentSolutions();
 
   const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
   if (assignments.length === 0) {

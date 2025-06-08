@@ -18,6 +18,7 @@ import { type Problem } from "@/core/problem/problem.types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
+import { useStudentSolutions } from "@/store/studentSolution.selectors";
 import { api } from "@/trpc/react";
 import { CheckCircle, ChevronRight, Circle, MoreVertical } from "lucide-react";
 import { useState } from "react";
@@ -43,7 +44,7 @@ export function CollapsibleAssignment({
   const [newName, setNewName] = useState(assignment.name);
   const editAssignment = useStore.use.editAssignment();
   const deleteAssignment = useStore.use.deleteAssignment();
-  const studentSolutions = useStore.use.studentSolutions();
+  const studentSolutions = useStudentSolutions();
 
   const { mutate: renameAssignment } =
     api.assignment.renameAssignment.useMutation({

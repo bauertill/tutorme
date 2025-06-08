@@ -2,9 +2,36 @@ import {
   type EvaluationResult,
   type StudentSolution,
 } from "@/core/studentSolution/studentSolution.types";
+import { useShallow } from "zustand/shallow";
 import { useStore } from ".";
 import { useActiveAssignment } from "./assignment.selectors";
 import { useActiveProblem } from "./problem.selectors";
+
+export const useStudentSolutions = (): StudentSolution[] => {
+  return useStore(
+    useShallow((store) =>
+      store.studentSolutions.ids
+        .map((id) => store.studentSolutions.entities[id])
+        .filter((s) => s !== undefined),
+    ),
+  );
+};
+
+export const useStudentSolution = (
+  problemId: string | null,
+  studentAssignmentId: string | null,
+): StudentSolution | null => {
+  return useStore(
+    useShallow((store) => {
+      if (!problemId || !studentAssignmentId) return null;
+      const id =
+        store.studentSolutions.idByProblemAndAssignmentId[
+          `${problemId}-${studentAssignmentId}`
+        ];
+      return id ? (store.studentSolutions.entities[id] ?? null) : null;
+    }),
+  );
+};
 
 export const useEvaluationResult = (): {
   evaluationResult: EvaluationResult | null;
@@ -16,40 +43,11 @@ export const useEvaluationResult = (): {
 } => {
   const activeProblem = useActiveProblem();
   const activeAssignment = useActiveAssignment();
-  const upsertStudentSolutions = useStore.use.upsertStudentSolutions();
-  const studentSolutions = useStore.use.studentSolutions();
-  const evaluationResult =
-    studentSolutions.find(
-      (s) =>
-        s.problemId === activeProblem?.id &&
-        s.studentAssignmentId === activeAssignment?.id,
-    )?.evaluation ?? null;
-  if (!activeProblem) {
-    return { evaluationResult, setEvaluationResult: () => null };
-  }
-  const setEvaluationResult = (
-    problemId: string,
-    studentAssignmentId: string,
-    evaluationResult: EvaluationResult,
-  ) => {
-    const studentSolution = studentSolutions.find(
-      (s) =>
-        s.problemId === problemId &&
-        s.studentAssignmentId === studentAssignmentId,
-    );
-    if (!studentSolution) {
-      return;
-    }
-    const newStudentSolution: StudentSolution = {
-      ...studentSolution,
-      evaluation: evaluationResult,
-      updatedAt: new Date(),
-    };
-    const isCorrect =
-      evaluationResult.isComplete && !evaluationResult.hasMistakes;
-    if (isCorrect) newStudentSolution.status = "SOLVED";
-    else newStudentSolution.status = "IN_PROGRESS";
-    upsertStudentSolutions([newStudentSolution]);
-  };
+  const studentSolution = useStudentSolution(
+    activeProblem?.id ?? null,
+    activeAssignment?.id ?? null,
+  );
+  const evaluationResult = studentSolution?.evaluation ?? null;
+  const setEvaluationResult = useStore.use.setEvaluationResult();
   return { evaluationResult, setEvaluationResult };
 };
