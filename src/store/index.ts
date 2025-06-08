@@ -12,7 +12,12 @@ import { createAssignmentSlice, type AssignmentSlice } from "./assignment";
 import { createCanvasSlice, type CanvasSlice } from "./canvas";
 import { createHelpSlice, type HelpSlice } from "./help";
 import { createOnboardingSlice, type OnboardingSlice } from "./onboarding";
+import { createProblemSlice, type ProblemSlice } from "./problem";
 import { createProfileSlice, type ProfileSlice } from "./profile";
+import {
+  createStudentSolutionSlice,
+  type StudentSolutionSlice,
+} from "./studentSolution";
 import { createUsageLimitSlice, type UsageLimitSlice } from "./usageLimit";
 
 export type MiddlewareList = [
@@ -22,6 +27,8 @@ export type MiddlewareList = [
 ];
 
 export type State = AssignmentSlice &
+  StudentSolutionSlice &
+  ProblemSlice &
   CanvasSlice &
   UsageLimitSlice &
   ProfileSlice &
@@ -51,6 +58,8 @@ const useStoreBase = create<State>()(
     persist(
       immer((...a) => ({
         ...createAssignmentSlice(...a),
+        ...createProblemSlice(...a),
+        ...createStudentSolutionSlice(...a),
         ...createCanvasSlice(...a),
         ...createUsageLimitSlice(...a),
         ...createProfileSlice(...a),

@@ -1,31 +1,17 @@
 import { mergeAssignments } from "@/core/assignment/assignment.domain";
 import { type StudentAssignment } from "@/core/assignment/assignment.types";
-import { type Problem } from "@/core/problem/problem.types";
-import { type StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import _ from "lodash";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
-import { type Path } from "./canvas";
 
 export interface AssignmentSlice {
   assignments: StudentAssignment[];
-  studentSolutions: StudentSolution[];
   activeAssignmentId: string | null;
-  activeProblemId: string | null;
-  referenceSolutions: Record<string, string>;
   clearAssignments: () => void;
   upsertAssignments: (assignments: StudentAssignment[]) => void;
   addAssignment: (assignment: StudentAssignment) => void;
   editAssignment: (assignment: StudentAssignment) => void;
   deleteAssignment: (assignmentId: string) => void;
-  setActiveProblem: (problem: Problem, assignmentId: string) => void;
-  storeCurrentPathsOnStudentSolution: (
-    problemId: string,
-    assignmentId: string,
-    paths: Path[],
-  ) => void;
-  upsertStudentSolutions: (studentSolutions: StudentSolution[]) => void;
-  addReferenceSolution: (problemId: string, referenceSolution: string) => void;
 }
 
 export const createAssignmentSlice: StateCreator<
@@ -37,8 +23,6 @@ export const createAssignmentSlice: StateCreator<
   assignments: [],
   studentSolutions: [],
   activeAssignmentId: null,
-  activeProblemId: null,
-  referenceSolutions: {},
   clearAssignments: () => {
     set((draft) => {
       draft.assignments = [];
@@ -80,57 +64,6 @@ export const createAssignmentSlice: StateCreator<
       draft.assignments = draft.assignments.filter(
         (a) => a.id !== assignmentId,
       );
-    });
-  },
-  setActiveProblem: (problem: Problem, assignmentId: string) => {
-    set((draft) => {
-      draft.activeAssignmentId = assignmentId;
-      draft.activeProblemId = problem.id;
-    });
-    get().setCanvas({ paths: [] });
-  },
-
-  storeCurrentPathsOnStudentSolution: (
-    problemId: string,
-    assignmentId: string,
-    paths: Path[],
-  ) => {
-    set((draft) => {
-      if (!draft.activeProblemId || !draft.activeAssignmentId) return;
-      const studentSolution = draft.studentSolutions.find(
-        (s) =>
-          s.problemId === problemId && s.studentAssignmentId === assignmentId,
-      );
-      if (!studentSolution) {
-        draft.studentSolutions = [
-          ...draft.studentSolutions,
-          {
-            id: crypto.randomUUID(),
-            problemId,
-            studentAssignmentId: assignmentId,
-            createdAt: new Date(),
-            status: "INITIAL",
-            evaluation: null,
-            canvas: { paths },
-            updatedAt: new Date(),
-          },
-        ];
-      } else {
-        studentSolution.canvas = { paths };
-        studentSolution.updatedAt = new Date();
-      }
-    });
-  },
-  upsertStudentSolutions: (studentSolutions: StudentSolution[]) =>
-    set((draft) => {
-      draft.studentSolutions = _.uniqBy(
-        [...studentSolutions, ...draft.studentSolutions],
-        (s) => s.id,
-      );
-    }),
-  addReferenceSolution: (problemId: string, referenceSolution: string) => {
-    set((draft) => {
-      draft.referenceSolutions[problemId] = referenceSolution;
     });
   },
 });
