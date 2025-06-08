@@ -17,6 +17,7 @@ export interface StudentSolutionSlice {
     assignmentId: string,
     paths: Path[],
   ) => void;
+  ensureStudentSolution: (problemId: string, assignmentId: string) => void;
   upsertStudentSolutions: (studentSolutions: StudentSolution[]) => void;
   setEvaluationResult: (
     problemId: string,
@@ -25,12 +26,28 @@ export interface StudentSolutionSlice {
   ) => void;
 }
 
+const newStudentSolution = (
+  problemId: string,
+  studentAssignmentId: string,
+): StudentSolution => {
+  return {
+    id: crypto.randomUUID(),
+    problemId,
+    studentAssignmentId,
+    createdAt: new Date(),
+    status: "INITIAL",
+    evaluation: null,
+    canvas: { paths: [] },
+    updatedAt: new Date(),
+  };
+};
+
 export const createStudentSolutionSlice: StateCreator<
   State,
   MiddlewareList,
   [],
   StudentSolutionSlice
-> = (set) => ({
+> = (set, get) => ({
   studentSolutions: {
     entities: {},
     idByProblemAndAssignmentId: {},
@@ -41,6 +58,7 @@ export const createStudentSolutionSlice: StateCreator<
     assignmentId: string,
     paths: Path[],
   ) => {
+    get().ensureStudentSolution(problemId, assignmentId);
     set((draft) => {
       if (!draft.activeProblemId || !draft.assignments.activeId) return;
       const id =
@@ -48,54 +66,51 @@ export const createStudentSolutionSlice: StateCreator<
           `${problemId}-${assignmentId}`
         ];
       const studentSolution = id ? draft.studentSolutions.entities[id] : null;
-      if (!id || !studentSolution) {
-        const newId = crypto.randomUUID();
-        draft.studentSolutions.entities[newId] = {
-          id: newId,
-          problemId,
-          studentAssignmentId: assignmentId,
-          createdAt: new Date(),
-          status: "INITIAL",
-          evaluation: null,
-          canvas: { paths },
-          updatedAt: new Date(),
-        };
-        draft.studentSolutions.idByProblemAndAssignmentId[
-          `${problemId}-${assignmentId}`
-        ] = newId;
-        draft.studentSolutions.ids.push(newId);
-      } else {
+      if (studentSolution) {
         studentSolution.canvas = { paths };
         studentSolution.updatedAt = new Date();
       }
     });
   },
-  upsertStudentSolutions: (studentSolutions: StudentSolution[]) =>
-    set((draft) => {
-      draft.studentSolutions.entities = {
-        ...draft.studentSolutions.entities,
-        ...Object.fromEntries(studentSolutions.map((s) => [s.id, s])),
+  ensureStudentSolution: (problemId: string, assignmentId: string) => {
+    set(({ studentSolutions }) => {
+      const id =
+        studentSolutions.idByProblemAndAssignmentId[
+          `${problemId}-${assignmentId}`
+        ];
+      if (!id) {
+        const newSolution = newStudentSolution(problemId, assignmentId);
+        studentSolutions.entities[newSolution.id] = newSolution;
+        studentSolutions.idByProblemAndAssignmentId[
+          `${problemId}-${assignmentId}`
+        ] = newSolution.id;
+        studentSolutions.ids.push(newSolution.id);
+      }
+    });
+  },
+  upsertStudentSolutions: (solutions: StudentSolution[]) =>
+    set(({ studentSolutions }) => {
+      studentSolutions.entities = {
+        ...studentSolutions.entities,
+        ...Object.fromEntries(solutions.map((s) => [s.id, s])),
       };
-      draft.studentSolutions.idByProblemAndAssignmentId = Object.fromEntries(
-        studentSolutions.map((s) => [
-          `${s.problemId}-${s.studentAssignmentId}`,
-          s.id,
-        ]),
+      studentSolutions.idByProblemAndAssignmentId = Object.fromEntries(
+        solutions.map((s) => [`${s.problemId}-${s.studentAssignmentId}`, s.id]),
       );
-      draft.studentSolutions.ids = Object.keys(draft.studentSolutions.entities);
+      studentSolutions.ids = Object.keys(studentSolutions.entities);
     }),
   setEvaluationResult: (
     problemId: string,
     studentAssignmentId: string,
     evaluationResult: EvaluationResult,
   ) =>
-    set((draft) => {
+    set(({ studentSolutions }) => {
       const id =
-        draft.studentSolutions.idByProblemAndAssignmentId[
+        studentSolutions.idByProblemAndAssignmentId[
           `${problemId}-${studentAssignmentId}`
         ];
       if (!id) return;
-      const studentSolution = draft.studentSolutions.entities[id];
+      const studentSolution = studentSolutions.entities[id];
       if (!studentSolution) return;
       studentSolution.evaluation = evaluationResult;
       studentSolution.updatedAt = new Date();
