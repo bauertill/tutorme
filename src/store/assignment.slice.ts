@@ -36,7 +36,7 @@ export const createAssignmentSlice: StateCreator<
         activeId: null,
       };
     });
-    get().setCanvas({ paths: [] });
+    get().setCanvas({ paths: [] }); // TODO: in all these instances, first write the canvas to the studentSolution
   },
   upsertAssignments: (assignments: StudentAssignment[]) =>
     set((draft) => {
@@ -71,11 +71,9 @@ export const createAssignmentSlice: StateCreator<
     get().upsertAssignments([assignment]);
   },
   deleteAssignment: (assignmentId: string) => {
-    set((draft) => {
-      draft.assignments.ids = draft.assignments.ids.filter(
-        (id) => id !== assignmentId,
-      );
-      delete draft.assignments.entities[assignmentId];
+    set(({ assignments }) => {
+      delete assignments.entities[assignmentId];
+      assignments.ids = Object.keys(assignments.entities);
     });
   },
 });

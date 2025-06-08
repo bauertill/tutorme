@@ -1,6 +1,9 @@
 "use client";
 import { useStore } from "@/store";
-import { useActiveProblem } from "@/store/problem.selectors";
+import {
+  useActiveProblem,
+  useReferenceSolution,
+} from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import { useEffect } from "react";
 import { useDebounce } from "use-debounce";
@@ -13,10 +16,10 @@ export default function Exercise() {
   const { mutateAsync: createReferenceSolution } =
     api.problem.createReferenceSolution.useMutation();
   const addReferenceSolution = useStore.use.addReferenceSolution();
-  const referenceSolutions = useStore.use.referenceSolutions();
+  const referenceSolution = useReferenceSolution(activeProblem?.id ?? null);
 
   useEffect(() => {
-    if (debouncedProblem && !referenceSolutions[debouncedProblem.id]) {
+    if (debouncedProblem && !referenceSolution) {
       void createReferenceSolution(debouncedProblem.problem).then(
         (referenceSolution) => {
           addReferenceSolution(
@@ -30,7 +33,7 @@ export default function Exercise() {
     debouncedProblem,
     createReferenceSolution,
     addReferenceSolution,
-    referenceSolutions,
+    referenceSolution,
   ]);
 
   if (!activeProblem) {

@@ -4,7 +4,10 @@ import type { MiddlewareList, State } from ".";
 
 export interface ProblemSlice {
   activeProblemId: string | null;
-  referenceSolutions: Record<string, string>;
+  referenceSolutions: {
+    entities: Record<string, string>;
+    ids: string[];
+  };
   setActiveProblem: (problem: Problem, assignmentId: string) => void;
   addReferenceSolution: (problemId: string, referenceSolution: string) => void;
 }
@@ -16,7 +19,10 @@ export const createProblemSlice: StateCreator<
   ProblemSlice
 > = (set, get) => ({
   activeProblemId: null,
-  referenceSolutions: {},
+  referenceSolutions: {
+    entities: {},
+    ids: [],
+  },
   setActiveProblem: (problem: Problem, assignmentId: string) => {
     set((draft) => {
       draft.assignments.activeId = assignmentId;
@@ -26,8 +32,9 @@ export const createProblemSlice: StateCreator<
   },
 
   addReferenceSolution: (problemId: string, referenceSolution: string) => {
-    set((draft) => {
-      draft.referenceSolutions[problemId] = referenceSolution;
+    set(({ referenceSolutions }) => {
+      referenceSolutions.entities[problemId] = referenceSolution;
+      referenceSolutions.ids = Object.keys(referenceSolutions.entities);
     });
   },
 });

@@ -3,6 +3,7 @@ import { type Problem } from "@/core/problem/problem.types";
 import { type StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { useCallback, useEffect, useMemo } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { useShallow } from "zustand/shallow";
 import { useStore } from ".";
 import { useActiveAssignment } from "./assignment.selectors";
 
@@ -11,6 +12,16 @@ export const useActiveProblem = (): Problem | null => {
   const problemId = useStore.use.activeProblemId();
   const problem = assignment?.problems.find((p) => p.id === problemId) ?? null;
   return problem ?? assignment?.problems[0] ?? null;
+};
+
+export const useReferenceSolution = (
+  problemId: string | null,
+): string | null => {
+  return useStore(
+    useShallow(({ referenceSolutions: { entities } }) =>
+      problemId ? (entities[problemId] ?? null) : null,
+    ),
+  );
 };
 
 export const useProblemController = (): {
