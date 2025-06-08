@@ -27,7 +27,7 @@ export const createStudentSolutionSlice: StateCreator<
     paths: Path[],
   ) => {
     set((draft) => {
-      if (!draft.activeProblemId || !draft.activeAssignmentId) return;
+      if (!draft.activeProblemId || !draft.assignments.activeId) return;
       const studentSolution = draft.studentSolutions.find(
         (s) =>
           s.problemId === problemId && s.studentAssignmentId === assignmentId,

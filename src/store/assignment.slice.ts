@@ -5,8 +5,11 @@ import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
 
 export interface AssignmentSlice {
-  assignments: StudentAssignment[];
-  activeAssignmentId: string | null;
+  assignments: {
+    entities: Record<string, StudentAssignment>;
+    ids: string[];
+    activeId: string | null;
+  };
   clearAssignments: () => void;
   upsertAssignments: (assignments: StudentAssignment[]) => void;
   addAssignment: (assignment: StudentAssignment) => void;
@@ -20,50 +23,59 @@ export const createAssignmentSlice: StateCreator<
   [],
   AssignmentSlice
 > = (set, get) => ({
-  assignments: [],
-  studentSolutions: [],
-  activeAssignmentId: null,
+  assignments: {
+    entities: {},
+    ids: [],
+    activeId: null,
+  },
   clearAssignments: () => {
     set((draft) => {
-      draft.assignments = [];
+      draft.assignments = {
+        entities: {},
+        ids: [],
+        activeId: null,
+      };
     });
     get().setCanvas({ paths: [] });
   },
   upsertAssignments: (assignments: StudentAssignment[]) =>
     set((draft) => {
       const mergedAssignments = mergeAssignments(
-        draft.assignments,
-        assignments,
+        draft.assignments.entities,
+        Object.fromEntries(assignments.map((a) => [a.id, a])),
       );
-      if (!_.isEqual(draft.assignments, mergedAssignments)) {
-        draft.assignments = mergedAssignments;
+      if (!_.isEqual(draft.assignments.entities, mergedAssignments)) {
+        draft.assignments = {
+          entities: mergedAssignments,
+          ids: Object.keys(mergedAssignments),
+          activeId: draft.assignments.activeId,
+        };
       }
-      const firstAssignment = draft.assignments[0];
-      if (!draft.activeAssignmentId && firstAssignment) {
-        draft.activeAssignmentId = firstAssignment.id;
-        draft.activeProblemId = firstAssignment.problems[0]?.id ?? null;
+      const firstAssignmentId = draft.assignments.ids[0];
+      if (!draft.assignments.activeId && firstAssignmentId) {
+        draft.assignments.activeId = firstAssignmentId;
+        draft.activeProblemId =
+          draft.assignments.entities[firstAssignmentId]?.problems[0]?.id ??
+          null;
       }
     }),
   addAssignment: (assignment: StudentAssignment) => {
+    get().upsertAssignments([assignment]);
     set((draft) => {
-      draft.assignments = [assignment, ...draft.assignments];
-      draft.activeAssignmentId = assignment.id;
+      draft.assignments.activeId = assignment.id;
       draft.activeProblemId = assignment.problems[0]?.id ?? null;
     });
     get().setCanvas({ paths: [] });
   },
   editAssignment: (assignment: StudentAssignment) => {
-    set((draft) => {
-      draft.assignments = draft.assignments.map((a) =>
-        a.id === assignment.id ? assignment : a,
-      );
-    });
+    get().upsertAssignments([assignment]);
   },
   deleteAssignment: (assignmentId: string) => {
     set((draft) => {
-      draft.assignments = draft.assignments.filter(
-        (a) => a.id !== assignmentId,
+      draft.assignments.ids = draft.assignments.ids.filter(
+        (id) => id !== assignmentId,
       );
+      delete draft.assignments.entities[assignmentId];
     });
   },
 });

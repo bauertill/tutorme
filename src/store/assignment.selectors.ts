@@ -1,19 +1,23 @@
 import { type StudentAssignment } from "@/core/assignment/assignment.types";
+import { useShallow } from "zustand/shallow";
 import { useStore } from ".";
 
 export const useActiveAssignment = (): StudentAssignment | null => {
-  const assignmentId = useStore.use.activeAssignmentId();
-  const assignments = useStore.use.assignments();
-  const assignment = assignments.find((a) => a.id === assignmentId);
-  return assignment ?? assignments[0] ?? null;
+  return useStore(
+    useShallow(({ assignments: { entities, activeId } }) =>
+      activeId === null ? null : (entities[activeId] ?? null),
+    ),
+  );
 };
 
 export const useAssignments = (): StudentAssignment[] => {
-  const assignments = useStore.use.assignments();
-  return assignments;
+  return useStore(
+    useShallow(({ assignments: { entities, ids } }) =>
+      ids.map((id) => entities[id] ?? null).filter((a) => a !== null),
+    ),
+  );
 };
 
 export const useActiveAssignmentId = (): string | null => {
-  const activeAssignmentId = useStore.use.activeAssignmentId();
-  return activeAssignmentId;
+  return useStore(useShallow(({ assignments: { activeId } }) => activeId));
 };

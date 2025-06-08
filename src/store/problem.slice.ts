@@ -19,7 +19,7 @@ export const createProblemSlice: StateCreator<
   referenceSolutions: {},
   setActiveProblem: (problem: Problem, assignmentId: string) => {
     set((draft) => {
-      draft.activeAssignmentId = assignmentId;
+      draft.assignments.activeId = assignmentId;
       draft.activeProblemId = problem.id;
     });
     get().setCanvas({ paths: [] });

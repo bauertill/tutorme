@@ -178,27 +178,34 @@ export function getNewAssignments(
   return newAssignments;
 }
 
-export function mergeAssignments(
-  existingAssignments: StudentAssignment[],
-  incomingAssignments: StudentAssignment[],
-): StudentAssignment[] {
+export function mergeAssignments<T extends string, U extends string>(
+  existingAssignments: Record<T, StudentAssignment>,
+  incomingAssignments: Record<U, StudentAssignment>,
+): Record<T | U, StudentAssignment> {
+  const existingIds = new Set<T>(Object.keys(existingAssignments) as T[]);
+  const incomingIds = new Set<U>(Object.keys(incomingAssignments) as U[]);
+  const newIds = incomingIds.difference(existingIds);
   const mergedAssignmentsMap = new Map<string, StudentAssignment>();
-  for (const assignment of [...existingAssignments, ...incomingAssignments]) {
-    const existingAssignment = mergedAssignmentsMap.get(assignment.id);
-    if (!existingAssignment) {
-      mergedAssignmentsMap.set(assignment.id, assignment);
-    } else {
-      const mergedAssignment = {
-        ...existingAssignment,
-        problems: mergeProblemsByUpdatedAt(
-          existingAssignment.problems,
-          assignment.problems,
-        ),
-      };
-      mergedAssignmentsMap.set(assignment.id, mergedAssignment);
-    }
+  for (const newId of newIds) {
+    mergedAssignmentsMap.set(newId, incomingAssignments[newId]);
   }
-  return Array.from(mergedAssignmentsMap.values());
+  const changedIds = incomingIds.intersection(existingIds);
+  for (const changedId of changedIds) {
+    const existingAssignment = existingAssignments[changedId];
+    const incomingAssignment = incomingAssignments[changedId];
+    const mergedAssignment = {
+      ...existingAssignment,
+      problems: mergeProblemsByUpdatedAt(
+        existingAssignment.problems,
+        incomingAssignment.problems,
+      ),
+    };
+    mergedAssignmentsMap.set(changedId, mergedAssignment);
+  }
+  return Object.fromEntries(mergedAssignmentsMap) as Record<
+    T | U,
+    StudentAssignment
+  >;
 }
 
 const mergeProblemsByUpdatedAt = (
