@@ -1,6 +1,7 @@
 import { mergeAssignments } from "@/core/assignment/assignmentDomain";
 import { type StudentAssignment } from "@/core/assignment/types";
-import { type Problem, type StudentSolution } from "@/core/problem/types";
+import { type Problem } from "@/core/problem/types";
+import { type StudentSolution } from "@/core/studentSolution/types";
 import _ from "lodash";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";

@@ -1,3 +1,4 @@
+import { type EvaluationResult } from "@/core/studentSolution/types";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
@@ -5,7 +6,6 @@ import {
 } from "@langchain/core/prompts";
 import * as hub from "langchain/hub";
 import { z } from "zod";
-import { type EvaluationResult } from "../../../assignment/types";
 import { model } from "../model";
 
 // Define the system prompt template for explaining hints in more detail

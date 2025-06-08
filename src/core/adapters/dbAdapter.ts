@@ -1,11 +1,10 @@
-import { parseStudentSolutionWithDefaults } from "@/core/problem/problemDomain";
+import { Problem, type ProblemQueryResult } from "@/core/problem/types";
 import {
-  Problem,
-  StudentSolution,
-  type ProblemQueryResult,
   type ProblemUpload,
   type ProblemUploadStatus,
-} from "@/core/problem/types";
+} from "@/core/problemUpload/types";
+import { parseStudentSolutionWithDefaults } from "@/core/studentSolution/studentSolutionDomain";
+import { StudentSolution } from "@/core/studentSolution/types";
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";

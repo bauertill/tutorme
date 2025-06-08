@@ -2,8 +2,8 @@ import { type Language } from "@/i18n/types";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type EvaluateSolutionInput } from "../adapters/llmAdapter/assignment/evaluateSolution";
-import { type EvaluationResult, type UserProblem } from "../assignment/types";
 import { type Problem } from "../problem/types";
+import { type EvaluationResult } from "../studentSolution/types";
 
 export async function evaluateSolution(
   input: EvaluateSolutionInput,
@@ -44,27 +44,4 @@ export async function createReferenceSolution(
     language,
   );
   return solution;
-}
-
-export async function explainHint(
-  userProblem: UserProblem,
-  highlightedText: string,
-  llmAdapter: LLMAdapter,
-): Promise<UserProblem> {
-  if (!userProblem.evaluation) return userProblem;
-
-  const detailedHint = await llmAdapter.assignment.explainHintDetail({
-    problemId: userProblem.id,
-    problemText: userProblem.problem,
-    evaluation: userProblem.evaluation,
-    highlightedText,
-  });
-
-  return {
-    ...userProblem,
-    evaluation: {
-      ...userProblem.evaluation,
-      hint: detailedHint,
-    },
-  };
 }

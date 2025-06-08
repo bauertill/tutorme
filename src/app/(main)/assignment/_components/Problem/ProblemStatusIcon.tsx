@@ -1,4 +1,4 @@
-import { type StudentSolution } from "@/core/problem/types";
+import { type StudentSolution } from "@/core/studentSolution/types";
 import { CheckCircle, Circle } from "lucide-react";
 
 export function ProblemStatusIcon({

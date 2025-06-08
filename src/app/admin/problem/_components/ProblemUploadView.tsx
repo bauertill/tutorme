@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { type ProblemUpload } from "@/core/problem/types";
+import { type ProblemUpload } from "@/core/problemUpload/types";
 import { api } from "@/trpc/react";
 import { formatDistance } from "date-fns";
 import { Loader2 } from "lucide-react";
@@ -20,21 +20,21 @@ export default function ProblemUploadView({
 }) {
   const utils = api.useUtils();
   const { mutate: cancelUpload, isPending: isCancelling } =
-    api.problem.cancelUpload.useMutation({
+    api.problemUpload.cancelUpload.useMutation({
       onSuccess: () => {
         toast.success("Upload cancelled");
       },
       onSettled: () => {
-        void utils.problem.getUploadFiles.invalidate();
+        void utils.problemUpload.getUploadFiles.invalidate();
       },
     });
   const { mutate: deleteUpload, isPending: isDeleting } =
-    api.problem.deleteUpload.useMutation({
+    api.problemUpload.deleteUpload.useMutation({
       onSuccess: () => {
         toast.success("Upload deleted");
       },
       onSettled: () => {
-        void utils.problem.getUploadFiles.invalidate();
+        void utils.problemUpload.getUploadFiles.invalidate();
       },
     });
   return (

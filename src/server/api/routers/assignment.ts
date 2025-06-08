@@ -5,14 +5,13 @@ import {
   syncAssignments,
   syncStudentSolutions,
 } from "@/core/assignment/assignmentDomain";
-import { StudentAssignment, UserProblem } from "@/core/assignment/types";
+import { StudentAssignment } from "@/core/assignment/types";
 import {
   createReferenceSolution,
   evaluateSolution,
-  explainHint,
   getRandomProblem,
 } from "@/core/exercise/exerciseDomain";
-import { StudentSolution } from "@/core/problem/types";
+import { StudentSolution } from "@/core/studentSolution/types";
 import {
   createTRPCRouter,
   limitedPublicProcedure,
@@ -98,16 +97,6 @@ export const assignmentRouter = createTRPCRouter({
         input,
         ctx.llmAdapter,
         ctx.userLanguage,
-      );
-    }),
-
-  explainHint: limitedPublicProcedure
-    .input(z.object({ userProblem: UserProblem, highlightedText: z.string() }))
-    .mutation(async ({ input, ctx }) => {
-      return await explainHint(
-        input.userProblem,
-        input.highlightedText,
-        ctx.llmAdapter,
       );
     }),
 

@@ -13,7 +13,7 @@ export default function ProblemUploadList() {
     data: uploadFiles,
     isPending,
     isError,
-  } = api.problem.getUploadFiles.useQuery();
+  } = api.problemUpload.getUploadFiles.useQuery();
 
   if (isError) {
     return <div>Error loading upload files</div>;

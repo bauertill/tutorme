@@ -1,10 +1,11 @@
-import {
-  type EvaluationResult,
-  type StudentAssignment,
-} from "@/core/assignment/types";
+import { type StudentAssignment } from "@/core/assignment/types";
 import { newMessage } from "@/core/help/helpDomain";
 import { type Message } from "@/core/help/types";
-import { type Problem, type StudentSolution } from "@/core/problem/types";
+import { type Problem } from "@/core/problem/types";
+import {
+  type EvaluationResult,
+  type StudentSolution,
+} from "@/core/studentSolution/types";
 import { useCallback, useEffect, useMemo } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useStore } from ".";
