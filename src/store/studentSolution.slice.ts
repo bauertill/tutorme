@@ -2,7 +2,7 @@ import { type StudentSolution } from "@/core/studentSolution/studentSolution.typ
 import _ from "lodash";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
-import { type Path } from "./canvas";
+import { type Path } from "./canvas.slice";
 
 export interface StudentSolutionSlice {
   studentSolutions: StudentSolution[];
@@ -19,7 +19,7 @@ export const createStudentSolutionSlice: StateCreator<
   MiddlewareList,
   [],
   StudentSolutionSlice
-> = (set, get) => ({
+> = (set) => ({
   studentSolutions: [],
   storeCurrentPathsOnStudentSolution: (
     problemId: string,

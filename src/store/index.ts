@@ -8,17 +8,26 @@ import superjson from "superjson";
 import { create } from "zustand";
 import { devtools, persist, type PersistStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { createAssignmentSlice, type AssignmentSlice } from "./assignment";
-import { createCanvasSlice, type CanvasSlice } from "./canvas";
-import { createHelpSlice, type HelpSlice } from "./help";
-import { createOnboardingSlice, type OnboardingSlice } from "./onboarding";
-import { createProblemSlice, type ProblemSlice } from "./problem";
-import { createProfileSlice, type ProfileSlice } from "./profile";
+import {
+  createAssignmentSlice,
+  type AssignmentSlice,
+} from "./assignment.slice";
+import { createCanvasSlice, type CanvasSlice } from "./canvas.slice";
+import { createHelpSlice, type HelpSlice } from "./help.slice";
+import {
+  createOnboardingSlice,
+  type OnboardingSlice,
+} from "./onboarding.slice";
+import { createProblemSlice, type ProblemSlice } from "./problem.slice";
+import { createProfileSlice, type ProfileSlice } from "./profile.slice";
 import {
   createStudentSolutionSlice,
   type StudentSolutionSlice,
-} from "./studentSolution";
-import { createUsageLimitSlice, type UsageLimitSlice } from "./usageLimit";
+} from "./studentSolution.slice";
+import {
+  createUsageLimitSlice,
+  type UsageLimitSlice,
+} from "./usageLimit.slice";
 
 export type MiddlewareList = [
   ["zustand/devtools", never],
