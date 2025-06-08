@@ -14,7 +14,8 @@ const LANGUAGES = {
 };
 
 export function LanguagePicker() {
-  const { userLanguage, setUserLanguage } = useStore();
+  const setUserLanguage = useStore.use.setUserLanguage();
+  const userLanguage = useStore.use.userLanguage();
   return (
     <div className="flex items-center gap-2">
       {Object.entries(LANGUAGES).map(([language, { Flag }]) => (

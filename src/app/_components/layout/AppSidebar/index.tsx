@@ -19,7 +19,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Trans, useTranslation } from "@/i18n/react";
-import { useStore } from "@/store";
+import {
+  useActiveAssignmentId,
+  useAssignments,
+} from "@/store/assignment.selectors";
 import {
   useActiveProblem,
   useProblemController,
@@ -31,9 +34,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 export function AppSidebar() {
   const { t } = useTranslation();
   const session = useSession();
-  const assignments = useStore.use.assignments();
+  const assignments = useAssignments();
   const activeProblem = useActiveProblem();
-  const activeAssignmentId = useStore.use.activeAssignmentId();
+  const activeAssignmentId = useActiveAssignmentId();
   const { setActiveProblemWithCanvas } = useProblemController();
   const [openAssignments, setOpenAssignments] = useState<Set<string>>(
     new Set(),

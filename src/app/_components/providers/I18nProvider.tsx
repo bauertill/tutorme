@@ -4,7 +4,8 @@ import { useStore } from "@/store";
 import { useEffect } from "react";
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const { userLanguage, setUserLanguage } = useStore();
+  const userLanguage = useStore.use.userLanguage();
+  const setUserLanguage = useStore.use.setUserLanguage();
   useEffect(() => {
     if (userLanguage) {
       void i18n.changeLanguage(userLanguage);

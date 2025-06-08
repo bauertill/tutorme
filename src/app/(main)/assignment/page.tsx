@@ -9,12 +9,16 @@ import {
 } from "@/components/ui/sidebar";
 import { Tour } from "@/components/ui/tour";
 import { useStore } from "@/store";
-import { useActiveAssignment } from "@/store/assignment.selectors";
+import {
+  useActiveAssignment,
+  useAssignments,
+} from "@/store/assignment.selectors";
 import Exercise from "./_components/Exercise";
 import Onboarding from "./_components/Onboarding";
+
 export default function AssignmentPage() {
   const activeAssignment = useActiveAssignment();
-  const assignments = useStore.use.assignments();
+  const assignments = useAssignments();
   const studentSolutions = useStore.use.studentSolutions();
 
   const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();

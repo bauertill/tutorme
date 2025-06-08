@@ -1,5 +1,6 @@
 "use client";
 import { useStore } from "@/store";
+import { useAssignments } from "@/store/assignment.selectors";
 import { api } from "@/trpc/react";
 import { skipToken } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -9,7 +10,7 @@ const SYNC_INTERVAL = 60 * 1000;
 
 export function StateSyncProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
-  const assignmentsLocal = useStore.use.assignments();
+  const assignmentsLocal = useAssignments();
   const studentSolutionsLocal = useStore.use.studentSolutions();
   const upsertAssignmentsLocal = useStore.use.upsertAssignments();
   const upsertStudentSolutionsLocal = useStore.use.upsertStudentSolutions();

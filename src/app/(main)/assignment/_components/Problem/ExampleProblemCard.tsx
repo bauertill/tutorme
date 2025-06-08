@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
+import { useAssignments } from "@/store/assignment.selectors";
 import { api } from "@/trpc/react";
 import { ArrowRight, BookOpen } from "lucide-react";
 
@@ -12,7 +13,7 @@ export default function ExampleProblemCard() {
     staleTime: Infinity,
     experimental_prefetchInRender: true,
   });
-  const assignments = useStore.use.assignments();
+  const assignments = useAssignments();
   const addAssignment = useStore.use.addAssignment();
   const setActiveProblem = useStore.use.setActiveProblem();
   const trackEvent = useTrackEvent();
