@@ -6,7 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { type Message } from "@/core/help/types";
+import { type Message } from "@/core/help/help.types";
 import { ThumbsDown } from "lucide-react";
 import { Fragment } from "react";
 import { useTranslation } from "react-i18next";

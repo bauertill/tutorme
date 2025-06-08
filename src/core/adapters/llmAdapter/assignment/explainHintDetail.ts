@@ -1,4 +1,4 @@
-import { type EvaluationResult } from "@/core/studentSolution/types";
+import { type EvaluationResult } from "@/core/studentSolution/studentSolution.types";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,

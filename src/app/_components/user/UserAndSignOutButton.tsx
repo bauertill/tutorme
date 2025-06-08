@@ -2,7 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { SidebarText } from "@/components/ui/sidebar";
-import type { User } from "@/core/user/types";
+import type { User } from "@/core/user/user.types";
 import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
 import { User as LucideUser } from "lucide-react";

@@ -1,27 +1,27 @@
-import { Problem, type ProblemQueryResult } from "@/core/problem/types";
+import { Problem, type ProblemQueryResult } from "@/core/problem/problem.types";
 import {
   type ProblemUpload,
   type ProblemUploadStatus,
-} from "@/core/problemUpload/types";
-import { parseStudentSolutionWithDefaults } from "@/core/studentSolution/studentSolutionDomain";
-import { StudentSolution } from "@/core/studentSolution/types";
+} from "@/core/problemUpload/problemUpload.types";
+import { parseStudentSolutionWithDefaults } from "@/core/studentSolution/studentSolution.domain";
+import { StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import type { Draft } from "@/core/utils";
 import { db } from "@/server/db";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { createId } from "@paralleldrive/cuid2";
 import { Prisma, type PrismaClient, type Student } from "@prisma/client";
 import assert from "assert";
-import { type AppUsage } from "../appUsage/types";
+import { type AppUsage } from "../appUsage/appUsage.types";
 import {
   type GroupAssignment,
   type StudentAssignment,
   type StudentAssignmentWithStudentSolutions,
-} from "../assignment/types";
+} from "../assignment/assignment.types";
 import {
   type Subscription,
   type SubscriptionStatus,
-} from "../subscription/types";
-import { type User } from "../user/types";
+} from "../subscription/subscription.types";
+import { type User } from "../user/user.types";
 
 const EMBEDDING_MODEL = "text-embedding-3-large";
 

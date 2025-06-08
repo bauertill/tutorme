@@ -1,5 +1,5 @@
 import { type DBAdapter } from "../adapters/dbAdapter";
-import * as subscription from "../subscription/subscriptionDomain";
+import * as subscription from "../subscription/subscription.domain";
 
 const MAX_FREE_CREDITS = 20;
 const MAX_FREE_CREDITS_SIGNED_IN = 60;

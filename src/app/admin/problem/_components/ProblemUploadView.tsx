@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { type ProblemUpload } from "@/core/problemUpload/types";
+import { type ProblemUpload } from "@/core/problemUpload/problemUpload.types";
 import { api } from "@/trpc/react";
 import { formatDistance } from "date-fns";
 import { Loader2 } from "lucide-react";

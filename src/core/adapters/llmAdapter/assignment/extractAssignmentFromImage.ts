@@ -1,4 +1,4 @@
-import { ImageRegion } from "@/core/assignment/types";
+import { ImageRegion } from "@/core/assignment/assignment.types";
 import { type Language, LanguageName } from "@/i18n/types";
 import { HumanMessage } from "@langchain/core/messages";
 import {

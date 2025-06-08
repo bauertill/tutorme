@@ -5,8 +5,8 @@ import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type GenerateReplyResponse } from "../adapters/llmAdapter/help/generateReply";
 import { type HandleThumbsDownResponse } from "../adapters/llmAdapter/help/handleThumbsDown";
 import { type Draft } from "../utils";
-import { type Message } from "./types";
-import { messageToLangchainMessage } from "./utils";
+import { type Message } from "./help.types";
+import { messageToLangchainMessage } from "./help.utils";
 
 export function newMessage(draft: Draft<Message>): Message {
   return {

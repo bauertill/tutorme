@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
-import { type StudentAssignment } from "@/core/assignment/types";
-import { type Problem } from "@/core/problem/types";
+import { type StudentAssignment } from "@/core/assignment/assignment.types";
+import { type Problem } from "@/core/problem/problem.types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";

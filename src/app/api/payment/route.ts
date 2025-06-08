@@ -1,6 +1,6 @@
 import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { paymentAdapter } from "@/core/adapters/paymentAdapter";
-import { handleEvent } from "@/core/subscription/subscriptionDomain";
+import { handleEvent } from "@/core/subscription/subscription.domain";
 import assert from "assert";
 import { type NextRequest } from "next/server";
 import type Stripe from "stripe";

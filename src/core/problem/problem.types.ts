@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StudentSolution } from "../studentSolution/types";
+import { StudentSolution } from "../studentSolution/studentSolution.types";
 
 export const Problem = z.object({
   id: z.string(),

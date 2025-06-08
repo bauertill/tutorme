@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Canvas } from "../canvas/types";
+import { Canvas } from "../canvas/canvas.types";
 
 export const EvaluationResult = z.object({
   hint: z.string().optional(),

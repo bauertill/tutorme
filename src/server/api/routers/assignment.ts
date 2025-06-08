@@ -4,14 +4,14 @@ import {
   getExampleAssignment,
   syncAssignments,
   syncStudentSolutions,
-} from "@/core/assignment/assignmentDomain";
-import { StudentAssignment } from "@/core/assignment/types";
+} from "@/core/assignment/assignment.domain";
+import { StudentAssignment } from "@/core/assignment/assignment.types";
 import {
   createReferenceSolution,
-  evaluateSolution,
   getRandomProblem,
-} from "@/core/exercise/exerciseDomain";
-import { StudentSolution } from "@/core/studentSolution/types";
+} from "@/core/problem/problem.domain";
+import { evaluateSolution } from "@/core/studentSolution/studentSolution.domain";
+import { StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import {
   createTRPCRouter,
   limitedPublicProcedure,

@@ -3,7 +3,7 @@ import {
   createProblemsFromCsv,
   deleteProblemUpload,
   getProblemUploadFiles,
-} from "@/core/problemUpload/problemUploadDomain";
+} from "@/core/problemUpload/problemUpload.domain";
 import { createTRPCRouter, protectedAdminProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 

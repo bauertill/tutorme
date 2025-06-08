@@ -2,8 +2,8 @@ import {
   generateHelpReply,
   recommendQuestions,
   setMessageThumbsDown,
-} from "@/core/help/helpDomain";
-import { Message } from "@/core/help/types";
+} from "@/core/help/help.domain";
+import { Message } from "@/core/help/help.types";
 import {
   createTRPCRouter,
   limitedPublicProcedure,

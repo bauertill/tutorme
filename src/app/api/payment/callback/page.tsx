@@ -1,6 +1,6 @@
 import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { paymentAdapter } from "@/core/adapters/paymentAdapter";
-import { handleCheckoutSessionUpdate } from "@/core/subscription/subscriptionDomain";
+import { handleCheckoutSessionUpdate } from "@/core/subscription/subscription.domain";
 import { redirect } from "next/navigation";
 
 export default async function PaymentCallbackPage({

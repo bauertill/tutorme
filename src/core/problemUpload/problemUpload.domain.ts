@@ -1,8 +1,8 @@
 import { sortBy } from "lodash-es";
 import type { DBAdapter } from "../adapters/dbAdapter";
-import { Problem } from "../problem/types";
+import { Problem } from "../problem/problem.types";
 import { Draft, parseCsv } from "../utils";
-import { type ProblemUpload, ProblemUploadStatus } from "./types";
+import { type ProblemUpload, ProblemUploadStatus } from "./problemUpload.types";
 
 const UPLOAD_BATCH_SIZE = 128;
 

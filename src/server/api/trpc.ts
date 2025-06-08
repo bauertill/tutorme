@@ -17,7 +17,7 @@ import { ocrAdapter } from "@/core/adapters/ocrAdapter";
 import { paymentAdapter } from "@/core/adapters/paymentAdapter";
 import { pubsubAdapter } from "@/core/adapters/pubsubAdapter";
 import { renderAsyAdapter } from "@/core/adapters/renderAsyAdapter";
-import { isValidFreeTierUsage } from "@/core/appUsage/appUsageDomain";
+import { isValidFreeTierUsage } from "@/core/appUsage/appUsage.domain";
 import { Language } from "@/i18n/types";
 import { ADMINS, auth } from "@/server/auth";
 /**

@@ -1,5 +1,5 @@
-import { newMessage } from "@/core/help/helpDomain";
-import { type Message, type RecommendedQuestion } from "@/core/help/types";
+import { newMessage } from "@/core/help/help.domain";
+import { type Message, type RecommendedQuestion } from "@/core/help/help.types";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
 

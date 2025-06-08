@@ -1,8 +1,11 @@
 import { dbAdapter, type DBAdapter } from "@/core/adapters/dbAdapter";
 import assert from "assert";
 import { type PaymentAdapter } from "../adapters/paymentAdapter";
-import { type User } from "../user/types";
-import { type StripeEvent, type StripeSubscription } from "./types";
+import { type User } from "../user/user.types";
+import {
+  type StripeEvent,
+  type StripeSubscription,
+} from "./subscription.types";
 
 export async function getSubscription(userId: string, dbAdapter: DBAdapter) {
   return await dbAdapter.getSubscriptionByUserId(userId);

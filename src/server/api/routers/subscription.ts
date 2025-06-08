@@ -3,7 +3,7 @@ import {
   createPortalUrl,
   getSubscription,
   isSubscribed,
-} from "@/core/subscription/subscriptionDomain";
+} from "@/core/subscription/subscription.domain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const subscriptionRouter = createTRPCRouter({

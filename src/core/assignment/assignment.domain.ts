@@ -4,11 +4,11 @@ import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { type Problem } from "../problem/types";
-import { type StudentSolution } from "../studentSolution/types";
+import { getExampleProblems } from "../problem/problem.repository";
+import { type Problem } from "../problem/problem.types";
+import { type StudentSolution } from "../studentSolution/studentSolution.types";
 import { type Draft } from "../utils";
-import { getExampleProblems } from "./getExampleProblems";
-import { type StudentAssignment } from "./types";
+import { type StudentAssignment } from "./assignment.types";
 
 export async function adminCreateAssignment(
   {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Problem, ProblemWithStudentSolution } from "../problem/types";
+import { Problem, ProblemWithStudentSolution } from "../problem/problem.types";
 
 export const ImageRegion = z.object({
   topLeft: z.object({

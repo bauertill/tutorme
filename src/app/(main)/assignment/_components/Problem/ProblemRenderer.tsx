@@ -1,5 +1,5 @@
 import { Latex } from "@/app/_components/richtext/Latex";
-import { type Problem } from "@/core/problem/types";
+import { type Problem } from "@/core/problem/problem.types";
 
 export function ProblemRenderer({ problem }: { problem: Problem }) {
   return (

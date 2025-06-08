@@ -3,7 +3,7 @@ import {
   AIMessage,
   HumanMessage,
 } from "@langchain/core/messages";
-import { type Message } from "./types";
+import { type Message } from "./help.types";
 
 export function messageToLangchainMessage(message: Message): BaseMessage {
   switch (message.role) {

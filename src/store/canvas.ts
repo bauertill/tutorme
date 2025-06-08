@@ -1,4 +1,4 @@
-import { type Canvas } from "@/core/canvas/types";
+import { type Canvas } from "@/core/canvas/canvas.types";
 import { type StateCreator } from "zustand";
 import { type MiddlewareList, type State } from ".";
 

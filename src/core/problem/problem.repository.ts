@@ -1,5 +1,5 @@
 import { type Language } from "@/i18n/types";
-import { type Problem } from "../problem/types";
+import { type Problem } from "./problem.types";
 
 export function getExampleProblems(language: Language): Problem[] {
   if (language === "en") {

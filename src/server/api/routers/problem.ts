@@ -1,4 +1,4 @@
-import { queryProblems } from "@/core/problem/problemDomain";
+import { queryProblems } from "@/core/problem/problem.domain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 
