@@ -71,7 +71,19 @@ export const createAssignmentSlice: StateCreator<
     get().upsertAssignments([assignment]);
   },
   deleteAssignment: (assignmentId: string) => {
-    set(({ assignments }) => {
+    set((draft) => {
+      const { assignments } = draft;
+      if (assignments.activeId === assignmentId) {
+        const firstAssignmentId = assignments.ids[0];
+        if (firstAssignmentId) {
+          assignments.activeId = firstAssignmentId;
+          draft.activeProblemId =
+            assignments.entities[firstAssignmentId]?.problems[0]?.id ?? null;
+        } else {
+          draft.assignments.activeId = null;
+          draft.activeProblemId = null;
+        }
+      }
       delete assignments.entities[assignmentId];
       assignments.ids = Object.keys(assignments.entities);
     });
