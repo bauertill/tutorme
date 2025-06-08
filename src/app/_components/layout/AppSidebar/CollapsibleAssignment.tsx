@@ -28,7 +28,7 @@ interface CollapsibleAssignmentProps {
   isOpen: boolean;
   onOpenChange: () => void;
   activeProblem: Problem | null;
-  setActiveProblem: (problem: Problem) => void;
+  setActiveProblem: (problem: Problem, assignmentId: string) => void;
 }
 
 export function CollapsibleAssignment({
@@ -167,7 +167,7 @@ export function CollapsibleAssignment({
                 "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-accent",
                 activeProblem?.id === problem.id && "bg-accent",
               )}
-              onClick={() => setActiveProblem(problem)}
+              onClick={() => setActiveProblem(problem, assignment.id)}
             >
               <SidebarText className="overflow-hidden text-ellipsis whitespace-nowrap">
                 <span className="mr-1 text-muted-foreground">

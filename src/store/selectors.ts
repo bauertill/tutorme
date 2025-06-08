@@ -33,7 +33,7 @@ export const useProblemController = (): {
   gotoNextProblem: () => void;
   gotoNextUnsolvedProblem?: () => void;
   gotoPreviousProblem: () => void;
-  setActiveProblemWithCanvas: (problem: Problem) => void;
+  setActiveProblemWithCanvas: (problem: Problem, assignmentId: string) => void;
 } => {
   const setActiveProblem = useStore.use.setActiveProblem();
   const setCanvas = useStore.use.setCanvas();
@@ -162,18 +162,21 @@ export const useProblemController = (): {
     studentSolutions,
   ]);
 
-  const setActiveProblemWithCanvas = (problem: Problem) => {
-    if (!activeAssignment) return;
-    storeCurrentPathsOnStudentSolution(
-      activeProblem?.id ?? "",
-      activeAssignment.id,
-      paths,
-    );
-    setActiveProblem(problem, activeAssignment.id);
+  const setActiveProblemWithCanvas = (
+    problem: Problem,
+    assignmentId: string,
+  ) => {
+    if (activeAssignment) {
+      storeCurrentPathsOnStudentSolution(
+        activeProblem?.id ?? "",
+        activeAssignment.id,
+        paths,
+      );
+    }
+    setActiveProblem(problem, assignmentId);
     const studentSolution = studentSolutions.find(
       (s) =>
-        s.problemId === problem.id &&
-        s.studentAssignmentId === activeAssignment.id,
+        s.problemId === problem.id && s.studentAssignmentId === assignmentId,
     );
     setCanvas(studentSolution?.canvas ?? { paths: [] });
   };
