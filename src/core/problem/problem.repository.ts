@@ -1,5 +1,56 @@
 import { type Language } from "@/i18n/types";
-import { type Problem } from "./problem.types";
+import { Prisma, type PrismaClient } from "@prisma/client";
+import { embeddingAdapter } from "../adapters/embeddingAdapter";
+import { type Problem, type ProblemQueryResult } from "./problem.types";
+
+export class ProblemRepository {
+  constructor(private db: PrismaClient) {}
+
+  async getProblemsByUserId(userId: string): Promise<Problem[]> {
+    const dbProblems = await this.db.problem.findMany({
+      where: { userId },
+    });
+    return dbProblems;
+  }
+
+  async queryProblems(
+    query: string,
+    limit: number,
+    problemIdBlackList: string[] = [],
+    level?: string,
+  ): Promise<ProblemQueryResult[]> {
+    const queryVector = await embeddingAdapter.embedQuery(query);
+    const results = await this.db.$queryRaw<
+      {
+        id: string;
+        problem: string;
+        problemNumber: string;
+        referenceSolution: string;
+        createdAt: Date;
+        updatedAt: Date;
+        score: number;
+      }[]
+    >`SELECT "id", "problem", "problemNumber", "referenceSolution", "createdAt",
+        1 - ("vector" <=> ${queryVector}::vector) as "score"
+        FROM "Problem"
+        WHERE "vector" IS NOT NULL
+        AND "id" NOT IN (${Prisma.join([...problemIdBlackList, "NULL"])})
+        ${level ? Prisma.sql`AND "level" = ${level}` : Prisma.empty}
+        ORDER BY "score" DESC
+        LIMIT ${limit}`;
+    return results.map((result) => ({
+      problem: {
+        id: result.id,
+        problem: result.problem,
+        problemNumber: result.problemNumber,
+        referenceSolution: result.referenceSolution,
+        createdAt: result.createdAt,
+        updatedAt: result.createdAt,
+      },
+      score: result.score,
+    }));
+  }
+}
 
 export function getExampleProblems(language: Language): Problem[] {
   if (language === "en") {

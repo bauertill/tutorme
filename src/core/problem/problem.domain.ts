@@ -1,20 +1,16 @@
 import { type Language } from "@/i18n/types";
-import type { DBAdapter } from "../adapters/dbAdapter";
+import { type PrismaClient } from "@prisma/client";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { type Problem } from "./problem.types";
+import { ProblemRepository } from "./problem.repository";
 
 export async function queryProblems(
   query: string,
   nProblems: number,
-  dbAdapter: DBAdapter,
+  db: PrismaClient,
   problemIdBlackList: string[] = [],
 ) {
-  return dbAdapter.queryProblems(query, nProblems, problemIdBlackList);
-}
-
-export async function getRandomProblem(dbAdapter: DBAdapter): Promise<Problem> {
-  const problem = await dbAdapter.getRandomProblem();
-  return problem;
+  const problemRepository = new ProblemRepository(db);
+  return problemRepository.queryProblems(query, nProblems, problemIdBlackList);
 }
 
 export async function createReferenceSolution(

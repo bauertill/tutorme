@@ -11,7 +11,6 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { llmAdapter } from "@/core/adapters/llmAdapter";
 import { ocrAdapter } from "@/core/adapters/ocrAdapter";
 import { paymentAdapter } from "@/core/adapters/paymentAdapter";
@@ -20,6 +19,7 @@ import { renderAsyAdapter } from "@/core/adapters/renderAsyAdapter";
 import { isValidFreeTierUsage } from "@/core/appUsage/appUsage.domain";
 import { Language } from "@/i18n/types";
 import { ADMINS, auth } from "@/server/auth";
+import { db } from "@/server/db";
 /**
  * 1. CONTEXT
  *
@@ -46,7 +46,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
   return {
     session,
-    dbAdapter,
+    db,
     llmAdapter,
     pubsubAdapter,
     renderAsyAdapter,
@@ -142,7 +142,7 @@ const loggingMiddleware = t.middleware(async (opts) => {
  */
 const appUsageMiddleware = t.middleware(async ({ ctx, next }) => {
   const isValidUsage = await isValidFreeTierUsage(
-    ctx.dbAdapter,
+    ctx.db,
     ctx.session?.user?.id,
     ctx.clientIp,
   );

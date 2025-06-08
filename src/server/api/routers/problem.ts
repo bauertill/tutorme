@@ -6,6 +6,6 @@ export const problemRouter = createTRPCRouter({
   query: protectedProcedure
     .input(z.object({ query: z.string() }))
     .query(async ({ ctx, input }) => {
-      return await queryProblems(input.query, 25, ctx.dbAdapter);
+      return await queryProblems(input.query, 25, ctx.db);
     }),
 });

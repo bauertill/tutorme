@@ -1,16 +1,18 @@
 import {
   adminCreateAssignment,
   createStudentAssignmentFromUpload,
+  deleteAllAssignmentsAndProblemsByUserId,
   getExampleAssignment,
   syncAssignments,
-  syncStudentSolutions,
 } from "@/core/assignment/assignment.domain";
+import { AssignmentRepository } from "@/core/assignment/assignment.repository";
 import { StudentAssignment } from "@/core/assignment/assignment.types";
-import {
-  createReferenceSolution,
-  getRandomProblem,
-} from "@/core/problem/problem.domain";
+import { createReferenceSolution } from "@/core/problem/problem.domain";
+import { ProblemRepository } from "@/core/problem/problem.repository";
+import { StudentRepository } from "@/core/student/student.repository";
 import { evaluateSolution } from "@/core/studentSolution/studentSolution.domain";
+import { StudentSolutionRepository } from "@/core/studentSolution/studentSolution.repository";
+import { syncStudentSolutions } from "@/core/studentSolution/studentSolution.sync";
 import { StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import {
   createTRPCRouter,
@@ -23,28 +25,36 @@ import { z } from "zod";
 
 export const assignmentRouter = createTRPCRouter({
   listGroupAssignments: protectedAdminProcedure.query(async ({ ctx }) => {
-    return await ctx.dbAdapter.getGroupAssignmentsByUserId(ctx.session.user.id);
+    const assignmentRepository = new AssignmentRepository(ctx.db);
+    return await assignmentRepository.getGroupAssignmentsByUserId(
+      ctx.session.user.id,
+    );
   }),
 
   listStudentAssignments: protectedAdminProcedure.query(async ({ ctx }) => {
-    const studentId = await ctx.dbAdapter.getStudentIdByUserIdOrThrow(
+    const studentRepository = new StudentRepository(ctx.db);
+    const studentId = await studentRepository.getStudentIdByUserIdOrThrow(
       ctx.session.user.id,
     );
-    return await ctx.dbAdapter.getStudentAssignmentsByStudentId(studentId);
+    const assignmentRepository = new AssignmentRepository(ctx.db);
+    return await assignmentRepository.getStudentAssignmentsByStudentId(
+      studentId,
+    );
   }),
 
   createFromUpload: limitedPublicProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
+      const studentRepository = new StudentRepository(ctx.db);
       const userId = ctx.session?.user.id;
       const studentId = userId
-        ? await ctx.dbAdapter.getStudentIdByUserIdOrThrow(userId)
+        ? await studentRepository.getStudentIdByUserIdOrThrow(userId)
         : undefined;
       return await createStudentAssignmentFromUpload(
         input,
         userId,
         studentId,
-        ctx.dbAdapter,
+        ctx.db,
         ctx.llmAdapter,
         ctx.userLanguage,
       );
@@ -52,22 +62,24 @@ export const assignmentRouter = createTRPCRouter({
   deleteAssignment: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      return await ctx.dbAdapter.deleteGroupAssignmentById(input);
+      const assignmentRepository = new AssignmentRepository(ctx.db);
+      return await assignmentRepository.deleteGroupAssignmentById(input);
     }),
   renameAssignment: protectedProcedure
     .input(z.object({ assignmentId: z.string(), name: z.string() }))
     .mutation(async ({ ctx, input: { assignmentId, name } }) => {
-      return await ctx.dbAdapter.updateGroupAssignmentName(assignmentId, name);
+      const assignmentRepository = new AssignmentRepository(ctx.db);
+      return await assignmentRepository.updateGroupAssignmentName(
+        assignmentId,
+        name,
+      );
     }),
   deleteAllStudentAssignments: protectedProcedure.mutation(async ({ ctx }) => {
     if (!ctx.session.user.id) return;
-    return await ctx.dbAdapter.deleteAllStudentAssignmentsByUserId(
+    const assignmentRepository = new AssignmentRepository(ctx.db);
+    return await assignmentRepository.deleteAllStudentAssignmentsByUserId(
       ctx.session.user.id,
     );
-  }),
-
-  getRandomProblem: publicProcedure.query(async ({ ctx }) => {
-    return await getRandomProblem(ctx.dbAdapter);
   }),
 
   submitSolution: limitedPublicProcedure
@@ -103,24 +115,24 @@ export const assignmentRouter = createTRPCRouter({
   syncAssignments: protectedProcedure
     .input(z.array(StudentAssignment))
     .mutation(async ({ ctx, input }) => {
-      return await syncAssignments(ctx.session.user.id, ctx.dbAdapter, input);
+      return await syncAssignments(ctx.session.user.id, ctx.db, input);
     }),
 
   listStudentSolutions: protectedProcedure.query(async ({ ctx }) => {
-    const studentId = await ctx.dbAdapter.getStudentIdByUserIdOrThrow(
+    const studentRepository = new StudentRepository(ctx.db);
+    const studentId = await studentRepository.getStudentIdByUserIdOrThrow(
       ctx.session.user.id,
     );
-    return await ctx.dbAdapter.getStudentSolutionsByStudentId(studentId);
+    const studentSolutionRepository = new StudentSolutionRepository(ctx.db);
+    return await studentSolutionRepository.getStudentSolutionsByStudentId(
+      studentId,
+    );
   }),
 
   syncStudentSolutions: protectedProcedure
     .input(z.array(StudentSolution))
     .mutation(async ({ ctx, input }) => {
-      return await syncStudentSolutions(
-        ctx.session.user.id,
-        ctx.dbAdapter,
-        input,
-      );
+      return await syncStudentSolutions(ctx.session.user.id, ctx.db, input);
     }),
 
   getExampleAssignment: publicProcedure.query(async ({ ctx }) => {
@@ -129,7 +141,7 @@ export const assignmentRouter = createTRPCRouter({
 
   adminUploadProblems: protectedAdminProcedure
     .input(z.string())
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ ctx }) => {
       if (!ctx.session.user.id)
         throw new Error("User must be present for admin actions");
       // TODO: Implement admin upload problems
@@ -139,15 +151,17 @@ export const assignmentRouter = createTRPCRouter({
   getProblems: protectedAdminProcedure.query(async ({ ctx }) => {
     if (!ctx.session.user.id)
       throw new Error("User must be present for admin actions");
-    return await ctx.dbAdapter.getProblemsByUserId(ctx.session.user.id);
+    const problemRepository = new ProblemRepository(ctx.db);
+    return await problemRepository.getProblemsByUserId(ctx.session.user.id);
   }),
 
   deleteAllProblemsAndAssignments: protectedAdminProcedure.mutation(
     async ({ ctx }) => {
       if (!ctx.session.user.id)
         throw new Error("User must be present for admin actions");
-      await ctx.dbAdapter.deleteAllProblemsAndAssignmentsByUserId(
+      await deleteAllAssignmentsAndProblemsByUserId(
         ctx.session.user.id,
+        ctx.db,
       );
       return { success: true };
     },
@@ -167,7 +181,7 @@ export const assignmentRouter = createTRPCRouter({
       const assignment = await adminCreateAssignment(
         input,
         ctx.session.user.id,
-        ctx.dbAdapter,
+        ctx.db,
       );
       return assignment;
     }),

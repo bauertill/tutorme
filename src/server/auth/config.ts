@@ -3,7 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
-import { dbAdapter } from "@/core/adapters/dbAdapter";
+import { UserRepository } from "@/core/user/user.repository";
 import { db } from "@/server/db";
 import type { User } from "@prisma/client";
 
@@ -29,7 +29,8 @@ const adapter: Adapter = {
   ...prismaAdapter,
   createUser: async (data) => {
     console.log("Creating user", data);
-    const user = await dbAdapter.createUser({
+    const userRepository = new UserRepository(db);
+    const user = await userRepository.createUser({
       name: data.name ?? null,
       email: data.email,
       emailVerified: data.emailVerified ?? null,

@@ -1,6 +1,6 @@
-import { dbAdapter } from "@/core/adapters/dbAdapter";
 import { paymentAdapter } from "@/core/adapters/paymentAdapter";
 import { handleCheckoutSessionUpdate } from "@/core/subscription/subscription.domain";
+import { db } from "@/server/db";
 import { redirect } from "next/navigation";
 
 export default async function PaymentCallbackPage({
@@ -10,7 +10,7 @@ export default async function PaymentCallbackPage({
 }) {
   const { session_id } = await searchParams;
   if (session_id) {
-    await handleCheckoutSessionUpdate(session_id, dbAdapter, paymentAdapter);
+    await handleCheckoutSessionUpdate(session_id, db, paymentAdapter);
   }
   redirect("/");
 }

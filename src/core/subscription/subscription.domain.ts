@@ -1,21 +1,25 @@
-import { dbAdapter, type DBAdapter } from "@/core/adapters/dbAdapter";
+import { type PrismaClient } from "@prisma/client";
 import assert from "assert";
 import { type PaymentAdapter } from "../adapters/paymentAdapter";
+import { UserRepository } from "../user/user.repository";
 import { type User } from "../user/user.types";
+import { SubscriptionRepository } from "./subscription.repository";
 import {
   type StripeEvent,
   type StripeSubscription,
 } from "./subscription.types";
 
-export async function getSubscription(userId: string, dbAdapter: DBAdapter) {
-  return await dbAdapter.getSubscriptionByUserId(userId);
+export async function getSubscription(userId: string, db: PrismaClient) {
+  const subscriptionRepository = new SubscriptionRepository(db);
+  return await subscriptionRepository.getSubscriptionByUserId(userId);
 }
 
 export async function createCheckoutUrl(
   user: User,
+  db: PrismaClient,
   paymentAdapter: PaymentAdapter,
 ) {
-  const subscription = await getSubscription(user.id, dbAdapter);
+  const subscription = await getSubscription(user.id, db);
   if (subscription) {
     // URL to Stripe portal if user already has a subscription (which may be cancelled)
     const { url } = await paymentAdapter.createPortalSession(
@@ -34,10 +38,10 @@ export async function createCheckoutUrl(
 
 export async function createPortalUrl(
   user: User,
-  dbAdapter: DBAdapter,
+  db: PrismaClient,
   paymentAdapter: PaymentAdapter,
 ) {
-  const subscription = await getSubscription(user.id, dbAdapter);
+  const subscription = await getSubscription(user.id, db);
   assert(subscription, "No subscription found for user");
   const { url } = await paymentAdapter.createPortalSession(
     subscription.stripeSubscriptionId,
@@ -48,13 +52,15 @@ export async function createPortalUrl(
 
 export async function handleSubscriptionUpdate(
   subscription: StripeSubscription,
-  dbAdapter: DBAdapter,
+  db: PrismaClient,
   paymentAdapter: PaymentAdapter,
 ) {
+  const subscriptionRepository = new SubscriptionRepository(db);
+  const userRepository = new UserRepository(db);
   const email =
     await paymentAdapter.getCustomerEmailFromSubscription(subscription);
-  const user = await dbAdapter.getUserByEmail(email);
-  await dbAdapter.upsertSubscriptionByUserId(user.id, {
+  const user = await userRepository.getUserByEmail(email);
+  await subscriptionRepository.upsertSubscriptionByUserId(user.id, {
     status: paymentAdapter.getSubscriptionStatus(subscription),
     stripeSubscriptionId: subscription.id,
     cancelAt: subscription.cancel_at
@@ -65,29 +71,29 @@ export async function handleSubscriptionUpdate(
 
 export async function handleCheckoutSessionUpdate(
   checkoutSessionId: string,
-  dbAdapter: DBAdapter,
+  db: PrismaClient,
   paymentAdapter: PaymentAdapter,
 ) {
   const subscription =
     await paymentAdapter.getSubscriptionFromCheckoutSessionId(
       checkoutSessionId,
     );
-  await handleSubscriptionUpdate(subscription, dbAdapter, paymentAdapter);
+  await handleSubscriptionUpdate(subscription, db, paymentAdapter);
 }
 
 export async function handleEvent(
   event: StripeEvent,
-  dbAdapter: DBAdapter,
+  db: PrismaClient,
   paymentAdapter: PaymentAdapter,
 ) {
   const subscription = paymentAdapter.getSubscriptionFromEvent(event);
   if (!subscription) {
     return;
   }
-  await handleSubscriptionUpdate(subscription, dbAdapter, paymentAdapter);
+  await handleSubscriptionUpdate(subscription, db, paymentAdapter);
 }
 
-export async function isSubscribed(userId: string, dbAdapter: DBAdapter) {
-  const subscription = await getSubscription(userId, dbAdapter);
+export async function isSubscribed(userId: string, db: PrismaClient) {
+  const subscription = await getSubscription(userId, db);
   return subscription?.status === "ACTIVE";
 }

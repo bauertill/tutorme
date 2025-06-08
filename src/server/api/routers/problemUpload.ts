@@ -20,19 +20,19 @@ export const problemUploadRouter = createTRPCRouter({
       const csv = Buffer.from(input.base64EncodedContents, "base64").toString(
         "utf-8",
       );
-      return await createProblemsFromCsv({ ...input, csv }, ctx.dbAdapter);
+      return await createProblemsFromCsv({ ...input, csv }, ctx.db);
     }),
   cancelUpload: protectedAdminProcedure
     .input(z.object({ uploadId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      await cancelProblemUpload(input.uploadId, ctx.dbAdapter);
+      await cancelProblemUpload(input.uploadId, ctx.db);
     }),
   getUploadFiles: protectedAdminProcedure.query(async ({ ctx }) => {
-    return await getProblemUploadFiles(ctx.dbAdapter);
+    return await getProblemUploadFiles(ctx.db);
   }),
   deleteUpload: protectedAdminProcedure
     .input(z.object({ uploadId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      await deleteProblemUpload(input.uploadId, ctx.dbAdapter);
+      await deleteProblemUpload(input.uploadId, ctx.db);
     }),
 });

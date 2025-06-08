@@ -1,13 +1,14 @@
 import { i18n } from "@/i18n/server";
 import { type Language } from "@/i18n/types";
+import { type PrismaClient } from "@prisma/client";
 import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { type DBAdapter } from "../adapters/dbAdapter";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { getExampleProblems } from "../problem/problem.repository";
 import { type Problem } from "../problem/problem.types";
-import { type StudentSolution } from "../studentSolution/studentSolution.types";
+import { StudentRepository } from "../student/student.repository";
 import { type Draft } from "../utils";
+import { AssignmentRepository } from "./assignment.repository";
 import { type StudentAssignment } from "./assignment.types";
 
 export async function adminCreateAssignment(
@@ -21,10 +22,12 @@ export async function adminCreateAssignment(
     studentGroupId: string;
   },
   userId: string,
-  dbAdapter: DBAdapter,
+  db: PrismaClient,
 ) {
+  const assignmentRepository = new AssignmentRepository(db);
+  const studentRepository = new StudentRepository(db);
   const assignmentId = `${userId}-${name}`;
-  await dbAdapter.createGroupAssignment(
+  await assignmentRepository.createGroupAssignment(
     {
       id: assignmentId,
       name,
@@ -33,10 +36,10 @@ export async function adminCreateAssignment(
     },
     userId,
   );
-  const students = await dbAdapter.getStudentsByGroupId(studentGroupId);
+  const students = await studentRepository.getStudentsByGroupId(studentGroupId);
   await Promise.all(
     students.map((student) =>
-      dbAdapter.createStudentAssignment(
+      assignmentRepository.createStudentAssignment(
         {
           id: `${assignmentId}-${student.id}`,
           name,
@@ -49,14 +52,23 @@ export async function adminCreateAssignment(
   );
 }
 
+export async function deleteAllAssignmentsAndProblemsByUserId(
+  userId: string,
+  db: PrismaClient,
+) {
+  const assignmentRepository = new AssignmentRepository(db);
+  await assignmentRepository.deleteAllProblemsAndAssignmentsByUserId(userId);
+}
+
 export async function createStudentAssignmentFromUpload(
   uploadPath: string,
   userId: string | undefined,
   studentId: string | undefined,
-  dbAdapter: DBAdapter,
+  db: PrismaClient,
   llmAdapter: LLMAdapter,
   language: Language,
 ): Promise<StudentAssignment> {
+  const dbAdapter = new AssignmentRepository(db);
   const { problems: rawProblems } =
     await llmAdapter.assignment.extractAssignmentFromImage(
       uploadPath,
@@ -121,10 +133,12 @@ export async function createStudentAssignmentFromUpload(
 
 export async function syncAssignments(
   userId: string,
-  dbAdapter: DBAdapter,
+  db: PrismaClient,
   localAssignments: StudentAssignment[],
 ): Promise<{ assignmentsNotInLocal: StudentAssignment[] }> {
-  const studentId = await dbAdapter.getStudentIdByUserIdOrThrow(userId);
+  const dbAdapter = new AssignmentRepository(db);
+  const studentRepository = new StudentRepository(db);
+  const studentId = await studentRepository.getStudentIdByUserIdOrThrow(userId);
   const remoteAssignments =
     await dbAdapter.getStudentAssignmentsByStudentId(studentId);
   const newAssignments = getNewAssignments(remoteAssignments, localAssignments);
@@ -161,67 +175,6 @@ export function getNewAssignments(
   }
 
   return newAssignments;
-}
-
-export async function syncStudentSolutions(
-  userId: string,
-  dbAdapter: DBAdapter,
-  localSolutions: StudentSolution[],
-): Promise<{ studentSolutionsNotInLocal: StudentSolution[] }> {
-  const studentId = await dbAdapter.getStudentIdByUserIdOrThrow(userId);
-  const remoteSolutions =
-    await dbAdapter.getStudentSolutionsByStudentId(studentId);
-  const { solutionsToPush, solutionsToPull } = getStudentSolutionsToPushAndPull(
-    localSolutions,
-    remoteSolutions,
-  );
-  for (const solution of solutionsToPush) {
-    await dbAdapter.upsertStudentSolution(solution);
-  }
-  return { studentSolutionsNotInLocal: solutionsToPull };
-}
-export function getStudentSolutionsToPushAndPull(
-  localSolutions: StudentSolution[],
-  remoteSolutions: StudentSolution[],
-): {
-  solutionsToPush: StudentSolution[];
-  solutionsToPull: StudentSolution[];
-} {
-  const localSolutionsMap = new Map<string, StudentSolution>();
-  const remoteSolutionsMap = new Map<string, StudentSolution>();
-  for (const solution of localSolutions) {
-    localSolutionsMap.set(solution.id, solution);
-  }
-  for (const solution of remoteSolutions) {
-    remoteSolutionsMap.set(solution.id, solution);
-  }
-
-  const solutionsToPush: StudentSolution[] = [];
-  const solutionsToPull: StudentSolution[] = [];
-
-  for (const remoteSolution of remoteSolutions) {
-    const localSolution = localSolutionsMap.get(remoteSolution.id);
-    if (localSolution) {
-      if (!_.isEqual(localSolution, remoteSolution)) {
-        if (localSolution.updatedAt < remoteSolution.updatedAt) {
-          solutionsToPull.push(remoteSolution);
-        } else {
-          solutionsToPush.push(localSolution);
-        }
-      }
-    } else {
-      solutionsToPull.push(remoteSolution);
-    }
-  }
-
-  for (const localSolution of localSolutions) {
-    const remoteSolution = remoteSolutionsMap.get(localSolution.id);
-    if (!remoteSolution) {
-      solutionsToPush.push(localSolution);
-    }
-  }
-
-  return { solutionsToPush, solutionsToPull };
 }
 
 export function mergeAssignments(
