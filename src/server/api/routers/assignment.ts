@@ -3,9 +3,9 @@ import {
   createStudentAssignmentFromUpload,
   deleteAllAssignmentsAndProblemsByUserId,
   getExampleAssignment,
-  syncAssignments,
 } from "@/core/assignment/assignment.domain";
 import { AssignmentRepository } from "@/core/assignment/assignment.repository";
+import { syncAssignments } from "@/core/assignment/assignment.sync";
 import { StudentAssignment } from "@/core/assignment/assignment.types";
 import { StudentRepository } from "@/core/student/student.repository";
 import { evaluateSolution } from "@/core/studentSolution/studentSolution.domain";

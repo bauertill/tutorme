@@ -1,4 +1,4 @@
-import { mergeAssignments } from "@/core/assignment/assignment.domain";
+import { mergeAssignments } from "@/core/assignment/assignment.sync";
 import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import _ from "lodash";
 import { type StateCreator } from "zustand";
