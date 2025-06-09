@@ -1,4 +1,4 @@
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider } from "@/lib/react-auth";
 import { StateSyncProvider } from "../_components/providers/StateSyncProvider";
 import { UsageLimitOverlay } from "../_components/user/UsageLimitOverlay";
 export default async function MainLayout({

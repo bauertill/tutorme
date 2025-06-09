@@ -9,6 +9,20 @@ export class UserRepository {
     return await this.db.user.findUniqueOrThrow({ where: { email } });
   }
 
+  async getOrCreateUserByAnonToken(anonToken: string): Promise<User> {
+    const email = `${anonToken}@anon.tutormegood.com`;
+    return await this.db.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        student: {
+          create: {},
+        },
+      },
+    });
+  }
+
   async createUser(data: Draft<User>): Promise<User> {
     return await this.db.user.create({
       data: {

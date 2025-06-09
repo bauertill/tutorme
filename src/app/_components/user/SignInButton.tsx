@@ -3,20 +3,21 @@
 import { Button } from "@/components/ui/button";
 import { SidebarText } from "@/components/ui/sidebar";
 import { Trans } from "@/i18n/react";
+import { useAuth } from "@/lib/react-auth";
 import { useStore } from "@/store";
-import { signIn } from "next-auth/react";
 
 export function SignInButton({
   children,
   ...props
 }: React.ComponentProps<typeof Button>) {
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
+  const { signInWithGoogle } = useAuth();
   return (
     <Button
       onClick={(e) => {
         e.preventDefault();
         setUsageLimitReached(false);
-        void signIn("google");
+        void signInWithGoogle();
       }}
       className="transition-all duration-200 ease-linear"
       {...props}
