@@ -240,6 +240,8 @@ model StudentSolution {
 
   problem   Problem @relation(fields: [problemId], references: [id])
   problemId String
+
+  @@unique([problemId, studentAssignmentId])
 }
 
 enum StudentSolutionStatus {

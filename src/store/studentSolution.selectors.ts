@@ -23,12 +23,8 @@ export const useStudentSolution = (
 ): StudentSolution | null => {
   return useStore(
     useShallow((store) => {
-      if (!problemId || !studentAssignmentId) return null;
-      const id =
-        store.studentSolutions.idByProblemAndAssignmentId[
-          `${problemId}-${studentAssignmentId}`
-        ];
-      return id ? (store.studentSolutions.entities[id] ?? null) : null;
+      const id = `${problemId}-${studentAssignmentId}`;
+      return store.studentSolutions.entities[id] ?? null;
     }),
   );
 };

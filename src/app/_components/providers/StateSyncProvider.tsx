@@ -26,7 +26,7 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
       session.data?.user.id ? undefined : skipToken,
     );
 
-  const { mutate: syncAssignments } =
+  const { mutateAsync: syncAssignments } =
     api.assignment.syncAssignments.useMutation({
       onSuccess: () => {
         console.log("syncAssignments success");
@@ -36,7 +36,7 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
       },
     });
 
-  const { mutate: syncStudentSolutions } =
+  const { mutateAsync: syncStudentSolutions } =
     api.studentSolution.syncStudentSolutions.useMutation({
       onSuccess: ({ studentSolutionsNotInLocal }) => {
         console.log("syncStudentSolutions success");
@@ -57,9 +57,9 @@ export function StateSyncProvider({ children }: { children: React.ReactNode }) {
         console.log("Assignments on server not loaded, skipping sync");
         return;
       }
-      console.log("syncing assignments");
-      syncAssignments(assignmentsLocal);
-      syncStudentSolutions(studentSolutionsLocal);
+      void syncAssignments(assignmentsLocal).then(() => {
+        void syncStudentSolutions(studentSolutionsLocal);
+      });
     }, [
       session.data?.user.id,
       assignmentsLocal,

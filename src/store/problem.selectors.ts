@@ -71,18 +71,8 @@ export const useProblemController = (): {
 
   const debouncedStorePaths = useDebouncedCallback(
     useCallback(() => {
-      if (!activeProblem || !activeAssignment) return;
-      storeCurrentPathsOnStudentSolution(
-        activeProblem.id,
-        activeAssignment.id,
-        paths,
-      );
-    }, [
-      activeProblem,
-      activeAssignment,
-      paths,
-      storeCurrentPathsOnStudentSolution,
-    ]),
+      if (paths) storeCurrentPathsOnStudentSolution();
+    }, [paths, storeCurrentPathsOnStudentSolution]),
     5000,
     { leading: true, trailing: true, maxWait: 5000 },
   );
@@ -95,11 +85,6 @@ export const useProblemController = (): {
 
   const gotoNextProblem = useCallback(() => {
     if (!nextProblem || !activeAssignment) return;
-    storeCurrentPathsOnStudentSolution(
-      activeProblem?.id ?? "",
-      activeAssignment.id,
-      paths,
-    );
     setActiveProblem(nextProblem, activeAssignment.id);
     const studentSolution = studentSolutions.find(
       (s) =>
@@ -108,23 +93,15 @@ export const useProblemController = (): {
     );
     setCanvas(studentSolution?.canvas ?? { paths: [] });
   }, [
-    activeProblem,
-    paths,
     nextProblem,
     setActiveProblem,
     setCanvas,
-    storeCurrentPathsOnStudentSolution,
     activeAssignment,
     studentSolutions,
   ]);
   const gotoNextUnsolvedProblem = nextUnsolvedProblem
     ? () => {
         if (!activeAssignment) return;
-        storeCurrentPathsOnStudentSolution(
-          activeProblem?.id ?? "",
-          activeAssignment.id,
-          paths,
-        );
         setActiveProblem(nextUnsolvedProblem, activeAssignment.id);
         const studentSolution = studentSolutions.find(
           (s) =>
@@ -136,11 +113,6 @@ export const useProblemController = (): {
     : undefined;
   const gotoPreviousProblem = useCallback(() => {
     if (!previousProblem || !activeAssignment) return;
-    storeCurrentPathsOnStudentSolution(
-      activeProblem?.id ?? "",
-      activeAssignment.id,
-      paths,
-    );
     setActiveProblem(previousProblem, activeAssignment.id);
     const studentSolution = studentSolutions.find(
       (s) =>
@@ -149,13 +121,10 @@ export const useProblemController = (): {
     );
     setCanvas(studentSolution?.canvas ?? { paths: [] });
   }, [
-    activeProblem,
-    paths,
     previousProblem,
     activeAssignment,
     setActiveProblem,
     setCanvas,
-    storeCurrentPathsOnStudentSolution,
     studentSolutions,
   ]);
 
@@ -163,13 +132,6 @@ export const useProblemController = (): {
     problem: Problem,
     assignmentId: string,
   ) => {
-    if (activeAssignment) {
-      storeCurrentPathsOnStudentSolution(
-        activeProblem?.id ?? "",
-        activeAssignment.id,
-        paths,
-      );
-    }
     setActiveProblem(problem, assignmentId);
     const studentSolution = studentSolutions.find(
       (s) =>

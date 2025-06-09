@@ -53,7 +53,6 @@ export function Canvas() {
     newAssistantMessage,
   } = useHelp();
   const trackEvent = useTrackEvent();
-  const paths = useStore.use.paths();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.assignment.submitSolution.useMutation({
@@ -142,11 +141,7 @@ export function Canvas() {
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
               if (!activeProblem || !activeAssignment) return;
-              storeCurrentPathsOnStudentSolution(
-                activeProblem.id,
-                activeAssignment.id,
-                paths,
-              );
+              storeCurrentPathsOnStudentSolution();
               onCheck(dataUrl);
             }}
             disabled={isEmpty || isSubmitting}
@@ -195,7 +190,6 @@ export function Canvas() {
       undo,
       redo,
       evaluationResult,
-      paths,
       activeProblem,
       activeAssignment,
     ],

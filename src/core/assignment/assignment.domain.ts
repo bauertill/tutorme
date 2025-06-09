@@ -85,6 +85,7 @@ export async function createStudentAssignmentFromUpload(
     });
   }
   const assignment = {
+    id: uuidv4(),
     name: `Upload @ ${new Date().toLocaleString()}`,
     problems,
   };
@@ -137,15 +138,15 @@ export async function syncAssignments(
   db: PrismaClient,
   localAssignments: StudentAssignment[],
 ): Promise<{ assignmentsNotInLocal: StudentAssignment[] }> {
-  const dbAdapter = new AssignmentRepository(db);
+  const assignmentRepository = new AssignmentRepository(db);
   const studentRepository = new StudentRepository(db);
   const studentId = await studentRepository.getStudentIdByUserIdOrThrow(userId);
   const remoteAssignments =
-    await dbAdapter.getStudentAssignmentsByStudentId(studentId);
+    await assignmentRepository.getStudentAssignmentsByStudentId(studentId);
   const newAssignments = getNewAssignments(remoteAssignments, localAssignments);
 
   for (const assignment of newAssignments) {
-    await dbAdapter.createStudentAssignmentWithProblems(
+    await assignmentRepository.createStudentAssignmentWithProblems(
       assignment,
       studentId,
       userId,
@@ -185,7 +186,9 @@ export function mergeAssignments<T extends string, U extends string>(
   const existingIds = new Set<T>(Object.keys(existingAssignments) as T[]);
   const incomingIds = new Set<U>(Object.keys(incomingAssignments) as U[]);
   const newIds = incomingIds.difference(existingIds);
-  const mergedAssignmentsMap = new Map<string, StudentAssignment>();
+  const mergedAssignmentsMap = new Map<string, StudentAssignment>(
+    Object.entries(existingAssignments),
+  );
   for (const newId of newIds) {
     mergedAssignmentsMap.set(newId, incomingAssignments[newId]);
   }

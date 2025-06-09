@@ -36,9 +36,11 @@ export const createAssignmentSlice: StateCreator<
         activeId: null,
       };
     });
-    get().setCanvas({ paths: [] }); // TODO: in all these instances, first write the canvas to the studentSolution
+    get().setCanvas({ paths: [] });
+    get().clearStudentSolutions();
   },
-  upsertAssignments: (assignments: StudentAssignment[]) =>
+  upsertAssignments: (assignments: StudentAssignment[]) => {
+    get().storeCurrentPathsOnStudentSolution();
     set((draft) => {
       const mergedAssignments = mergeAssignments(
         draft.assignments.entities,
@@ -58,7 +60,8 @@ export const createAssignmentSlice: StateCreator<
           draft.assignments.entities[firstAssignmentId]?.problems[0]?.id ??
           null;
       }
-    }),
+    });
+  },
   addAssignment: (assignment: StudentAssignment) => {
     get().upsertAssignments([assignment]);
     set((draft) => {
