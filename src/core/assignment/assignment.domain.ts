@@ -11,6 +11,21 @@ import { AssignmentRepository } from "./assignment.repository";
 import { type StudentAssignment } from "./assignment.types";
 import { extractAssignmentFromImage } from "./llm/extractAssignmentFromImage";
 
+export async function createStudentAssignment(
+  assignment: StudentAssignment,
+  userId: string,
+  db: PrismaClient,
+) {
+  const assignmentRepository = new AssignmentRepository(db);
+  const studentRepository = new StudentRepository(db);
+  const studentId = await studentRepository.getStudentIdByUserIdOrThrow(userId);
+  await assignmentRepository.createStudentAssignmentWithProblems(
+    assignment,
+    studentId,
+    userId,
+  );
+}
+
 export async function adminCreateAssignment(
   {
     name,

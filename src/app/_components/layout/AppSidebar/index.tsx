@@ -19,14 +19,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Trans, useTranslation } from "@/i18n/react";
-import {
-  useActiveAssignmentId,
-  useAssignments,
-} from "@/store/assignment.selectors";
+import { useActiveAssignmentId } from "@/store/assignment.selectors";
 import {
   useActiveProblem,
   useProblemController,
 } from "@/store/problem.selectors";
+import { api } from "@/trpc/react";
 import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -34,7 +32,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 export function AppSidebar() {
   const { t } = useTranslation();
   const session = useSession();
-  const assignments = useAssignments();
+  const [assignments] =
+    api.assignment.listStudentAssignments.useSuspenseQuery();
   const activeProblem = useActiveProblem();
   const activeAssignmentId = useActiveAssignmentId();
   const { setActiveProblemWithCanvas } = useProblemController();

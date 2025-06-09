@@ -1,5 +1,4 @@
 import { SessionProvider } from "@/lib/react-auth";
-import { StateSyncProvider } from "../_components/providers/StateSyncProvider";
 import { UsageLimitOverlay } from "../_components/user/UsageLimitOverlay";
 export default async function MainLayout({
   children,
@@ -9,7 +8,7 @@ export default async function MainLayout({
   return (
     <SessionProvider>
       <UsageLimitOverlay />
-      <StateSyncProvider>{children}</StateSyncProvider>
+      {children}
     </SessionProvider>
   );
 }

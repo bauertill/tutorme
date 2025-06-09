@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { SidebarText } from "@/components/ui/sidebar";
 import type { User } from "@/core/user/user.types";
 import { Trans } from "@/i18n/react";
-import { useStore } from "@/store";
+import { useQueryClient } from "@tanstack/react-query";
 import { User as LucideUser } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 export function UserAndSignOutButton({ user }: { user: User }) {
   const imageUrl = user.image;
-  const clearAssignments = useStore.use.clearAssignments();
+  const queryClient = useQueryClient();
 
   return (
     <div className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export function UserAndSignOutButton({ user }: { user: User }) {
           onClick={(e) => {
             e.preventDefault();
             void signOut().then(() => {
-              clearAssignments();
+              queryClient.clear();
             });
           }}
           variant="link"

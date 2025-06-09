@@ -1,11 +1,9 @@
 import { type PrismaClient } from "@prisma/client";
 import { type Problem } from "../problem/problem.types";
-import { parseStudentSolutionWithDefaults } from "../studentSolution/studentSolution.domain";
 import { type Draft } from "../utils";
 import {
   type GroupAssignment,
   type StudentAssignment,
-  type StudentAssignmentWithStudentSolutions,
 } from "./assignment.types";
 
 export class AssignmentRepository {
@@ -114,11 +112,29 @@ export class AssignmentRepository {
     });
   }
 
+  async deleteStudentAssignmentById(assignmentId: string): Promise<void> {
+    await this.db.studentAssignment.delete({
+      where: {
+        id: assignmentId,
+      },
+    });
+  }
+
   async updateGroupAssignmentName(
     assignmentId: string,
     name: string,
   ): Promise<void> {
     await this.db.groupAssignment.update({
+      where: { id: assignmentId },
+      data: { name },
+    });
+  }
+
+  async updateStudentAssignmentName(
+    assignmentId: string,
+    name: string,
+  ): Promise<void> {
+    await this.db.studentAssignment.update({
       where: { id: assignmentId },
       data: { name },
     });
@@ -142,27 +158,18 @@ export class AssignmentRepository {
 
   async getStudentAssignmentsByStudentId(
     studentId: string,
-  ): Promise<StudentAssignmentWithStudentSolutions[]> {
+  ): Promise<StudentAssignment[]> {
     const dbAssignments = await this.db.studentAssignment.findMany({
       where: { studentId },
-      include: { problems: true, studentSolutions: true },
+      include: { problems: true },
     });
-    return dbAssignments.map(
-      ({ studentSolutions, problems, ...assignment }) => ({
-        ...assignment,
-        problems: problems.map((problem) => ({
-          ...problem,
-          assignmentId: assignment.id,
-          studentSolution: parseStudentSolutionWithDefaults(
-            studentSolutions.find(
-              (solution) => solution.problemId === problem.id,
-            ),
-            problem.id,
-            assignment.id,
-          ),
-        })),
-      }),
-    );
+    return dbAssignments.map(({ problems, ...assignment }) => ({
+      ...assignment,
+      problems: problems.map((problem) => ({
+        ...problem,
+        assignmentId: assignment.id,
+      })),
+    }));
   }
 
   async getStudentAssignmentById(

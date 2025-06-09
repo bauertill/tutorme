@@ -9,17 +9,20 @@ import {
 } from "@/components/ui/sidebar";
 import { Tour } from "@/components/ui/tour";
 import { useStore } from "@/store";
-import {
-  useActiveAssignment,
-  useAssignments,
-} from "@/store/assignment.selectors";
+import { useActiveAssignmentId } from "@/store/assignment.selectors";
 import { useStudentSolutions } from "@/store/studentSolution.selectors";
+import { api } from "@/trpc/react";
 import Exercise from "./_components/Exercise";
 import Onboarding from "./_components/Onboarding";
 
 export default function AssignmentPage() {
-  const activeAssignment = useActiveAssignment();
-  const assignments = useAssignments();
+  const activeAssignmentId = useActiveAssignmentId();
+  const [activeAssignment] =
+    api.assignment.getStudentAssignment.useSuspenseQuery(
+      activeAssignmentId ?? "",
+    );
+  const [assignments] =
+    api.assignment.listStudentAssignments.useSuspenseQuery();
   const studentSolutions = useStudentSolutions();
 
   const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();

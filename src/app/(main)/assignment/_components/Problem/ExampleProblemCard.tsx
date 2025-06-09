@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
-import { useAssignments } from "@/store/assignment.selectors";
 import { api } from "@/trpc/react";
 import { ArrowRight, BookOpen } from "lucide-react";
 
@@ -13,12 +12,20 @@ export default function ExampleProblemCard() {
     staleTime: Infinity,
     experimental_prefetchInRender: true,
   });
-  const assignments = useAssignments();
-  const addAssignment = useStore.use.addAssignment();
+  const [assignments] =
+    api.assignment.listStudentAssignments.useSuspenseQuery();
+  const utils = api.useUtils();
+  const { mutate: addAssignment } =
+    api.assignment.createStudentAssignment.useMutation({
+      onSuccess: () => {
+        void utils.assignment.listStudentAssignments.invalidate();
+      },
+    });
   const setActiveProblem = useStore.use.setActiveProblem();
   const trackEvent = useTrackEvent();
 
-  const onClick = async () => {
+  const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     trackEvent("clicked_example_assignment_card");
     const existingExampleAssignment = assignments.find(
       (assignment) => assignment.name === "Example Assignment",

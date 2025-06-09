@@ -19,7 +19,6 @@ import { useState } from "react";
 
 export function CollapsibleSettings() {
   const { t } = useTranslation();
-  const clearAssignments = useStore.use.clearAssignments();
   const [isOpen, setIsOpen] = useState(false);
   const session = useSession();
   const { mutate: deleteAllAssignments } =
@@ -32,7 +31,6 @@ export function CollapsibleSettings() {
   const handleDelete = () => {
     if (confirm(t("delete_all_assignments_confirmation"))) {
       setIsDeleting(true);
-      clearAssignments();
       setHasCompletedOnboarding(false);
       setUserHasScrolled(false);
       if (session.data?.user?.id) {

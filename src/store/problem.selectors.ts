@@ -1,21 +1,27 @@
 import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import { type Problem } from "@/core/problem/problem.types";
 import { type StudentSolution } from "@/core/studentSolution/studentSolution.types";
+import { api } from "@/trpc/react";
 import { useCallback, useEffect } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useShallow } from "zustand/shallow";
 import { useStore } from ".";
-import { useActiveAssignment } from "./assignment.selectors";
+import { useActiveAssignmentId } from "./assignment.selectors";
 import {
   useStudentSolution,
   useStudentSolutions,
 } from "./studentSolution.selectors";
 
 export const useActiveProblem = (): Problem | null => {
-  const assignment = useActiveAssignment();
+  const activeAssignmentId = useActiveAssignmentId();
+  const [activeAssignment] =
+    api.assignment.getStudentAssignment.useSuspenseQuery(
+      activeAssignmentId ?? "",
+    );
   const problemId = useStore.use.activeProblemId();
-  const problem = assignment?.problems.find((p) => p.id === problemId) ?? null;
-  return problem ?? assignment?.problems[0] ?? null;
+  const problem =
+    activeAssignment?.problems.find((p) => p.id === problemId) ?? null;
+  return problem ?? activeAssignment?.problems[0] ?? null;
 };
 
 export const useReferenceSolution = (
@@ -29,7 +35,11 @@ export const useReferenceSolution = (
 };
 
 export const useUnsolvedProblems = (): Problem[] => {
-  const activeAssignment = useActiveAssignment();
+  const activeAssignmentId = useActiveAssignmentId();
+  const [activeAssignment] =
+    api.assignment.getStudentAssignment.useSuspenseQuery(
+      activeAssignmentId ?? "",
+    );
   const studentSolutions = useStudentSolutions();
   if (!activeAssignment) return [];
   return activeAssignment.problems.filter((p) => {
@@ -58,7 +68,11 @@ export const useProblemController = (): {
   const storeCurrentPathsOnStudentSolution =
     useStore.use.storeCurrentPathsOnStudentSolution();
 
-  const activeAssignment = useActiveAssignment();
+  const activeAssignmentId = useActiveAssignmentId();
+  const [activeAssignment] =
+    api.assignment.getStudentAssignment.useSuspenseQuery(
+      activeAssignmentId ?? "",
+    );
   const activeProblem = useActiveProblem();
   const activeProblemIndex =
     activeAssignment?.problems.findIndex((p) => p.id === activeProblem?.id) ??

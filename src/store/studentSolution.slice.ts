@@ -58,9 +58,9 @@ export const createStudentSolutionSlice: StateCreator<
   storeCurrentPathsOnStudentSolution: () => {
     get().ensureStudentSolution();
     set((draft) => {
-      const { activeProblemId, assignments, paths } = draft;
-      if (!activeProblemId || !assignments.activeId) return;
-      const id = `${activeProblemId}-${assignments.activeId}`;
+      const { activeProblemId, activeAssignmentId, paths } = draft;
+      if (!activeProblemId || !activeAssignmentId) return;
+      const id = `${activeProblemId}-${activeAssignmentId}`;
       const studentSolution = id ? draft.studentSolutions.entities[id] : null;
       if (studentSolution) {
         studentSolution.canvas = { paths };
@@ -69,15 +69,15 @@ export const createStudentSolutionSlice: StateCreator<
     });
   },
   ensureStudentSolution: () => {
-    set(({ studentSolutions, activeProblemId, assignments }) => {
-      if (!activeProblemId || !assignments.activeId) {
+    set(({ studentSolutions, activeProblemId, activeAssignmentId }) => {
+      if (!activeProblemId || !activeAssignmentId) {
         return;
       }
-      const id = `${activeProblemId}-${assignments.activeId}`;
+      const id = `${activeProblemId}-${activeAssignmentId}`;
       if (!studentSolutions.entities[id]) {
         const newSolution = newStudentSolution(
           activeProblemId,
-          assignments.activeId,
+          activeAssignmentId,
         );
         studentSolutions.entities[id] = newSolution;
         studentSolutions.ids.push(id);

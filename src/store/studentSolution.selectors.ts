@@ -2,9 +2,10 @@ import {
   type EvaluationResult,
   type StudentSolution,
 } from "@/core/studentSolution/studentSolution.types";
+import { api } from "@/trpc/react";
 import { useShallow } from "zustand/shallow";
 import { useStore } from ".";
-import { useActiveAssignment } from "./assignment.selectors";
+import { useActiveAssignmentId } from "./assignment.selectors";
 import { useActiveProblem } from "./problem.selectors";
 
 export const useStudentSolutions = (): StudentSolution[] => {
@@ -15,6 +16,11 @@ export const useStudentSolutions = (): StudentSolution[] => {
         .filter((s) => s !== undefined),
     ),
   );
+};
+export const useStudentSolutionsOnServer = (): StudentSolution[] => {
+  const [studentSolutions] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery();
+  return studentSolutions;
 };
 
 export const useStudentSolution = (
@@ -38,7 +44,11 @@ export const useEvaluationResult = (): {
   ) => void;
 } => {
   const activeProblem = useActiveProblem();
-  const activeAssignment = useActiveAssignment();
+  const activeAssignmentId = useActiveAssignmentId();
+  const [activeAssignment] =
+    api.assignment.getStudentAssignment.useSuspenseQuery(
+      activeAssignmentId ?? "",
+    );
   const studentSolution = useStudentSolution(
     activeProblem?.id ?? null,
     activeAssignment?.id ?? null,

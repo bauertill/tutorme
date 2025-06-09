@@ -33,21 +33,31 @@ export function UploadUserProblems({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const addAssignment = useStore.use.addAssignment();
+  const utils = api.useUtils();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
+  const setActiveProblem = useStore.use.setActiveProblem();
   const { mutate: deleteAssignment } =
     api.assignment.deleteAssignment.useMutation();
   const { mutateAsync: createAssignmentFromUpload } =
     api.assignment.createFromUpload.useMutation({
-      onSuccess: (assignment) => {
+      onSuccess: async (assignment) => {
         if (isCancelled) {
           deleteAssignment(assignment.id);
           return;
         }
         setUploadState("success");
         toast.success("Problems uploaded successfully!");
+        utils.assignment.listStudentAssignments.setData(
+          undefined,
+          (oldData) => {
+            if (!oldData) return [assignment];
+            return [...oldData, assignment];
+          },
+        );
+        if (assignment.problems[0]) {
+          setActiveProblem(assignment.problems[0], assignment.id);
+        }
         setOpen(false);
-        addAssignment(assignment);
       },
     });
 

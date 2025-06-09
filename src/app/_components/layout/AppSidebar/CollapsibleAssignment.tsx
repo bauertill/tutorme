@@ -17,7 +17,6 @@ import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import { type Problem } from "@/core/problem/problem.types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
-import { useStore } from "@/store";
 import { useStudentSolutions } from "@/store/studentSolution.selectors";
 import { api } from "@/trpc/react";
 import { CheckCircle, ChevronRight, Circle, MoreVertical } from "lucide-react";
@@ -42,18 +41,14 @@ export function CollapsibleAssignment({
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(assignment.name);
-  const editAssignment = useStore.use.editAssignment();
-  const deleteAssignment = useStore.use.deleteAssignment();
   const studentSolutions = useStudentSolutions();
+  const utils = api.useUtils();
 
   const { mutate: renameAssignment } =
     api.assignment.renameAssignment.useMutation({
       onSuccess: () => {
         setIsEditing(false);
-        editAssignment({
-          ...assignment,
-          name: newName,
-        });
+        void utils.assignment.invalidate();
       },
       onError: (error) => {
         console.error("Failed to rename assignment:", error);
@@ -63,8 +58,8 @@ export function CollapsibleAssignment({
 
   const { mutate: deleteAssignmentMutation } =
     api.assignment.deleteAssignment.useMutation({
-      onSuccess: () => {
-        deleteAssignment(assignment.id);
+      onSuccess: async () => {
+        void utils.assignment.invalidate();
       },
     });
 

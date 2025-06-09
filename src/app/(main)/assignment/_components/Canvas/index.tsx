@@ -3,7 +3,7 @@ import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
-import { useActiveAssignment } from "@/store/assignment.selectors";
+import { useActiveAssignmentId } from "@/store/assignment.selectors";
 import { useHelp } from "@/store/help.selectors";
 import { useActiveProblem } from "@/store/problem.selectors";
 import { useEvaluationResult } from "@/store/studentSolution.selectors";
@@ -37,7 +37,11 @@ export function Canvas() {
     isEraser,
     toggleEraser,
   } = useCanvas();
-  const activeAssignment = useActiveAssignment();
+  const activeAssignmentId = useActiveAssignmentId();
+  const [activeAssignment] =
+    api.assignment.getStudentAssignment.useSuspenseQuery(
+      activeAssignmentId ?? "",
+    );
   const storeCurrentPathsOnStudentSolution =
     useStore.use.storeCurrentPathsOnStudentSolution();
   const activeProblemId = useStore.use.activeProblemId();
