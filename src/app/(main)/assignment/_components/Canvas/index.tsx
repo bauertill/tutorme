@@ -59,30 +59,24 @@ export function Canvas() {
   const trackEvent = useTrackEvent();
 
   const { mutate: submit, isPending: isSubmitting } =
-    api.assignment.submitSolution.useMutation({
+    api.studentSolution.submitSolution.useMutation({
       onSuccess: (result, { problemId, studentAssignmentId }) => {
         setEvaluationResult(problemId, studentAssignmentId, result);
-        console.log(result);
         if (!result.hasMistakes && result.isComplete) {
           setCelebrationOpen(true);
-        } else {
-          let message = "";
-          if (!result.isLegible) {
-            message = t("assignment.feedback.notLegible");
-          } else if (result.hasMistakes) {
-            message = t("assignment.feedback.hasMistakes");
-          } else if (!result.isComplete) {
-            message = t("assignment.feedback.notComplete");
-          }
-          if (result.hint) {
-            message += `\n${result.hint}`;
-          }
-          if (message) {
-            setMessages([...messages, newAssistantMessage(message)]);
-          }
-          setRecommendedQuestions(result.followUpQuestions);
-          setHelpOpen(true);
+          return;
         }
+        let message = "";
+        if (!result.isLegible) message = t("assignment.feedback.notLegible");
+        else if (result.hasMistakes)
+          message = t("assignment.feedback.hasMistakes");
+        else if (!result.isComplete)
+          message = t("assignment.feedback.notComplete");
+
+        if (result.hint) message += `\n${result.hint}`;
+        if (message) setMessages([...messages, newAssistantMessage(message)]);
+        setRecommendedQuestions(result.followUpQuestions);
+        setHelpOpen(true);
       },
       onError: (error) => {
         if (error.message === "Free tier limit reached") {

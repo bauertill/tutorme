@@ -9,7 +9,6 @@ import { AssignmentRepository } from "@/core/assignment/assignment.repository";
 import { syncAssignments } from "@/core/assignment/assignment.sync";
 import { StudentAssignment } from "@/core/assignment/assignment.types";
 import { StudentRepository } from "@/core/student/student.repository";
-import { evaluateSolution } from "@/core/studentSolution/studentSolution.domain";
 import {
   createTRPCRouter,
   limitedPublicProcedure,
@@ -83,26 +82,6 @@ export const assignmentRouter = createTRPCRouter({
       ctx.session.user.id,
     );
   }),
-
-  submitSolution: limitedPublicProcedure
-    .input(
-      z.object({
-        problemId: z.string(),
-        studentAssignmentId: z.string(),
-        exerciseText: z.string(),
-        solutionImage: z.string(), // Base64 encoded image data
-        referenceSolution: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      return evaluateSolution(
-        {
-          ...input,
-          language: ctx.userLanguage,
-        },
-        ctx.llmAdapter,
-      );
-    }),
 
   syncAssignments: protectedProcedure
     .input(z.array(StudentAssignment))
