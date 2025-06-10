@@ -213,18 +213,17 @@ model Problem {
   createdAt         DateTime                     @default(now())
   updatedAt         DateTime                     @updatedAt
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   bookExerciseId  String?
   bookExercise    BookExercise?  @relation(fields: [bookExerciseId], references: [id], onDelete: Cascade)
   ProblemUpload   ProblemUpload? @relation(fields: [problemUploadId], references: [id])
   problemUploadId String?
 
-  groupAssignments    GroupAssignment[]
-  studentAssignment   StudentAssignment? @relation(fields: [studentAssignmentId], references: [id])
-  studentAssignmentId String?
-  studentSolutions    StudentSolution[]
+  groupAssignments   GroupAssignment[]
+  studentAssignments StudentAssignment[]
+  studentSolutions   StudentSolution[]
 }
 
 model StudentSolution {
