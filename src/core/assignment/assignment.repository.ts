@@ -66,6 +66,33 @@ export class AssignmentRepository {
     });
     return dbAssignment;
   }
+  async createStudentAssignmentForExistingProblems(
+    {
+      id,
+      name,
+      problemIds,
+    }: {
+      id: string;
+      name: string;
+      problemIds: string[];
+    },
+    studentId: string,
+    userId: string,
+  ): Promise<StudentAssignment> {
+    const dbAssignment = await this.db.studentAssignment.create({
+      data: {
+        id,
+        name,
+        userId,
+        studentId,
+        problems: {
+          connect: problemIds.map((id) => ({ id })),
+        },
+      },
+      include: { problems: true },
+    });
+    return dbAssignment;
+  }
 
   async createStudentAssignmentWithProblems(
     {

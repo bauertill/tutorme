@@ -2,8 +2,9 @@ import {
   adminCreateAssignment,
   createStudentAssignment,
   createStudentAssignmentFromUpload,
+  createStudentExampleAssignment,
   deleteAllAssignmentsAndProblemsByUserId,
-  getExampleAssignment,
+  deleteAllStudentDataByUserId,
 } from "@/core/assignment/assignment.domain";
 import { AssignmentRepository } from "@/core/assignment/assignment.repository";
 import { syncAssignments } from "@/core/assignment/assignment.sync";
@@ -14,7 +15,6 @@ import {
   limitedPublicProcedure,
   protectedAdminProcedure,
   protectedProcedure,
-  publicProcedure,
 } from "@/server/api/trpc";
 import { z } from "zod";
 
@@ -89,8 +89,12 @@ export const assignmentRouter = createTRPCRouter({
       return await syncAssignments(ctx.session.user.id, ctx.db, input);
     }),
 
-  getExampleAssignment: publicProcedure.query(async ({ ctx }) => {
-    return getExampleAssignment(ctx.userLanguage);
+  createExampleAssignment: protectedProcedure.mutation(async ({ ctx }) => {
+    return createStudentExampleAssignment(
+      ctx.userLanguage,
+      ctx.session.user.id,
+      ctx.db,
+    );
   }),
 
   deleteAllAssignmentsAndProblems: protectedAdminProcedure.mutation(
@@ -102,6 +106,10 @@ export const assignmentRouter = createTRPCRouter({
       return { success: true };
     },
   ),
+  deleteAllStudentData: protectedProcedure.mutation(async ({ ctx }) => {
+    await deleteAllStudentDataByUserId(ctx.session.user.id, ctx.db);
+    return { success: true };
+  }),
 
   createStudentAssignment: protectedProcedure
     .input(StudentAssignment)

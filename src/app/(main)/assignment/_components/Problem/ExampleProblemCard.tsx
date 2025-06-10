@@ -8,38 +8,26 @@ import { api } from "@/trpc/react";
 import { ArrowRight, BookOpen } from "lucide-react";
 
 export default function ExampleProblemCard() {
-  const { promise } = api.assignment.getExampleAssignment.useQuery(undefined, {
-    staleTime: Infinity,
-    experimental_prefetchInRender: true,
-  });
-  const [assignments] =
-    api.assignment.listStudentAssignments.useSuspenseQuery();
   const utils = api.useUtils();
-  const { mutate: addAssignment } =
-    api.assignment.createStudentAssignment.useMutation({
-      onSuccess: () => {
+  const { mutate: createExampleAssignment } =
+    api.assignment.createExampleAssignment.useMutation({
+      onSuccess: (exampleAssignment) => {
+        // @TODO use the .invalidate() method declaratively instead of the .useUtils() method
         void utils.assignment.listStudentAssignments.invalidate();
+        const problem = exampleAssignment.problems[0];
+        if (problem) {
+          setActiveProblem(problem, exampleAssignment.id);
+        }
       },
     });
+
   const setActiveProblem = useStore.use.setActiveProblem();
   const trackEvent = useTrackEvent();
 
   const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     trackEvent("clicked_example_assignment_card");
-    const existingExampleAssignment = assignments.find(
-      (assignment) => assignment.name === "Example Assignment",
-    );
-
-    if (existingExampleAssignment) {
-      const problem = existingExampleAssignment.problems[0];
-      if (problem) {
-        setActiveProblem(problem, existingExampleAssignment.id);
-      }
-    } else {
-      const exampleAssignment = await promise;
-      addAssignment(exampleAssignment);
-    }
+    createExampleAssignment();
   };
 
   return (

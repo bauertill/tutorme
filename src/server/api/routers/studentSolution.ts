@@ -1,4 +1,3 @@
-import { getExampleAssignment } from "@/core/assignment/assignment.domain";
 import { Canvas } from "@/core/canvas/canvas.types";
 import { StudentRepository } from "@/core/student/student.repository";
 import {
@@ -10,7 +9,6 @@ import {
   createTRPCRouter,
   limitedPublicProcedure,
   protectedProcedure,
-  publicProcedure,
 } from "@/server/api/trpc";
 import { z } from "zod";
 
@@ -62,8 +60,4 @@ export const studentSolutionRouter = createTRPCRouter({
         ctx.db,
       );
     }),
-
-  getExampleAssignment: publicProcedure.query(async ({ ctx }) => {
-    return getExampleAssignment(ctx.userLanguage);
-  }),
 });

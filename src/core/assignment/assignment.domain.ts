@@ -3,7 +3,7 @@ import { type Language } from "@/i18n/types";
 import { type PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { getExampleProblems } from "../problem/problem.repository";
+import { ProblemRepository } from "../problem/problem.repository";
 import { type Problem } from "../problem/problem.types";
 import { StudentRepository } from "../student/student.repository";
 import { type Draft } from "../utils";
@@ -67,12 +67,20 @@ export async function adminCreateAssignment(
   );
 }
 
+export async function deleteAllStudentDataByUserId(
+  userId: string,
+  db: PrismaClient,
+) {
+  const assignmentRepository = new AssignmentRepository(db);
+  await assignmentRepository.deleteAllStudentAssignmentsByUserId(userId);
+}
+
 export async function deleteAllAssignmentsAndProblemsByUserId(
   userId: string,
   db: PrismaClient,
 ) {
   const assignmentRepository = new AssignmentRepository(db);
-  await assignmentRepository.deleteAllProblemsAndAssignmentsByUserId(userId);
+  await assignmentRepository.deleteAllStudentAssignmentsByUserId(userId);
 }
 
 export async function createStudentAssignmentFromUpload(
@@ -147,32 +155,27 @@ export async function createStudentAssignmentFromUpload(
   }
 }
 
-export async function getExampleAssignment(
+export async function createStudentExampleAssignment(
   language: Language,
+  userId: string,
+  db: PrismaClient,
 ): Promise<StudentAssignment> {
   const t = i18n.getFixedT(language);
-  const problems = getExampleProblems(language);
-  const assignment: StudentAssignment = {
-    id: uuidv4(),
-    name: t("example_assignment"),
-    problems: problems.map((problem, i) => ({
-      id: uuidv4(),
-      studentSolution: {
-        id: crypto.randomUUID(),
-        status: "INITIAL",
-        canvas: { paths: [] },
-        evaluation: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+  const problemRepository = new ProblemRepository(db);
+  const problems = await problemRepository.getExampleProblems(language);
+
+  const assignmentRepository = new AssignmentRepository(db);
+  const studentRepository = new StudentRepository(db);
+  const studentId = await studentRepository.getStudentIdByUserIdOrThrow(userId);
+  const assignment =
+    await assignmentRepository.createStudentAssignmentForExistingProblems(
+      {
+        id: uuidv4(),
+        name: t("example_assignment"),
+        problemIds: problems.map((problem) => problem.id),
       },
-      problem: problem.problem,
-      problemNumber: `${i + 1}`,
-      referenceSolution: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+      studentId,
+      userId,
+    );
   return assignment;
 }
