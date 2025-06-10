@@ -35,7 +35,6 @@ export const assignmentRouter = createTRPCRouter({
     }),
 
   listStudentAssignments: protectedProcedure.query(async ({ ctx }) => {
-    await new Promise((resolve) => setTimeout(resolve, 3000));
     const studentRepository = new StudentRepository(ctx.db);
     const studentId = await studentRepository.getStudentIdByUserIdOrThrow(
       ctx.session.user.id,
