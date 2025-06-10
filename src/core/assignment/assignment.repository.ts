@@ -108,23 +108,26 @@ export class AssignmentRepository {
     userId: string,
   ): Promise<StudentAssignment> {
     const result = await this.db.$transaction(async (tx) => {
-      await tx.studentAssignment.create({
+      const createdProblems = await Promise.all(
+        problems.map((problem) =>
+          tx.problem.create({
+            data: {
+              ...problem,
+              userId,
+            },
+          }),
+        ),
+      );
+      return tx.studentAssignment.create({
         data: {
           id,
           name,
           userId,
           studentId,
+          problems: {
+            connect: createdProblems.map((problem) => ({ id: problem.id })),
+          },
         },
-      });
-      await tx.problem.createMany({
-        data: problems.map((problem) => ({
-          ...problem,
-          userId,
-          studentAssignmentId: id,
-        })),
-      });
-      return tx.studentAssignment.findUniqueOrThrow({
-        where: { id },
         include: { problems: true },
       });
     });
