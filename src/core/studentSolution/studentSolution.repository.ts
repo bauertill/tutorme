@@ -5,20 +5,27 @@ export class StudentSolutionRepository {
   constructor(private db: PrismaClient) {}
 
   async upsertStudentSolution(
-    solution: StudentSolution,
+    studentAssignmentId: string,
+    problemId: string,
+    props: Partial<
+      Omit<StudentSolution, "id" | "studentAssignmentId" | "problemId">
+    >,
   ): Promise<StudentSolution> {
-    const dbSolution = await this.db.studentSolution.upsert({
-      where: { id: solution.id },
+    const result = await this.db.studentSolution.upsert({
+      where: {
+        problemId_studentAssignmentId: { studentAssignmentId, problemId },
+      },
       update: {
-        ...solution,
-        evaluation: solution.evaluation ?? undefined,
+        ...props,
       },
       create: {
-        ...solution,
-        evaluation: solution.evaluation ?? undefined,
+        studentAssignmentId,
+        problemId,
+        ...props,
+        canvas: props.canvas ?? { paths: [] },
       },
     });
-    return StudentSolution.parse(dbSolution);
+    return StudentSolution.parse(result);
   }
 
   async getStudentSolutionsByStudentId(

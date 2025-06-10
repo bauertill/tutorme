@@ -1,15 +1,32 @@
 import { createId } from "@paralleldrive/cuid2";
-import { type StudentSolution as StudentSolutionPrisma } from "@prisma/client";
+import {
+  type PrismaClient,
+  type StudentSolution as StudentSolutionPrisma,
+} from "@prisma/client";
 import { type LLMAdapter } from "../adapters/llmAdapter";
+import { type Canvas } from "../canvas/canvas.types";
 import {
   evaluateSolution as evaluateSolutionLLM,
   type EvaluateSolutionInput,
 } from "./llm/evaluateSolution";
 import { judgeHandwriting as judgeHandwritingLLM } from "./llm/judgeHandwriting";
+import { StudentSolutionRepository } from "./studentSolution.repository";
 import {
   StudentSolution,
   type EvaluationResult,
 } from "./studentSolution.types";
+
+export function setStudentSolutionCanvas(
+  canvas: Canvas,
+  studentAssignmentId: string,
+  problemId: string,
+  db: PrismaClient,
+) {
+  const repository = new StudentSolutionRepository(db);
+  return repository.upsertStudentSolution(studentAssignmentId, problemId, {
+    canvas,
+  });
+}
 
 export function parseStudentSolutionWithDefaults(
   studentSolution: StudentSolutionPrisma | undefined,
@@ -21,7 +38,6 @@ export function parseStudentSolutionWithDefaults(
       id: createId(),
       status: "INITIAL",
       canvas: { paths: [] },
-      evaluation: null,
       problemId,
       studentAssignmentId,
       createdAt: new Date(),

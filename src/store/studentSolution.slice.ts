@@ -10,7 +10,6 @@ export interface StudentSolutionSlice {
     entities: Record<string, StudentSolution>;
     ids: string[];
   };
-  clearStudentSolutions: () => void;
   storeCurrentPathsOnStudentSolution: () => void;
   ensureStudentSolution: (problemId?: string, assignmentId?: string) => void;
   upsertStudentSolutions: (studentSolutions: StudentSolution[]) => void;
@@ -31,7 +30,7 @@ const newStudentSolution = (
     studentAssignmentId,
     createdAt: new Date(),
     status: "INITIAL",
-    evaluation: null,
+    evaluation: undefined,
     canvas: { paths: [] },
     updatedAt: new Date(),
   };
@@ -46,14 +45,6 @@ export const createStudentSolutionSlice: StateCreator<
   studentSolutions: {
     entities: {},
     ids: [],
-  },
-  clearStudentSolutions: () => {
-    set((draft) => {
-      draft.studentSolutions = {
-        entities: {},
-        ids: [],
-      };
-    });
   },
   storeCurrentPathsOnStudentSolution: () => {
     get().ensureStudentSolution();

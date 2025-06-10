@@ -17,7 +17,7 @@ export const StudentSolution = z.object({
   id: z.string(),
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED"]),
   canvas: Canvas,
-  evaluation: EvaluationResult.nullable(),
+  evaluation: EvaluationResult.optional(),
   studentAssignmentId: z.string(),
   problemId: z.string(),
   createdAt: z.date(),

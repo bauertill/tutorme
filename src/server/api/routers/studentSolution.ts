@@ -1,9 +1,11 @@
 import { getExampleAssignment } from "@/core/assignment/assignment.domain";
+import { Canvas } from "@/core/canvas/canvas.types";
 import { StudentRepository } from "@/core/student/student.repository";
-import { evaluateSolution } from "@/core/studentSolution/studentSolution.domain";
+import {
+  evaluateSolution,
+  setStudentSolutionCanvas,
+} from "@/core/studentSolution/studentSolution.domain";
 import { StudentSolutionRepository } from "@/core/studentSolution/studentSolution.repository";
-import { syncStudentSolutions } from "@/core/studentSolution/studentSolution.sync";
-import { StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import {
   createTRPCRouter,
   limitedPublicProcedure,
@@ -44,10 +46,21 @@ export const studentSolutionRouter = createTRPCRouter({
     );
   }),
 
-  syncStudentSolutions: protectedProcedure
-    .input(z.array(StudentSolution))
+  setStudentSolutionCanvas: protectedProcedure
+    .input(
+      z.object({
+        studentAssignmentId: z.string(),
+        problemId: z.string(),
+        canvas: Canvas,
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      return await syncStudentSolutions(ctx.session.user.id, ctx.db, input);
+      return await setStudentSolutionCanvas(
+        input.canvas,
+        input.studentAssignmentId,
+        input.problemId,
+        ctx.db,
+      );
     }),
 
   getExampleAssignment: publicProcedure.query(async ({ ctx }) => {
