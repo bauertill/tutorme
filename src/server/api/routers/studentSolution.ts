@@ -19,7 +19,8 @@ export const studentSolutionRouter = createTRPCRouter({
         problemId: z.string(),
         studentAssignmentId: z.string(),
         exerciseText: z.string(),
-        solutionImage: z.string(), // Base64 encoded image data
+        canvas: Canvas,
+        solutionImage: z.string(),
         referenceSolution: z.string(),
       }),
     )
@@ -47,16 +48,16 @@ export const studentSolutionRouter = createTRPCRouter({
   setStudentSolutionCanvas: protectedProcedure
     .input(
       z.object({
-        studentAssignmentId: z.string(),
         problemId: z.string(),
+        studentAssignmentId: z.string(),
         canvas: Canvas,
       }),
     )
     .mutation(async ({ ctx, input }) => {
       return await setStudentSolutionCanvas(
-        input.canvas,
         input.studentAssignmentId,
         input.problemId,
+        input.canvas,
         ctx.db,
       );
     }),

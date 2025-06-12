@@ -271,6 +271,7 @@ export function useCanvas() {
     canRedo: useMemo(() => redoStack.length > 0, [redoStack]),
     isEmpty: useMemo(() => paths.length === 0, [paths]),
     isUntouched,
+    paths,
   };
 }
 

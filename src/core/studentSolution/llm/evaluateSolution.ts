@@ -96,6 +96,7 @@ export const evaluateSolutionPromptTemplate = ChatPromptTemplate.fromMessages([
 
 export type EvaluateSolutionInput = {
   problemId: string;
+  studentAssignmentId: string;
   exerciseText: string;
   solutionImage: string;
   referenceSolution: string;
@@ -112,6 +113,7 @@ export async function evaluateSolution(
     exerciseText,
     solutionImage,
     referenceSolution,
+    studentAssignmentId,
     language,
   } = input;
 
@@ -139,6 +141,7 @@ export async function evaluateSolution(
         metadata: {
           functionName: "evaluateSolution",
           problemId,
+          studentAssignmentId,
         },
       },
     );

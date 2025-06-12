@@ -17,13 +17,13 @@ import {
 } from "./studentSolution.types";
 
 export function setStudentSolutionCanvas(
-  canvas: Canvas,
   studentAssignmentId: string,
   problemId: string,
+  canvas: Canvas,
   db: PrismaClient,
 ) {
   const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(studentAssignmentId, problemId, {
+  return repository.updateStudentSolution(studentAssignmentId, problemId, {
     canvas,
   });
 }

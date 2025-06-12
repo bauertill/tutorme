@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import { useActiveAssignmentId } from "@/store/assignment.selectors";
+import { Path } from "@/store/canvas.slice";
 import { useHelp } from "@/store/help.selectors";
 import { useActiveProblem } from "@/store/problem.selectors";
-import { useEvaluationResult } from "@/store/studentSolution.selectors";
 import { api } from "@/trpc/react";
 import {
   Eraser,
@@ -36,18 +36,25 @@ export function Canvas() {
     isEmpty,
     isEraser,
     toggleEraser,
+    paths,
   } = useCanvas();
   const activeAssignmentId = useActiveAssignmentId();
   const [activeAssignment] =
     api.assignment.getStudentAssignment.useSuspenseQuery(
       activeAssignmentId ?? "",
     );
-  const storeCurrentPathsOnStudentSolution =
-    useStore.use.storeCurrentPathsOnStudentSolution();
   const activeProblemId = useStore.use.activeProblemId();
-  const { evaluationResult, setEvaluationResult } = useEvaluationResult();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const activeProblem = useActiveProblem();
+  const [studentSolution] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
+      select: (data) =>
+        data.find(
+          (solution) =>
+            solution.problemId === activeProblemId &&
+            solution.studentAssignmentId === activeAssignmentId,
+        ),
+    });
   const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
   const {
@@ -60,8 +67,7 @@ export function Canvas() {
 
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
-      onSuccess: (result, { problemId, studentAssignmentId }) => {
-        setEvaluationResult(problemId, studentAssignmentId, result);
+      onSuccess: (result) => {
         if (!result.hasMistakes && result.isComplete) {
           setCelebrationOpen(true);
           return;
@@ -92,12 +98,13 @@ export function Canvas() {
   }, [activeProblemId]);
 
   const onCheck = useCallback(
-    (dataUrl: string) => {
+    (dataUrl: string, paths: Path[]) => {
       if (activeProblem && activeAssignment) {
         submit({
-          problemId: activeProblem.id,
           studentAssignmentId: activeAssignment.id,
+          problemId: activeProblem.id,
           exerciseText: activeProblem.problem,
+          canvas: { paths },
           solutionImage: dataUrl,
           referenceSolution: activeProblem.referenceSolution ?? "N/A",
         });
@@ -139,8 +146,7 @@ export function Canvas() {
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
               if (!activeProblem || !activeAssignment) return;
-              storeCurrentPathsOnStudentSolution();
-              onCheck(dataUrl);
+              onCheck(dataUrl, paths);
             }}
             disabled={isEmpty || isSubmitting}
             className="check-answer-button flex items-center gap-2"
@@ -162,7 +168,7 @@ export function Canvas() {
           />
         </div>
         <CelebrationDialog
-          evaluationResult={evaluationResult}
+          evaluationResult={studentSolution?.evaluation ?? null}
           open={celebrationOpen}
           setOpen={setCelebrationOpen}
         />
@@ -182,12 +188,11 @@ export function Canvas() {
       toggleEraser,
       clear,
       isEraser,
-      storeCurrentPathsOnStudentSolution,
+      paths,
       onCheck,
       trackEvent,
       undo,
       redo,
-      evaluationResult,
       activeProblem,
       activeAssignment,
     ],
