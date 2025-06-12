@@ -121,22 +121,9 @@ export class ProblemRepository {
       },
     });
     if (exampleProblemsInDB.length === 0) {
-      const adminUser = await this.db.user.findFirst({
-        where: {
-          email: {
-            in: ["bauertill@gmail.com", "max@mxgr.de"],
-          },
-        },
-      });
-      if (!adminUser) {
-        throw new Error(
-          "Admin user not found, cannot create example problems, need at least max@mxgr.de or bauertill@gmail.com to exist in the database",
-        );
-      }
       await this.db.problem.createMany({
         data: exampleProblems.map((problem) => ({
           ...problem,
-          userId: adminUser.id,
         })),
       });
       return exampleProblems;
