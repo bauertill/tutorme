@@ -1,10 +1,10 @@
 "use client";
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
+import { type Path } from "@/core/studentSolution/studentSolution.types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import { useActiveAssignmentId } from "@/store/assignment.selectors";
-import { Path } from "@/store/canvas.slice";
 import { useHelp } from "@/store/help.selectors";
 import { useActiveProblem } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
@@ -195,6 +195,7 @@ export function Canvas() {
       redo,
       activeProblem,
       activeAssignment,
+      studentSolution?.evaluation,
     ],
   );
   return useMemo(
