@@ -1,6 +1,6 @@
+import { type Point } from "@/core/canvas/canvas.types";
 import { cn } from "@/lib/utils";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { type Point } from "./utils";
 
 export default memo(function PointingTool({
   children,

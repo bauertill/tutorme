@@ -1,7 +1,7 @@
 "use client";
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
-import { type Path } from "@/core/studentSolution/studentSolution.types";
+import { type Path } from "@/core/canvas/canvas.types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import { useActiveAssignmentId } from "@/store/assignment.selectors";

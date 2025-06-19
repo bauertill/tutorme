@@ -1,7 +1,7 @@
 "use client";
+import { type Path, type Point } from "@/core/canvas/canvas.types";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
-import { type Path, type Point } from "@/store/canvas.slice";
 import assert from "assert";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AnimatedScrollIcon from "./AnimatedScrollIcon";

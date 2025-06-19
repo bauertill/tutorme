@@ -1,12 +1,6 @@
+import { type Path, type Point } from "@/core/canvas/canvas.types";
 import assert from "assert";
 import { Canvg } from "canvg";
-
-export type Point = {
-  x: number;
-  y: number;
-};
-
-export type Path = Point[];
 
 export async function toDataUrl(
   svgElement: SVGSVGElement,
