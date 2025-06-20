@@ -21,10 +21,6 @@ import {
 import { createProblemSlice, type ProblemSlice } from "./problem.slice";
 import { createProfileSlice, type ProfileSlice } from "./profile.slice";
 import {
-  createStudentSolutionSlice,
-  type StudentSolutionSlice,
-} from "./studentSolution.slice";
-import {
   createUsageLimitSlice,
   type UsageLimitSlice,
 } from "./usageLimit.slice";
@@ -36,7 +32,6 @@ export type MiddlewareList = [
 ];
 
 export type State = AssignmentSlice &
-  StudentSolutionSlice &
   ProblemSlice &
   CanvasSlice &
   UsageLimitSlice &
@@ -68,7 +63,6 @@ const useStoreBase = create<State>()(
       immer((...a) => ({
         ...createAssignmentSlice(...a),
         ...createProblemSlice(...a),
-        ...createStudentSolutionSlice(...a),
         ...createCanvasSlice(...a),
         ...createUsageLimitSlice(...a),
         ...createProfileSlice(...a),

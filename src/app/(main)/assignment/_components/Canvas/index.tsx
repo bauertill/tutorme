@@ -66,11 +66,7 @@ export function Canvas() {
   } = useHelp();
   const trackEvent = useTrackEvent();
 
-  useSaveCanvas({
-    problemId: activeProblemId,
-    studentAssignmentId: activeAssignmentId,
-    paths,
-  });
+  useSaveCanvas();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({

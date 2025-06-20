@@ -1,16 +1,10 @@
-import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import { type Problem } from "@/core/problem/problem.types";
 import { type StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { api } from "@/trpc/react";
-import { useCallback, useEffect } from "react";
-import { useDebouncedCallback } from "use-debounce";
+import { useCallback } from "react";
 import { useShallow } from "zustand/shallow";
 import { useStore } from ".";
 import { useActiveAssignmentId } from "./assignment.selectors";
-import {
-  useStudentSolution,
-  useStudentSolutions,
-} from "./studentSolution.selectors";
 
 export const useActiveProblem = (): Problem | null => {
   const activeAssignmentId = useActiveAssignmentId();
@@ -40,7 +34,8 @@ export const useUnsolvedProblems = (): Problem[] => {
     api.assignment.getStudentAssignment.useSuspenseQuery(
       activeAssignmentId ?? "",
     );
-  const studentSolutions = useStudentSolutions();
+  const [studentSolutions] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery();
   if (!activeAssignment) return [];
   return activeAssignment.problems.filter((p) => {
     const studentSolution = studentSolutions.find(
@@ -51,10 +46,21 @@ export const useUnsolvedProblems = (): Problem[] => {
   });
 };
 
+export const useActiveStudentSolution = (): StudentSolution | null => {
+  const activeProblemId = useStore.use.activeProblemId();
+  const activeAssignmentId = useActiveAssignmentId();
+  const [studentSolutions] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery();
+  return (
+    studentSolutions.find(
+      (s) =>
+        s.problemId === activeProblemId &&
+        s.studentAssignmentId === activeAssignmentId,
+    ) ?? null
+  );
+};
+
 export const useProblemController = (): {
-  activeAssignment: StudentAssignment | null;
-  activeProblem: Problem | null;
-  activeStudentSolution: StudentSolution | null;
   nextProblem?: Problem;
   previousProblem?: Problem;
   gotoNextProblem: () => void;
@@ -64,9 +70,6 @@ export const useProblemController = (): {
 } => {
   const setActiveProblem = useStore.use.setActiveProblem();
   const setCanvas = useStore.use.setCanvas();
-  const paths = useStore.use.paths();
-  const storeCurrentPathsOnStudentSolution =
-    useStore.use.storeCurrentPathsOnStudentSolution();
 
   const activeAssignmentId = useActiveAssignmentId();
   const [activeAssignment] =
@@ -77,20 +80,8 @@ export const useProblemController = (): {
   const activeProblemIndex =
     activeAssignment?.problems.findIndex((p) => p.id === activeProblem?.id) ??
     0;
-  const studentSolutions = useStudentSolutions();
-  const activeStudentSolution = useStudentSolution(
-    activeProblem?.id ?? null,
-    activeAssignment?.id ?? null,
-  );
-
-  const debouncedStorePaths = useDebouncedCallback(
-    useCallback(() => {
-      if (paths) storeCurrentPathsOnStudentSolution();
-    }, [paths, storeCurrentPathsOnStudentSolution]),
-    5000,
-    { leading: true, trailing: true, maxWait: 5000 },
-  );
-  useEffect(debouncedStorePaths, [paths, debouncedStorePaths]);
+  const [studentSolutions] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery();
 
   const nextProblem = activeAssignment?.problems[activeProblemIndex + 1];
   const unsolvedProblems = useUnsolvedProblems();
@@ -155,9 +146,6 @@ export const useProblemController = (): {
   };
 
   return {
-    activeAssignment,
-    activeProblem,
-    activeStudentSolution,
     nextProblem,
     previousProblem,
     gotoNextProblem,

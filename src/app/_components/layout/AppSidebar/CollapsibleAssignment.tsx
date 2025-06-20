@@ -17,7 +17,6 @@ import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import { type Problem } from "@/core/problem/problem.types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
-import { useStudentSolutions } from "@/store/studentSolution.selectors";
 import { api } from "@/trpc/react";
 import { CheckCircle, ChevronRight, Circle, MoreVertical } from "lucide-react";
 import { useState } from "react";
@@ -41,7 +40,6 @@ export function CollapsibleAssignment({
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(assignment.name);
-  const studentSolutions = useStudentSolutions();
   const utils = api.useUtils();
 
   const { mutate: renameAssignment } =
@@ -63,11 +61,15 @@ export function CollapsibleAssignment({
       },
     });
 
-  const solvedProblemsCount = studentSolutions.filter(
-    (solution) =>
-      solution.status === "SOLVED" &&
-      solution.studentAssignmentId === assignment.id,
-  ).length;
+  const [solvedProblemsCount] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
+      select: (studentSolutions) =>
+        studentSolutions.filter(
+          (solution) =>
+            solution.status === "SOLVED" &&
+            solution.studentAssignmentId === assignment.id,
+        ).length,
+    });
   const isSolved = solvedProblemsCount === assignment.problems.length;
 
   const handleDelete = () => {

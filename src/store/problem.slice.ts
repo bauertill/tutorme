@@ -24,7 +24,6 @@ export const createProblemSlice: StateCreator<
     ids: [],
   },
   setActiveProblem: (problem: Problem, assignmentId: string) => {
-    get().storeCurrentPathsOnStudentSolution();
     set((draft) => {
       draft.activeAssignmentId = assignmentId;
       draft.activeProblemId = problem.id;
