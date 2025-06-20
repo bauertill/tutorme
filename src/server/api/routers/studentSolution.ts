@@ -1,10 +1,14 @@
 import { Canvas } from "@/core/canvas/canvas.types";
+import { RecommendedQuestion } from "@/core/help/help.types";
 import { StudentRepository } from "@/core/student/student.repository";
 import {
   evaluateSolution,
   setStudentSolutionCanvas,
+  setStudentSolutionEvaluation,
+  setStudentSolutionRecommendedQuestions,
 } from "@/core/studentSolution/studentSolution.domain";
 import { StudentSolutionRepository } from "@/core/studentSolution/studentSolution.repository";
+import { EvaluationResult } from "@/core/studentSolution/studentSolution.types";
 import {
   createTRPCRouter,
   limitedPublicProcedure,
@@ -58,6 +62,40 @@ export const studentSolutionRouter = createTRPCRouter({
         input.studentAssignmentId,
         input.problemId,
         input.canvas,
+        ctx.db,
+      );
+    }),
+
+  setStudentSolutionRecommendedQuestions: protectedProcedure
+    .input(
+      z.object({
+        problemId: z.string(),
+        studentAssignmentId: z.string(),
+        recommendedQuestions: z.array(RecommendedQuestion),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await setStudentSolutionRecommendedQuestions(
+        input.studentAssignmentId,
+        input.problemId,
+        input.recommendedQuestions,
+        ctx.db,
+      );
+    }),
+
+  setStudentSolutionEvaluation: protectedProcedure
+    .input(
+      z.object({
+        problemId: z.string(),
+        studentAssignmentId: z.string(),
+        evaluation: EvaluationResult,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await setStudentSolutionEvaluation(
+        input.studentAssignmentId,
+        input.problemId,
+        input.evaluation,
         ctx.db,
       );
     }),

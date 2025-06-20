@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { CelebrationDialog } from "./CelebrationDialog";
 import HelpButton from "./HelpButton";
 import { useCanvas } from "./useCanvas";
+import { useSaveCanvas } from "./useSaveCanvas";
 
 export function Canvas() {
   const { t } = useTranslation();
@@ -64,6 +65,12 @@ export function Canvas() {
     newAssistantMessage,
   } = useHelp();
   const trackEvent = useTrackEvent();
+
+  useSaveCanvas({
+    problemId: activeProblemId,
+    studentAssignmentId: activeAssignmentId,
+    paths,
+  });
 
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({

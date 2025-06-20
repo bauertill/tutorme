@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Canvas } from "../canvas/canvas.types";
+import { RecommendedQuestion } from "../help/help.types";
 
 export const EvaluationResult = z.object({
   hint: z.string().optional(),
@@ -17,11 +18,12 @@ export const StudentSolution = z.object({
   id: z.string(),
   status: z.enum(["INITIAL", "IN_PROGRESS", "SOLVED"]),
   canvas: Canvas,
-  evaluation: EvaluationResult.optional().nullable(),
+  evaluation: EvaluationResult.nullable(),
   studentAssignmentId: z.string(),
   problemId: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  recommendedQuestions: z.array(RecommendedQuestion),
 });
 
 export type StudentSolution = z.infer<typeof StudentSolution>;

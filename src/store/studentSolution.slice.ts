@@ -1,7 +1,4 @@
-import {
-  type EvaluationResult,
-  type StudentSolution,
-} from "@/core/studentSolution/studentSolution.types";
+import { type StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
 
@@ -12,12 +9,6 @@ export interface StudentSolutionSlice {
   };
   storeCurrentPathsOnStudentSolution: () => void;
   ensureStudentSolution: (problemId?: string, assignmentId?: string) => void;
-  upsertStudentSolutions: (studentSolutions: StudentSolution[]) => void;
-  setEvaluationResult: (
-    problemId: string,
-    studentAssignmentId: string,
-    evaluationResult: EvaluationResult,
-  ) => void;
 }
 
 const newStudentSolution = (
@@ -30,9 +21,10 @@ const newStudentSolution = (
     studentAssignmentId,
     createdAt: new Date(),
     status: "INITIAL",
-    evaluation: undefined,
+    evaluation: null,
     canvas: { paths: [] },
     updatedAt: new Date(),
+    recommendedQuestions: [],
   };
 };
 
@@ -75,31 +67,4 @@ export const createStudentSolutionSlice: StateCreator<
       }
     });
   },
-  upsertStudentSolutions: (solutions: StudentSolution[]) =>
-    set(({ studentSolutions }) => {
-      studentSolutions.entities = {
-        ...studentSolutions.entities,
-        ...Object.fromEntries(
-          solutions.map((s) => [`${s.problemId}-${s.studentAssignmentId}`, s]),
-        ),
-      };
-      studentSolutions.ids = Object.keys(studentSolutions.entities);
-    }),
-  setEvaluationResult: (
-    problemId: string,
-    studentAssignmentId: string,
-    evaluationResult: EvaluationResult,
-  ) =>
-    set(({ studentSolutions }) => {
-      const id = `${problemId}-${studentAssignmentId}`;
-      if (!id) return;
-      const studentSolution = studentSolutions.entities[id];
-      if (!studentSolution) return;
-      studentSolution.evaluation = evaluationResult;
-      studentSolution.updatedAt = new Date();
-      const isCorrect =
-        evaluationResult.isComplete && !evaluationResult.hasMistakes;
-      if (isCorrect) studentSolution.status = "SOLVED";
-      else studentSolution.status = "IN_PROGRESS";
-    }),
 });

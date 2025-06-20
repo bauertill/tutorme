@@ -227,12 +227,14 @@ model Problem {
 }
 
 model StudentSolution {
-  id         String                @id @default(cuid())
-  createdAt  DateTime              @default(now())
-  updatedAt  DateTime              @updatedAt
-  status     StudentSolutionStatus @default(INITIAL)
-  canvas     Json
-  evaluation Json?
+  id                   String                @id @default(cuid())
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  status               StudentSolutionStatus @default(INITIAL)
+  canvas               Json                  @default("{\"paths\": []}")
+  evaluation           Json                  @default("null")
+  messages             Message[]
+  recommendedQuestions Json                  @default("[]")
 
   studentAssignmentId String
   studentAssignment   StudentAssignment @relation(fields: [studentAssignmentId], references: [id], onDelete: Cascade)
@@ -241,6 +243,21 @@ model StudentSolution {
   problemId String
 
   @@unique([problemId, studentAssignmentId])
+}
+
+enum MessageRole {
+  user
+  assistant
+}
+
+model Message {
+  id                String          @id @default(cuid())
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  role              MessageRole
+  content           String
+  studentSolutionId String
+  studentSolution   StudentSolution @relation(fields: [studentSolutionId], references: [id], onDelete: Cascade)
 }
 
 enum StudentSolutionStatus {
