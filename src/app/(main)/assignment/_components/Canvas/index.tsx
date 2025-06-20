@@ -2,6 +2,7 @@
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { type Path } from "@/core/canvas/canvas.types";
+import { useSaveCanvasPeriodically } from "@/hooks/use-save-canvas-periodically";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import { useActiveAssignmentId } from "@/store/assignment.selectors";
@@ -64,6 +65,7 @@ export function Canvas() {
     newAssistantMessage,
   } = useHelp();
   const trackEvent = useTrackEvent();
+  useSaveCanvasPeriodically();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({

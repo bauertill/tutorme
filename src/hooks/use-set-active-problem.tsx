@@ -2,6 +2,7 @@ import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { isEqual } from "lodash";
 import { useCallback } from "react";
+import { useSaveCanvas } from "./use-save-canvas";
 
 export function useSetActiveProblem() {
   const storeSetActiveProblem = useStore.use.setActiveProblem();
@@ -9,35 +10,8 @@ export function useSetActiveProblem() {
   const activeAssignmentId = useStore.use.activeAssignmentId();
   const paths = useStore.use.paths();
   const setPaths = useStore.use.setPaths();
-  const utils = api.useUtils();
 
-  // save curent canvas to current studentsolution (activeproblem and activeassignment)
-  const { mutate: saveCanvas } =
-    api.studentSolution.setStudentSolutionCanvas.useMutation({
-      onMutate: (updatedStudentSolution) => {
-        // @TODO: only update the studentSolution that has changed
-        utils.studentSolution.listStudentSolutions.setData(
-          undefined,
-          (existingSolutions) => {
-            if (!existingSolutions) return existingSolutions;
-            return existingSolutions.map((existingSolution) => {
-              if (
-                existingSolution.problemId ===
-                  updatedStudentSolution.problemId &&
-                existingSolution.studentAssignmentId ===
-                  updatedStudentSolution.studentAssignmentId
-              ) {
-                return {
-                  ...existingSolution,
-                  canvas: updatedStudentSolution.canvas,
-                };
-              }
-              return existingSolution;
-            });
-          },
-        );
-      },
-    });
+  const { mutate: saveCanvas } = useSaveCanvas();
 
   const { data: studentSolutions } =
     api.studentSolution.listStudentSolutions.useQuery();
