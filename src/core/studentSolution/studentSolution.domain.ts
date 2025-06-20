@@ -23,13 +23,12 @@ export function setStudentSolutionCanvas(
 }
 
 export function setStudentSolutionRecommendedQuestions(
-  studentAssignmentId: string,
-  problemId: string,
+  studentSolutionId: string,
   recommendedQuestions: RecommendedQuestion[],
   db: PrismaClient,
 ) {
   const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(studentAssignmentId, problemId, {
+  return repository.updateStudentSolution(studentSolutionId, {
     recommendedQuestions,
   });
 }

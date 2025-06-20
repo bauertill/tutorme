@@ -9,7 +9,6 @@ import { create } from "zustand";
 import { devtools, persist, type PersistStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { createCanvasSlice, type CanvasSlice } from "./canvas.slice";
-import { createHelpSlice, type HelpSlice } from "./help.slice";
 import {
   createOnboardingSlice,
   type OnboardingSlice,
@@ -31,7 +30,6 @@ export type State = ProblemSlice &
   CanvasSlice &
   UsageLimitSlice &
   ProfileSlice &
-  HelpSlice &
   OnboardingSlice;
 
 const storage: PersistStorage<State> = {
@@ -60,7 +58,6 @@ const useStoreBase = create<State>()(
         ...createCanvasSlice(...a),
         ...createUsageLimitSlice(...a),
         ...createProfileSlice(...a),
-        ...createHelpSlice(...a),
         ...createOnboardingSlice(...a),
       })),
       {

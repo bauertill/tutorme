@@ -1,5 +1,6 @@
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
+import { useActiveStudentSolution } from "@/store/problem.selectors";
 import { MessageCircleQuestion } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import HelpBox from "./HelpBox";
@@ -19,11 +20,12 @@ export default function HelpButton({
     trackEvent("opened_helpbox");
     setOpen(true);
   };
+  const studentSolution = useActiveStudentSolution();
 
   return (
     <>
       <AnimatePresence>
-        {open && (
+        {open && studentSolution && (
           <motion.div
             initial={{ opacity: 0, scale: 0.1 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -34,6 +36,7 @@ export default function HelpButton({
             <HelpBox
               onClose={() => setOpen(false)}
               getCanvasDataUrl={getCanvasDataUrl}
+              studentSolutionId={studentSolution.id}
             />
           </motion.div>
         )}

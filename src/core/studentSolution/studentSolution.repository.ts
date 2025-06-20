@@ -4,6 +4,23 @@ import { Prisma, type PrismaClient } from "@prisma/client";
 export class StudentSolutionRepository {
   constructor(private db: PrismaClient) {}
 
+  async updateStudentSolution(
+    studentSolutionId: string,
+    props: Partial<
+      Omit<StudentSolution, "id" | "studentAssignmentId" | "problemId">
+    >,
+  ): Promise<StudentSolution> {
+    const result = await this.db.studentSolution.update({
+      where: { id: studentSolutionId },
+      data: {
+        ...props,
+        evaluation:
+          props.evaluation === null ? Prisma.JsonNull : props.evaluation,
+      },
+    });
+    return StudentSolution.parse(result);
+  }
+
   async upsertStudentSolution(
     studentAssignmentId: string,
     problemId: string,

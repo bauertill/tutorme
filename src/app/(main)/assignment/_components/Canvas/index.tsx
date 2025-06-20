@@ -2,10 +2,10 @@
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { type Path } from "@/core/canvas/canvas.types";
+import { useHelp } from "@/hooks/use-help";
 import { useSaveCanvasPeriodically } from "@/hooks/use-save-canvas-periodically";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
-import { useHelp } from "@/store/help.selectors";
 import {
   useActiveAssignmentId,
   useActiveProblem,
@@ -51,21 +51,23 @@ export function Canvas() {
   const activeProblem = useActiveProblem();
   const [studentSolution] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
-      select: (data) =>
-        data.find(
+      select: (data) => {
+        const studentSolution = data.find(
           (solution) =>
             solution.problemId === activeProblemId &&
             solution.studentAssignmentId === activeAssignmentId,
-        ),
+        );
+        if (!studentSolution) {
+          throw new Error("Student solution not found");
+        }
+        return studentSolution;
+      },
     });
   const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
-  const {
-    messages,
-    setMessages,
-    setRecommendedQuestions,
-    newAssistantMessage,
-  } = useHelp();
+  const { addMessage, setRecommendedQuestions, newAssistantMessage } = useHelp(
+    studentSolution.id,
+  );
   const trackEvent = useTrackEvent();
   useSaveCanvasPeriodically();
 
@@ -84,7 +86,7 @@ export function Canvas() {
           message = t("assignment.feedback.notComplete");
 
         if (result.hint) message += `\n${result.hint}`;
-        if (message) setMessages([...messages, newAssistantMessage(message)]);
+        if (message) addMessage(newAssistantMessage(message));
         setRecommendedQuestions(result.followUpQuestions);
         setHelpOpen(true);
       },

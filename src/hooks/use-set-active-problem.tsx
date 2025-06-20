@@ -18,23 +18,24 @@ export function useSetActiveProblem() {
 
   const setActiveProblem = useCallback(
     async (problemId: string, assignmentId: string) => {
-      if (!activeProblemId || !activeAssignmentId) return;
-      const cachedCanvas = studentSolutions?.find(
-        (solution) =>
-          solution.problemId === activeProblemId &&
-          solution.studentAssignmentId === activeAssignmentId,
-      )?.canvas;
+      if (activeProblemId && activeAssignmentId) {
+        const cachedCanvas = studentSolutions?.find(
+          (solution) =>
+            solution.problemId === activeProblemId &&
+            solution.studentAssignmentId === activeAssignmentId,
+        )?.canvas;
 
-      const userHasChangedCanvas = !isEqual(paths, cachedCanvas?.paths);
-      console.log("userHasChangedCanvas", userHasChangedCanvas);
-      if (userHasChangedCanvas) {
-        saveCanvas({
-          problemId: activeProblemId,
-          studentAssignmentId: activeAssignmentId,
-          canvas: {
-            paths: paths,
-          },
-        });
+        const userHasChangedCanvas = !isEqual(paths, cachedCanvas?.paths);
+        console.log("userHasChangedCanvas", userHasChangedCanvas);
+        if (userHasChangedCanvas) {
+          saveCanvas({
+            problemId: activeProblemId,
+            studentAssignmentId: activeAssignmentId,
+            canvas: {
+              paths: paths,
+            },
+          });
+        }
       }
 
       storeSetActiveProblem(problemId, assignmentId);
