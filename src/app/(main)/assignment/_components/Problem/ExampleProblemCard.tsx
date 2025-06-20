@@ -2,8 +2,8 @@
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { Trans } from "@/i18n/react";
-import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { ArrowRight, BookOpen } from "lucide-react";
 
@@ -16,12 +16,12 @@ export default function ExampleProblemCard() {
         void utils.assignment.listStudentAssignments.invalidate();
         const problem = exampleAssignment.problems[0];
         if (problem) {
-          setActiveProblem(problem, exampleAssignment.id);
+          void setActiveProblem(problem.id, exampleAssignment.id);
         }
       },
     });
 
-  const setActiveProblem = useStore.use.setActiveProblem();
+  const setActiveProblem = useSetActiveProblem();
   const trackEvent = useTrackEvent();
 
   const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {

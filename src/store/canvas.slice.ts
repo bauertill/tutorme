@@ -1,4 +1,4 @@
-import { type Canvas, type Path } from "@/core/canvas/canvas.types";
+import { type Path } from "@/core/canvas/canvas.types";
 import { type StateCreator } from "zustand";
 import { type MiddlewareList, type State } from ".";
 
@@ -16,7 +16,7 @@ export interface CanvasSlice {
   clear: () => void;
 
   // Problem management
-  setCanvas: (canvas: Canvas) => void;
+  setPaths: (paths: Path[]) => void;
 }
 
 const UNDO_HISTORY_SIZE = 100;
@@ -87,10 +87,10 @@ export const createCanvasSlice: StateCreator<
       };
     }),
 
-  setCanvas: (canvas: Canvas) =>
+  setPaths: (paths: Path[]) =>
     set(() => {
       return {
-        paths: canvas.paths,
+        paths,
         undoStack: [],
         redoStack: [],
         isDrawing: false,

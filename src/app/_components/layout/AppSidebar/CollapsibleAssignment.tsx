@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
 import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import { type Problem } from "@/core/problem/problem.types";
+import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
@@ -27,7 +28,6 @@ interface CollapsibleAssignmentProps {
   isOpen: boolean;
   onOpenChange: () => void;
   activeProblem: Problem | null;
-  setActiveProblem: (problem: Problem, assignmentId: string) => void;
 }
 
 export function CollapsibleAssignment({
@@ -35,12 +35,12 @@ export function CollapsibleAssignment({
   isOpen,
   onOpenChange,
   activeProblem,
-  setActiveProblem,
 }: CollapsibleAssignmentProps) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(assignment.name);
   const utils = api.useUtils();
+  const setActiveProblem = useSetActiveProblem();
 
   const { mutate: renameAssignment } =
     api.assignment.renameAssignment.useMutation({
@@ -165,7 +165,7 @@ export function CollapsibleAssignment({
                 "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-accent",
                 activeProblem?.id === problem.id && "bg-accent",
               )}
-              onClick={() => setActiveProblem(problem, assignment.id)}
+              onClick={() => setActiveProblem(problem.id, assignment.id)}
             >
               <SidebarText className="overflow-hidden text-ellipsis whitespace-nowrap">
                 <span className="mr-1 text-muted-foreground">
