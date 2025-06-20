@@ -55,7 +55,7 @@ export async function evaluateSolution(
     evaluateSolutionLLM(input, llmAdapter),
     judgeHandwritingLLM(input, llmAdapter),
   ]);
-  setStudentSolutionCanvas(
+  await setStudentSolutionCanvas(
     input.studentAssignmentId,
     input.problemId,
     input.canvas,
