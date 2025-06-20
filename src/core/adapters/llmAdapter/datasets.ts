@@ -8,16 +8,12 @@ export async function createDatasetInLangSmith(
   const client = new Client();
   const datasetName = `${name}${stage !== "production" ? `-${stage}` : ""}`;
   try {
-    await client.createDataset(datasetName, {
-      description: "Dataset for sanity checks of student solutions",
-    });
+    return await client.createDataset(datasetName);
   } catch (error) {
     console.error("Error creating dataset in LangSmith:", error);
     if (error instanceof Error && error.message.includes("already exists")) {
       console.log("Dataset already exists");
-      for await (const dataset of client.listDatasets({
-        datasetName,
-      })) {
+      for await (const dataset of client.listDatasets({ datasetName })) {
         return dataset;
       }
     } else {

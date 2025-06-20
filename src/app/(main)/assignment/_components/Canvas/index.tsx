@@ -216,6 +216,7 @@ export function Canvas() {
       activeProblem,
       activeAssignment,
       studentSolution,
+      latestEvaluateSolutionRunId,
     ],
   );
   return useMemo(
