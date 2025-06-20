@@ -63,7 +63,7 @@ const useStoreBase = create<State>()(
       {
         name: "tutormegood-store",
         storage,
-        version: 3,
+        version: 4,
       },
     ),
   ),
