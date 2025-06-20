@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { type StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { useAuth } from "@/lib/react-auth";
+import { api } from "@/trpc/react";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 
 const ADMINS = [
@@ -12,21 +12,30 @@ const ADMINS = [
 ];
 
 export function LLMFeedbackButton({
-  studentSolution,
+  latestEvaluateSolutionRunId,
 }: {
-  studentSolution?: StudentSolution;
+  latestEvaluateSolutionRunId: string;
 }) {
   const { session } = useAuth();
 
   // Only show for superadmins
   const isAdmin = session?.user?.email && ADMINS.includes(session.user.email);
+  const { mutate: addPositiveSampleToQualityControlDataset } =
+    api.studentSolution.addPositiveSampleToQualityControlDataset.useMutation();
 
-  if (!isAdmin || !studentSolution) {
+  if (!isAdmin || !latestEvaluateSolutionRunId) {
     return null;
   }
 
-  const handleFeedback = (type: "up" | "down") => {
+  const handleFeedback = async (type: "up" | "down") => {
     console.log(`LLM Feedback: ${type}`);
+    if (type === "up") {
+      addPositiveSampleToQualityControlDataset({
+        runId: latestEvaluateSolutionRunId,
+      });
+    } else {
+      console.log("THUMBS DOWN");
+    }
   };
 
   return (

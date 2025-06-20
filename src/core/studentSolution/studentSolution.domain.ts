@@ -46,15 +46,22 @@ export function setStudentSolutionEvaluation(
   });
 }
 
+export type EvaluateSolutionWithRunIdResult = {
+  evaluation: EvaluationResult;
+  evaluateSolutionRunId: string;
+  handwritingRunId: string;
+};
+
 export async function evaluateSolution(
   input: EvaluateSolutionInput,
   llmAdapter: LLMAdapter,
   db: PrismaClient,
-): Promise<EvaluationResult> {
+): Promise<EvaluateSolutionWithRunIdResult> {
   const [evaluation, handwriting] = await Promise.all([
     evaluateSolutionLLM(input, llmAdapter),
     judgeHandwritingLLM(input, llmAdapter),
   ]);
+
   await setStudentSolutionCanvas(
     input.studentAssignmentId,
     input.problemId,
@@ -64,15 +71,22 @@ export async function evaluateSolution(
 
   if (handwriting.agreement) {
     return {
-      ...evaluation,
-      isLegible: true,
+      evaluateSolutionRunId: evaluation.runId,
+      handwritingRunId: "TODO",
+      evaluation: {
+        ...evaluation.result,
+        isLegible: true,
+      },
     };
   }
 
   return {
-    ...evaluation,
-    isComplete: false,
-    isLegible: false,
-    hint: handwriting.clarifying_request,
+    evaluateSolutionRunId: evaluation.runId,
+    handwritingRunId: "TODO",
+    evaluation: {
+      ...evaluation.result,
+      isLegible: false,
+      hint: handwriting.clarifying_request,
+    },
   };
 }

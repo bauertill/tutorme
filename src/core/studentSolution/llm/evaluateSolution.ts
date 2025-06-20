@@ -105,11 +105,16 @@ export type EvaluateSolutionInput = {
   canvas: Canvas;
 };
 
+export type EvaluateSolutionResult = {
+  result: z.infer<typeof EvaluateSolutionSchema>;
+  runId: string;
+};
+
 // Function to evaluate the solution using the multimodal LLM
 export async function evaluateSolution(
   input: EvaluateSolutionInput,
   llmAdapter: LLMAdapter,
-): Promise<z.infer<typeof EvaluateSolutionSchema>> {
+): Promise<EvaluateSolutionResult> {
   const {
     problemId,
     exerciseText,
@@ -118,6 +123,8 @@ export async function evaluateSolution(
     studentAssignmentId,
     language,
   } = input;
+
+  let runId = "";
 
   const prompt = await llmAdapter.hub.pull("evaluate_solution");
   const response = await prompt
@@ -145,8 +152,19 @@ export async function evaluateSolution(
           problemId,
           studentAssignmentId,
         },
+        callbacks: [
+          {
+            handleChainStart: (chain, inputs, runId_) => {
+              // Capture the run ID from the callback
+              runId = runId_;
+            },
+          },
+        ],
       },
     );
 
-  return response;
+  return {
+    result: response,
+    runId,
+  };
 }

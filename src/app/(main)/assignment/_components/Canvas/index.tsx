@@ -69,6 +69,8 @@ export function Canvas() {
     newAssistantMessage,
   } = useHelp();
   const trackEvent = useTrackEvent();
+  const [latestEvaluateSolutionRunId, setLatestEvaluateSolutionRunId] =
+    useState("");
 
   useSaveCanvas({
     problemId: activeProblemId,
@@ -79,22 +81,25 @@ export function Canvas() {
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
       onSuccess: (result) => {
-        if (!result.hasMistakes && result.isComplete) {
+        const { evaluation, evaluateSolutionRunId } = result;
+        if (!evaluation.hasMistakes && evaluation.isComplete) {
           setCelebrationOpen(true);
           return;
         }
         let message = "";
-        if (!result.isLegible) message = t("assignment.feedback.notLegible");
-        else if (result.hasMistakes)
+        if (!evaluation.isLegible)
+          message = t("assignment.feedback.notLegible");
+        else if (evaluation.hasMistakes)
           message = t("assignment.feedback.hasMistakes");
-        else if (!result.isComplete)
+        else if (!evaluation.isComplete)
           message = t("assignment.feedback.notComplete");
 
-        if (result.hint) message += `\n${result.hint}`;
+        if (evaluation.hint) message += `\n${evaluation.hint}`;
         if (message) setMessages([...messages, newAssistantMessage(message)]);
-        setRecommendedQuestions(result.followUpQuestions);
+        setRecommendedQuestions(evaluation.followUpQuestions);
         setHelpOpen(true);
-        utils.studentSolution.listStudentSolutions.invalidate();
+        setLatestEvaluateSolutionRunId(evaluateSolutionRunId);
+        void utils.studentSolution.listStudentSolutions.invalidate();
       },
       onError: (error) => {
         if (error.message === "Free tier limit reached") {
@@ -129,7 +134,9 @@ export function Canvas() {
     () => (
       <>
         <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
-          <LLMFeedbackButton studentSolution={studentSolution} />
+          <LLMFeedbackButton
+            latestEvaluateSolutionRunId={latestEvaluateSolutionRunId}
+          />
           <Button
             variant={!isEraser ? "default" : "outline"}
             onClick={() => void toggleEraser(false)}
@@ -208,7 +215,7 @@ export function Canvas() {
       redo,
       activeProblem,
       activeAssignment,
-      studentSolution?.evaluation,
+      studentSolution,
     ],
   );
   return useMemo(
