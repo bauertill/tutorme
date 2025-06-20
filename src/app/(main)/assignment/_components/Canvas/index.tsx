@@ -82,6 +82,7 @@ export function Canvas() {
     api.studentSolution.submitSolution.useMutation({
       onSuccess: (result) => {
         const { evaluation, evaluateSolutionRunId } = result;
+        setLatestEvaluateSolutionRunId(evaluateSolutionRunId);
         if (!evaluation.hasMistakes && evaluation.isComplete) {
           setCelebrationOpen(true);
           return;
@@ -98,7 +99,6 @@ export function Canvas() {
         if (message) setMessages([...messages, newAssistantMessage(message)]);
         setRecommendedQuestions(evaluation.followUpQuestions);
         setHelpOpen(true);
-        setLatestEvaluateSolutionRunId(evaluateSolutionRunId);
         void utils.studentSolution.listStudentSolutions.invalidate();
       },
       onError: (error) => {
