@@ -155,8 +155,10 @@ export async function evaluateSolution(
         callbacks: [
           {
             handleChainStart: (chain, inputs, runId_) => {
-              // Capture the run ID from the callback
-              runId = runId_;
+              // Only capture the run ID from the first chain start which is the entire chain
+              if (!runId) {
+                runId = runId_;
+              }
             },
           },
         ],
