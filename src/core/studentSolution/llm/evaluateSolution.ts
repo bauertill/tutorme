@@ -1,4 +1,5 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
+import { type Canvas } from "@/core/canvas/canvas.types";
 import { type Language, LanguageName } from "@/i18n/types";
 import { HumanMessage } from "@langchain/core/messages";
 import {
@@ -101,6 +102,7 @@ export type EvaluateSolutionInput = {
   solutionImage: string;
   referenceSolution: string;
   language: Language;
+  canvas: Canvas;
 };
 
 // Function to evaluate the solution using the multimodal LLM

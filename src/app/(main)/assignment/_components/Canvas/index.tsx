@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { LLMFeedbackButton } from "../LLMFeedbackButton";
 import { CelebrationDialog } from "./CelebrationDialog";
 import HelpButton from "./HelpButton";
 import { useCanvas } from "./useCanvas";
@@ -26,6 +27,7 @@ import { useSaveCanvas } from "./useSaveCanvas";
 
 export function Canvas() {
   const { t } = useTranslation();
+  const utils = api.useUtils();
   const {
     canvas,
     undo,
@@ -49,12 +51,14 @@ export function Canvas() {
   const activeProblem = useActiveProblem();
   const [studentSolution] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
-      select: (data) =>
-        data.find(
+      select: (data) => {
+        const solution = data.find(
           (solution) =>
             solution.problemId === activeProblemId &&
             solution.studentAssignmentId === activeAssignmentId,
-        ),
+        );
+        return solution;
+      },
     });
   const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
@@ -90,6 +94,7 @@ export function Canvas() {
         if (message) setMessages([...messages, newAssistantMessage(message)]);
         setRecommendedQuestions(result.followUpQuestions);
         setHelpOpen(true);
+        utils.studentSolution.listStudentSolutions.invalidate();
       },
       onError: (error) => {
         if (error.message === "Free tier limit reached") {
@@ -124,6 +129,7 @@ export function Canvas() {
     () => (
       <>
         <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
+          <LLMFeedbackButton studentSolution={studentSolution} />
           <Button
             variant={!isEraser ? "default" : "outline"}
             onClick={() => void toggleEraser(false)}

@@ -49,11 +49,18 @@ export function setStudentSolutionEvaluation(
 export async function evaluateSolution(
   input: EvaluateSolutionInput,
   llmAdapter: LLMAdapter,
+  db: PrismaClient,
 ): Promise<EvaluationResult> {
   const [evaluation, handwriting] = await Promise.all([
     evaluateSolutionLLM(input, llmAdapter),
     judgeHandwritingLLM(input, llmAdapter),
   ]);
+  setStudentSolutionCanvas(
+    input.studentAssignmentId,
+    input.problemId,
+    input.canvas,
+    db,
+  );
 
   if (handwriting.agreement) {
     return {

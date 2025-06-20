@@ -35,6 +35,7 @@ export const studentSolutionRouter = createTRPCRouter({
           language: ctx.userLanguage,
         },
         ctx.llmAdapter,
+        ctx.db,
       );
     }),
 
