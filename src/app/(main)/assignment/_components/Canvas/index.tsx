@@ -5,9 +5,11 @@ import { type Path } from "@/core/canvas/canvas.types";
 import { useSaveCanvasPeriodically } from "@/hooks/use-save-canvas-periodically";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
-import { useActiveAssignmentId } from "@/store/assignment.selectors";
 import { useHelp } from "@/store/help.selectors";
-import { useActiveProblem } from "@/store/problem.selectors";
+import {
+  useActiveAssignmentId,
+  useActiveProblem,
+} from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import {
   Eraser,

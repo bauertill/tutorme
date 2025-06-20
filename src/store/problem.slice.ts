@@ -3,6 +3,7 @@ import type { MiddlewareList, State } from ".";
 
 export interface ProblemSlice {
   activeProblemId: string | null;
+  activeAssignmentId: string | null;
   referenceSolutions: {
     entities: Record<string, string>;
     ids: string[];
@@ -18,6 +19,7 @@ export const createProblemSlice: StateCreator<
   ProblemSlice
 > = (set, get) => ({
   activeProblemId: null,
+  activeAssignmentId: null,
   referenceSolutions: {
     entities: {},
     ids: [],

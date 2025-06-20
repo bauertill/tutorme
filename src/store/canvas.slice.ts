@@ -8,15 +8,12 @@ export interface CanvasSlice {
   undoStack: Path[][];
   redoStack: Path[][];
 
-  // Canvas actions
+  setPaths: (paths: Path[]) => void;
   addPath: (path: Path) => void;
   removePathsAtIndexes: (indexes: number[]) => void;
   undo: () => void;
   redo: () => void;
   clear: () => void;
-
-  // Problem management
-  setPaths: (paths: Path[]) => void;
 }
 
 const UNDO_HISTORY_SIZE = 100;
@@ -32,6 +29,16 @@ export const createCanvasSlice: StateCreator<
   paths: [],
   undoStack: [],
   redoStack: [],
+
+  setPaths: (paths: Path[]) =>
+    set(() => {
+      return {
+        paths,
+        undoStack: [],
+        redoStack: [],
+        isDrawing: false,
+      };
+    }),
 
   addPath: (path: Path) =>
     set((state: CanvasSlice) => {
@@ -84,16 +91,6 @@ export const createCanvasSlice: StateCreator<
         paths: [],
         undoStack: [...state.undoStack, state.paths].slice(-UNDO_HISTORY_SIZE),
         redoStack: [],
-      };
-    }),
-
-  setPaths: (paths: Path[]) =>
-    set(() => {
-      return {
-        paths,
-        undoStack: [],
-        redoStack: [],
-        isDrawing: false,
       };
     }),
 });

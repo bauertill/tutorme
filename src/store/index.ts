@@ -8,10 +8,6 @@ import superjson from "superjson";
 import { create } from "zustand";
 import { devtools, persist, type PersistStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import {
-  createAssignmentSlice,
-  type AssignmentSlice,
-} from "./assignment.slice";
 import { createCanvasSlice, type CanvasSlice } from "./canvas.slice";
 import { createHelpSlice, type HelpSlice } from "./help.slice";
 import {
@@ -31,8 +27,7 @@ export type MiddlewareList = [
   ["zustand/immer", never],
 ];
 
-export type State = AssignmentSlice &
-  ProblemSlice &
+export type State = ProblemSlice &
   CanvasSlice &
   UsageLimitSlice &
   ProfileSlice &
@@ -61,7 +56,6 @@ const useStoreBase = create<State>()(
   devtools(
     persist(
       immer((...a) => ({
-        ...createAssignmentSlice(...a),
         ...createProblemSlice(...a),
         ...createCanvasSlice(...a),
         ...createUsageLimitSlice(...a),

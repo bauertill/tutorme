@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Tour } from "@/components/ui/tour";
 import { useStore } from "@/store";
-import { useActiveAssignmentId } from "@/store/assignment.selectors";
+import { useActiveAssignmentId } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import Exercise from "./_components/Exercise";
 import Onboarding from "./_components/Onboarding";

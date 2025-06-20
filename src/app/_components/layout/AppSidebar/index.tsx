@@ -20,8 +20,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useAuth } from "@/lib/react-auth";
-import { useActiveAssignmentId } from "@/store/assignment.selectors";
-import { useActiveProblem } from "@/store/problem.selectors";
+import {
+  useActiveAssignmentId,
+  useActiveProblem,
+} from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";

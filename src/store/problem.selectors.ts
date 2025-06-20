@@ -5,7 +5,10 @@ import { api } from "@/trpc/react";
 import { useCallback } from "react";
 import { useShallow } from "zustand/shallow";
 import { useStore } from ".";
-import { useActiveAssignmentId } from "./assignment.selectors";
+
+export const useActiveAssignmentId = (): string | null => {
+  return useStore(useShallow(({ activeAssignmentId }) => activeAssignmentId));
+};
 
 export const useActiveProblem = (): Problem | null => {
   const activeAssignmentId = useActiveAssignmentId();
