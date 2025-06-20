@@ -27,6 +27,7 @@ import HelpButton from "./HelpButton";
 import { useCanvas } from "./useCanvas";
 
 export function Canvas() {
+  const utils = api.useUtils();
   const { t } = useTranslation();
   const {
     canvas,
@@ -68,12 +69,26 @@ export function Canvas() {
   const { addMessage, setRecommendedQuestions, newAssistantMessage } = useHelp(
     studentSolution.id,
   );
+  const { mutate: setStudentSolutionEvaluation } =
+    api.studentSolution.setStudentSolutionEvaluation.useMutation({
+      onMutate: ({ studentSolutionId, evaluation }) => {
+        utils.studentSolution.listStudentSolutions.setData(undefined, (old) =>
+          old?.map((s) =>
+            s.id === studentSolutionId ? { ...s, evaluation } : s,
+          ),
+        );
+      },
+    });
   const trackEvent = useTrackEvent();
   useSaveCanvasPeriodically();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
       onSuccess: (result) => {
+        setStudentSolutionEvaluation({
+          studentSolutionId: studentSolution.id,
+          evaluation: result,
+        });
         if (!result.hasMistakes && result.isComplete) {
           setCelebrationOpen(true);
           return;

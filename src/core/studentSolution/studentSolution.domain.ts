@@ -34,13 +34,12 @@ export function setStudentSolutionRecommendedQuestions(
 }
 
 export function setStudentSolutionEvaluation(
-  studentAssignmentId: string,
-  problemId: string,
+  studentSolutionId: string,
   evaluation: EvaluationResult,
   db: PrismaClient,
 ) {
   const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(studentAssignmentId, problemId, {
+  return repository.updateStudentSolution(studentSolutionId, {
     evaluation,
   });
 }

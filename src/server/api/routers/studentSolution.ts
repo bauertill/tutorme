@@ -84,15 +84,13 @@ export const studentSolutionRouter = createTRPCRouter({
   setStudentSolutionEvaluation: protectedProcedure
     .input(
       z.object({
-        problemId: z.string(),
-        studentAssignmentId: z.string(),
+        studentSolutionId: z.string(),
         evaluation: EvaluationResult,
       }),
     )
     .mutation(async ({ ctx, input }) => {
       return await setStudentSolutionEvaluation(
-        input.studentAssignmentId,
-        input.problemId,
+        input.studentSolutionId,
         input.evaluation,
         ctx.db,
       );
