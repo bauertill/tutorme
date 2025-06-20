@@ -14,9 +14,28 @@ export function useSetActiveProblem() {
   // save curent canvas to current studentsolution (activeproblem and activeassignment)
   const { mutate: saveCanvas } =
     api.studentSolution.setStudentSolutionCanvas.useMutation({
-      onSuccess: () => {
+      onMutate: (updatedStudentSolution) => {
         // @TODO: only update the studentSolution that has changed
-        void utils.studentSolution.listStudentSolutions.invalidate();
+        utils.studentSolution.listStudentSolutions.setData(
+          undefined,
+          (existingSolutions) => {
+            if (!existingSolutions) return existingSolutions;
+            return existingSolutions.map((existingSolution) => {
+              if (
+                existingSolution.problemId ===
+                  updatedStudentSolution.problemId &&
+                existingSolution.studentAssignmentId ===
+                  updatedStudentSolution.studentAssignmentId
+              ) {
+                return {
+                  ...existingSolution,
+                  canvas: updatedStudentSolution.canvas,
+                };
+              }
+              return existingSolution;
+            });
+          },
+        );
       },
     });
 
