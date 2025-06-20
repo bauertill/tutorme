@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/react-auth";
 import { api } from "@/trpc/react";
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { toast } from "sonner";
 
 const ADMINS = [
   "max@mxgr.de",
@@ -20,8 +21,14 @@ export function LLMFeedbackButton({
 
   // Only show for superadmins
   const isAdmin = session?.user?.email && ADMINS.includes(session.user.email);
-  const { mutate: addPositiveSampleToQualityControlDataset } =
-    api.studentSolution.addPositiveSampleToQualityControlDataset.useMutation();
+  const {
+    mutate: addPositiveSampleToQualityControlDataset,
+    isPending: isAddingPositiveSample,
+  } = api.studentSolution.addPositiveSampleToQualityControlDataset.useMutation({
+    onSuccess: () => {
+      toast.success("Added positive sample to quality control dataset");
+    },
+  });
 
   if (!isAdmin || !latestEvaluateSolutionRunId) {
     return null;
@@ -45,8 +52,13 @@ export function LLMFeedbackButton({
         size="lg"
         onClick={() => handleFeedback("up")}
         className="flex items-center gap-2"
+        disabled={isAddingPositiveSample}
       >
-        <ThumbsUp className="h-6 w-6" />
+        {isAddingPositiveSample ? (
+          <Loader2 className="h-6 w-6 animate-spin" />
+        ) : (
+          <ThumbsUp className="h-6 w-6" />
+        )}
         Good
       </Button>
       <Button

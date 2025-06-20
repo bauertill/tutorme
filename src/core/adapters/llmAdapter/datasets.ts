@@ -7,20 +7,10 @@ export async function createDatasetInLangSmith(
 ): Promise<Dataset> {
   const client = new Client();
   const datasetName = `${name}${stage !== "production" ? `-${stage}` : ""}`;
-  try {
-    return await client.createDataset(datasetName);
-  } catch (error) {
-    console.error("Error creating dataset in LangSmith:", error);
-    if (error instanceof Error && error.message.includes("already exists")) {
-      console.log("Dataset already exists");
-      for await (const dataset of client.listDatasets({ datasetName })) {
-        return dataset;
-      }
-    } else {
-      throw error;
-    }
+  for await (const dataset of client.listDatasets({ datasetName })) {
+    return dataset;
   }
-  throw new Error("Dataset not found");
+  return await client.createDataset(datasetName);
 }
 
 export async function addRunToDataset(datasetId: string, runId: string) {
