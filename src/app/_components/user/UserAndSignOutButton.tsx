@@ -13,7 +13,7 @@ export function UserAndSignOutButton({ user }: { user: User }) {
   const clearAssignments = useStore.use.clearAssignments();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=offcanvas]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=offcanvas]:gap-0">
       <Avatar className="h-6 w-6 flex-shrink-0">
         <AvatarImage
           src={imageUrl ?? undefined}

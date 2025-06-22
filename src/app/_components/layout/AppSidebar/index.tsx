@@ -14,6 +14,8 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarInput,
+  SidebarMenu,
+  SidebarMenuButton,
   SidebarRail,
   SidebarText,
   useSidebar,
@@ -21,8 +23,15 @@ import {
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
-import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
+import {
+  BookOpen,
+  ChevronLeft,
+  GraduationCap,
+  SearchIcon,
+  Users,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export function AppSidebar() {
@@ -93,9 +102,9 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r bg-background">
-      <div
-        onClick={() => (state === "collapsed" ? setOpen(true) : null)}
+      <SidebarMenu
         className="flex h-full flex-col"
+        onClick={() => (state === "collapsed" ? setOpen(true) : null)}
       >
         <SidebarHeader className="ml-1 mt-2 flex-shrink-0 transition-all duration-200 ease-linear">
           <div className="flex items-center gap-1 font-medium">
@@ -118,20 +127,26 @@ export function AppSidebar() {
             </Button>
           </div>
         </SidebarHeader>
-        <SidebarGroup className="transition-all duration-200 ease-linear">
+        <SidebarGroup className="transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
           <SidebarGroupContent>
-            <UploadUserProblems trigger="button" />
+            <SidebarMenuButton asChild tooltip={t("upload_assignment")}>
+              <UploadUserProblems trigger="button" />
+            </SidebarMenuButton>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup className="transition-all duration-200 ease-linear">
+        <SidebarGroup className="transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
           <div className="relative flex h-10 w-full flex-shrink-0 items-center transition-all duration-200 ease-linear">
             <SearchIcon
-              className="absolute left-2 top-1/2 size-4 flex-shrink-0 -translate-y-1/2 cursor-pointer text-muted-foreground"
+              className={`absolute top-1/2 size-4 flex-shrink-0 -translate-y-1/2 cursor-pointer text-muted-foreground transition-all duration-200 ease-linear ${
+                state === "collapsed" ? "left-1/2 -translate-x-1/2" : "left-2"
+              }`}
               onClick={() => searchInputRef.current?.focus()}
             />
             <SidebarInput
               ref={searchInputRef}
-              placeholder={t("search_exercises")}
+              placeholder={
+                state === "collapsed" ? undefined : t("search_exercises")
+              }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={`w-full transition-all duration-200 ease-linear ${
@@ -140,8 +155,8 @@ export function AppSidebar() {
             />
           </div>
         </SidebarGroup>
-        <SidebarGroup className="no-scrollbar overflow-y-auto overflow-x-hidden pr-1 transition-all duration-200 ease-linear">
-          <div className="mb-2 ml-2 mt-2 flex items-center gap-4">
+        <SidebarGroup className="no-scrollbar overflow-y-auto overflow-x-hidden pr-1 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
+          <div className="mb-2 ml-2 mt-2 flex items-center gap-4 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=offcanvas]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=offcanvas]:justify-center">
             <BookOpen className="size-4 text-muted-foreground" />
             <SidebarText className="flex items-center gap-2">
               <p className="text-sm font-medium text-muted-foreground">
@@ -167,26 +182,45 @@ export function AppSidebar() {
             </SidebarText>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarFooter className="mt-auto w-full flex-shrink-0 transition-all duration-200 ease-linear">
-          <div className="min-h-[90px] w-full transition-all duration-200 ease-linear">
+
+        <SidebarFooter className="mt-auto w-full flex-shrink-0 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
+          <div className="min-h-[90px] w-full items-center justify-center transition-all duration-200">
+            <SidebarGroup className="mb-2 w-full px-2 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
+              <SidebarGroupContent className="flex flex-col items-center justify-center">
+                <SidebarMenuButton
+                  asChild
+                  tooltip={t("teacher.sidebar.go_to_teacher_view")}
+                >
+                  <Link href="/teacher">
+                    <Users className="size-4" />
+                    <SidebarText>
+                      {t("teacher.sidebar.go_to_teacher_view")}
+                    </SidebarText>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarGroupContent>
+            </SidebarGroup>
             {session.data?.user ? (
-              <div className="mb-2 w-full px-2 transition-all duration-200 ease-linear">
+              <div className="mb-2 w-full px-2 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
                 <UserAndSignOutButton user={session.data.user} />
               </div>
             ) : (
-              <div className="mb-2 w-full transition-all duration-200 ease-linear">
+              <div className="mb-2 w-full px-2 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
                 <SignInButton
                   variant="ghost"
-                  className="w-full justify-start"
+                  className="w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=offcanvas]:justify-center"
                 />
               </div>
             )}
-            <CollapsibleSettings />
+            <SidebarGroup className="px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
+              <CollapsibleSettings />
+            </SidebarGroup>
           </div>
           <Footer className="transition-all duration-200 ease-linear" />
         </SidebarFooter>
-      </div>
-      <SidebarRail />
+
+        <SidebarRail />
+      </SidebarMenu>
     </Sidebar>
   );
 }

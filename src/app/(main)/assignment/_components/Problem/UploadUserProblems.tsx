@@ -18,11 +18,12 @@ import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadToBlob } from "./uploadToBlob";
 
-export function UploadUserProblems({
-  trigger,
-}: {
-  trigger: "button" | "card";
-}) {
+export const UploadUserProblems = React.forwardRef<
+  HTMLButtonElement,
+  {
+    trigger: "button" | "card";
+  } & React.ComponentProps<"button">
+>(({ trigger, ...props }, ref) => {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<
@@ -131,10 +132,12 @@ export function UploadUserProblems({
 
       {trigger === "button" && (
         <Button
+          ref={ref}
           variant="ghost"
           onClick={handleButtonClick}
           type="button"
-          className="flex h-9 w-full items-center justify-start px-2 transition-all duration-200 ease-linear"
+          {...props}
+          className="flex h-9 w-full items-center justify-start px-2 transition-all duration-200 ease-linear group-data-[collapsible=icon]:justify-center group-data-[collapsible=offcanvas]:justify-center"
         >
           <CameraIcon className="h-5 w-5 flex-shrink-0" />
           <SidebarText className="ml-2 overflow-hidden">
@@ -207,4 +210,6 @@ export function UploadUserProblems({
       </Dialog>
     </>
   );
-}
+});
+
+UploadUserProblems.displayName = "UploadUserProblems";

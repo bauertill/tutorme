@@ -34,6 +34,11 @@ const translation = {
       notComplete: "Mach weiter!",
     },
   },
+  teacher: {
+    sidebar: {
+      go_to_teacher_view: "Zum Lehrer-Modus",
+    },
+  },
   delete_all_assignments_confirmation:
     "Willst du wirklich alle Aufgaben löschen? Dies kann nicht rückgängig gemacht werden.",
   manage_subscription: "Abonnement verwalten",

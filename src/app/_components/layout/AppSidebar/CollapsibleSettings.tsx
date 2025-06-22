@@ -50,7 +50,7 @@ export function CollapsibleSettings() {
       onOpenChange={(open) => setIsOpen(open)}
       className="transition-all duration-200 ease-linear"
     >
-      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-all duration-200 ease-linear hover:bg-accent">
+      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-all duration-200 ease-linear hover:bg-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=offcanvas]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
         <Settings
           className={cn(
             "size-4 flex-shrink-0 transition-transform duration-200",
