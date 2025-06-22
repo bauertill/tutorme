@@ -2,7 +2,7 @@ import {
   SubscriptionStatus,
   type StripeEvent,
   type StripeSubscription,
-} from "@/core/subscription/types";
+} from "@/core/subscription/subscription.types";
 import { env } from "@/env";
 import assert from "assert";
 import Stripe from "stripe";

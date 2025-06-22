@@ -62,9 +62,7 @@ export function SearchProblems() {
             <Card key={problem.id} className="flex flex-col">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="">
-                    {problem.dataSource} | {problem.level} | {problem.type}
-                  </CardTitle>
+                  <CardTitle className="">{problem.problemNumber}</CardTitle>
                   <Badge variant="outline">{score.toFixed(2)}</Badge>
                 </div>
               </CardHeader>
@@ -73,9 +71,11 @@ export function SearchProblems() {
                   <Latex>{problem.problem}</Latex>
                 </p>
                 <Separator className="my-4" />
-                <p className="text-sm">
-                  <Latex>{problem.solution}</Latex>
-                </p>
+                {problem.referenceSolution && (
+                  <p className="text-sm">
+                    <Latex>{problem.referenceSolution}</Latex>
+                  </p>
+                )}
               </CardContent>
               <CardFooter></CardFooter>
             </Card>

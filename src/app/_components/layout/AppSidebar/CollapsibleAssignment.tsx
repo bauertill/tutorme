@@ -13,21 +13,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
-import { type Assignment, type UserProblem } from "@/core/assignment/types";
+import { type StudentAssignment } from "@/core/assignment/assignment.types";
+import { type Problem } from "@/core/problem/problem.types";
+import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
-import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { CheckCircle, ChevronRight, Circle, MoreVertical } from "lucide-react";
 import { useState } from "react";
 import Latex from "react-latex-next";
 
 interface CollapsibleAssignmentProps {
-  assignment: Assignment;
+  assignment: StudentAssignment;
   isOpen: boolean;
   onOpenChange: () => void;
-  activeProblem: UserProblem | null;
-  setActiveProblem: (problem: UserProblem) => void;
+  activeProblem: Problem | null;
 }
 
 export function CollapsibleAssignment({
@@ -35,22 +35,18 @@ export function CollapsibleAssignment({
   isOpen,
   onOpenChange,
   activeProblem,
-  setActiveProblem,
 }: CollapsibleAssignmentProps) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(assignment.name);
-  const editAssignment = useStore.use.editAssignment();
-  const deleteAssignment = useStore.use.deleteAssignment();
+  const utils = api.useUtils();
+  const setActiveProblem = useSetActiveProblem();
 
-  const { mutate: renameAssignment, isPending: isRenaming } =
+  const { mutate: renameAssignment } =
     api.assignment.renameAssignment.useMutation({
       onSuccess: () => {
         setIsEditing(false);
-        editAssignment({
-          ...assignment,
-          name: newName,
-        });
+        void utils.assignment.invalidate();
       },
       onError: (error) => {
         console.error("Failed to rename assignment:", error);
@@ -58,16 +54,22 @@ export function CollapsibleAssignment({
       },
     });
 
-  const { mutate: deleteAssignmentMutation, isPending: isDeleting } =
+  const { mutate: deleteAssignmentMutation } =
     api.assignment.deleteAssignment.useMutation({
-      onSuccess: () => {
-        deleteAssignment(assignment.id);
+      onSuccess: async () => {
+        void utils.assignment.invalidate();
       },
     });
 
-  const solvedProblemsCount = assignment.problems.filter(
-    (problem) => problem.status === "SOLVED",
-  ).length;
+  const [solvedProblemsCount] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
+      select: (studentSolutions) =>
+        studentSolutions.filter(
+          (solution) =>
+            solution.status === "SOLVED" &&
+            solution.studentAssignmentId === assignment.id,
+        ).length,
+    });
   const isSolved = solvedProblemsCount === assignment.problems.length;
 
   const handleDelete = () => {
@@ -163,7 +165,7 @@ export function CollapsibleAssignment({
                 "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-accent",
                 activeProblem?.id === problem.id && "bg-accent",
               )}
-              onClick={() => setActiveProblem(problem)}
+              onClick={() => setActiveProblem(problem.id, assignment.id)}
             >
               <SidebarText className="overflow-hidden text-ellipsis whitespace-nowrap">
                 <span className="mr-1 text-muted-foreground">

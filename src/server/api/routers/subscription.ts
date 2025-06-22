@@ -3,45 +3,46 @@ import {
   createPortalUrl,
   getSubscription,
   isSubscribed,
-} from "@/core/subscription/subscriptionDomain";
+} from "@/core/subscription/subscription.domain";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const subscriptionRouter = createTRPCRouter({
   getSubscription: protectedProcedure.query(async ({ ctx }) => {
-    return await getSubscription(ctx.session.user.id, ctx.dbAdapter);
+    return await getSubscription(ctx.session.user.id, ctx.db);
   }),
 
   createCheckoutUrl: protectedProcedure.mutation(
     async ({
       ctx: {
+        db,
         paymentAdapter,
         session: { user },
       },
     }) => {
-      return await createCheckoutUrl(user, paymentAdapter);
+      return await createCheckoutUrl(user, db, paymentAdapter);
     },
   ),
 
   createPortalUrl: protectedProcedure.mutation(
     async ({
       ctx: {
-        dbAdapter,
+        db,
         paymentAdapter,
         session: { user },
       },
     }) => {
-      return await createPortalUrl(user, dbAdapter, paymentAdapter);
+      return await createPortalUrl(user, db, paymentAdapter);
     },
   ),
 
   isSubscribed: protectedProcedure.query(
     async ({
       ctx: {
-        dbAdapter,
+        db,
         session: { user },
       },
     }) => {
-      return await isSubscribed(user.id, dbAdapter);
+      return await isSubscribed(user.id, db);
     },
   ),
 });

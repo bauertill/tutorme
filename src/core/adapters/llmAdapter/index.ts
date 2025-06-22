@@ -1,9 +1,9 @@
-import * as assignment from "./assignment";
-import * as help from "./help";
+import * as hub from "langchain/hub";
+import * as models from "./models";
 
 export const llmAdapter = {
-  assignment,
-  help,
+  hub,
+  models,
 };
 
 export type LLMAdapter = typeof llmAdapter;

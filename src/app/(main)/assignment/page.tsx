@@ -9,21 +9,34 @@ import {
 } from "@/components/ui/sidebar";
 import { Tour } from "@/components/ui/tour";
 import { useStore } from "@/store";
-import { useActiveAssignment } from "@/store/selectors";
+import { useActiveAssignmentId } from "@/store/problem.selectors";
+import { api } from "@/trpc/react";
 import Exercise from "./_components/Exercise";
 import Onboarding from "./_components/Onboarding";
+
 export default function AssignmentPage() {
-  const activeAssignment = useActiveAssignment();
-  const assignments = useStore.use.assignments();
+  const activeAssignmentId = useActiveAssignmentId();
+  const [activeAssignment] =
+    api.assignment.getStudentAssignment.useSuspenseQuery(
+      activeAssignmentId ?? "",
+    );
+  const [assignments] =
+    api.assignment.listStudentAssignments.useSuspenseQuery();
+  const [solvedProblemsCount] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
+      select: (studentSolutions) =>
+        studentSolutions.filter(
+          (solution) =>
+            solution.status === "SOLVED" &&
+            solution.studentAssignmentId === activeAssignmentId,
+        ).length ?? 0,
+    });
 
   const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
   if (assignments.length === 0) {
     return <Onboarding />;
   }
 
-  const solvedProblemsCount =
-    activeAssignment?.problems.filter((problem) => problem.status === "SOLVED")
-      .length ?? 0;
   const totalProblems = activeAssignment?.problems.length ?? 0;
   const progressPercentage =
     totalProblems > 0 ? (solvedProblemsCount / totalProblems) * 100 : 0;

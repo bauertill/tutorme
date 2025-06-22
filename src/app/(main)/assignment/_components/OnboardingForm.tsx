@@ -2,15 +2,15 @@ import { LanguagePicker } from "@/app/_components/user/LanguagePicker";
 import { SignInButton } from "@/app/_components/user/SignInButton";
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
 import { Trans } from "@/i18n/react";
+import { useAuth } from "@/lib/react-auth";
 import { cn } from "@/lib/utils";
-import { useSession } from "next-auth/react";
 import ExampleProblemCard from "./Problem/ExampleProblemCard";
 import { UploadUserProblems } from "./Problem/UploadUserProblems";
 export function OnboardingForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
-  const { data: session } = useSession();
+  const { session, isAnon } = useAuth();
   const user = session?.user;
   return (
     <form
@@ -43,7 +43,7 @@ export function OnboardingForm({
           </span>
         </div>
 
-        {user ? (
+        {user && !isAnon ? (
           <UserAndSignOutButton user={user} />
         ) : (
           <SignInButton variant="outline" className="w-full">

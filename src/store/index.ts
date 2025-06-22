@@ -8,12 +8,17 @@ import superjson from "superjson";
 import { create } from "zustand";
 import { devtools, persist, type PersistStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { createAssignmentSlice, type AssignmentSlice } from "./assignment";
-import { createCanvasSlice, type CanvasSlice } from "./canvas";
-import { createHelpSlice, type HelpSlice } from "./help";
-import { createOnboardingSlice, type OnboardingSlice } from "./onboarding";
-import { createProfileSlice, type ProfileSlice } from "./profile";
-import { createUsageLimitSlice, type UsageLimitSlice } from "./usageLimit";
+import { createCanvasSlice, type CanvasSlice } from "./canvas.slice";
+import {
+  createOnboardingSlice,
+  type OnboardingSlice,
+} from "./onboarding.slice";
+import { createProblemSlice, type ProblemSlice } from "./problem.slice";
+import { createProfileSlice, type ProfileSlice } from "./profile.slice";
+import {
+  createUsageLimitSlice,
+  type UsageLimitSlice,
+} from "./usageLimit.slice";
 
 export type MiddlewareList = [
   ["zustand/devtools", never],
@@ -21,11 +26,10 @@ export type MiddlewareList = [
   ["zustand/immer", never],
 ];
 
-export type State = AssignmentSlice &
+export type State = ProblemSlice &
   CanvasSlice &
   UsageLimitSlice &
   ProfileSlice &
-  HelpSlice &
   OnboardingSlice;
 
 const storage: PersistStorage<State> = {
@@ -50,17 +54,16 @@ const useStoreBase = create<State>()(
   devtools(
     persist(
       immer((...a) => ({
-        ...createAssignmentSlice(...a),
+        ...createProblemSlice(...a),
         ...createCanvasSlice(...a),
         ...createUsageLimitSlice(...a),
         ...createProfileSlice(...a),
-        ...createHelpSlice(...a),
         ...createOnboardingSlice(...a),
       })),
       {
         name: "tutormegood-store",
         storage,
-        version: 1,
+        version: 4,
       },
     ),
   ),

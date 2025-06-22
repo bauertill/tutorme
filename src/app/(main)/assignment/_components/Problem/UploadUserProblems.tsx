@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { SidebarText } from "@/components/ui/sidebar";
+import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
@@ -33,21 +34,31 @@ export function UploadUserProblems({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const addAssignment = useStore.use.addAssignment();
+  const utils = api.useUtils();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
+  const setActiveProblem = useSetActiveProblem();
   const { mutate: deleteAssignment } =
     api.assignment.deleteAssignment.useMutation();
   const { mutateAsync: createAssignmentFromUpload } =
     api.assignment.createFromUpload.useMutation({
-      onSuccess: (assignment) => {
+      onSuccess: async (assignment) => {
         if (isCancelled) {
           deleteAssignment(assignment.id);
           return;
         }
         setUploadState("success");
         toast.success("Problems uploaded successfully!");
+        utils.assignment.listStudentAssignments.setData(
+          undefined,
+          (oldData) => {
+            if (!oldData) return [assignment];
+            return [...oldData, assignment];
+          },
+        );
+        if (assignment.problems[0]) {
+          void setActiveProblem(assignment.problems[0].id, assignment.id);
+        }
         setOpen(false);
-        addAssignment(assignment);
       },
     });
 

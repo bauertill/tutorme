@@ -1,9 +1,11 @@
 import { problemRouter } from "@/server/api/routers/problem";
+import { problemUploadRouter } from "@/server/api/routers/problemUpload";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { adminRouter } from "./routers/admin";
 import { assignmentRouter } from "./routers/assignment";
 import { helpRouter } from "./routers/help";
 import { renderAsyRouter } from "./routers/renderAsy";
+import { studentSolutionRouter } from "./routers/studentSolution";
 import { subscriptionRouter } from "./routers/subscription";
 
 /**
@@ -14,10 +16,12 @@ import { subscriptionRouter } from "./routers/subscription";
 export const appRouter = createTRPCRouter({
   admin: adminRouter,
   problem: problemRouter,
+  problemUpload: problemUploadRouter,
   renderAsy: renderAsyRouter,
   assignment: assignmentRouter,
   subscription: subscriptionRouter,
   help: helpRouter,
+  studentSolution: studentSolutionRouter,
 });
 
 // export type definition of API

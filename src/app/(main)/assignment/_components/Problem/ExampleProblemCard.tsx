@@ -2,36 +2,32 @@
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { Trans } from "@/i18n/react";
-import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { ArrowRight, BookOpen } from "lucide-react";
 
 export default function ExampleProblemCard() {
-  const { promise } = api.assignment.getExampleAssignment.useQuery(undefined, {
-    staleTime: Infinity,
-    experimental_prefetchInRender: true,
-  });
-  const assignments = useStore.use.assignments();
-  const addAssignment = useStore.use.addAssignment();
-  const setActiveProblem = useStore.use.setActiveProblem();
+  const utils = api.useUtils();
+  const { mutate: createExampleAssignment } =
+    api.assignment.createExampleAssignment.useMutation({
+      onSuccess: (exampleAssignment) => {
+        // @TODO use the .invalidate() method declaratively instead of the .useUtils() method
+        void utils.assignment.listStudentAssignments.invalidate();
+        const problem = exampleAssignment.problems[0];
+        if (problem) {
+          void setActiveProblem(problem.id, exampleAssignment.id);
+        }
+      },
+    });
+
+  const setActiveProblem = useSetActiveProblem();
   const trackEvent = useTrackEvent();
 
-  const onClick = async () => {
+  const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     trackEvent("clicked_example_assignment_card");
-    const existingExampleAssignment = assignments.find(
-      (assignment) => assignment.name === "Example Assignment",
-    );
-
-    if (existingExampleAssignment) {
-      const problem = existingExampleAssignment.problems[0];
-      if (problem) {
-        setActiveProblem(problem);
-      }
-    } else {
-      const exampleAssignment = await promise;
-      addAssignment(exampleAssignment);
-    }
+    createExampleAssignment();
   };
 
   return (

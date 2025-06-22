@@ -1,48 +1,46 @@
 import {
-  cancelProblemUpload,
-  createProblemsFromCsv,
-  deleteProblemUpload,
-  getProblemUploadFiles,
+  createReferenceSolution,
   queryProblems,
-} from "@/core/problem/problemDomain";
+} from "@/core/problem/problem.domain";
+import { ProblemRepository } from "@/core/problem/problem.repository";
 import {
   createTRPCRouter,
   protectedAdminProcedure,
   protectedProcedure,
+  publicProcedure,
 } from "@/server/api/trpc";
 import { z } from "zod";
 
 export const problemRouter = createTRPCRouter({
-  upload: protectedAdminProcedure
-    .input(
-      z.object({
-        fileName: z.string(),
-        fileSize: z.number(),
-        base64EncodedContents: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const csv = Buffer.from(input.base64EncodedContents, "base64").toString(
-        "utf-8",
-      );
-      return await createProblemsFromCsv({ ...input, csv }, ctx.dbAdapter);
-    }),
-  cancelUpload: protectedAdminProcedure
-    .input(z.object({ uploadId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      await cancelProblemUpload(input.uploadId, ctx.dbAdapter);
-    }),
   query: protectedProcedure
     .input(z.object({ query: z.string() }))
     .query(async ({ ctx, input }) => {
-      return await queryProblems(input.query, 25, ctx.dbAdapter);
+      return await queryProblems(input.query, 25, ctx.db);
     }),
-  getUploadFiles: protectedAdminProcedure.query(async ({ ctx }) => {
-    return await getProblemUploadFiles(ctx.dbAdapter);
+
+  createReferenceSolution: publicProcedure
+    .input(z.string())
+    .mutation(async ({ input, ctx }) => {
+      return await createReferenceSolution(
+        input,
+        ctx.llmAdapter,
+        ctx.userLanguage,
+      );
+    }),
+
+  adminUploadProblems: protectedAdminProcedure
+    .input(z.string())
+    .mutation(async ({ ctx }) => {
+      if (!ctx.session.user.id)
+        throw new Error("User must be present for admin actions");
+      // TODO: Implement admin upload problems
+      throw new Error("Not implemented");
+    }),
+
+  getProblems: protectedAdminProcedure.query(async ({ ctx }) => {
+    if (!ctx.session.user.id)
+      throw new Error("User must be present for admin actions");
+    const problemRepository = new ProblemRepository(ctx.db);
+    return await problemRepository.getProblemsByUserId(ctx.session.user.id);
   }),
-  deleteUpload: protectedAdminProcedure
-    .input(z.object({ uploadId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      await deleteProblemUpload(input.uploadId, ctx.dbAdapter);
-    }),
 });

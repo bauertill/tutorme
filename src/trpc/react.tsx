@@ -2,7 +2,12 @@
 
 import { i18n } from "@/i18n/react";
 import { type AppRouter } from "@/server/api/root";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
+import {
+  PersistQueryClientProvider,
+  type Persister,
+} from "@tanstack/react-query-persist-client";
 import {
   loggerLink,
   splitLink,
@@ -73,6 +78,23 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
       ],
     }),
   );
+
+  let persister: Persister | undefined = undefined;
+  if (typeof window !== "undefined") {
+    persister = createSyncStoragePersister({
+      storage: window.localStorage,
+    });
+    return (
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister, buster: "3" }}
+      >
+        <api.Provider client={trpcClient} queryClient={queryClient}>
+          {props.children}
+        </api.Provider>
+      </PersistQueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

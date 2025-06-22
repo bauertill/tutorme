@@ -9,17 +9,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuth } from "@/lib/react-auth";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { skipToken } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { CheckoutWithStripe } from "./CheckoutWithStripe";
 
 export function UsageLimitOverlay() {
-  const { status } = useSession();
-  const { isUsageLimitReached, setUsageLimitReached } = useStore();
-  const isSignedIn = status === "authenticated";
+  const { session, isAnon } = useAuth();
+  const isUsageLimitReached = useStore.use.isUsageLimitReached();
+  const setUsageLimitReached = useStore.use.setUsageLimitReached();
+  const isSignedIn = session && !isAnon;
   const { data: isSubscribed } = api.subscription.isSubscribed.useQuery(
     isSignedIn ? undefined : skipToken,
   );

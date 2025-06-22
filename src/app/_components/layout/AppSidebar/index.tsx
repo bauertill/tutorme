@@ -19,19 +19,22 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Trans, useTranslation } from "@/i18n/react";
-import { useStore } from "@/store";
-import { useActiveProblem, useProblemController } from "@/store/selectors";
+import { useAuth } from "@/lib/react-auth";
+import {
+  useActiveAssignmentId,
+  useActiveProblem,
+} from "@/store/problem.selectors";
+import { api } from "@/trpc/react";
 import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export function AppSidebar() {
   const { t } = useTranslation();
-  const session = useSession();
-  const assignments = useStore.use.assignments();
+  const { session, isAnon } = useAuth();
+  const [assignments] =
+    api.assignment.listStudentAssignments.useSuspenseQuery();
   const activeProblem = useActiveProblem();
-  const activeAssignmentId = useStore.use.activeAssignmentId();
-  const { setActiveProblemWithCanvas } = useProblemController();
+  const activeAssignmentId = useActiveAssignmentId();
   const [openAssignments, setOpenAssignments] = useState<Set<string>>(
     new Set(),
   );
@@ -161,7 +164,6 @@ export function AppSidebar() {
                   isOpen={autoExpandedAssignments.has(assignment.id)}
                   onOpenChange={() => toggleAssignment(assignment.id)}
                   activeProblem={activeProblem}
-                  setActiveProblem={setActiveProblemWithCanvas}
                 />
               ))}
             </SidebarText>
@@ -169,9 +171,9 @@ export function AppSidebar() {
         </SidebarGroup>
         <SidebarFooter className="mt-auto w-full flex-shrink-0 transition-all duration-200 ease-linear">
           <div className="min-h-[90px] w-full transition-all duration-200 ease-linear">
-            {session.data?.user ? (
+            {session?.user && !isAnon ? (
               <div className="mb-2 w-full px-2 transition-all duration-200 ease-linear">
-                <UserAndSignOutButton user={session.data.user} />
+                <UserAndSignOutButton user={session.user} />
               </div>
             ) : (
               <div className="mb-2 w-full transition-all duration-200 ease-linear">

@@ -8,34 +8,35 @@ import { toast } from "sonner";
 
 export default function ProblemFileUpload() {
   const utils = api.useUtils();
-  const { mutate: uploadProblems, isPending } = api.problem.upload.useMutation({
-    onMutate: () => {
-      setRefetchInterval(1000);
-    },
-    onSuccess: (result) => {
-      if (result.status === "SUCCESS") {
-        toast.success("Problems uploaded successfully");
-      } else if (result.status === "CANCELLED") {
-        toast.info("Upload cancelled");
-      } else {
+  const { mutate: uploadProblems, isPending } =
+    api.problemUpload.upload.useMutation({
+      onMutate: () => {
+        setRefetchInterval(1000);
+      },
+      onSuccess: (result) => {
+        if (result.status === "SUCCESS") {
+          toast.success("Problems uploaded successfully");
+        } else if (result.status === "CANCELLED") {
+          toast.info("Upload cancelled");
+        } else {
+          toast.error("Upload failed", {
+            description: result.error,
+          });
+        }
+      },
+      onError: (error) => {
         toast.error("Upload failed", {
-          description: result.error,
+          description: error.message,
         });
-      }
-    },
-    onError: (error) => {
-      toast.error("Upload failed", {
-        description: error.message,
-      });
-    },
-    onSettled: () => {
-      setRefetchInterval(false);
-      void utils.problem.getUploadFiles.invalidate();
-    },
-  });
+      },
+      onSettled: () => {
+        setRefetchInterval(false);
+        void utils.problemUpload.getUploadFiles.invalidate();
+      },
+    });
 
   const [refetchInterval, setRefetchInterval] = useState<number | false>(false);
-  api.problem.getUploadFiles.useQuery(undefined, { refetchInterval });
+  api.problemUpload.getUploadFiles.useQuery(undefined, { refetchInterval });
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {

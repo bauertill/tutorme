@@ -1,6 +1,6 @@
 import { Latex } from "@/app/_components/richtext/Latex";
 import { Button } from "@/components/ui/button";
-import { type RecommendedQuestion } from "@/core/help/types";
+import { type RecommendedQuestion } from "@/core/help/help.types";
 export default function RecommendedQuestionsList({
   disabled,
   onAsk,

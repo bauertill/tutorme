@@ -2,10 +2,11 @@ import ResizableDiv from "@/app/(main)/assignment/_components/Canvas/HelpButton/
 import { useScrollToBottom } from "@/app/_components/layout/useScrollToBottom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { useHelp } from "@/hooks/use-help";
 import { Trans, useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
-import { useHelp } from "@/store/selectors";
+import { useActiveProblem } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import { X } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
@@ -17,29 +18,30 @@ import TextInput from "./TextInput";
 export default function HelpBox({
   onClose,
   getCanvasDataUrl,
+  studentSolutionId,
 }: {
   onClose?: () => void;
   getCanvasDataUrl: () => Promise<string | null>;
+  studentSolutionId: string;
 }) {
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
+  const activeProblem = useActiveProblem();
   const {
     messages,
-    setMessages,
+    addMessage,
     recommendedQuestions,
     setRecommendedQuestions,
     newUserMessage,
     newAssistantMessage,
-    activeProblem,
-  } = useHelp();
+  } = useHelp(studentSolutionId);
   const ask = async (question: string) => {
-    const updatedMessages = [...messages, newUserMessage(question)];
-    setMessages(updatedMessages);
     askMutation.mutate({
       problemId: activeProblem?.id ?? "",
-      messages: updatedMessages,
+      messages: [...messages, newUserMessage(question)],
       problem: activeProblem?.problem ?? "",
       solutionImage: await getCanvasDataUrl(),
     });
+    addMessage(newUserMessage(question));
   };
   const { t } = useTranslation();
   const askMutation = api.help.ask.useMutation({
@@ -47,14 +49,14 @@ export default function HelpBox({
       setRecommendedQuestions([]);
     },
     onSuccess: (reply) => {
-      setMessages([...messages, newAssistantMessage(reply.reply)]);
+      addMessage(newAssistantMessage(reply.reply));
       setRecommendedQuestions(reply.followUpQuestions);
     },
     onError: (error) => {
       if (error.message === "Free tier limit reached") {
         setUsageLimitReached(true);
       } else {
-        setMessages([...messages, newAssistantMessage(error.message)]);
+        addMessage(newAssistantMessage(error.message));
       }
     },
   });
@@ -63,26 +65,23 @@ export default function HelpBox({
       setRecommendedQuestions([]);
     },
     onSuccess: (reply) => {
-      setMessages([...messages, newAssistantMessage(reply.reply)]);
+      addMessage(newAssistantMessage(reply.reply));
       setRecommendedQuestions(reply.followUpQuestions);
     },
     onError: (error) => {
       if (error.message === "Free tier limit reached") {
         setUsageLimitReached(true);
       } else {
-        setMessages([...messages, newAssistantMessage(error.message)]);
+        addMessage(newAssistantMessage(error.message));
       }
     },
   });
   const handleThumbsDown = async () => {
-    const updatedMessages = [
-      ...messages,
-      newUserMessage(t("badResponseButton")),
-    ];
-    setMessages(updatedMessages);
+    const newMessage = newUserMessage(t("badResponseButton"));
+    addMessage(newMessage);
     thumbsDownMutation.mutate({
       problemId: activeProblem?.id ?? "",
-      messages: updatedMessages,
+      messages: [...messages, newMessage],
       problem: activeProblem?.problem ?? "",
       solutionImage: await getCanvasDataUrl(),
     });

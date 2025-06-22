@@ -1,11 +1,11 @@
 "use client";
 
-import { type Path } from "@/app/(main)/assignment/_components/Canvas/utils";
+import { type Path } from "@/core/canvas/canvas.types";
 import { useTranslation } from "@/i18n/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store";
-import { steps } from "@/store/onboarding";
-import { useActiveProblem } from "@/store/selectors";
+import { steps } from "@/store/onboarding.slice";
+import { useActiveProblem } from "@/store/problem.selectors";
 import { useCallback, useEffect } from "react";
 import Joyride, { type CallBackProps, STATUS } from "react-joyride";
 import { Button } from "./button";

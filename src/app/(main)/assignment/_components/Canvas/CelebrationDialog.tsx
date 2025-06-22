@@ -9,9 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { type EvaluationResult } from "@/core/assignment/types";
+import { type EvaluationResult } from "@/core/studentSolution/studentSolution.types";
 import { useTranslation } from "@/i18n/react";
-import { useProblemController } from "@/store/selectors";
+import { useProblemController } from "@/store/problem.selectors";
 
 export function CelebrationDialog({
   evaluationResult,

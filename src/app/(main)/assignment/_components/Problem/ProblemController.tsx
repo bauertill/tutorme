@@ -1,23 +1,25 @@
 "use client";
-import { ProblemStatusIcon } from "@/app/_components/layout/ProblemStatusIcon";
 import { Button } from "@/components/ui/button";
 import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
-import { useProblemController } from "@/store/selectors";
+import {
+  useActiveProblem,
+  useActiveStudentSolution,
+  useProblemController,
+} from "@/store/problem.selectors";
 import { ProblemRenderer } from "./ProblemRenderer";
+import { ProblemStatusIcon } from "./ProblemStatusIcon";
 
 export default function ProblemController() {
-  const {
-    activeAssignment,
-    activeProblem,
-    nextProblem,
-    previousProblem,
-    gotoNextProblem,
-    gotoPreviousProblem,
-  } = useProblemController();
+  const { nextProblem, previousProblem, gotoNextProblem, gotoPreviousProblem } =
+    useProblemController();
+
+  const activeProblem = useActiveProblem();
+  const activeStudentSolution = useActiveStudentSolution();
+  const activeAssignmentId = useStore.use.activeAssignmentId();
 
   const isTourRunning = useStore.use.isTourRunning();
-  if (!activeProblem || !activeAssignment) {
+  if (!activeProblem || !activeAssignmentId) {
     return null;
   }
 
@@ -28,7 +30,9 @@ export default function ProblemController() {
       </div>
 
       <div className="flex flex-row items-center gap-2">
-        <ProblemStatusIcon status={activeProblem.status} />
+        <ProblemStatusIcon
+          status={activeStudentSolution?.status ?? "INITIAL"}
+        />
         <Button
           variant="outline"
           disabled={!previousProblem || isTourRunning}

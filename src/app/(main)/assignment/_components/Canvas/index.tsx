@@ -1,13 +1,15 @@
 "use client";
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
+import { type Path } from "@/core/canvas/canvas.types";
+import { useHelp } from "@/hooks/use-help";
+import { useSaveCanvasPeriodically } from "@/hooks/use-save-canvas-periodically";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import {
+  useActiveAssignmentId,
   useActiveProblem,
-  useEvaluationResult,
-  useHelp,
-} from "@/store/selectors";
+} from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import {
   Eraser,
@@ -25,6 +27,7 @@ import HelpButton from "./HelpButton";
 import { useCanvas } from "./useCanvas";
 
 export function Canvas() {
+  const utils = api.useUtils();
   const { t } = useTranslation();
   const {
     canvas,
@@ -37,47 +40,70 @@ export function Canvas() {
     isEmpty,
     isEraser,
     toggleEraser,
+    paths,
   } = useCanvas();
-  const storeCurrentPathsOnProblem = useStore.use.storeCurrentPathsOnProblem();
+  const activeAssignmentId = useActiveAssignmentId();
+  const [activeAssignment] =
+    api.assignment.getStudentAssignment.useSuspenseQuery(
+      activeAssignmentId ?? "",
+    );
   const activeProblemId = useStore.use.activeProblemId();
-  const { evaluationResult, setEvaluationResult } = useEvaluationResult();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const activeProblem = useActiveProblem();
+  const [studentSolution] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
+      select: (data) => {
+        const studentSolution = data.find(
+          (solution) =>
+            solution.problemId === activeProblemId &&
+            solution.studentAssignmentId === activeAssignmentId,
+        );
+        if (!studentSolution) {
+          throw new Error("Student solution not found");
+        }
+        return studentSolution;
+      },
+    });
   const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
-  const {
-    messages,
-    setMessages,
-    setRecommendedQuestions,
-    newAssistantMessage,
-  } = useHelp();
+  const { addMessage, setRecommendedQuestions, newAssistantMessage } = useHelp(
+    studentSolution.id,
+  );
+  const { mutate: setStudentSolutionEvaluation } =
+    api.studentSolution.setStudentSolutionEvaluation.useMutation({
+      onMutate: ({ studentSolutionId, evaluation }) => {
+        utils.studentSolution.listStudentSolutions.setData(undefined, (old) =>
+          old?.map((s) =>
+            s.id === studentSolutionId ? { ...s, evaluation } : s,
+          ),
+        );
+      },
+    });
   const trackEvent = useTrackEvent();
+  useSaveCanvasPeriodically();
 
   const { mutate: submit, isPending: isSubmitting } =
-    api.assignment.submitSolution.useMutation({
+    api.studentSolution.submitSolution.useMutation({
       onSuccess: (result) => {
-        setEvaluationResult(activeProblem?.id ?? "", result);
-        console.log(result);
+        setStudentSolutionEvaluation({
+          studentSolutionId: studentSolution.id,
+          evaluation: result,
+        });
         if (!result.hasMistakes && result.isComplete) {
           setCelebrationOpen(true);
-        } else {
-          let message = "";
-          if (!result.isLegible) {
-            message = t("assignment.feedback.notLegible");
-          } else if (result.hasMistakes) {
-            message = t("assignment.feedback.hasMistakes");
-          } else if (!result.isComplete) {
-            message = t("assignment.feedback.notComplete");
-          }
-          if (result.hint) {
-            message += `\n${result.hint}`;
-          }
-          if (message) {
-            setMessages([...messages, newAssistantMessage(message)]);
-          }
-          setRecommendedQuestions(result.followUpQuestions);
-          setHelpOpen(true);
+          return;
         }
+        let message = "";
+        if (!result.isLegible) message = t("assignment.feedback.notLegible");
+        else if (result.hasMistakes)
+          message = t("assignment.feedback.hasMistakes");
+        else if (!result.isComplete)
+          message = t("assignment.feedback.notComplete");
+
+        if (result.hint) message += `\n${result.hint}`;
+        if (message) addMessage(newAssistantMessage(message));
+        setRecommendedQuestions(result.followUpQuestions);
+        setHelpOpen(true);
       },
       onError: (error) => {
         if (error.message === "Free tier limit reached") {
@@ -93,17 +119,19 @@ export function Canvas() {
   }, [activeProblemId]);
 
   const onCheck = useCallback(
-    (dataUrl: string) => {
-      if (activeProblem) {
+    (dataUrl: string, paths: Path[]) => {
+      if (activeProblem && activeAssignment) {
         submit({
+          studentAssignmentId: activeAssignment.id,
           problemId: activeProblem.id,
           exerciseText: activeProblem.problem,
+          canvas: { paths },
           solutionImage: dataUrl,
           referenceSolution: activeProblem.referenceSolution ?? "N/A",
         });
       }
     },
-    [activeProblem, submit],
+    [activeProblem, submit, activeAssignment],
   );
 
   const controls = useMemo(
@@ -138,8 +166,8 @@ export function Canvas() {
               trackEvent("clicked_check_solution");
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
-              storeCurrentPathsOnProblem();
-              onCheck(dataUrl);
+              if (!activeProblem || !activeAssignment) return;
+              onCheck(dataUrl, paths);
             }}
             disabled={isEmpty || isSubmitting}
             className="check-answer-button flex items-center gap-2"
@@ -161,7 +189,7 @@ export function Canvas() {
           />
         </div>
         <CelebrationDialog
-          evaluationResult={evaluationResult}
+          evaluationResult={studentSolution?.evaluation ?? null}
           open={celebrationOpen}
           setOpen={setCelebrationOpen}
         />
@@ -181,12 +209,14 @@ export function Canvas() {
       toggleEraser,
       clear,
       isEraser,
-      storeCurrentPathsOnProblem,
+      paths,
       onCheck,
       trackEvent,
       undo,
       redo,
-      evaluationResult,
+      activeProblem,
+      activeAssignment,
+      studentSolution?.evaluation,
     ],
   );
   return useMemo(
