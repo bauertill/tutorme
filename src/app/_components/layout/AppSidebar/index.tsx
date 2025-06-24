@@ -23,15 +23,8 @@ import {
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
 import { useActiveProblem, useProblemController } from "@/store/selectors";
-import {
-  BookOpen,
-  ChevronLeft,
-  GraduationCap,
-  SearchIcon,
-  Users,
-} from "lucide-react";
+import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export function AppSidebar() {
@@ -197,24 +190,6 @@ export function AppSidebar() {
 
         <SidebarFooter className="mt-auto w-full flex-shrink-0 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
           <div className="min-h-[90px] w-full items-center justify-center transition-all duration-200">
-            <SidebarGroup className="mb-2 w-full px-2 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
-              <SidebarGroupContent className="flex flex-col items-center justify-center rounded-sm px-2 hover:bg-accent hover:text-accent-foreground">
-                <SidebarMenuButton
-                  asChild
-                  tooltip={{
-                    children: t("teacher.sidebar.go_to_teacher_view"),
-                    className: "ml-2",
-                  }}
-                >
-                  <Link href="/teacher">
-                    <Users className="size-4" />
-                    <SidebarText>
-                      {t("teacher.sidebar.go_to_teacher_view")}
-                    </SidebarText>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarGroupContent>
-            </SidebarGroup>
             {session.data?.user ? (
               <div className="mb-2 w-full px-2 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
                 <UserAndSignOutButton user={session.data.user} />
