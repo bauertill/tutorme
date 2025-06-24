@@ -134,9 +134,9 @@ export const UploadUserProblems = React.forwardRef<
         <Button
           ref={ref}
           variant="ghost"
-          onClick={handleButtonClick}
           type="button"
           {...props}
+          onClick={handleButtonClick}
           className="flex h-9 w-full items-center justify-start px-2 transition-all duration-200 ease-linear group-data-[collapsible=icon]:justify-center group-data-[collapsible=offcanvas]:justify-center"
         >
           <CameraIcon className="h-5 w-5 flex-shrink-0" />

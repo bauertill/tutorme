@@ -92,5 +92,3 @@ export const CollapsibleSettings = forwardRef<
     </>
   );
 });
-
-CollapsibleSettings.displayName = "CollapsibleSettings";
