@@ -135,29 +135,41 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup className="transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
-          <div className="relative flex h-10 w-full flex-shrink-0 items-center transition-all duration-200 ease-linear">
+          <SidebarGroupContent className="relative flex h-10 w-full flex-shrink-0 items-center transition-all duration-200 ease-linear">
             <SearchIcon
               className={`absolute top-1/2 size-4 flex-shrink-0 -translate-y-1/2 cursor-pointer text-muted-foreground transition-all duration-200 ease-linear ${
                 state === "collapsed" ? "left-1/2 -translate-x-1/2" : "left-2"
               }`}
               onClick={() => searchInputRef.current?.focus()}
             />
-            <SidebarInput
-              ref={searchInputRef}
-              placeholder={
-                state === "collapsed" ? undefined : t("search_exercises")
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full transition-all duration-200 ease-linear ${
-                state === "collapsed" ? "pl-4" : "pl-10"
-              }`}
-            />
-          </div>
+            <SidebarMenuButton
+              asChild
+              unstyled
+              tooltip={{ children: t("search_exercises"), className: "ml-2" }}
+            >
+              <SidebarInput
+                ref={searchInputRef}
+                placeholder={
+                  state === "collapsed" ? undefined : t("search_exercises")
+                }
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full transition-all duration-200 ease-linear ${
+                  state === "collapsed" ? "ml-2 w-8 rounded-full" : "pl-10"
+                }`}
+              />
+            </SidebarMenuButton>
+          </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup className="no-scrollbar overflow-y-auto overflow-x-hidden pr-1 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
-          <div className="mb-2 ml-2 mt-2 flex items-center gap-4 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=offcanvas]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=offcanvas]:justify-center">
-            <BookOpen className="size-4 text-muted-foreground" />
+          <SidebarGroupContent className="mb-2 ml-2 mt-2 flex items-center gap-4 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=offcanvas]:ml-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=offcanvas]:justify-center">
+            <SidebarMenuButton
+              asChild
+              unstyled
+              tooltip={{ children: t("assignments"), className: "ml-3" }}
+            >
+              <BookOpen className="size-5 text-muted-foreground" />
+            </SidebarMenuButton>
             <SidebarText className="flex items-center gap-2">
               <p className="text-sm font-medium text-muted-foreground">
                 <Trans i18nKey="assignments" />
@@ -166,7 +178,7 @@ export function AppSidebar() {
                 {filteredAssignments.length}
               </p>
             </SidebarText>
-          </div>
+          </SidebarGroupContent>
           <SidebarGroupContent className="no-scrollbar overflow-y-auto">
             <SidebarText className="block w-full">
               {filteredAssignments.map((assignment) => (
@@ -186,10 +198,13 @@ export function AppSidebar() {
         <SidebarFooter className="mt-auto w-full flex-shrink-0 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
           <div className="min-h-[90px] w-full items-center justify-center transition-all duration-200">
             <SidebarGroup className="mb-2 w-full px-2 transition-all duration-200 ease-linear group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
-              <SidebarGroupContent className="flex flex-col items-center justify-center">
+              <SidebarGroupContent className="flex flex-col items-center justify-center rounded-sm px-2 hover:bg-accent hover:text-accent-foreground">
                 <SidebarMenuButton
                   asChild
-                  tooltip={t("teacher.sidebar.go_to_teacher_view")}
+                  tooltip={{
+                    children: t("teacher.sidebar.go_to_teacher_view"),
+                    className: "ml-2",
+                  }}
                 >
                   <Link href="/teacher">
                     <Users className="size-4" />
@@ -212,8 +227,12 @@ export function AppSidebar() {
                 />
               </div>
             )}
-            <SidebarGroup className="px-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
-              <CollapsibleSettings />
+            <SidebarGroup className="group-data-[collapsible=icon]:px-0 group-data-[collapsible=offcanvas]:px-0">
+              <SidebarGroupContent>
+                <SidebarMenuButton asChild unstyled tooltip={t("settings")}>
+                  <CollapsibleSettings />
+                </SidebarMenuButton>
+              </SidebarGroupContent>
             </SidebarGroup>
           </div>
           <Footer className="transition-all duration-200 ease-linear" />

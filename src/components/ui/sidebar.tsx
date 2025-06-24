@@ -557,6 +557,7 @@ const SidebarMenuButton = React.forwardRef<
     asChild?: boolean;
     isActive?: boolean;
     tooltip?: string | React.ComponentProps<typeof TooltipContent>;
+    unstyled?: boolean;
   } & VariantProps<typeof sidebarMenuButtonVariants>
 >(
   (
@@ -566,6 +567,7 @@ const SidebarMenuButton = React.forwardRef<
       variant = "default",
       size = "default",
       tooltip,
+      unstyled = false,
       className,
       children,
       ...props
@@ -582,7 +584,7 @@ const SidebarMenuButton = React.forwardRef<
         data-size={size}
         data-active={isActive}
         className={cn(
-          sidebarMenuButtonVariants({ variant, size }),
+          !unstyled && sidebarMenuButtonVariants({ variant, size }),
           "flex justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=offcanvas]:justify-center",
           className,
         )}
