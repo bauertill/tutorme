@@ -34,11 +34,6 @@ const translation = {
       notComplete: "Keep going!",
     },
   },
-  teacher: {
-    sidebar: {
-      go_to_teacher_view: "Go to teacher view",
-    },
-  },
   delete_all_assignments_confirmation:
     "Are you sure you want to delete all assignments? This can not be undone.",
   manage_subscription: "Manage subscription",
