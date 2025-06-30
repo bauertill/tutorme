@@ -441,7 +441,9 @@ export default function GroupsPage() {
                   />
                   <Label htmlFor={student.id} className="flex-1 cursor-pointer">
                     <div className="flex justify-between">
-                      <span>{student.firstName}</span>
+                      <span>
+                        {student.firstName} {student.lastName}
+                      </span>
                       <Badge variant="outline" className="text-xs">
                         {student.grade}
                       </Badge>

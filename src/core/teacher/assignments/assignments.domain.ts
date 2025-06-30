@@ -827,7 +827,7 @@ const studentProgressData: DetailedStudentProgress[] = [
   {
     studentId: "7",
     studentName: "Leon Hoffman",
-    group: "Basic Math",
+    group: "Statistics Group",
     assignments: [
       {
         assignmentId: "1",
