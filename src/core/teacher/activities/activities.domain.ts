@@ -1,4 +1,4 @@
-import { Activity } from "./activities.types";
+import type { Activity } from "./activities.types";
 
 export const getActivities = () => {
   return activities;

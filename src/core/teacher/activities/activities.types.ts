@@ -9,7 +9,7 @@ export interface Activity {
   description: string;
   timestamp: string;
   details: {
-    [key: string]: any;
+    [key: string]: unknown;
   };
   status: ActivityStatus;
   relatedEntities: {
