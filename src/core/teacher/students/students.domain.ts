@@ -131,7 +131,6 @@ export const initialStudents: Student[] = [
   },
 ];
 
-// Add the AI evaluation data after studentWorkloadData
 const aiEvaluationData: AIEvaluation[] = [
   {
     studentId: "1",

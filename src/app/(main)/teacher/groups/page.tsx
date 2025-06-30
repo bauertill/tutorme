@@ -50,7 +50,7 @@ export default function GroupsPage() {
     name: "",
     description: "",
     subject: "",
-    color: "blue",
+    color: "chart-1",
   });
 
   const handleAddGroup = () => {
@@ -66,7 +66,7 @@ export default function GroupsPage() {
       name: "",
       description: "",
       subject: "",
-      color: "blue",
+      color: "chart-1",
     });
     setIsAddDialogOpen(false);
   };
@@ -93,7 +93,7 @@ export default function GroupsPage() {
         name: "",
         description: "",
         subject: "",
-        color: "blue",
+        color: "chart-1",
       });
     }
   };
@@ -130,18 +130,18 @@ export default function GroupsPage() {
 
   const getColorClasses = (color: string) => {
     switch (color) {
-      case "blue":
-        return "border-blue-200 bg-blue-50";
-      case "green":
-        return "border-green-200 bg-green-50";
-      case "purple":
-        return "border-purple-200 bg-purple-50";
-      case "orange":
-        return "border-orange-200 bg-orange-50";
-      case "red":
-        return "border-red-200 bg-red-50";
+      case "chart-1":
+        return "border-chart-1/20 bg-chart-1/5";
+      case "chart-2":
+        return "border-chart-2/20 bg-chart-2/5";
+      case "chart-3":
+        return "border-chart-3/20 bg-chart-3/5";
+      case "chart-4":
+        return "border-chart-4/20 bg-chart-4/5";
+      case "chart-5":
+        return "border-chart-5/20 bg-chart-5/5";
       default:
-        return "border-gray-200 bg-gray-50";
+        return "border-muted bg-muted/5";
     }
   };
 
@@ -214,11 +214,11 @@ export default function GroupsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="blue">Blue</SelectItem>
-                    <SelectItem value="green">Green</SelectItem>
-                    <SelectItem value="purple">Purple</SelectItem>
-                    <SelectItem value="orange">Orange</SelectItem>
-                    <SelectItem value="red">Red</SelectItem>
+                    <SelectItem value="chart-1">Orange</SelectItem>
+                    <SelectItem value="chart-2">Teal</SelectItem>
+                    <SelectItem value="chart-3">Blue</SelectItem>
+                    <SelectItem value="chart-4">Yellow</SelectItem>
+                    <SelectItem value="chart-5">Purple</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -277,10 +277,11 @@ export default function GroupsPage() {
                         variant="outline"
                         className="text-xs"
                       >
-                        {
+                        {availableStudents.find((s) => s.id === studentId)
+                          ?.firstName +
+                          " " +
                           availableStudents.find((s) => s.id === studentId)
-                            ?.firstName
-                        }
+                            ?.lastName}
                       </Badge>
                     ))}
                     {group.studentIds.length > 3 && (
@@ -379,11 +380,11 @@ export default function GroupsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="blue">Blue</SelectItem>
-                  <SelectItem value="green">Green</SelectItem>
-                  <SelectItem value="purple">Purple</SelectItem>
-                  <SelectItem value="orange">Orange</SelectItem>
-                  <SelectItem value="red">Red</SelectItem>
+                  <SelectItem value="chart-1">Orange</SelectItem>
+                  <SelectItem value="chart-2">Teal</SelectItem>
+                  <SelectItem value="chart-3">Blue</SelectItem>
+                  <SelectItem value="chart-4">Yellow</SelectItem>
+                  <SelectItem value="chart-5">Purple</SelectItem>
                 </SelectContent>
               </Select>
             </div>
