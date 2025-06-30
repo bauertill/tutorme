@@ -105,7 +105,6 @@ export interface DetailedStudentProgress {
 
 export interface StudentWorkload {
   studentId: string;
-  studentName: string;
   group: string;
   activeAssignments: number;
   completedThisWeek: number;

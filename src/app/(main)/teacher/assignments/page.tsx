@@ -105,32 +105,32 @@ const getPerformanceBadgeVariant = (performance: Student["performance"]) => {
 };
 
 const getConceptScoreColor = (score: number) => {
-  if (score >= 80) return "text-green-600";
-  if (score >= 60) return "text-yellow-600";
-  return "text-red-600";
+  if (score >= 80) return "text-chart-1";
+  if (score >= 60) return "text-chart-4";
+  return "text-chart-3";
 };
 
 const getTraitLevelColor = (level: string) => {
   switch (level) {
     case "High":
-      return "text-red-600";
+      return "text-chart-3";
     case "Moderate":
-      return "text-yellow-600";
+      return "text-chart-4";
     case "Low":
-      return "text-green-600";
+      return "text-chart-1";
     default:
-      return "text-gray-600";
+      return "text-muted-foreground";
   }
 };
 
 const getProblemStatusIcon = (status: ProblemAttempt["status"]) => {
   switch (status) {
     case "Correct":
-      return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      return <CheckCircle2 className="h-5 w-5 text-chart-1" />;
     case "Incorrect":
-      return <XCircle className="h-5 w-5 text-red-500" />;
+      return <XCircle className="h-5 w-5 text-destructive" />;
     case "Partially Correct":
-      return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+      return <AlertTriangle className="h-5 w-5 text-chart-4" />;
   }
 };
 
@@ -393,13 +393,13 @@ export default function AssignmentsPage() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
-        return "text-green-600";
+        return "text-chart-1";
       case "Medium":
-        return "text-yellow-600";
+        return "text-chart-4";
       case "Hard":
-        return "text-red-600";
+        return "text-destructive";
       default:
-        return "text-gray-600";
+        return "text-muted-foreground";
     }
   };
 
@@ -443,9 +443,9 @@ export default function AssignmentsPage() {
   };
 
   const getWorkloadColor = (activeAssignments: number) => {
-    if (activeAssignments === 0) return "text-green-600";
-    if (activeAssignments <= 2) return "text-yellow-600";
-    return "text-red-600";
+    if (activeAssignments === 0) return "text-chart-1";
+    if (activeAssignments <= 2) return "text-chart-4";
+    return "text-destructive";
   };
 
   // const formatLastActivity = (dateString: string) => {
@@ -1038,19 +1038,30 @@ export default function AssignmentsPage() {
                       <Card
                         key={workload.studentId}
                         className={`cursor-pointer transition-shadow hover:shadow-lg ${
-                          needsFocus ? "border-orange-300 bg-orange-50" : ""
+                          needsFocus ? "border-chart-4 bg-chart-4/10" : ""
                         }`}
                         onClick={() => handleViewStudent(workload.studentId)}
                       >
                         <CardHeader className="pb-2">
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-base">
-                              {workload.studentName}
+                              {
+                                allStudents.find(
+                                  (student) =>
+                                    student.id === workload.studentId,
+                                )?.firstName
+                              }
+                              {
+                                allStudents.find(
+                                  (student) =>
+                                    student.id === workload.studentId,
+                                )?.lastName
+                              }
                             </CardTitle>
                             {needsFocus && (
                               <Badge
                                 variant="outline"
-                                className="border-orange-300 text-orange-700"
+                                className="border-chart-4 text-chart-4"
                               >
                                 Needs Focus
                               </Badge>
@@ -1071,7 +1082,7 @@ export default function AssignmentsPage() {
                               </div>
                             </div>
                             <div className="rounded border p-2 text-center">
-                              <div className="font-bold text-green-600">
+                              <div className="font-bold text-chart-1">
                                 {workload.completedThisWeek}
                               </div>
                               <div className="text-xs text-muted-foreground">
@@ -1079,7 +1090,7 @@ export default function AssignmentsPage() {
                               </div>
                             </div>
                             <div className="rounded border p-2 text-center">
-                              <div className="font-bold text-blue-600">
+                              <div className="font-bold text-chart-2">
                                 {workload.totalTimeSpent}min
                               </div>
                               <div className="text-xs text-muted-foreground">
@@ -1087,7 +1098,7 @@ export default function AssignmentsPage() {
                               </div>
                             </div>
                             <div className="rounded border p-2 text-center">
-                              <div className="font-bold text-purple-600">
+                              <div className="font-bold text-chart-5">
                                 {workload.averageScore > 0
                                   ? `${workload.averageScore}%`
                                   : "N/A"}
@@ -1099,23 +1110,23 @@ export default function AssignmentsPage() {
                           </div>
 
                           {needsFocus && focusRec && (
-                            <div className="mt-3 rounded border border-orange-200 bg-orange-100 p-2 text-xs">
-                              <p className="font-medium text-orange-800">
+                            <div className="mt-3 rounded border border-amber-500 bg-amber-50 p-2 text-xs dark:border-amber-400 dark:bg-amber-950/30">
+                              <p className="font-medium text-amber-800 dark:text-amber-200">
                                 Focus Area:
                               </p>
-                              <p className="text-orange-700">
+                              <p className="text-amber-700 dark:text-amber-300">
                                 {focusRec.primaryWeakness}
                               </p>
-                              <p className="mt-1 font-medium text-orange-800">
+                              <p className="mt-1 font-medium text-amber-800 dark:text-amber-200">
                                 Recommended:
                               </p>
-                              <p className="text-orange-700">
+                              <p className="text-amber-700 dark:text-amber-300">
                                 {focusRec.recommendedFocus}
                               </p>
-                              <p className="mt-1 font-medium text-orange-800">
+                              <p className="mt-1 font-medium text-amber-800 dark:text-amber-200">
                                 Motivation:
                               </p>
-                              <p className="text-orange-700">
+                              <p className="text-amber-700 dark:text-amber-300">
                                 {focusRec.motivationStyle}
                               </p>
                             </div>
@@ -1196,7 +1207,7 @@ export default function AssignmentsPage() {
                                     <span
                                       className={
                                         item.aiPromptsUsed > 10
-                                          ? "font-medium text-red-600"
+                                          ? "font-medium text-destructive"
                                           : ""
                                       }
                                     >
@@ -1791,7 +1802,7 @@ export default function AssignmentsPage() {
                           </div>
                         </div>
                         <div className="rounded-lg border p-3 text-center">
-                          <div className="text-2xl font-bold text-green-600">
+                          <div className="text-2xl font-bold text-chart-1">
                             {workload.completedThisWeek}
                           </div>
                           <div className="text-sm text-muted-foreground">
@@ -1799,7 +1810,7 @@ export default function AssignmentsPage() {
                           </div>
                         </div>
                         <div className="rounded-lg border p-3 text-center">
-                          <div className="text-2xl font-bold text-blue-600">
+                          <div className="text-2xl font-bold text-chart-2">
                             {workload.totalTimeSpent}min
                           </div>
                           <div className="text-sm text-muted-foreground">
@@ -1807,7 +1818,7 @@ export default function AssignmentsPage() {
                           </div>
                         </div>
                         <div className="rounded-lg border p-3 text-center">
-                          <div className="text-2xl font-bold text-purple-600">
+                          <div className="text-2xl font-bold text-chart-5">
                             {workload.averageScore > 0
                               ? `${workload.averageScore}%`
                               : "N/A"}
@@ -1820,8 +1831,8 @@ export default function AssignmentsPage() {
                           <div
                             className={`text-2xl font-bold ${
                               workload.upcomingDeadlines > 2
-                                ? "text-red-600"
-                                : "text-orange-600"
+                                ? "text-destructive"
+                                : "text-chart-4"
                             }`}
                           >
                             {workload.upcomingDeadlines}
@@ -2009,8 +2020,8 @@ export default function AssignmentsPage() {
                     <CardContent>
                       <div className="space-y-6">
                         {/* Quick Overview */}
-                        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                          <h4 className="mb-2 font-semibold text-blue-800">
+                        <div className="rounded-lg border border-chart-2 bg-chart-2/10 p-4">
+                          <h4 className="mb-2 font-semibold text-chart-2">
                             Quick Overview
                           </h4>
                           <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
@@ -2030,7 +2041,7 @@ export default function AssignmentsPage() {
                               <span className="font-medium">
                                 Primary Strength:
                               </span>
-                              <span className="ml-2 text-green-600">
+                              <span className="ml-2 text-chart-1">
                                 {evaluation.quickOverview.primaryStrength}
                               </span>
                             </div>
@@ -2038,7 +2049,7 @@ export default function AssignmentsPage() {
                               <span className="font-medium">
                                 Primary Weakness:
                               </span>
-                              <span className="ml-2 text-red-600">
+                              <span className="ml-2 text-destructive">
                                 {evaluation.quickOverview.primaryWeakness}
                               </span>
                             </div>
@@ -2046,7 +2057,7 @@ export default function AssignmentsPage() {
                               <span className="font-medium">
                                 Motivation Style:
                               </span>
-                              <span className="ml-2 text-purple-600">
+                              <span className="ml-2 text-chart-5">
                                 {evaluation.quickOverview.motivationStyle}
                               </span>
                             </div>
@@ -2064,7 +2075,7 @@ export default function AssignmentsPage() {
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                           {/* Strengths */}
                           <div>
-                            <h4 className="mb-3 font-semibold text-green-700">
+                            <h4 className="mb-3 font-semibold text-chart-1">
                               Strengths by Concept
                             </h4>
                             <div className="space-y-3">
@@ -2072,7 +2083,7 @@ export default function AssignmentsPage() {
                                 ([concept, data]) => (
                                   <div
                                     key={concept}
-                                    className="rounded-lg border border-green-200 bg-green-50 p-3"
+                                    className="rounded-lg border border-chart-1 bg-chart-1/10 p-3"
                                   >
                                     <div className="mb-2 flex items-center justify-between">
                                       <h5 className="text-sm font-medium">
@@ -2080,7 +2091,7 @@ export default function AssignmentsPage() {
                                       </h5>
                                       <Badge
                                         variant="outline"
-                                        className="text-green-600"
+                                        className="text-chart-1"
                                       >
                                         {data.score}/100
                                       </Badge>
@@ -2098,7 +2109,7 @@ export default function AssignmentsPage() {
 
                           {/* Weaknesses */}
                           <div>
-                            <h4 className="mb-3 font-semibold text-red-700">
+                            <h4 className="mb-3 font-semibold text-destructive">
                               Weaknesses by Concept
                             </h4>
                             <div className="space-y-3">
@@ -2106,7 +2117,7 @@ export default function AssignmentsPage() {
                                 ([concept, data]) => (
                                   <div
                                     key={concept}
-                                    className="rounded-lg border border-red-200 bg-red-50 p-3"
+                                    className="rounded-lg border border-destructive bg-destructive/10 p-3"
                                   >
                                     <div className="mb-2 flex items-center justify-between">
                                       <h5 className="text-sm font-medium">
@@ -2114,7 +2125,7 @@ export default function AssignmentsPage() {
                                       </h5>
                                       <Badge
                                         variant="outline"
-                                        className="text-red-600"
+                                        className="text-destructive"
                                       >
                                         {data.score}/100
                                       </Badge>
@@ -2133,7 +2144,7 @@ export default function AssignmentsPage() {
 
                         {/* Character Traits */}
                         <div>
-                          <h4 className="mb-3 font-semibold text-purple-700">
+                          <h4 className="mb-3 font-semibold text-chart-5">
                             Character Traits
                           </h4>
                           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -2163,14 +2174,14 @@ export default function AssignmentsPage() {
 
                         {/* Motivation Strategies */}
                         <div>
-                          <h4 className="mb-3 font-semibold text-blue-700">
+                          <h4 className="mb-3 font-semibold text-chart-2">
                             Motivation Strategies
                           </h4>
                           <div className="space-y-3">
                             {evaluation.motivationStrategies.map((strategy) => (
                               <div
                                 key={strategy.strategy}
-                                className="rounded-lg border border-blue-200 bg-blue-50 p-3"
+                                className="rounded-lg border border-chart-2 bg-chart-2/10 p-3"
                               >
                                 <div className="mb-2 flex items-center justify-between">
                                   <h5 className="text-sm font-medium">
@@ -2178,7 +2189,7 @@ export default function AssignmentsPage() {
                                   </h5>
                                   <Badge
                                     variant="outline"
-                                    className="text-blue-600"
+                                    className="text-chart-2"
                                   >
                                     {strategy.effectiveness}% effective
                                   </Badge>

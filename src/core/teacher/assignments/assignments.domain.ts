@@ -594,12 +594,329 @@ const studentProgressData: DetailedStudentProgress[] = [
       },
     ],
   },
+  {
+    studentId: "5",
+    studentName: "Max Müller",
+    group: "Advanced Math",
+    assignments: [
+      {
+        assignmentId: "1",
+        assignmentTitle: "Linear Equations Practice",
+        status: "Completed",
+        score: 92,
+        maxScore: 100,
+        timeSpent: 38,
+        progress: 100,
+        lastActivity: "2025-06-27T15:20:00Z",
+        dueDate: "2025-06-28T23:59:00Z",
+        submissionDate: "2025-06-27T15:20:00Z",
+        solutions: [
+          {
+            problemId: "p1",
+            problemText: "Solve for x: 2x + 5 = 13",
+            studentSolution:
+              "x = 4\n\nSolution:\n2x + 5 = 13\n2x = 13 - 5\n2x = 8\nx = 8/2\nx = 4\n\nCheck: 2(4) + 5 = 8 + 5 = 13 ✓",
+            expectedSolution: "x = 4",
+            isCorrect: true,
+            timeSpent: 7,
+            aiPrompts: [],
+            attempts: [
+              {
+                attempt: 1,
+                solution: "x = 4",
+                timestamp: "2025-06-27T15:10:00Z",
+                feedback:
+                  "Excellent! You even verified your answer by checking.",
+              },
+            ],
+          },
+          {
+            problemId: "p2",
+            problemText: "Solve for y: 3y - 7 = 14",
+            studentSolution:
+              "y = 7\n\nStep by step:\n3y - 7 = 14\n3y = 14 + 7\n3y = 21\ny = 21/3\ny = 7",
+            expectedSolution: "y = 7",
+            isCorrect: true,
+            timeSpent: 5,
+            aiPrompts: [],
+            attempts: [
+              {
+                attempt: 1,
+                solution: "y = 7",
+                timestamp: "2025-06-27T15:15:00Z",
+                feedback: "Perfect! Very clean solution.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        assignmentId: "2",
+        assignmentTitle: "Geometry Proofs",
+        status: "Completed",
+        score: 94,
+        maxScore: 100,
+        timeSpent: 72,
+        progress: 100,
+        lastActivity: "2025-06-29T16:30:00Z",
+        dueDate: "2025-07-01T23:59:00Z",
+        submissionDate: "2025-06-29T16:30:00Z",
+        solutions: [
+          {
+            problemId: "p3",
+            problemText:
+              "Prove that the sum of angles in a triangle equals 180°",
+            studentSolution:
+              "Proof:\nGiven: Triangle ABC with angles ∠A, ∠B, ∠C\nTo Prove: ∠A + ∠B + ∠C = 180°\n\nConstruction: Draw line DE through vertex A parallel to side BC\n\nProof:\n1. ∠DAB = ∠ABC (alternate interior angles)\n2. ∠EAC = ∠ACB (alternate interior angles)\n3. ∠DAB + ∠BAC + ∠EAC = 180° (angles on a straight line)\n4. Substituting from steps 1 and 2:\n   ∠ABC + ∠BAC + ∠ACB = 180°\n\nTherefore, the sum of angles in triangle ABC = 180°",
+            expectedSolution: "A + B + C = 180°",
+            isCorrect: true,
+            timeSpent: 45,
+            aiPrompts: [
+              {
+                prompt: "What's the key insight for this proof?",
+                response:
+                  "The key is to use parallel lines to create alternate interior angles that are equal to the triangle's angles, then use the fact that angles on a straight line sum to 180°.",
+                timestamp: "2025-06-29T16:00:00Z",
+                helpful: true,
+              },
+            ],
+            attempts: [
+              {
+                attempt: 1,
+                solution: "Complete proof using parallel lines",
+                timestamp: "2025-06-29T16:30:00Z",
+                feedback:
+                  "Outstanding proof! Clear construction and logical steps.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        assignmentId: "3",
+        assignmentTitle: "Statistics Basics",
+        status: "In Progress",
+        timeSpent: 18,
+        progress: 40,
+        lastActivity: "2025-06-30T10:15:00Z",
+        dueDate: "2025-06-30T23:59:00Z",
+        solutions: [
+          {
+            problemId: "p5",
+            problemText:
+              "Calculate the mean of the following data set: 12, 15, 18, 22, 25, 28",
+            studentSolution:
+              "Working on this...\nSum = 12 + 15 + 18 + 22 + 25 + 28 = 120\nCount = 6 numbers\nMean = 120/6 = 20",
+            expectedSolution: "Mean = 20",
+            isCorrect: true,
+            timeSpent: 8,
+            aiPrompts: [],
+            attempts: [
+              {
+                attempt: 1,
+                solution: "Mean = 20",
+                timestamp: "2025-06-30T10:15:00Z",
+                feedback: "Correct! Continue with the remaining problems.",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    studentId: "6",
+    studentName: "Sarah Klein",
+    group: "Geometry Focus",
+    assignments: [
+      {
+        assignmentId: "2",
+        assignmentTitle: "Geometry Proofs",
+        status: "Completed",
+        score: 96,
+        maxScore: 100,
+        timeSpent: 85,
+        progress: 100,
+        lastActivity: "2025-06-28T19:45:00Z",
+        dueDate: "2025-07-01T23:59:00Z",
+        submissionDate: "2025-06-28T19:45:00Z",
+        solutions: [
+          {
+            problemId: "p3",
+            problemText:
+              "Prove that the sum of angles in a triangle equals 180°",
+            studentSolution:
+              "Proof by Construction:\n\nGiven: Triangle PQR\nTo Prove: ∠P + ∠Q + ∠R = 180°\n\nConstruction: Extend side QR to point S, and draw line PT parallel to QR\n\nProof:\n1. ∠TPQ = ∠PQR (corresponding angles, PT || QR)\n2. ∠RPT = ∠PRQ (alternate angles, PT || QR)\n3. ∠TPQ + ∠QPR + ∠RPT = 180° (straight line angles)\n4. Substituting:\n   ∠PQR + ∠QPR + ∠PRQ = 180°\n\nHence proved that sum of angles in triangle = 180°",
+            expectedSolution: "A + B + C = 180°",
+            isCorrect: true,
+            timeSpent: 55,
+            aiPrompts: [
+              {
+                prompt: "Is there an alternative method to prove this?",
+                response:
+                  "Yes! You could also extend one side and use exterior angle theorem, or use coordinate geometry. Your parallel line approach is excellent though.",
+                timestamp: "2025-06-28T19:20:00Z",
+                helpful: true,
+              },
+            ],
+            attempts: [
+              {
+                attempt: 1,
+                solution: "Complete geometric proof with construction",
+                timestamp: "2025-06-28T19:45:00Z",
+                feedback:
+                  "Exceptional work! Clear diagram, construction, and logical proof steps.",
+              },
+            ],
+          },
+          {
+            problemId: "p4",
+            problemText:
+              "Prove that opposite angles in a parallelogram are equal",
+            studentSolution:
+              "Given: ABCD is a parallelogram\nTo Prove: ∠A = ∠C and ∠B = ∠D\n\nProof:\nSince ABCD is a parallelogram:\n1. AB || DC and AD || BC (definition of parallelogram)\n2. Draw diagonal AC\n3. ∠BAC = ∠DCA (alternate angles, AB || DC)\n4. ∠BCA = ∠DAC (alternate angles, AD || BC)\n5. In triangles ABC and CDA:\n   - AC = AC (common side)\n   - ∠BAC = ∠DCA (from step 3)\n   - ∠BCA = ∠DAC (from step 4)\n6. Therefore, △ABC ≅ △CDA (ASA)\n7. Hence, ∠ABC = ∠CDA and ∠BCD = ∠DAB\n\nTherefore, opposite angles are equal.",
+            expectedSolution: "∠A = ∠C and ∠B = ∠D",
+            isCorrect: true,
+            timeSpent: 30,
+            aiPrompts: [],
+            attempts: [
+              {
+                attempt: 1,
+                solution: "Complete proof using triangle congruence",
+                timestamp: "2025-06-28T19:40:00Z",
+                feedback:
+                  "Brilliant! You used congruent triangles beautifully.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        assignmentId: "1",
+        assignmentTitle: "Linear Equations Practice",
+        status: "Completed",
+        score: 89,
+        maxScore: 100,
+        timeSpent: 42,
+        progress: 100,
+        lastActivity: "2025-06-26T14:30:00Z",
+        dueDate: "2025-06-28T23:59:00Z",
+        submissionDate: "2025-06-26T14:30:00Z",
+        solutions: [
+          {
+            problemId: "p1",
+            problemText: "Solve for x: 2x + 5 = 13",
+            studentSolution: "x = 4\n\n2x + 5 = 13\n2x = 13 - 5\n2x = 8\nx = 4",
+            expectedSolution: "x = 4",
+            isCorrect: true,
+            timeSpent: 6,
+            aiPrompts: [],
+            attempts: [
+              {
+                attempt: 1,
+                solution: "x = 4",
+                timestamp: "2025-06-26T14:25:00Z",
+                feedback: "Correct! Clean and efficient solution.",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    studentId: "7",
+    studentName: "Leon Hoffman",
+    group: "Basic Math",
+    assignments: [
+      {
+        assignmentId: "1",
+        assignmentTitle: "Linear Equations Practice",
+        status: "In Progress",
+        timeSpent: 28,
+        progress: 65,
+        lastActivity: "2025-06-29T12:45:00Z",
+        dueDate: "2025-06-28T23:59:00Z",
+        solutions: [
+          {
+            problemId: "p1",
+            problemText: "Solve for x: 2x + 5 = 13",
+            studentSolution:
+              "x = 4\n\nMy work:\n2x + 5 = 13\nSubtract 5 from both sides:\n2x = 13 - 5\n2x = 8\nDivide both sides by 2:\nx = 8 ÷ 2\nx = 4\n\nCheck: 2(4) + 5 = 8 + 5 = 13 ✓",
+            expectedSolution: "x = 4",
+            isCorrect: true,
+            timeSpent: 12,
+            aiPrompts: [
+              {
+                prompt: "Should I always check my answer?",
+                response:
+                  "Yes! Checking your answer by substituting it back into the original equation is a great habit. It helps you catch any arithmetic errors.",
+                timestamp: "2025-06-29T12:30:00Z",
+                helpful: true,
+              },
+            ],
+            attempts: [
+              {
+                attempt: 1,
+                solution: "x = 4",
+                timestamp: "2025-06-29T12:35:00Z",
+                feedback: "Excellent work! Great explanation and verification.",
+              },
+            ],
+          },
+          {
+            problemId: "p2",
+            problemText: "Solve for y: 3y - 7 = 14",
+            studentSolution:
+              "I'm working on this one...\n3y - 7 = 14\nI need to add 7 to both sides first\n3y = 14 + 7\n3y = 21\nNow divide by 3\ny = 21 ÷ 3\ny = 7",
+            expectedSolution: "y = 7",
+            isCorrect: true,
+            timeSpent: 16,
+            aiPrompts: [
+              {
+                prompt: "What's the first step when I see 3y - 7?",
+                response:
+                  "Great question! When you see subtraction like '- 7', you want to undo it by adding 7 to both sides. This isolates the term with the variable.",
+                timestamp: "2025-06-29T12:40:00Z",
+                helpful: true,
+              },
+              {
+                prompt: "How do I know if I did it right?",
+                response:
+                  "You can check by substituting your answer back: 3(7) - 7 = 21 - 7 = 14. Since this equals the right side of the original equation, you're correct!",
+                timestamp: "2025-06-29T12:42:00Z",
+                helpful: true,
+              },
+            ],
+            attempts: [
+              {
+                attempt: 1,
+                solution: "y = 7",
+                timestamp: "2025-06-29T12:45:00Z",
+                feedback:
+                  "Well done! You showed good understanding of the steps.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        assignmentId: "2",
+        assignmentTitle: "Geometry Proofs",
+        status: "Not Started",
+        timeSpent: 0,
+        progress: 0,
+        lastActivity: "2025-06-29T12:45:00Z",
+        dueDate: "2025-07-01T23:59:00Z",
+        solutions: [],
+      },
+    ],
+  },
 ];
 
 const studentWorkloadData: StudentWorkload[] = [
   {
     studentId: "1",
-    studentName: "Anna Müller",
     group: "Advanced Math",
     activeAssignments: 1,
     completedThisWeek: 1,
@@ -609,7 +926,6 @@ const studentWorkloadData: StudentWorkload[] = [
   },
   {
     studentId: "2",
-    studentName: "Max Schmidt",
     group: "Basic Math",
     activeAssignments: 1,
     completedThisWeek: 1,
@@ -619,7 +935,6 @@ const studentWorkloadData: StudentWorkload[] = [
   },
   {
     studentId: "3",
-    studentName: "Lisa Weber",
     group: "Advanced Math",
     activeAssignments: 1,
     completedThisWeek: 1,
@@ -629,12 +944,38 @@ const studentWorkloadData: StudentWorkload[] = [
   },
   {
     studentId: "4",
-    studentName: "Tom Fischer",
     group: "Basic Math",
     activeAssignments: 2,
     completedThisWeek: 0,
     totalTimeSpent: 15,
     averageScore: 0,
     upcomingDeadlines: 2,
+  },
+  {
+    studentId: "5",
+    group: "Advanced Math",
+    activeAssignments: 1,
+    completedThisWeek: 1,
+    totalTimeSpent: 80,
+    averageScore: 88,
+    upcomingDeadlines: 1,
+  },
+  {
+    studentId: "6",
+    group: "Advanced Math",
+    activeAssignments: 1,
+    completedThisWeek: 1,
+    totalTimeSpent: 80,
+    averageScore: 88,
+    upcomingDeadlines: 1,
+  },
+  {
+    studentId: "7",
+    group: "Basic Math",
+    activeAssignments: 1,
+    completedThisWeek: 1,
+    totalTimeSpent: 80,
+    averageScore: 88,
+    upcomingDeadlines: 1,
   },
 ];

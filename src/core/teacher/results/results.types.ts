@@ -1,6 +1,6 @@
 export interface StudentResult {
   id: string;
-  studentName: string;
+  studentId: string;
   group: string;
   assignment: string;
   score: number;

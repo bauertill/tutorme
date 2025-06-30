@@ -51,6 +51,7 @@ import type {
   GroupPerformance,
   StudentResult,
 } from "@/core/teacher/results/results.types";
+import { getStudents } from "@/core/teacher/students/students.domain";
 import {
   Award,
   BarChart3,
@@ -65,6 +66,7 @@ import {
 import { useState } from "react";
 
 const groupBreakdown = (groupName: string) => {
+  const allStudents = getStudents();
   const studentResults = getStudentResults();
 
   const groupResults = studentResults.filter((r) => r.group === groupName);
@@ -82,9 +84,10 @@ const groupBreakdown = (groupName: string) => {
   > = {};
 
   groupResults.forEach((result) => {
-    if (!studentData[result.studentName]) {
-      studentData[result.studentName] = {
-        name: result.studentName,
+    if (!studentData[result.studentId]) {
+      studentData[result.studentId] = {
+        name:
+          allStudents.find((s) => s.id === result.studentId)?.firstName ?? "",
         scores: [],
         maxScores: [],
         timeSpent: 0,
@@ -93,7 +96,7 @@ const groupBreakdown = (groupName: string) => {
         assignments: [],
       };
     }
-    const student = studentData[result.studentName];
+    const student = studentData[result.studentId];
     if (!student) return;
     student.total += 1;
     student.timeSpent += result.timeSpent;
@@ -118,6 +121,7 @@ const groupBreakdown = (groupName: string) => {
 };
 
 export default function Results() {
+  const allStudents = getStudents();
   const studentResults = getStudentResults();
   const groupPerformance = getGroupPerformance();
 
@@ -371,10 +375,13 @@ export default function Results() {
                   <TableRow
                     key={result.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setViewingStudentDetails(result.studentName)}
+                    onClick={() => setViewingStudentDetails(result.studentId)}
                   >
                     <TableCell className="font-medium">
-                      {result.studentName}
+                      {allStudents.find((s) => s.id === result.studentId)
+                        ?.firstName ?? ""}{" "}
+                      {allStudents.find((s) => s.id === result.studentId)
+                        ?.lastName ?? ""}
                     </TableCell>
                     <TableCell>{result.group}</TableCell>
                     <TableCell>{result.assignment}</TableCell>
@@ -434,24 +441,27 @@ export default function Results() {
                   <button
                     type="button"
                     key={result.id}
-                    className="-m-2 flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50"
-                    onClick={() => setViewingStudentDetails(result.studentName)}
+                    className="-m-2 flex w-full cursor-pointer items-center rounded-lg p-3 transition-colors hover:bg-muted/50"
+                    onClick={() => setViewingStudentDetails(result.studentId)}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                        {index + 1}
-                      </div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                      {index + 1}
+                    </div>
+                    <div className="ml-4 flex flex-1 items-center justify-between">
                       <div>
-                        <p className="font-medium">{result.studentName}</p>
+                        <p className="font-semibold">
+                          {allStudents.find((s) => s.id === result.studentId)
+                            ?.firstName ?? ""}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           {result.group}
                         </p>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-green-600">
-                        {Math.round((result.score / result.maxScore) * 100)}%
-                      </p>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-green-600">
+                          {Math.round((result.score / result.maxScore) * 100)}%
+                        </div>
+                      </div>
                     </div>
                   </button>
                 ))}
@@ -479,24 +489,32 @@ export default function Results() {
                   <button
                     type="button"
                     key={result.id}
-                    className="-m-2 flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors hover:bg-muted/50"
-                    onClick={() => setViewingStudentDetails(result.studentName)}
+                    className="-m-2 flex w-full cursor-pointer items-center rounded-lg p-3 transition-colors hover:bg-muted/50"
+                    onClick={() => setViewingStudentDetails(result.studentId)}
                   >
-                    <div>
-                      <p className="font-medium">{result.studentName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {result.group}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <Badge variant={getStatusBadgeVariant(result.status)}>
-                        {result.status}
-                      </Badge>
-                      {result.status === "Completed" && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {Math.round((result.score / result.maxScore) * 100)}%
+                    <div className="flex flex-1 items-center justify-between">
+                      <div>
+                        <p className="font-semibold">
+                          {allStudents.find((s) => s.id === result.studentId)
+                            ?.firstName ?? ""}{" "}
+                          {allStudents.find((s) => s.id === result.studentId)
+                            ?.lastName ?? ""}
                         </p>
-                      )}
+                        <p className="text-sm text-muted-foreground">
+                          {result.group}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant={getStatusBadgeVariant(result.status)}>
+                          {result.status}
+                        </Badge>
+                        {result.status === "Completed" && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {Math.round((result.score / result.maxScore) * 100)}
+                            %
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </button>
                 ))}
@@ -524,6 +542,7 @@ export default function Results() {
           {viewingStudentDetails &&
             (() => {
               const studentData = getStudentProgress(viewingStudentDetails);
+              console.log("studentData", studentData, viewingStudentDetails);
               if (!studentData) return <div>No data found</div>;
 
               return (
@@ -606,7 +625,7 @@ export default function Results() {
                             <Collapsible key={solution.problemId}>
                               <div className="rounded-lg border">
                                 <CollapsibleTrigger asChild>
-                                  <div className="flex cursor-pointer items-center justify-between p-4 hover:bg-gray-50">
+                                  <div className="flex cursor-pointer items-center justify-between p-4 hover:bg-muted/50">
                                     <div className="flex items-center space-x-3">
                                       <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]:rotate-90" />
                                       <div>
@@ -646,27 +665,27 @@ export default function Results() {
                                   </div>
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
-                                  <div className="space-y-4 border-t bg-gray-50/50 px-4 pb-4">
+                                  <div className="space-y-4 border-t bg-muted/30 px-4 pb-4">
                                     {/* Problem */}
                                     <div>
-                                      <h5 className="mb-2 text-sm font-medium text-blue-700">
+                                      <h5 className="mb-2 text-sm font-medium text-primary">
                                         Problem:
                                       </h5>
-                                      <p className="rounded border-l-4 border-blue-500 bg-white p-3 text-sm">
+                                      <p className="rounded border-l-4 border-primary bg-card p-3 text-sm">
                                         {solution.problemText}
                                       </p>
                                     </div>
 
                                     {/* Student Solution */}
                                     <div>
-                                      <h5 className="mb-2 text-sm font-medium text-gray-700">
+                                      <h5 className="mb-2 text-sm font-medium text-foreground">
                                         Student Solution:
                                       </h5>
                                       <div
                                         className={`whitespace-pre-line rounded border-l-4 p-3 text-sm ${
                                           solution.isCorrect
-                                            ? "border-green-500 bg-green-50"
-                                            : "border-red-500 bg-red-50"
+                                            ? "border-green-500 bg-green-50 dark:border-green-400 dark:bg-green-950/30"
+                                            : "border-red-500 bg-red-50 dark:border-red-400 dark:bg-red-950/30"
                                         }`}
                                       >
                                         {solution.studentSolution}
@@ -676,7 +695,7 @@ export default function Results() {
                                     {/* AI Prompts */}
                                     {solution.aiPrompts.length > 0 && (
                                       <div>
-                                        <h5 className="mb-2 text-sm font-medium text-purple-700">
+                                        <h5 className="mb-2 text-sm font-medium text-primary">
                                           AI Assistance (
                                           {solution.aiPrompts.length} prompts):
                                         </h5>
@@ -684,10 +703,10 @@ export default function Results() {
                                           {solution.aiPrompts.map((prompt) => (
                                             <div
                                               key={prompt.prompt}
-                                              className="rounded-lg border border-blue-200 bg-blue-50 p-3"
+                                              className="rounded-lg border bg-muted/50 p-3"
                                             >
                                               <div className="mb-2 flex items-start justify-between">
-                                                <span className="text-xs font-medium text-blue-700">
+                                                <span className="text-xs font-medium text-primary">
                                                   Student Question:
                                                 </span>
                                                 <div className="flex items-center space-x-2">
@@ -710,13 +729,13 @@ export default function Results() {
                                                   </span>
                                                 </div>
                                               </div>
-                                              <p className="mb-3 text-sm italic">
+                                              <p className="mb-3 text-sm italic text-foreground">
                                                 &ldquo;{prompt.prompt}&rdquo;
                                               </p>
-                                              <div className="mb-1 text-xs font-medium text-blue-700">
+                                              <div className="mb-1 text-xs font-medium text-primary">
                                                 AI Response:
                                               </div>
-                                              <p className="rounded border bg-white p-2 text-sm">
+                                              <p className="rounded border bg-card p-2 text-sm">
                                                 {prompt.response}
                                               </p>
                                             </div>
@@ -727,7 +746,7 @@ export default function Results() {
 
                                     {/* Attempts */}
                                     <div>
-                                      <h5 className="mb-2 text-sm font-medium text-orange-700">
+                                      <h5 className="mb-2 text-sm font-medium text-orange-600 dark:text-orange-400">
                                         Solution Attempts (
                                         {solution.attempts.length}):
                                       </h5>
@@ -735,7 +754,7 @@ export default function Results() {
                                         {solution.attempts.map((attempt) => (
                                           <div
                                             key={attempt.attempt}
-                                            className="rounded border bg-white p-3"
+                                            className="rounded border bg-card p-3"
                                           >
                                             <div className="mb-2 flex items-center justify-between">
                                               <span className="text-xs font-medium">
@@ -852,7 +871,7 @@ export default function Results() {
                                     <button
                                       type="button"
                                       key={assignment.id}
-                                      className="cursor-pointer rounded-lg border bg-white p-4 transition-colors hover:bg-gray-50"
+                                      className="cursor-pointer rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
                                       onClick={() =>
                                         setViewingAssignmentDetails(
                                           assignment.assignment,
@@ -921,14 +940,14 @@ export default function Results() {
                                         </div>
                                       </div>
                                       {assignment.status === "Overdue" && (
-                                        <div className="mt-2 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+                                        <div className="mt-2 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
                                           <strong>Attention needed:</strong>{" "}
                                           This assignment is overdue and
                                           requires follow-up.
                                         </div>
                                       )}
                                       {assignment.status === "In Progress" && (
-                                        <div className="mt-2 rounded border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-700">
+                                        <div className="mt-2 rounded border border-yellow-200 bg-yellow-50 p-2 text-sm text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400">
                                           <strong>In progress:</strong> Student
                                           is currently working on this
                                           assignment.
@@ -1166,7 +1185,7 @@ export default function Results() {
                                   {result.solutions.map(
                                     (solution, solutionIdx) => (
                                       <Collapsible key={solution.problemId}>
-                                        <div className="rounded border bg-gray-50 p-3">
+                                        <div className="rounded border bg-muted/30 p-3">
                                           <CollapsibleTrigger asChild>
                                             <div className="flex cursor-pointer items-center justify-between">
                                               <div className="flex items-center space-x-2">
@@ -1205,8 +1224,8 @@ export default function Results() {
                                             <div
                                               className={`whitespace-pre-line rounded border-l-2 p-2 text-sm ${
                                                 solution.isCorrect
-                                                  ? "border-green-300 bg-green-50"
-                                                  : "border-red-300 bg-red-50"
+                                                  ? "border-green-300 bg-green-50 dark:border-green-600 dark:bg-green-950/30"
+                                                  : "border-red-300 bg-red-50 dark:border-red-600 dark:bg-red-950/30"
                                               }`}
                                             >
                                               {solution.studentSolution}
