@@ -28,7 +28,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarText,
-  useSidebar,
 } from "@/components/ui/sidebar";
 
 const navMain = [
@@ -47,8 +46,6 @@ const navMain = [
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { state } = useSidebar();
-
   return (
     <Sidebar collapsible="icon" {...props}>
       {/* Header */}

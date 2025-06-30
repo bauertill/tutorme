@@ -42,20 +42,20 @@ import {
   getStudentProgress,
   getStudentWorkload,
 } from "@/core/teacher/assignments/assignments.domain";
-import {
+import type {
   Assignment,
   CustomProblem,
   DetailedStudentProgress,
   ProblemAttempt,
 } from "@/core/teacher/assignments/assignments.types";
 import { getAvailableBooks } from "@/core/teacher/books/books.domain";
-import { BookProblem } from "@/core/teacher/books/books.types";
+import type { BookProblem } from "@/core/teacher/books/books.types";
 import { getStudentGroups } from "@/core/teacher/groups/groups.domain";
 import {
   getStudentAIEvaluation,
   getStudents,
 } from "@/core/teacher/students/students.domain";
-import { Student } from "@/core/teacher/students/students.types";
+import type { Student } from "@/core/teacher/students/students.types";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -254,6 +254,7 @@ export default function AssignmentsPage() {
     if (newCustomProblem.problemText.trim()) {
       const customProblem: CustomProblem = {
         id: `custom_${Date.now()}`,
+        title: "custom problem",
         ...newCustomProblem,
       };
       setCustomProblems([...customProblems, customProblem]);
@@ -460,22 +461,22 @@ export default function AssignmentsPage() {
     return `${diffInDays}d ago`;
   };
 
-  const getGroupedProgress = () => {
-    const grouped: { [key: string]: DetailedStudentProgress[] } = {};
+  // const getGroupedProgress = () => {
+  //   const grouped: { [key: string]: DetailedStudentProgress[] } = {};
 
-    allStudentProgress.forEach((progress) => {
-      const workload = getStudentWorkload(progress.studentId);
-      const group = workload?.group || "Unknown";
+  //   allStudentProgress.forEach((progress) => {
+  //     const workload = getStudentWorkload(progress.studentId);
+  //     const group = workload?.group || "Unknown";
 
-      if (selectedProgressGroup === "all" || group === selectedProgressGroup) {
-        if (!grouped[group]) grouped[group] = [];
+  //     if (selectedProgressGroup === "all" || group === selectedProgressGroup) {
+  //       if (!grouped[group]) grouped[group] = [];
 
-        grouped[group].push(progress);
-      }
-    });
+  //       grouped[group].push(progress);
+  //     }
+  //   });
 
-    return grouped;
-  };
+  //   return grouped;
+  // };
 
   const getFilteredWorkload = () => {
     return allStudentWorkload.filter(

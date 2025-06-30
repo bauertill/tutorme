@@ -1,5 +1,6 @@
 export interface BookProblem {
   id: string;
+  title: string;
   chapter: string;
   section: string;
   problemNumber: string;

@@ -95,6 +95,7 @@ export const books: Book[] = [
     problems: [
       {
         id: "alg-1",
+        title: "Grundlagen der Algebra",
         chapter: "Kapitel 1",
         section: "1.1",
         problemNumber: "1.1.1",
@@ -107,6 +108,7 @@ export const books: Book[] = [
       },
       {
         id: "alg-2",
+        title: "Gleichungen lösen",
         chapter: "Kapitel 1",
         section: "1.2",
         problemNumber: "1.2.3",
@@ -136,6 +138,7 @@ export const books: Book[] = [
     problems: [
       {
         id: "geo-1",
+        title: "Flächenberechnung",
         chapter: "Kapitel 2",
         section: "2.1",
         problemNumber: "2.1.1",
@@ -149,6 +152,7 @@ export const books: Book[] = [
       },
       {
         id: "geo-2",
+        title: "Kreisberechnung",
         chapter: "Kapitel 2",
         section: "2.3",
         problemNumber: "2.3.2",
@@ -221,6 +225,7 @@ export const books: Book[] = [
     problems: [
       {
         id: "lin-1",
+        title: "Vektoren",
         chapter: "Kapitel 1",
         section: "1.1",
         problemNumber: "1.1.1",
@@ -279,6 +284,7 @@ export const books: Book[] = [
     problems: [
       {
         id: "1",
+        title: "Lineare Gleichungen",
         chapter: "Kapitel 3",
         section: "3.1",
         problemNumber: "3.1.1",
@@ -292,6 +298,7 @@ export const books: Book[] = [
       },
       {
         id: "2",
+        title: "Quadratische Gleichungen",
         chapter: "Kapitel 3",
         section: "3.2",
         problemNumber: "3.2.3",
@@ -305,6 +312,7 @@ export const books: Book[] = [
       },
       {
         id: "3",
+        title: "Funktionen",
         chapter: "Kapitel 4",
         section: "4.1",
         problemNumber: "4.1.2",
@@ -334,6 +342,7 @@ export const books: Book[] = [
     problems: [
       {
         id: "4",
+        title: "Grundrechenarten",
         chapter: "Kapitel 2",
         section: "2.1",
         problemNumber: "2.1.1",
@@ -346,6 +355,7 @@ export const books: Book[] = [
       },
       {
         id: "5",
+        title: "Bruchrechnung",
         chapter: "Kapitel 5",
         section: "5.2",
         problemNumber: "5.2.4",

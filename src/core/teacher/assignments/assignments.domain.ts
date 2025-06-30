@@ -1,4 +1,4 @@
-import {
+import type {
   Assignment,
   AssignmentDetails,
   DetailedStudentProgress,
@@ -71,6 +71,7 @@ const initialAssignments: Assignment[] = [
     customProblems: [
       {
         id: "custom1",
+        title: "Mean",
         problemText:
           "Calculate the mean of the following numbers: 2, 4, 6, 8, 10",
         solution: "Mean = (2+4+6+8+10) / 5 = 30 / 5 = 6",
@@ -80,6 +81,7 @@ const initialAssignments: Assignment[] = [
       },
       {
         id: "custom2",
+        title: "Median",
         problemText: "Find the median of: 7, 1, 3, 8, 2",
         solution:
           "Sorted list: 1, 2, 3, 7, 8. The median is the middle number, which is 3.",
@@ -89,6 +91,7 @@ const initialAssignments: Assignment[] = [
       },
       {
         id: "custom3",
+        title: "Mode",
         problemText: "Find the mode of: 2, 5, 3, 5, 1, 5, 2",
         solution:
           "The number 5 appears most often (3 times), so the mode is 5.",

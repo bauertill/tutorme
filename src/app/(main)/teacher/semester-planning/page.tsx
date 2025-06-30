@@ -22,12 +22,19 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "@/components/ui/use-toast";
-import { Assignment } from "@/core/teacher/assignments/assignments.types";
+import type { Assignment } from "@/core/teacher/assignments/assignments.types";
 import {
   getAvailableBooks,
   getTopicsByBookId,
 } from "@/core/teacher/books/books.domain";
+import type { TopicGroup } from "@/core/teacher/books/books.types";
 import { getStudentGroups } from "@/core/teacher/groups/groups.domain";
+import type {
+  DifficultyProgression,
+  SemesterPlan,
+  SemesterWeek,
+  WeekProblem,
+} from "@/core/teacher/semester-planning/semester-planning.types";
 import {
   BookOpen,
   Calendar,
@@ -53,11 +60,11 @@ export default function SemesterPlanningPage() {
   const [problemsPerWeek, setProblemsPerWeek] = useState([5]);
   const [maxHoursPerWeek, setMaxHoursPerWeek] = useState([3]);
   const [difficultyProgression, setDifficultyProgression] =
-    useState("adaptive");
+    useState<DifficultyProgression>("adaptive");
   const [includeReviews, setIncludeReviews] = useState(true);
   const [reviewFrequency, setReviewFrequency] = useState([4]);
   const [startDate, setStartDate] = useState("2025-08-25");
-  const [generatedPlan, setGeneratedPlan] = useState<any>(null);
+  const [generatedPlan, setGeneratedPlan] = useState<SemesterPlan | null>(null);
   const [isCreatingAssignments, setIsCreatingAssignments] = useState(false);
 
   const selectedBookData = books.find((book) => book.id === selectedBookId);
@@ -123,6 +130,8 @@ export default function SemesterPlanningPage() {
         });
       } else if (topicIndex < sortedTopics.length) {
         const currentTopic = sortedTopics[topicIndex];
+        if (!currentTopic) continue;
+
         const remainingProblemsInTopic =
           currentTopic.problems - problemsInCurrentTopic;
         const problemsThisWeek = Math.min(
@@ -175,11 +184,13 @@ export default function SemesterPlanningPage() {
       currentDate.setDate(currentDate.getDate() + 7);
     }
 
+    if (!selectedGroupData) return;
+
     setGeneratedPlan({
       book: selectedBookData,
       group: selectedGroupData,
       topics: selectedTopicsData,
-      weeks,
+      weeks: weeks as SemesterWeek[],
       summary: {
         totalWeeks: totalWeeks,
         contentWeeks,
@@ -192,23 +203,16 @@ export default function SemesterPlanningPage() {
   };
 
   // Simple topological sort for prerequisites
-  const topologicalSort = (topics: any[]) => {
-    const sorted: any[] = [];
+  const topologicalSort = (topics: TopicGroup[]) => {
+    const sorted: TopicGroup[] = [];
     const visited = new Set();
     const visiting = new Set();
 
-    const visit = (topic: any) => {
+    const visit = (topic: TopicGroup) => {
       if (visiting.has(topic.id)) return; // Circular dependency
       if (visited.has(topic.id)) return;
 
       visiting.add(topic.id);
-
-      // Visit prerequisites first
-      topic.prerequisites.forEach((prereqId: string) => {
-        const prereq = topics.find((t) => t.id === prereqId);
-        if (prereq) visit(prereq);
-      });
-
       visiting.delete(topic.id);
       visited.add(topic.id);
       sorted.push(topic);
@@ -240,7 +244,7 @@ export default function SemesterPlanningPage() {
 
       // Create assignments for content weeks only
       const contentWeeks = generatedPlan.weeks.filter(
-        (week: any) => week.type === "content",
+        (week: SemesterWeek) => week.type === "content",
       );
 
       for (const week of contentWeeks) {
@@ -251,8 +255,9 @@ export default function SemesterPlanningPage() {
         dueDate.setDate(dueDate.getDate() + 6); // End of week
 
         // Convert week problems to assignment format
-        const customProblems = week.problems.map((problem: any) => ({
+        const customProblems = week.problems.map((problem: WeekProblem) => ({
           id: problem.id,
+          title: problem.title,
           problemText: problem.problemText,
           solution: problem.solution,
           difficulty: mapDifficultyToAssignment(problem.difficulty),
@@ -263,20 +268,20 @@ export default function SemesterPlanningPage() {
         const assignment: Assignment = {
           id: `semester-plan-${Date.now()}-week-${week.week}`,
           title: week.title,
-          description: `Auto-generated assignment from semester plan. ${week.learningObjectives.join(". ")}.`,
+          description: `Auto-generated assignment from semester plan. ${week.learningObjectives?.join(". ") || ""}.`,
           subject: generatedPlan.book.title.includes("Math")
             ? "Mathematics"
             : "Physics",
           dueDate: dueDate.toISOString().split("T")[0] || "",
           estimatedTime: Math.round(week.estimatedHours * 60), // Convert to minutes
           difficulty: mapDifficultyToAssignment(
-            week.topics.length > 0 ? week.topics[0].difficulty : 3,
+            week.topics.length > 0 ? week.topics?.[0]?.difficulty || 3 : 3,
           ),
           status: "Draft",
           assignedGroups: [generatedPlan.group.name],
           createdDate: new Date().toISOString().split("T")[0] || "",
           bookId: generatedPlan.book.id,
-          bookProblemIds: week.topics.map((topic: any) => topic.id),
+          bookProblemIds: week.topics.map((topic: TopicGroup) => topic.id),
           customProblems,
           generatedFromPlan: true,
           planWeek: week.week,
@@ -562,7 +567,9 @@ export default function SemesterPlanningPage() {
                 <Label>Difficulty Progression</Label>
                 <Select
                   value={difficultyProgression}
-                  onValueChange={setDifficultyProgression}
+                  onValueChange={(value: DifficultyProgression) =>
+                    setDifficultyProgression(value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -677,7 +684,7 @@ export default function SemesterPlanningPage() {
 
             <div className="space-y-4">
               <h4 className="font-semibold">First 4 Weeks Preview:</h4>
-              {generatedPlan.weeks.slice(0, 4).map((week: any) => (
+              {generatedPlan.weeks.slice(0, 4).map((week: SemesterWeek) => (
                 <div key={week.week} className="rounded-lg border p-4">
                   <div className="mb-2 flex items-center justify-between">
                     <h5 className="font-medium">{week.title}</h5>
@@ -727,17 +734,19 @@ export default function SemesterPlanningPage() {
                         Sample Problems:
                       </p>
                       <div className="grid gap-2 md:grid-cols-2">
-                        {week.problems.slice(0, 2).map((problem: any) => (
-                          <div
-                            key={problem.id}
-                            className="rounded bg-muted p-2 text-sm"
-                          >
-                            <p className="font-medium">{problem.title}</p>
-                            <p className="text-muted-foreground">
-                              ~{problem.estimatedTime}min
-                            </p>
-                          </div>
-                        ))}
+                        {week.problems
+                          .slice(0, 2)
+                          .map((problem: WeekProblem) => (
+                            <div
+                              key={problem.id}
+                              className="rounded bg-muted p-2 text-sm"
+                            >
+                              <p className="font-medium">{problem.title}</p>
+                              <p className="text-muted-foreground">
+                                ~{problem.estimatedTime}min
+                              </p>
+                            </div>
+                          ))}
                       </div>
                     </div>
                   )}

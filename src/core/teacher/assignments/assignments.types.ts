@@ -2,6 +2,7 @@ export type ProblemDifficulty = "Easy" | "Medium" | "Hard";
 
 export interface CustomProblem {
   id: string;
+  title: string;
   problemText: string;
   solution: string;
   difficulty: ProblemDifficulty;

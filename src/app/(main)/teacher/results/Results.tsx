@@ -42,12 +42,12 @@ import {
   getAssignmentDetails,
   getStudentProgress,
 } from "@/core/teacher/assignments/assignments.domain";
-import { AssignmentDetails } from "@/core/teacher/assignments/assignments.types";
+import type { AssignmentDetails } from "@/core/teacher/assignments/assignments.types";
 import {
   getGroupPerformance,
   getStudentResults,
 } from "@/core/teacher/results/results.domain";
-import {
+import type {
   GroupPerformance,
   StudentResult,
 } from "@/core/teacher/results/results.types";

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Activity } from "@/core/teacher/activities/activities.types";
+import type { Activity } from "@/core/teacher/activities/activities.types";
 import {
   AlertTriangle,
   BookOpen,

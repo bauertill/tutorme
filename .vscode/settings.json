@@ -5,6 +5,6 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "editor.codeActionsOnSave": {
-    "source.organizeImports.biome": "always"
+    "source.organizeImports.biome": "never"
   }
 }

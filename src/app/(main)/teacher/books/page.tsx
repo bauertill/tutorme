@@ -26,7 +26,7 @@ import {
   getAvailableBooks,
   getBookRequests,
 } from "@/core/teacher/books/books.domain";
-import {
+import type {
   Book,
   BookProblem,
   BookRequest,

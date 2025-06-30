@@ -30,9 +30,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getStudentGroups } from "@/core/teacher/groups/groups.domain";
-import { StudentGroup } from "@/core/teacher/groups/groups.types";
+import type { StudentGroup } from "@/core/teacher/groups/groups.types";
 import { getStudents } from "@/core/teacher/students/students.domain";
-import { Student } from "@/core/teacher/students/students.types";
+import type { Student } from "@/core/teacher/students/students.types";
 import { Edit, Plus, Trash2, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 

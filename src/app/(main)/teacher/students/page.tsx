@@ -43,7 +43,7 @@ import {
   getStudentAIEvaluation,
   getStudents,
 } from "@/core/teacher/students/students.domain";
-import { Student } from "@/core/teacher/students/students.types";
+import type { Student } from "@/core/teacher/students/students.types";
 import { Edit, Plus, Search, Trash2, User } from "lucide-react";
 import { useState } from "react";
 
@@ -870,7 +870,7 @@ export default function StudentsPage() {
                                       </Badge>
                                     </div>
                                     <ul className="space-y-1 text-xs text-muted-foreground">
-                                      {data.evidence.map((evidence, idx) => (
+                                      {data.evidence.map((evidence) => (
                                         <li key={evidence}>• {evidence}</li>
                                       ))}
                                     </ul>
