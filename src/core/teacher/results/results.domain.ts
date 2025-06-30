@@ -1,4 +1,4 @@
-import { GroupPerformance, StudentResult } from "./results.types";
+import type { GroupPerformance, StudentResult } from "./results.types";
 
 export const getStudentResults = () => {
   return studentResults;

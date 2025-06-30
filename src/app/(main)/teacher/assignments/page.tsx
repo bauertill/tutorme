@@ -273,7 +273,7 @@ export default function AssignmentsPage() {
   };
 
   const handleEditAssignment = (assignment: Assignment) => {
-    const bookId = allBooks.find((b) => b.id === assignment.bookId)?.id || "";
+    const bookId = allBooks.find((b) => b.id === assignment.bookId)?.id ?? "";
 
     setEditingAssignment(assignment);
     setNewAssignment({
@@ -285,8 +285,8 @@ export default function AssignmentsPage() {
       difficulty: assignment.difficulty,
       bookId,
     });
-    setSelectedBookProblems(assignment.bookProblemIds || []);
-    setCustomProblems(assignment.customProblems || []);
+    setSelectedBookProblems(assignment.bookProblemIds ?? []);
+    setCustomProblems(assignment.customProblems ?? []);
   };
 
   const handleUpdateAssignment = () => {
@@ -307,7 +307,7 @@ export default function AssignmentsPage() {
       const updatedAssignment = {
         ...editingAssignment,
         ...newAssignment,
-        estimatedTime: totalEstimatedTime || newAssignment.estimatedTime,
+        estimatedTime: totalEstimatedTime ?? newAssignment.estimatedTime,
         book: selectedBookData?.title,
         bookProblems: selectedBookProblemsData,
         customProblems: [...customProblems],
@@ -985,8 +985,8 @@ export default function AssignmentsPage() {
               {assignments.length === 0 && (
                 <div className="py-8 text-center text-muted-foreground">
                   <p>
-                    No assignments created yet. Click "Create Assignment" to get
-                    started.
+                    No assignments created yet. Click &quot;Create
+                    Assignment&quot; to get started.
                   </p>
                 </div>
               )}
@@ -1032,7 +1032,7 @@ export default function AssignmentsPage() {
                     const focusRec = getFocusRecommendations(
                       workload.studentId,
                     );
-                    const needsFocus = focusRec?.shouldFocus || false;
+                    const needsFocus = focusRec?.shouldFocus ?? false;
 
                     return (
                       <Card
@@ -1752,7 +1752,7 @@ export default function AssignmentsPage() {
                     <span className="font-medium">Performance:</span>
                     <Badge
                       variant={getPerformanceBadgeVariant(
-                        viewingStudent?.performance || "Average",
+                        viewingStudent?.performance ?? "Average",
                       )}
                       className="ml-2"
                     >
@@ -1906,7 +1906,7 @@ export default function AssignmentsPage() {
                                         <Tabs defaultValue="student">
                                           <TabsList className="grid w-full grid-cols-3">
                                             <TabsTrigger value="student">
-                                              Student's Solution
+                                              Student&apos;s Solution
                                             </TabsTrigger>
                                             <TabsTrigger value="expected">
                                               Expected Solution

@@ -8,9 +8,7 @@ export interface Activity {
   title: string;
   description: string;
   timestamp: string;
-  details: {
-    [key: string]: unknown;
-  };
+  details: Record<string, unknown>;
   status: ActivityStatus;
   relatedEntities: {
     students?: string[];
