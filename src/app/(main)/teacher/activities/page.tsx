@@ -1,125 +1,129 @@
-"use client"
+"use client";
 
-import { Suspense, useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { ActivityModal } from "@/app/(main)/teacher/_components/activity-modal";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { getActivities } from "@/core/teacher/activities/activities.domain";
+import type { Activity } from "@/core/teacher/activities/activities.types";
 import {
-  ArrowLeft,
+  AlertTriangle,
+  BookOpen,
   Calendar,
+  CheckCircle2,
+  ClipboardList,
   Clock,
+  Info,
   User,
   Users,
-  BookOpen,
-  ClipboardList,
-  CheckCircle2,
-  AlertTriangle,
-  Info,
-} from "lucide-react"
-import Link from "next/link"
-import { activities } from "@/lib/data"
-import { ActivityModal } from "@/components/activity-modal"
-import type { Activity } from "@/lib/data"
+} from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 function ActivityContent() {
-  const searchParams = useSearchParams()
-  const activityId = searchParams.get("id")
-  const activityType = searchParams.get("type")
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
+  const activities = getActivities();
+
+  const searchParams = useSearchParams();
+  const activityId = searchParams.get("id");
+  const activityType = searchParams.get("type");
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
+    null,
+  );
 
   // Auto-open modal if activity ID is provided
   useEffect(() => {
     if (activityId) {
-      const activity = activities.find((a) => a.id === activityId)
+      const activity = activities.find((a) => a.id === activityId);
       if (activity) {
-        setSelectedActivity(activity)
+        setSelectedActivity(activity);
       }
     }
-  }, [activityId])
+  }, [activityId, activities]);
 
   // Filter activities based on search params
   const filteredActivities = activities
     .filter((activity) => {
       if (activityType) {
-        return activity.type === activityType
+        return activity.type === activityType;
       }
-      return true
+      return true;
     })
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
 
   const getActivityIcon = (type: Activity["type"]) => {
     switch (type) {
       case "assignment":
-        return <ClipboardList className="h-5 w-5" />
+        return <ClipboardList className="h-5 w-5" />;
       case "student":
-        return <User className="h-5 w-5" />
+        return <User className="h-5 w-5" />;
       case "book":
-        return <BookOpen className="h-5 w-5" />
+        return <BookOpen className="h-5 w-5" />;
       case "system":
-        return <Info className="h-5 w-5" />
+        return <Info className="h-5 w-5" />;
       default:
-        return <Info className="h-5 w-5" />
+        return <Info className="h-5 w-5" />;
     }
-  }
+  };
 
   const getStatusIcon = (status: Activity["status"]) => {
     switch (status) {
       case "completed":
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
       case "failed":
-        return <AlertTriangle className="h-4 w-4 text-red-500" />
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
       case "pending":
-        return <Clock className="h-4 w-4 text-yellow-500" />
+        return <Clock className="h-4 w-4 text-yellow-500" />;
       case "info":
-        return <Info className="h-4 w-4 text-blue-500" />
+        return <Info className="h-4 w-4 text-blue-500" />;
       default:
-        return <Info className="h-4 w-4 text-gray-500" />
+        return <Info className="h-4 w-4 text-gray-500" />;
     }
-  }
+  };
 
   const getStatusBadgeVariant = (status: Activity["status"]) => {
     switch (status) {
       case "completed":
-        return "default"
+        return "default";
       case "failed":
-        return "destructive"
+        return "destructive";
       case "pending":
-        return "secondary"
+        return "secondary";
       case "info":
-        return "outline"
+        return "outline";
       default:
-        return "outline"
+        return "outline";
     }
-  }
+  };
 
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60),
+    );
 
-    if (diffInHours < 1) return "Just now"
-    if (diffInHours < 24) return `${diffInHours}h ago`
-    const diffInDays = Math.floor(diffInHours / 24)
-    if (diffInDays === 1) return "1 day ago"
-    if (diffInDays < 7) return `${diffInDays} days ago`
-    return date.toLocaleDateString()
-  }
+    if (diffInHours < 1) return "Just now";
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays === 1) return "1 day ago";
+    if (diffInDays < 7) return `${diffInDays} days ago`;
+    return date.toLocaleDateString();
+  };
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Link>
-          </Button>
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Activity Feed</h2>
             <p className="text-muted-foreground">
-              {activityType ? `Showing all ${activityType} activities` : "Recent system activities and updates"}
+              {activityType
+                ? `Showing all ${activityType} activities`
+                : "Recent system activities and updates"}
             </p>
           </div>
         </div>
@@ -129,7 +133,7 @@ function ActivityContent() {
         {filteredActivities.map((activity) => (
           <Card
             key={activity.id}
-            className="cursor-pointer hover:shadow-md transition-shadow"
+            className="cursor-pointer transition-shadow hover:shadow-md"
             onClick={() => setSelectedActivity(activity)}
           >
             <CardContent className="p-4">
@@ -138,8 +142,10 @@ function ActivityContent() {
                   {getActivityIcon(activity.type)}
                   <div className="flex-1">
                     <h3 className="font-medium">{activity.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{activity.description}</p>
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {activity.description}
+                    </p>
+                    <div className="mt-2 flex items-center space-x-4 text-xs text-muted-foreground">
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-3 w-3" />
                         <span>{formatTimestamp(activity.timestamp)}</span>
@@ -147,13 +153,18 @@ function ActivityContent() {
                       {activity.relatedEntities.students && (
                         <div className="flex items-center space-x-1">
                           <User className="h-3 w-3" />
-                          <span>{activity.relatedEntities.students.length} student(s)</span>
+                          <span>
+                            {activity.relatedEntities.students.length}{" "}
+                            student(s)
+                          </span>
                         </div>
                       )}
                       {activity.relatedEntities.groups && (
                         <div className="flex items-center space-x-1">
                           <Users className="h-3 w-3" />
-                          <span>{activity.relatedEntities.groups.length} group(s)</span>
+                          <span>
+                            {activity.relatedEntities.groups.length} group(s)
+                          </span>
                         </div>
                       )}
                     </div>
@@ -161,7 +172,10 @@ function ActivityContent() {
                 </div>
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(activity.status)}
-                  <Badge variant={getStatusBadgeVariant(activity.status)} className="text-xs">
+                  <Badge
+                    variant={getStatusBadgeVariant(activity.status)}
+                    className="text-xs"
+                  >
                     {activity.status}
                   </Badge>
                 </div>
@@ -172,8 +186,10 @@ function ActivityContent() {
 
         {filteredActivities.length === 0 && (
           <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground">No activities found matching your criteria.</p>
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">
+                No activities found matching your criteria.
+              </p>
               <Button variant="outline" className="mt-4 bg-transparent" asChild>
                 <Link href="/activities">View All Activities</Link>
               </Button>
@@ -188,7 +204,7 @@ function ActivityContent() {
         onOpenChange={(open) => !open && setSelectedActivity(null)}
       />
     </div>
-  )
+  );
 }
 
 export default function ActivitiesPage() {
@@ -196,5 +212,5 @@ export default function ActivitiesPage() {
     <Suspense fallback={<div>Loading activities...</div>}>
       <ActivityContent />
     </Suspense>
-  )
+  );
 }

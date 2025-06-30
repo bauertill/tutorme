@@ -33,16 +33,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  getAllStudentProgress,
+  getAllStudentWorkload,
+  getAssignments,
+  getStudentProgress,
+  getStudentWorkload,
+} from "@/core/teacher/assignments/assignments.domain";
+import {
+  Assignment,
+  CustomProblem,
+  DetailedStudentProgress,
+  ProblemAttempt,
+} from "@/core/teacher/assignments/assignments.types";
+import { getAvailableBooks } from "@/core/teacher/books/books.domain";
+import { BookProblem } from "@/core/teacher/books/books.types";
+import { getStudentGroups } from "@/core/teacher/groups/groups.domain";
+import {
+  getStudentAIEvaluation,
+  getStudents,
+} from "@/core/teacher/students/students.domain";
+import { Student } from "@/core/teacher/students/students.types";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -59,206 +72,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-// Copied from students/page.tsx for the dialog
-interface Student {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  grade: string;
-  group: string;
-  performance: "Excellent" | "Good" | "Average" | "Needs Improvement";
-  joinDate: string;
-}
-
-interface BookProblem {
-  id: string;
-  bookTitle: string;
-  chapter: string;
-  section: string;
-  problemNumber: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  topic: string;
-  problemText: string;
-  solution: string;
-  estimatedTime: number;
-}
-
-interface CustomProblem {
-  id: string;
-  problemText: string;
-  solution: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  estimatedTime: number;
-  topic: string;
-}
-
-interface Assignment {
-  id: string;
-  title: string;
-  description: string;
-  subject: string;
-  dueDate: string;
-  estimatedTime: number;
-  difficulty: "Easy" | "Medium" | "Hard";
-  status: "Draft" | "Active" | "Completed";
-  assignedGroups: string[];
-  createdDate: string;
-  book?: string;
-  chapters?: string[];
-  bookProblems?: BookProblem[];
-  customProblems?: CustomProblem[];
-}
-
-interface ProblemAttempt {
-  problemId: string;
-  problemText: string;
-  expectedSolution: string;
-  studentSolution: string;
-  status: "Correct" | "Incorrect" | "Partially Correct";
-  aiPrompts: string[];
-}
-
-interface StudentProgress {
-  studentId: string;
-  studentName: string;
-  assignmentId: string;
-  assignmentTitle: string;
-  status: "Not Started" | "In Progress" | "Completed" | "Overdue";
-  timeSpent: number; // in minutes
-  aiPromptsUsed: number;
-  progress: number; // percentage 0-100
-  lastActivity: string;
-  score?: number;
-  maxScore?: number;
-  problemAttempts?: ProblemAttempt[];
-}
-
-interface StudentWorkload {
-  studentId: string;
-  studentName: string;
-  group: string;
-  activeAssignments: number;
-  completedThisWeek: number;
-  totalTimeSpent: number;
-  averageScore: number;
-  upcomingDeadlines: number;
-}
-
-// Using the full AIEvaluation interface from students/page.tsx
-interface AIEvaluation {
-  studentId: string;
-  lastUpdated: string;
-  strengths: {
-    [concept: string]: {
-      score: number; // 0-100
-      evidence: string[];
-    };
-  };
-  weaknesses: {
-    [concept: string]: {
-      score: number; // 0-100 (lower is weaker)
-      evidence: string[];
-    };
-  };
-  characterTraits: {
-    trait: string;
-    level: "Low" | "Moderate" | "High";
-    description: string;
-  }[];
-  motivationStrategies: {
-    strategy: string;
-    effectiveness: number; // 0-100
-    examples: string[];
-  }[];
-  quickOverview: {
-    overallScore: number;
-    primaryStrength: string;
-    primaryWeakness: string;
-    recommendedFocus: string;
-    motivationStyle: string;
-  };
-}
-
-// Copied from students/page.tsx for the dialog
-const initialStudents: Student[] = [
-  {
-    id: "1",
-    firstName: "Anna",
-    lastName: "Müller",
-    email: "anna.mueller@school.de",
-    grade: "10A",
-    group: "Advanced Math",
-    performance: "Excellent",
-    joinDate: "2025-01-15",
-  },
-  {
-    id: "2",
-    firstName: "Max",
-    lastName: "Schmidt",
-    email: "max.schmidt@school.de",
-    grade: "10A",
-    group: "Basic Math",
-    performance: "Good",
-    joinDate: "2025-02-10",
-  },
-  {
-    id: "3",
-    firstName: "Lisa",
-    lastName: "Weber",
-    email: "lisa.weber@school.de",
-    grade: "9B",
-    group: "Advanced Math",
-    performance: "Excellent",
-    joinDate: "2025-03-01",
-  },
-  {
-    id: "4",
-    firstName: "Tom",
-    lastName: "Fischer",
-    email: "tom.fischer@school.de",
-    grade: "9B",
-    group: "Basic Math",
-    performance: "Average",
-    joinDate: "2025-04-15",
-  },
-  {
-    id: "5",
-    firstName: "Sarah",
-    lastName: "Klein",
-    email: "sarah.klein@school.de",
-    grade: "10B",
-    group: "Basic Math",
-    performance: "Good",
-    joinDate: "2025-01-20",
-  },
-  {
-    id: "6",
-    firstName: "Emma",
-    lastName: "Bauer",
-    email: "emma.bauer@school.de",
-    grade: "10A",
-    group: "Geometry Focus",
-    performance: "Excellent",
-    joinDate: "2025-02-15",
-  },
-  {
-    id: "7",
-    firstName: "Leon",
-    lastName: "Hoffmann",
-    email: "leon.hoffmann@school.de",
-    grade: "9B",
-    group: "Geometry Focus",
-    performance: "Good",
-    joinDate: "2025-03-10",
-  },
-];
-
 // Add helper function to get focus recommendations
 const getFocusRecommendations = (studentId: string) => {
-  const evaluation = aiEvaluationData.find(
-    (evaluationData) => evaluationData.studentId === studentId,
-  );
+  const evaluation = getStudentAIEvaluation(studentId);
   if (!evaluation) return null;
 
   return {
@@ -270,954 +86,6 @@ const getFocusRecommendations = (studentId: string) => {
     motivationStyle: evaluation.quickOverview.motivationStyle,
   };
 };
-
-// Mock book problems from scanned books
-const availableBookProblems: BookProblem[] = [
-  // Mathematik für Ingenieure und Naturwissenschaftler
-  {
-    id: "bp1",
-    bookTitle: "Mathematik für Ingenieure und Naturwissenschaftler",
-    chapter: "Kapitel 3",
-    section: "3.1",
-    problemNumber: "3.1.1",
-    difficulty: "Easy",
-    topic: "Lineare Gleichungen",
-    problemText: "Lösen Sie die Gleichung: 2x + 5 = 13",
-    solution: "x = 4\n\nLösungsweg:\n2x + 5 = 13\n2x = 13 - 5\n2x = 8\nx = 4",
-    estimatedTime: 5,
-  },
-  {
-    id: "bp2",
-    bookTitle: "Mathematik für Ingenieure und Naturwissenschaftler",
-    chapter: "Kapitel 3",
-    section: "3.2",
-    problemNumber: "3.2.3",
-    difficulty: "Medium",
-    topic: "Quadratische Gleichungen",
-    problemText: "Lösen Sie die quadratische Gleichung: x² - 5x + 6 = 0",
-    solution:
-      "x₁ = 2, x₂ = 3\n\nLösungsweg:\nx² - 5x + 6 = 0\n(x - 2)(x - 3) = 0\nx = 2 oder x = 3",
-    estimatedTime: 10,
-  },
-  {
-    id: "bp3",
-    bookTitle: "Mathematik für Ingenieure und Naturwissenschaftler",
-    chapter: "Kapitel 4",
-    section: "4.1",
-    problemNumber: "4.1.2",
-    difficulty: "Hard",
-    topic: "Funktionen",
-    problemText: "Bestimmen Sie die Ableitung von f(x) = x³ - 2x² + 3x - 1",
-    solution:
-      "f'(x) = 3x² - 4x + 3\n\nLösungsweg:\nf(x) = x³ - 2x² + 3x - 1\nf'(x) = 3x² - 4x + 3",
-    estimatedTime: 15,
-  },
-  {
-    id: "bp4",
-    bookTitle: "Mathematik für Ingenieure und Naturwissenschaftler",
-    chapter: "Kapitel 5",
-    section: "5.3",
-    problemNumber: "5.3.1",
-    difficulty: "Medium",
-    topic: "Integrale",
-    problemText: "Berechnen Sie das Integral: ∫(3x² + 2x - 1)dx",
-    solution:
-      "x³ + x² - x + C\n\nLösungsweg:\n∫(3x² + 2x - 1)dx = 3∫x²dx + 2∫xdx - ∫1dx = x³ + x² - x + C",
-    estimatedTime: 12,
-  },
-
-  // Grundlagen der Mathematik für Dummies
-  {
-    id: "bp5",
-    bookTitle: "Grundlagen der Mathematik für Dummies",
-    chapter: "Kapitel 2",
-    section: "2.1",
-    problemNumber: "2.1.1",
-    difficulty: "Easy",
-    topic: "Grundrechenarten",
-    problemText: "Berechnen Sie: 15 + 23 - 8",
-    solution: "30\n\nLösungsweg:\n15 + 23 = 38\n38 - 8 = 30",
-    estimatedTime: 3,
-  },
-  {
-    id: "bp6",
-    bookTitle: "Grundlagen der Mathematik für Dummies",
-    chapter: "Kapitel 5",
-    section: "5.2",
-    problemNumber: "5.2.4",
-    difficulty: "Medium",
-    topic: "Bruchrechnung",
-    problemText: "Vereinfachen Sie: 3/4 + 2/3",
-    solution: "17/12\n\nLösungsweg:\n3/4 + 2/3 = 9/12 + 8/12 = 17/12",
-    estimatedTime: 8,
-  },
-];
-
-const availableBooks = [
-  {
-    id: "book1",
-    title: "Mathematik für Ingenieure und Naturwissenschaftler",
-    author: "Lothar Papula",
-    isbn: "9783827420923",
-  },
-  {
-    id: "book2",
-    title: "Grundlagen der Mathematik für Dummies",
-    author: "Mark Zegarelli",
-    isbn: "9783446451827",
-  },
-  {
-    id: "book3",
-    title: "Lineare Algebra",
-    author: "Gerd Fischer",
-    isbn: "9783662616789",
-  },
-  {
-    id: "book4",
-    title: "Analysis 1",
-    author: "Otto Forster",
-    isbn: "9783825252847",
-  },
-];
-
-const initialAssignments: Assignment[] = [
-  {
-    id: "1",
-    title: "Linear Equations Practice",
-    description: "Solve various linear equations and graph their solutions",
-    subject: "Algebra",
-    dueDate: "2025-07-05",
-    estimatedTime: 15,
-    difficulty: "Medium",
-    status: "Active",
-    assignedGroups: ["Advanced Math", "Basic Math"],
-    createdDate: "2025-06-15",
-    book: "Mathematik für Ingenieure und Naturwissenschaftler",
-    chapters: ["Chapter 3", "Chapter 4"],
-    bookProblems: [availableBookProblems[0], availableBookProblems[1]],
-  },
-  {
-    id: "2",
-    title: "Geometry Proofs",
-    description: "Complete geometric proofs for triangles and quadrilaterals",
-    subject: "Geometry",
-    dueDate: "2025-07-10",
-    estimatedTime: 15,
-    difficulty: "Hard",
-    status: "Active",
-    assignedGroups: ["Geometry Focus"],
-    createdDate: "2025-06-20",
-    book: "Mathematik für Ingenieure und Naturwissenschaftler",
-    chapters: ["Chapter 4"],
-    bookProblems: [availableBookProblems[2]],
-  },
-  {
-    id: "3",
-    title: "Statistics Basics",
-    description: "Introduction to statistical concepts and calculations",
-    subject: "Statistics",
-    dueDate: "2025-07-15",
-    estimatedTime: 15,
-    difficulty: "Easy",
-    status: "Draft",
-    assignedGroups: [],
-    createdDate: "2025-06-22",
-    customProblems: [
-      {
-        id: "custom1",
-        problemText:
-          "Calculate the mean of the following numbers: 2, 4, 6, 8, 10",
-        solution: "Mean = (2+4+6+8+10) / 5 = 30 / 5 = 6",
-        difficulty: "Easy",
-        estimatedTime: 5,
-        topic: "Mean",
-      },
-      {
-        id: "custom2",
-        problemText: "Find the median of: 7, 1, 3, 8, 2",
-        solution:
-          "Sorted list: 1, 2, 3, 7, 8. The median is the middle number, which is 3.",
-        difficulty: "Easy",
-        estimatedTime: 5,
-        topic: "Median",
-      },
-      {
-        id: "custom3",
-        problemText: "Find the mode of: 2, 5, 3, 5, 1, 5, 2",
-        solution:
-          "The number 5 appears most often (3 times), so the mode is 5.",
-        difficulty: "Easy",
-        estimatedTime: 5,
-        topic: "Mode",
-      },
-    ],
-  },
-];
-
-// Mock student progress data with problem attempts
-const studentProgressData: StudentProgress[] = [
-  // Advanced Math Group
-  {
-    studentId: "1",
-    studentName: "Anna Müller",
-    assignmentId: "1",
-    assignmentTitle: "Linear Equations Practice",
-    status: "Completed",
-    timeSpent: 45,
-    aiPromptsUsed: 3,
-    progress: 100,
-    lastActivity: "2025-06-26T10:30:00Z",
-    score: 95,
-    maxScore: 100,
-    problemAttempts: [
-      {
-        problemId: "bp1",
-        problemText: "Lösen Sie die Gleichung: 2x + 5 = 13",
-        expectedSolution:
-          "x = 4\n\nLösungsweg:\n2x + 5 = 13\n2x = 13 - 5\n2x = 8\nx = 4",
-        studentSolution: "2x = 13 - 5\n2x = 8\nx = 4",
-        status: "Correct",
-        aiPrompts: ["How to start solving for x in 2x+5=13?"],
-      },
-      {
-        problemId: "bp2",
-        problemText: "Lösen Sie die quadratische Gleichung: x² - 5x + 6 = 0",
-        expectedSolution:
-          "x₁ = 2, x₂ = 3\n\nLösungsweg:\nx² - 5x + 6 = 0\n(x - 2)(x - 3) = 0\nx = 2 oder x = 3",
-        studentSolution:
-          "I used the quadratic formula. x = (5 ± sqrt(25 - 24)) / 2. x = (5 ± 1) / 2. So x = 3. I missed the second solution.",
-        status: "Partially Correct",
-        aiPrompts: [
-          "What is the quadratic formula?",
-          "How to factor x^2 - 5x + 6?",
-        ],
-      },
-    ],
-  },
-  {
-    studentId: "1",
-    studentName: "Anna Müller",
-    assignmentId: "2",
-    assignmentTitle: "Geometry Proofs",
-    status: "In Progress",
-    timeSpent: 25,
-    aiPromptsUsed: 7,
-    progress: 60,
-    lastActivity: "2025-06-27T14:15:00Z",
-  },
-  {
-    studentId: "3",
-    studentName: "Lisa Weber",
-    assignmentId: "1",
-    assignmentTitle: "Linear Equations Practice",
-    status: "Completed",
-    timeSpent: 38,
-    aiPromptsUsed: 2,
-    progress: 100,
-    lastActivity: "2025-06-24T16:45:00Z",
-    score: 88,
-    maxScore: 100,
-  },
-  {
-    studentId: "3",
-    studentName: "Lisa Weber",
-    assignmentId: "2",
-    assignmentTitle: "Geometry Proofs",
-    status: "In Progress",
-    timeSpent: 42,
-    aiPromptsUsed: 5,
-    progress: 75,
-    lastActivity: "2025-06-27T11:20:00Z",
-  },
-  // Basic Math Group
-  {
-    studentId: "2",
-    studentName: "Max Schmidt",
-    assignmentId: "1",
-    assignmentTitle: "Linear Equations Practice",
-    status: "Completed",
-    timeSpent: 65,
-    aiPromptsUsed: 12,
-    progress: 100,
-    lastActivity: "2025-06-25T09:30:00Z",
-    score: 78,
-    maxScore: 100,
-    problemAttempts: [
-      {
-        problemId: "bp1",
-        problemText: "Lösen Sie die Gleichung: 2x + 5 = 13",
-        expectedSolution:
-          "x = 4\n\nLösungsweg:\n2x + 5 = 13\n2x = 13 - 5\n2x = 8\nx = 4",
-        studentSolution: "2x = 13 - 5\n2x = 8\nx = 4",
-        status: "Correct",
-        aiPrompts: ["how to solve 2x+5=13", "what is 13-5"],
-      },
-      {
-        problemId: "bp2",
-        problemText: "Lösen Sie die quadratische Gleichung: x² - 5x + 6 = 0",
-        expectedSolution:
-          "x₁ = 2, x₂ = 3\n\nLösungsweg:\nx² - 5x + 6 = 0\n(x - 2)(x - 3) = 0\nx = 2 oder x = 3",
-        studentSolution: "x = 2",
-        status: "Incorrect",
-        aiPrompts: [
-          "how to solve x^2 - 5x + 6 = 0",
-          "what are factors of 6",
-          "what is the quadratic formula",
-          "can you solve it for me",
-        ],
-      },
-    ],
-  },
-  {
-    studentId: "4",
-    studentName: "Tom Fischer",
-    assignmentId: "1",
-    assignmentTitle: "Linear Equations Practice",
-    status: "Overdue",
-    timeSpent: 15,
-    aiPromptsUsed: 8,
-    progress: 30,
-    lastActivity: "2025-06-23T13:45:00Z",
-  },
-  {
-    studentId: "5",
-    studentName: "Sarah Klein",
-    assignmentId: "1",
-    assignmentTitle: "Linear Equations Practice",
-    status: "In Progress",
-    timeSpent: 32,
-    aiPromptsUsed: 6,
-    progress: 45,
-    lastActivity: "2025-06-26T15:30:00Z",
-  },
-  // Geometry Focus Group
-  {
-    studentId: "6",
-    studentName: "Emma Bauer",
-    assignmentId: "2",
-    assignmentTitle: "Geometry Proofs",
-    status: "Completed",
-    timeSpent: 80,
-    aiPromptsUsed: 4,
-    progress: 100,
-    lastActivity: "2025-06-25T12:00:00Z",
-    score: 92,
-    maxScore: 100,
-  },
-  {
-    studentId: "7",
-    studentName: "Leon Hoffmann",
-    assignmentId: "2",
-    assignmentTitle: "Geometry Proofs",
-    status: "In Progress",
-    timeSpent: 55,
-    aiPromptsUsed: 9,
-    progress: 80,
-    lastActivity: "2025-06-27T16:45:00Z",
-  },
-];
-
-const studentWorkloadData: StudentWorkload[] = [
-  {
-    studentId: "1",
-    studentName: "Anna Müller",
-    group: "Advanced Math",
-    activeAssignments: 1,
-    completedThisWeek: 1,
-    totalTimeSpent: 70,
-    averageScore: 95,
-    upcomingDeadlines: 1,
-  },
-  {
-    studentId: "3",
-    studentName: "Lisa Weber",
-    group: "Advanced Math",
-    activeAssignments: 1,
-    completedThisWeek: 1,
-    totalTimeSpent: 80,
-    averageScore: 88,
-    upcomingDeadlines: 1,
-  },
-  {
-    studentId: "2",
-    studentName: "Max Schmidt",
-    group: "Basic Math",
-    activeAssignments: 0,
-    completedThisWeek: 1,
-    totalTimeSpent: 65,
-    averageScore: 78,
-    upcomingDeadlines: 0,
-  },
-  {
-    studentId: "4",
-    studentName: "Tom Fischer",
-    group: "Basic Math",
-    activeAssignments: 1,
-    completedThisWeek: 0,
-    totalTimeSpent: 15,
-    averageScore: 0,
-    upcomingDeadlines: 1,
-  },
-  {
-    studentId: "5",
-    studentName: "Sarah Klein",
-    group: "Basic Math",
-    activeAssignments: 1,
-    completedThisWeek: 0,
-    totalTimeSpent: 32,
-    averageScore: 0,
-    upcomingDeadlines: 1,
-  },
-  {
-    studentId: "6",
-    studentName: "Emma Bauer",
-    group: "Geometry Focus",
-    activeAssignments: 0,
-    completedThisWeek: 1,
-    totalTimeSpent: 80,
-    averageScore: 92,
-    upcomingDeadlines: 0,
-  },
-  {
-    studentId: "7",
-    studentName: "Leon Hoffmann",
-    group: "Geometry Focus",
-    activeAssignments: 1,
-    completedThisWeek: 0,
-    totalTimeSpent: 55,
-    averageScore: 0,
-    upcomingDeadlines: 1,
-  },
-];
-
-// Using the full AI evaluation data from students/page.tsx
-const aiEvaluationData: AIEvaluation[] = [
-  {
-    studentId: "1",
-    lastUpdated: "2025-06-27",
-    strengths: {
-      "Linear Equations": {
-        score: 95,
-        evidence: [
-          "Solved complex equations quickly",
-          "Showed multiple solution methods",
-          "Helped other students",
-        ],
-      },
-      "Problem Solving": {
-        score: 88,
-        evidence: [
-          "Breaks down complex problems systematically",
-          "Uses logical reasoning effectively",
-        ],
-      },
-      "Mathematical Communication": {
-        score: 92,
-        evidence: [
-          "Explains solutions clearly",
-          "Uses proper mathematical notation",
-        ],
-      },
-    },
-    weaknesses: {
-      "Geometry Proofs": {
-        score: 65,
-        evidence: [
-          "Struggles with formal proof structure",
-          "Needs more practice with logical flow",
-        ],
-      },
-      "Time Management": {
-        score: 70,
-        evidence: [
-          "Sometimes rushes through problems",
-          "Could benefit from more careful checking",
-        ],
-      },
-    },
-    characterTraits: [
-      {
-        trait: "Perfectionism",
-        level: "High",
-        description:
-          "Tends to spend too much time on details, sometimes at the expense of completing all problems",
-      },
-      {
-        trait: "Collaboration",
-        level: "High",
-        description: "Enjoys helping classmates and working in groups",
-      },
-      {
-        trait: "Persistence",
-        level: "High",
-        description: "Doesn't give up easily when facing difficult problems",
-      },
-    ],
-    motivationStrategies: [
-      {
-        strategy: "Leadership Opportunities",
-        effectiveness: 90,
-        examples: [
-          "Let Anna explain solutions to the class",
-          "Assign her as a peer tutor",
-        ],
-      },
-      {
-        strategy: "Advanced Challenges",
-        effectiveness: 85,
-        examples: [
-          "Provide extension problems",
-          "Introduce competition-level questions",
-        ],
-      },
-      {
-        strategy: "Real-world Applications",
-        effectiveness: 80,
-        examples: [
-          "Engineering problems",
-          "Architecture and design challenges",
-        ],
-      },
-    ],
-    quickOverview: {
-      overallScore: 87,
-      primaryStrength: "Linear Equations & Problem Solving",
-      primaryWeakness: "Geometry Proofs",
-      recommendedFocus: "Formal proof writing and logical structure",
-      motivationStyle: "Leadership and advanced challenges",
-    },
-  },
-  {
-    studentId: "2",
-    lastUpdated: "2025-06-26",
-    strengths: {
-      Perseverance: {
-        score: 90,
-        evidence: [
-          "Never gives up on difficult problems",
-          "Shows improvement over time",
-          "Asks thoughtful questions",
-        ],
-      },
-      "Basic Arithmetic": {
-        score: 82,
-        evidence: [
-          "Strong foundation in calculations",
-          "Accurate with basic operations",
-        ],
-      },
-    },
-    weaknesses: {
-      "Abstract Thinking": {
-        score: 45,
-        evidence: [
-          "Struggles with algebraic concepts",
-          "Needs concrete examples",
-          "Difficulty with variables",
-        ],
-      },
-      Speed: {
-        score: 50,
-        evidence: [
-          "Takes longer than average to complete problems",
-          "Needs more time for processing",
-        ],
-      },
-      Confidence: {
-        score: 40,
-        evidence: [
-          "Often second-guesses correct answers",
-          "Relies heavily on AI assistance",
-          "Hesitant to participate",
-        ],
-      },
-    },
-    characterTraits: [
-      {
-        trait: "Self-doubt",
-        level: "High",
-        description:
-          "Frequently questions his own abilities despite making progress",
-      },
-      {
-        trait: "Methodical",
-        level: "High",
-        description: "Prefers step-by-step approaches and clear instructions",
-      },
-      {
-        trait: "Effort",
-        level: "High",
-        description: "Consistently puts in effort even when struggling",
-      },
-    ],
-    motivationStrategies: [
-      {
-        strategy: "Sports Analogies",
-        effectiveness: 95,
-        examples: [
-          "Football field measurements",
-          "Soccer statistics and probability",
-          "Basketball shooting angles",
-        ],
-      },
-      {
-        strategy: "Confidence Building",
-        effectiveness: 88,
-        examples: [
-          "Celebrate small wins",
-          "Start with easier problems",
-          "Positive reinforcement",
-        ],
-      },
-      {
-        strategy: "Concrete Examples",
-        effectiveness: 85,
-        examples: [
-          "Use physical objects",
-          "Real-world scenarios",
-          "Visual representations",
-        ],
-      },
-    ],
-    quickOverview: {
-      overallScore: 62,
-      primaryStrength: "Perseverance & Work Ethic",
-      primaryWeakness: "Abstract Thinking & Confidence",
-      recommendedFocus:
-        "Building confidence through concrete examples and sports-related problems",
-      motivationStyle: "Sports analogies and confidence building",
-    },
-  },
-  {
-    studentId: "3",
-    lastUpdated: "2025-06-27",
-    strengths: {
-      "Pattern Recognition": {
-        score: 93,
-        evidence: [
-          "Quickly identifies mathematical patterns",
-          "Excellent at sequence problems",
-          "Strong visual-spatial skills",
-        ],
-      },
-      Geometry: {
-        score: 89,
-        evidence: [
-          "Natural understanding of shapes and angles",
-          "Good spatial reasoning",
-        ],
-      },
-      "Independent Learning": {
-        score: 91,
-        evidence: [
-          "Self-motivated",
-          "Researches topics beyond curriculum",
-          "Minimal AI assistance needed",
-        ],
-      },
-    },
-    weaknesses: {
-      "Computational Accuracy": {
-        score: 68,
-        evidence: [
-          "Makes careless arithmetic errors",
-          "Rushes through calculations",
-        ],
-      },
-      "Showing Work": {
-        score: 55,
-        evidence: [
-          "Often skips steps",
-          "Difficulty explaining reasoning",
-          "Assumes others understand her thinking",
-        ],
-      },
-    },
-    characterTraits: [
-      {
-        trait: "Impatience",
-        level: "Moderate",
-        description:
-          "Gets frustrated with repetitive practice and wants to move on quickly",
-      },
-      {
-        trait: "Independence",
-        level: "High",
-        description: "Prefers working alone and figuring things out herself",
-      },
-      {
-        trait: "Creativity",
-        level: "High",
-        description: "Often finds unique approaches to problems",
-      },
-    ],
-    motivationStrategies: [
-      {
-        strategy: "Animal-themed Problems",
-        effectiveness: 92,
-        examples: [
-          "Horse breeding genetics",
-          "Animal population growth",
-          "Veterinary calculations",
-        ],
-      },
-      {
-        strategy: "Creative Challenges",
-        effectiveness: 87,
-        examples: [
-          "Open-ended problems",
-          "Multiple solution methods",
-          "Design projects",
-        ],
-      },
-      {
-        strategy: "Advanced Topics",
-        effectiveness: 83,
-        examples: [
-          "Preview higher-level concepts",
-          "Mathematical art projects",
-        ],
-      },
-    ],
-    quickOverview: {
-      overallScore: 81,
-      primaryStrength: "Pattern Recognition & Geometry",
-      primaryWeakness: "Showing Work & Computational Accuracy",
-      recommendedFocus:
-        "Developing clear communication of mathematical reasoning",
-      motivationStyle: "Animal themes and creative challenges",
-    },
-  },
-  {
-    studentId: "4",
-    lastUpdated: "2025-06-25",
-    strengths: {
-      Creativity: {
-        score: 78,
-        evidence: [
-          "Thinks outside the box",
-          "Comes up with unique approaches when engaged",
-        ],
-      },
-    },
-    weaknesses: {
-      Focus: {
-        score: 25,
-        evidence: [
-          "Easily distracted",
-          "Difficulty completing assignments",
-          "Mind wanders during explanations",
-        ],
-      },
-      "Basic Operations": {
-        score: 35,
-        evidence: [
-          "Struggles with fundamental arithmetic",
-          "Needs review of multiplication tables",
-        ],
-      },
-      Organization: {
-        score: 30,
-        evidence: [
-          "Loses track of steps",
-          "Messy work",
-          "Forgets to complete assignments",
-        ],
-      },
-      Motivation: {
-        score: 20,
-        evidence: [
-          "Often appears disengaged",
-          "Minimal effort on assignments",
-          "Avoids challenging problems",
-        ],
-      },
-    },
-    characterTraits: [
-      {
-        trait: "Procrastination",
-        level: "High",
-        description:
-          "Consistently delays starting assignments until the last minute",
-      },
-      {
-        trait: "Avoidance",
-        level: "High",
-        description: "Tends to avoid difficult tasks and gives up quickly",
-      },
-      {
-        trait: "Social",
-        level: "Moderate",
-        description:
-          "Enjoys group work but can be easily distracted by social interactions",
-      },
-    ],
-    motivationStrategies: [
-      {
-        strategy: "Gaming Elements",
-        effectiveness: 85,
-        examples: [
-          "Math games and competitions",
-          "Point systems",
-          "Achievement badges",
-        ],
-      },
-      {
-        strategy: "Short Bursts",
-        effectiveness: 80,
-        examples: [
-          "Break work into 10-minute segments",
-          "Frequent breaks",
-          "Quick wins",
-        ],
-      },
-      {
-        strategy: "Peer Support",
-        effectiveness: 75,
-        examples: ["Partner work", "Study groups", "Peer accountability"],
-      },
-    ],
-    quickOverview: {
-      overallScore: 38,
-      primaryStrength: "Creative Thinking",
-      primaryWeakness: "Focus & Basic Skills",
-      recommendedFocus:
-        "Building fundamental skills through engaging, short activities",
-      motivationStyle: "Gaming elements and peer support",
-    },
-  },
-  {
-    studentId: "5",
-    lastUpdated: "2025-06-26",
-    strengths: {
-      "Problem Solving": {
-        score: 85,
-        evidence: [
-          "Good at breaking down problems",
-          "Can apply concepts to new situations",
-        ],
-      },
-    },
-    weaknesses: {
-      "Attention to Detail": {
-        score: 60,
-        evidence: ["Makes careless mistakes", "Needs to double-check work"],
-      },
-    },
-    characterTraits: [
-      {
-        trait: "Enthusiasm",
-        level: "High",
-        description: "Eager to learn and participate",
-      },
-    ],
-    motivationStrategies: [
-      {
-        strategy: "Group Projects",
-        effectiveness: 80,
-        examples: ["Collaborative problem-solving", "Team competitions"],
-      },
-    ],
-    quickOverview: {
-      overallScore: 75,
-      primaryStrength: "Problem Solving",
-      primaryWeakness: "Attention to Detail",
-      recommendedFocus: "Developing careful work habits",
-      motivationStyle: "Collaborative learning",
-    },
-  },
-  {
-    studentId: "6",
-    lastUpdated: "2025-06-27",
-    strengths: {
-      "Spatial Reasoning": {
-        score: 95,
-        evidence: [
-          "Excellent at visualizing 3D shapes",
-          "Strong understanding of geometric transformations",
-        ],
-      },
-    },
-    weaknesses: {
-      "Algebraic Skills": {
-        score: 70,
-        evidence: [
-          "Sometimes struggles with complex algebraic manipulation in geometry problems",
-        ],
-      },
-    },
-    characterTraits: [
-      {
-        trait: "Precision",
-        level: "High",
-        description: "Very careful and accurate in her work",
-      },
-    ],
-    motivationStrategies: [
-      {
-        strategy: "Visual Puzzles",
-        effectiveness: 90,
-        examples: ["Geometric puzzles", "Tangrams", "3D modeling challenges"],
-      },
-    ],
-    quickOverview: {
-      overallScore: 88,
-      primaryStrength: "Spatial Reasoning",
-      primaryWeakness: "Algebraic Skills",
-      recommendedFocus: "Integrating algebra with geometry",
-      motivationStyle: "Visual and hands-on challenges",
-    },
-  },
-  {
-    studentId: "7",
-    lastUpdated: "2025-06-27",
-    strengths: {
-      "Logical Thinking": {
-        score: 82,
-        evidence: [
-          "Good at following logical steps in proofs",
-          "Can identify flaws in arguments",
-        ],
-      },
-    },
-    weaknesses: {
-      Confidence: {
-        score: 55,
-        evidence: ["Hesitant to share answers", "Second-guesses his work"],
-      },
-    },
-    characterTraits: [
-      {
-        trait: "Quiet",
-        level: "High",
-        description: "Prefers to listen rather than speak in class",
-      },
-    ],
-    motivationStrategies: [
-      {
-        strategy: "One-on-one feedback",
-        effectiveness: 85,
-        examples: ["Regular check-ins", "Private encouragement"],
-      },
-    ],
-    quickOverview: {
-      overallScore: 72,
-      primaryStrength: "Logical Thinking",
-      primaryWeakness: "Confidence",
-      recommendedFocus:
-        "Building self-assurance through positive reinforcement",
-      motivationStyle: "Supportive and encouraging feedback",
-    },
-  },
-];
-
-const availableGroups = [
-  "Advanced Math",
-  "Basic Math",
-  "Geometry Focus",
-  "Statistics Group",
-  "Algebra Specialists",
-];
 
 // Helper functions for the student details dialog
 const getPerformanceBadgeVariant = (performance: Student["performance"]) => {
@@ -1233,24 +101,6 @@ const getPerformanceBadgeVariant = (performance: Student["performance"]) => {
     default:
       return "outline";
   }
-};
-
-const getStudentProgress = (studentId: string) => {
-  return studentProgressData.filter(
-    (progress) => progress.studentId === studentId,
-  );
-};
-
-const getStudentWorkload = (studentId: string) => {
-  return studentWorkloadData.find(
-    (workload) => workload.studentId === studentId,
-  );
-};
-
-const getAIEvaluation = (studentId: string) => {
-  return aiEvaluationData.find(
-    (evaluation) => evaluation.studentId === studentId,
-  );
 };
 
 const getConceptScoreColor = (score: number) => {
@@ -1284,8 +134,15 @@ const getProblemStatusIcon = (status: ProblemAttempt["status"]) => {
 };
 
 export default function AssignmentsPage() {
+  const allStudents = getStudents();
+  const allBooks = getAvailableBooks();
+  const availableBookProblems = allBooks.flatMap((book) => book.problems || []);
+  const allStudentProgress = getAllStudentProgress();
+  const allStudentWorkload = getAllStudentWorkload();
+  const availableGroups = getStudentGroups();
+
   const [assignments, setAssignments] =
-    useState<Assignment[]>(initialAssignments);
+    useState<Assignment[]>(getAssignments());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(
     null,
@@ -1320,7 +177,7 @@ export default function AssignmentsPage() {
     dueDate: "",
     estimatedTime: 60,
     difficulty: "Medium" as Assignment["difficulty"],
-    selectedBook: "",
+    bookId: "",
   });
 
   // Progress view state
@@ -1329,10 +186,8 @@ export default function AssignmentsPage() {
     useState<string>("all");
 
   const handleViewStudent = (studentId: string) => {
-    const student = initialStudents.find((s) => s.id === studentId);
-    if (student) {
-      setViewingStudent(student);
-    }
+    const student = allStudents.find((s) => s.id === studentId);
+    if (student) setViewingStudent(student);
   };
 
   const resetForm = () => {
@@ -1343,7 +198,7 @@ export default function AssignmentsPage() {
       dueDate: "",
       estimatedTime: 60,
       difficulty: "Medium",
-      selectedBook: "",
+      bookId: "",
     });
     setSelectedBookProblems([]);
     setCustomProblems([]);
@@ -1357,27 +212,28 @@ export default function AssignmentsPage() {
   };
 
   const handleAddAssignment = () => {
-    const selectedBookProblemsData = getFilteredBookProblems().filter((p) =>
-      selectedBookProblems.includes(p.id),
+    const selectedBookProblemsData = getFilteredBookProblems().filter(
+      (p: BookProblem) => selectedBookProblems.includes(p.id),
     );
     const totalEstimatedTime = [
-      ...selectedBookProblemsData.map((p) => p.estimatedTime),
+      ...selectedBookProblemsData.map((p: BookProblem) => p.estimatedTime),
       ...customProblems.map((p) => p.estimatedTime),
     ].reduce((sum, time) => sum + time, 0);
 
-    const selectedBookData = availableBooks.find(
-      (book) => book.id === newAssignment.selectedBook,
+    const selectedBookData = allBooks.find(
+      (book) => book.id === newAssignment?.bookId,
     );
 
+    if (!newAssignment) return;
     const assignment: Assignment = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       ...newAssignment,
       estimatedTime: totalEstimatedTime || newAssignment.estimatedTime,
       status: "Draft",
       assignedGroups: [],
-      createdDate: new Date().toISOString().split("T")[0],
-      book: selectedBookData?.title,
-      bookProblems: selectedBookProblemsData,
+      createdDate: new Date().toISOString().split("T")[0] ?? "",
+      bookId: selectedBookData?.id,
+      bookProblemIds: selectedBookProblemsData.map((p) => p.id),
       customProblems: [...customProblems],
     };
 
@@ -1416,8 +272,7 @@ export default function AssignmentsPage() {
   };
 
   const handleEditAssignment = (assignment: Assignment) => {
-    const bookId =
-      availableBooks.find((b) => b.title === assignment.book)?.id || "";
+    const bookId = allBooks.find((b) => b.id === assignment.bookId)?.id || "";
 
     setEditingAssignment(assignment);
     setNewAssignment({
@@ -1427,9 +282,9 @@ export default function AssignmentsPage() {
       dueDate: assignment.dueDate,
       estimatedTime: assignment.estimatedTime,
       difficulty: assignment.difficulty,
-      selectedBook: bookId,
+      bookId,
     });
-    setSelectedBookProblems(assignment.bookProblems?.map((p) => p.id) || []);
+    setSelectedBookProblems(assignment.bookProblemIds || []);
     setCustomProblems(assignment.customProblems || []);
   };
 
@@ -1444,8 +299,8 @@ export default function AssignmentsPage() {
         ...customProblems.map((p) => p.estimatedTime),
       ].reduce((sum, time) => sum + time, 0);
 
-      const selectedBookData = availableBooks.find(
-        (book) => book.id === newAssignment.selectedBook,
+      const selectedBookData = allBooks.find(
+        (book) => book.id === newAssignment.bookId,
       );
 
       const updatedAssignment = {
@@ -1563,16 +418,15 @@ export default function AssignmentsPage() {
   };
 
   const getFilteredBookProblems = () => {
-    if (!newAssignment.selectedBook) return [];
-    const selectedBookTitle = availableBooks.find(
-      (book) => book.id === newAssignment.selectedBook,
-    )?.title;
+    if (!newAssignment.bookId) return [];
     return availableBookProblems.filter(
-      (problem) => problem.bookTitle === selectedBookTitle,
+      (problem) => problem.bookId === newAssignment.bookId,
     );
   };
 
-  const getProgressStatusBadgeVariant = (status: StudentProgress["status"]) => {
+  const getProgressStatusBadgeVariant = (
+    status: DetailedStudentProgress["assignments"][0]["status"],
+  ) => {
     switch (status) {
       case "Completed":
         return "default";
@@ -1607,18 +461,15 @@ export default function AssignmentsPage() {
   };
 
   const getGroupedProgress = () => {
-    const grouped: { [key: string]: StudentProgress[] } = {};
+    const grouped: { [key: string]: DetailedStudentProgress[] } = {};
 
-    studentProgressData.forEach((progress) => {
-      const workload = studentWorkloadData.find(
-        (w) => w.studentId === progress.studentId,
-      );
+    allStudentProgress.forEach((progress) => {
+      const workload = getStudentWorkload(progress.studentId);
       const group = workload?.group || "Unknown";
 
       if (selectedProgressGroup === "all" || group === selectedProgressGroup) {
-        if (!grouped[group]) {
-          grouped[group] = [];
-        }
+        if (!grouped[group]) grouped[group] = [];
+
         grouped[group].push(progress);
       }
     });
@@ -1627,7 +478,7 @@ export default function AssignmentsPage() {
   };
 
   const getFilteredWorkload = () => {
-    return studentWorkloadData.filter(
+    return allStudentWorkload.filter(
       (workload) =>
         selectedProgressGroup === "all" ||
         workload.group === selectedProgressGroup,
@@ -1719,7 +570,7 @@ export default function AssignmentsPage() {
                         </Label>
                         <Select
                           value={newAssignment.difficulty}
-                          onChange={(value: Assignment["difficulty"]) =>
+                          onValueChange={(value: Assignment["difficulty"]) =>
                             setNewAssignment({
                               ...newAssignment,
                               difficulty: value,
@@ -1780,11 +631,11 @@ export default function AssignmentsPage() {
                           Select Book
                         </Label>
                         <Select
-                          value={newAssignment.selectedBook}
-                          onChange={(value) =>
+                          value={newAssignment.bookId}
+                          onValueChange={(value) =>
                             setNewAssignment({
                               ...newAssignment,
-                              selectedBook: value,
+                              bookId: value,
                             })
                           }
                         >
@@ -1792,7 +643,7 @@ export default function AssignmentsPage() {
                             <SelectValue placeholder="Choose a book" />
                           </SelectTrigger>
                           <SelectContent>
-                            {availableBooks.map((book) => (
+                            {allBooks.map((book) => (
                               <SelectItem key={book.id} value={book.id}>
                                 {book.title}
                               </SelectItem>
@@ -1801,12 +652,13 @@ export default function AssignmentsPage() {
                         </Select>
                       </div>
 
-                      {newAssignment.selectedBook && (
+                      {newAssignment.bookId && (
                         <div className="space-y-4">
                           <h4 className="font-medium">Available Problems:</h4>
                           <div className="max-h-96 space-y-2 overflow-y-auto">
                             {getFilteredBookProblems().map((problem) => (
-                              <div
+                              <button
+                                type="button"
                                 key={problem.id}
                                 className={`cursor-pointer rounded-lg border p-3 transition-colors ${
                                   selectedBookProblems.includes(problem.id)
@@ -1839,7 +691,7 @@ export default function AssignmentsPage() {
                                     {problem.difficulty}
                                   </Badge>
                                 </div>
-                              </div>
+                              </button>
                             ))}
                           </div>
                         </div>
@@ -1914,7 +766,9 @@ export default function AssignmentsPage() {
                           </Label>
                           <Select
                             value={newCustomProblem.difficulty}
-                            onChange={(value: CustomProblem["difficulty"]) =>
+                            onValueChange={(
+                              value: CustomProblem["difficulty"],
+                            ) =>
                               setNewCustomProblem({
                                 ...newCustomProblem,
                                 difficulty: value,
@@ -2150,7 +1004,7 @@ export default function AssignmentsPage() {
               <div className="flex space-x-4">
                 <Select
                   value={selectedProgressGroup}
-                  onChange={setSelectedProgressGroup}
+                  onValueChange={setSelectedProgressGroup}
                 >
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Filter by group" />
@@ -2277,7 +1131,7 @@ export default function AssignmentsPage() {
                 <h3 className="text-lg font-semibold">
                   Detailed Progress by Group
                 </h3>
-                {Object.entries(getGroupedProgress()).map(
+                {/* {Object.entries(getGroupedProgress()).map(
                   ([group, progress]) => (
                     <Card key={group}>
                       <CardHeader>
@@ -2368,7 +1222,7 @@ export default function AssignmentsPage() {
                       </CardContent>
                     </Card>
                   ),
-                )}
+                )} */}
               </div>
             </CardContent>
           </Card>
@@ -2530,7 +1384,7 @@ export default function AssignmentsPage() {
                   </Label>
                   <Select
                     value={newAssignment.difficulty}
-                    onChange={(value: Assignment["difficulty"]) =>
+                    onValueChange={(value: Assignment["difficulty"]) =>
                       setNewAssignment({ ...newAssignment, difficulty: value })
                     }
                   >
@@ -2588,11 +1442,11 @@ export default function AssignmentsPage() {
                     Select Book
                   </Label>
                   <Select
-                    value={newAssignment.selectedBook}
-                    onChange={(value) =>
+                    value={newAssignment.bookId}
+                    onValueChange={(value) =>
                       setNewAssignment({
                         ...newAssignment,
-                        selectedBook: value,
+                        bookId: value,
                       })
                     }
                   >
@@ -2600,7 +1454,7 @@ export default function AssignmentsPage() {
                       <SelectValue placeholder="Choose a book" />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableBooks.map((book) => (
+                      {allBooks.map((book) => (
                         <SelectItem key={book.id} value={book.id}>
                           {book.title}
                         </SelectItem>
@@ -2609,12 +1463,13 @@ export default function AssignmentsPage() {
                   </Select>
                 </div>
 
-                {newAssignment.selectedBook && (
+                {newAssignment.bookId && (
                   <div className="space-y-4">
                     <h4 className="font-medium">Available Problems:</h4>
                     <div className="max-h-96 space-y-2 overflow-y-auto">
                       {getFilteredBookProblems().map((problem) => (
-                        <div
+                        <button
+                          type="button"
                           key={problem.id}
                           className={`cursor-pointer rounded-lg border p-3 transition-colors ${
                             selectedBookProblems.includes(problem.id)
@@ -2640,7 +1495,7 @@ export default function AssignmentsPage() {
                               {problem.difficulty}
                             </Badge>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -2712,7 +1567,7 @@ export default function AssignmentsPage() {
                     </Label>
                     <Select
                       value={newCustomProblem.difficulty}
-                      onChange={(value: CustomProblem["difficulty"]) =>
+                      onValueChange={(value: CustomProblem["difficulty"]) =>
                         setNewCustomProblem({
                           ...newCustomProblem,
                           difficulty: value,
@@ -2821,22 +1676,22 @@ export default function AssignmentsPage() {
           </DialogHeader>
           <div className="space-y-3 py-4">
             {availableGroups.map((group) => (
-              <div key={group} className="flex items-center space-x-2">
+              <div key={group.id} className="flex items-center space-x-2">
                 <Checkbox
-                  id={group}
-                  checked={selectedGroups.includes(group)}
+                  id={group.id}
+                  checked={selectedGroups.includes(group.id)}
                   onChange={(checked) => {
                     if (checked) {
-                      setSelectedGroups([...selectedGroups, group]);
+                      setSelectedGroups([...selectedGroups, group.id]);
                     } else {
                       setSelectedGroups(
-                        selectedGroups.filter((g) => g !== group),
+                        selectedGroups.filter((g) => g !== group.id),
                       );
                     }
                   }}
                 />
-                <Label htmlFor={group} className="cursor-pointer">
-                  {group}
+                <Label htmlFor={group.id} className="cursor-pointer">
+                  {group.name}
                 </Label>
               </div>
             ))}
@@ -2988,12 +1843,12 @@ export default function AssignmentsPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-base">
-                        Assignment Progress ({progress.length})
+                        Assignment Progress ({progress?.assignments.length})
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {progress.map((assignment) => (
+                        {progress?.assignments.map((assignment) => (
                           <Collapsible
                             key={assignment.assignmentId}
                             className="group rounded-lg border"
@@ -3026,16 +1881,20 @@ export default function AssignmentsPage() {
                             </CollapsibleTrigger>
                             <CollapsibleContent className="p-4 pt-0">
                               <div className="mt-4 space-y-3">
-                                {assignment.problemAttempts &&
-                                assignment.problemAttempts.length > 0 ? (
-                                  assignment.problemAttempts.map((attempt) => (
+                                {assignment.solutions &&
+                                assignment.solutions.length > 0 ? (
+                                  assignment.solutions.map((attempt) => (
                                     <Collapsible
                                       key={attempt.problemId}
                                       className="group/inner rounded-lg border"
                                     >
                                       <CollapsibleTrigger className="flex w-full items-center justify-between bg-muted/50 p-3 text-left transition-colors hover:bg-muted">
                                         <div className="flex items-center space-x-3">
-                                          {getProblemStatusIcon(attempt.status)}
+                                          {getProblemStatusIcon(
+                                            attempt.isCorrect
+                                              ? "Correct"
+                                              : "Incorrect",
+                                          )}
                                           <p className="flex-1 text-sm font-medium">
                                             {attempt.problemText}
                                           </p>
@@ -3088,12 +1947,12 @@ export default function AssignmentsPage() {
                                                 {attempt.aiPrompts.length >
                                                 0 ? (
                                                   attempt.aiPrompts.map(
-                                                    (prompt, idx) => (
+                                                    (prompt) => (
                                                       <div
-                                                        key={idx}
+                                                        key={prompt.prompt}
                                                         className="rounded bg-gray-100 p-2 text-sm"
                                                       >
-                                                        {prompt}
+                                                        {prompt.prompt}
                                                       </div>
                                                     ),
                                                   )
@@ -3121,7 +1980,7 @@ export default function AssignmentsPage() {
                           </Collapsible>
                         ))}
 
-                        {progress.length === 0 && (
+                        {progress?.assignments.length === 0 && (
                           <div className="py-8 text-center text-muted-foreground">
                             <p>No assignments found for this student.</p>
                           </div>
@@ -3135,7 +1994,7 @@ export default function AssignmentsPage() {
             {/* AI Evaluation */}
             {viewingStudent &&
               (() => {
-                const evaluation = getAIEvaluation(viewingStudent.id);
+                const evaluation = getStudentAIEvaluation(viewingStudent.id);
                 return evaluation ? (
                   <Card>
                     <CardHeader>
@@ -3226,8 +2085,8 @@ export default function AssignmentsPage() {
                                       </Badge>
                                     </div>
                                     <ul className="space-y-1 text-xs text-muted-foreground">
-                                      {data.evidence.map((evidence, idx) => (
-                                        <li key={idx}>• {evidence}</li>
+                                      {data.evidence.map((evidence) => (
+                                        <li key={evidence}>• {evidence}</li>
                                       ))}
                                     </ul>
                                   </div>
@@ -3260,8 +2119,8 @@ export default function AssignmentsPage() {
                                       </Badge>
                                     </div>
                                     <ul className="space-y-1 text-xs text-muted-foreground">
-                                      {data.evidence.map((evidence, idx) => (
-                                        <li key={idx}>• {evidence}</li>
+                                      {data.evidence.map((evidence) => (
+                                        <li key={evidence}>• {evidence}</li>
                                       ))}
                                     </ul>
                                   </div>
@@ -3277,8 +2136,11 @@ export default function AssignmentsPage() {
                             Character Traits
                           </h4>
                           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                            {evaluation.characterTraits.map((trait, idx) => (
-                              <div key={idx} className="rounded-lg border p-3">
+                            {evaluation.characterTraits.map((trait) => (
+                              <div
+                                key={trait.trait}
+                                className="rounded-lg border p-3"
+                              >
                                 <div className="mb-2 flex items-center justify-between">
                                   <h5 className="text-sm font-medium">
                                     {trait.trait}
@@ -3304,38 +2166,32 @@ export default function AssignmentsPage() {
                             Motivation Strategies
                           </h4>
                           <div className="space-y-3">
-                            {evaluation.motivationStrategies.map(
-                              (strategy, idx) => (
-                                <div
-                                  key={idx}
-                                  className="rounded-lg border border-blue-200 bg-blue-50 p-3"
-                                >
-                                  <div className="mb-2 flex items-center justify-between">
-                                    <h5 className="text-sm font-medium">
-                                      {strategy.strategy}
-                                    </h5>
-                                    <Badge
-                                      variant="outline"
-                                      className="text-blue-600"
-                                    >
-                                      {strategy.effectiveness}% effective
-                                    </Badge>
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    <span className="font-medium">
-                                      Examples:
-                                    </span>
-                                    <ul className="mt-1 space-y-1">
-                                      {strategy.examples.map(
-                                        (example, exIdx) => (
-                                          <li key={exIdx}>• {example}</li>
-                                        ),
-                                      )}
-                                    </ul>
-                                  </div>
+                            {evaluation.motivationStrategies.map((strategy) => (
+                              <div
+                                key={strategy.strategy}
+                                className="rounded-lg border border-blue-200 bg-blue-50 p-3"
+                              >
+                                <div className="mb-2 flex items-center justify-between">
+                                  <h5 className="text-sm font-medium">
+                                    {strategy.strategy}
+                                  </h5>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-blue-600"
+                                  >
+                                    {strategy.effectiveness}% effective
+                                  </Badge>
                                 </div>
-                              ),
-                            )}
+                                <div className="text-xs text-muted-foreground">
+                                  <span className="font-medium">Examples:</span>
+                                  <ul className="mt-1 space-y-1">
+                                    {strategy.examples.map((example) => (
+                                      <li key={example}>• {example}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>

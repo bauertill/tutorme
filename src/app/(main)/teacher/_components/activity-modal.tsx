@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import type { Activity } from "@/lib/data";
+import { Activity } from "@/core/teacher/activities/activities.types";
 import {
   AlertTriangle,
   BookOpen,
@@ -131,9 +131,9 @@ export function ActivityModal({
                   <dd className="text-sm text-muted-foreground">
                     {Array.isArray(value) ? (
                       <div className="flex flex-wrap gap-1">
-                        {value.map((item, idx) => (
+                        {value.map((item) => (
                           <Badge
-                            key={idx}
+                            key={item}
                             variant="outline"
                             className="text-xs"
                           >
