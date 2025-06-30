@@ -42,7 +42,8 @@ export const getTopicsByBookId = (bookId: string): TopicGroup[] => {
       });
     }
 
-    const topicData = topicMap.get(topicKey)!;
+    const topicData = topicMap.get(topicKey);
+    if (!topicData) return [];
     topicData.problems.push(problem);
     topicData.totalTime += problem.estimatedTime;
     topicData.difficulties.push(difficultyScore);

@@ -14,10 +14,10 @@ export const getStudentResults = (): StudentResult[] => {
           studentId: student.studentId,
           group: student.group,
           assignment: assignment.assignmentTitle,
-          score: assignment.score || 0,
-          maxScore: assignment.maxScore || 100,
+          score: assignment.score ?? 0,
+          maxScore: assignment.maxScore ?? 100,
           timeSpent: assignment.timeSpent,
-          submissionDate: assignment.submissionDate || "",
+          submissionDate: assignment.submissionDate ?? "",
           status: assignment.status,
         });
       }
