@@ -95,8 +95,8 @@ export default function StudentsPage() {
     const student: Student = {
       id: Date.now().toString(),
       ...newStudent,
-      joinDate: new Date().toISOString().split("T")[0] || "",
-      enrollmentDate: new Date().toISOString().split("T")[0] || "",
+      joinDate: new Date().toISOString().split("T")[0] ?? "",
+      enrollmentDate: new Date().toISOString().split("T")[0] ?? "",
       status: "active",
     };
     setStudents([...students, student]);
@@ -552,7 +552,7 @@ export default function StudentsPage() {
                     <span className="font-medium">Performance:</span>
                     <Badge
                       variant={getPerformanceBadgeVariant(
-                        viewingStudent?.performance || "Average",
+                        viewingStudent?.performance ?? "Average",
                       )}
                       className="ml-2"
                     >
@@ -678,7 +678,7 @@ export default function StudentsPage() {
                                         (
                                         {Math.round(
                                           (assignment.score /
-                                            (assignment.maxScore || 0)) *
+                                            (assignment.maxScore ?? 0)) *
                                             100,
                                         )}
                                         %)

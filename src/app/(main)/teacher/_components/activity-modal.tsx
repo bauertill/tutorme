@@ -131,7 +131,7 @@ export function ActivityModal({
                   <dd className="text-sm text-muted-foreground">
                     {Array.isArray(value) ? (
                       <div className="flex flex-wrap gap-1">
-                        {value.map((item) => (
+                        {value.map((item: string) => (
                           <Badge
                             key={item}
                             variant="outline"

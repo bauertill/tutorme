@@ -101,9 +101,9 @@ export default function SemesterPlanningPage() {
 
     // Generate weekly schedule
     const weeks = [];
-    const totalWeeks = semesterWeeks[0] || 16;
+    const totalWeeks = semesterWeeks[0] ?? 16;
     const reviewWeeks = includeReviews
-      ? Math.floor(totalWeeks / (reviewFrequency[0] || 4))
+      ? Math.floor(totalWeeks / (reviewFrequency[0] ?? 4))
       : 0;
     const contentWeeks = totalWeeks - reviewWeeks;
 
@@ -114,7 +114,7 @@ export default function SemesterPlanningPage() {
     for (let week = 1; week <= totalWeeks; week++) {
       const isReviewWeek =
         includeReviews &&
-        week % (reviewFrequency[0] || 4) === 0 &&
+        week % (reviewFrequency[0] ?? 4) === 0 &&
         week < totalWeeks;
 
       if (isReviewWeek) {
@@ -125,8 +125,8 @@ export default function SemesterPlanningPage() {
           title: "Review Week",
           topics: [],
           problems: [],
-          totalProblems: Math.min(problemsPerWeek[0] || 5, 10),
-          estimatedHours: (maxHoursPerWeek[0] || 3) * 0.8,
+          totalProblems: Math.min(problemsPerWeek[0] ?? 5, 10),
+          estimatedHours: (maxHoursPerWeek[0] ?? 3) * 0.8,
         });
       } else if (topicIndex < sortedTopics.length) {
         const currentTopic = sortedTopics[topicIndex];
@@ -135,7 +135,7 @@ export default function SemesterPlanningPage() {
         const remainingProblemsInTopic =
           currentTopic.problems - problemsInCurrentTopic;
         const problemsThisWeek = Math.min(
-          problemsPerWeek[0] || 5,
+          problemsPerWeek[0] ?? 5,
           remainingProblemsInTopic,
         );
 
@@ -237,9 +237,11 @@ export default function SemesterPlanningPage() {
 
     try {
       // Get existing assignments from localStorage or initialize empty array
+      const existingAssignmentsJson =
+        localStorage.getItem("assignments") ?? "[]";
       const existingAssignments = JSON.parse(
-        localStorage.getItem("assignments") || "[]",
-      );
+        existingAssignmentsJson,
+      ) as Assignment[];
       const newAssignments: Assignment[] = [];
 
       // Create assignments for content weeks only
@@ -268,18 +270,18 @@ export default function SemesterPlanningPage() {
         const assignment: Assignment = {
           id: `semester-plan-${Date.now()}-week-${week.week}`,
           title: week.title,
-          description: `Auto-generated assignment from semester plan. ${week.learningObjectives?.join(". ") || ""}.`,
+          description: `Auto-generated assignment from semester plan. ${week.learningObjectives?.join(". ") ?? ""}.`,
           subject: generatedPlan.book.title.includes("Math")
             ? "Mathematics"
             : "Physics",
-          dueDate: dueDate.toISOString().split("T")[0] || "",
+          dueDate: dueDate.toISOString().split("T")[0] ?? "",
           estimatedTime: Math.round(week.estimatedHours * 60), // Convert to minutes
           difficulty: mapDifficultyToAssignment(
-            week.topics.length > 0 ? week.topics?.[0]?.difficulty || 3 : 3,
+            week.topics.length > 0 ? (week.topics?.[0]?.difficulty ?? 3) : 3,
           ),
           status: "Draft",
           assignedGroups: [generatedPlan.group.name],
-          createdDate: new Date().toISOString().split("T")[0] || "",
+          createdDate: new Date().toISOString().split("T")[0] ?? "",
           bookId: generatedPlan.book.id,
           bookProblemIds: week.topics.map((topic: TopicGroup) => topic.id),
           customProblems,
@@ -358,7 +360,7 @@ export default function SemesterPlanningPage() {
           <CardContent>
             <div className="text-2xl font-bold">{totalHours}h</div>
             <p className="text-xs text-muted-foreground">
-              ~{Math.round(totalHours / (semesterWeeks[0] || 1))}h per week
+              ~{Math.round(totalHours / (semesterWeeks[0] ?? 1))}h per week
             </p>
           </CardContent>
         </Card>

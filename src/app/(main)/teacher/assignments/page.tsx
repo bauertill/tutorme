@@ -36,7 +36,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  getAllStudentProgress,
   getAllStudentWorkload,
   getAssignments,
   getStudentProgress,
@@ -80,7 +79,9 @@ const getFocusRecommendations = (studentId: string) => {
   return {
     shouldFocus:
       evaluation.quickOverview.overallScore < 70 ||
-      Object.values(evaluation.weaknesses).some((w: any) => w.score < 50),
+      Object.values(evaluation.weaknesses).some(
+        (w: { score: number }) => w.score < 50,
+      ),
     primaryWeakness: evaluation.quickOverview.primaryWeakness,
     recommendedFocus: evaluation.quickOverview.recommendedFocus,
     motivationStyle: evaluation.quickOverview.motivationStyle,
@@ -136,8 +137,7 @@ const getProblemStatusIcon = (status: ProblemAttempt["status"]) => {
 export default function AssignmentsPage() {
   const allStudents = getStudents();
   const allBooks = getAvailableBooks();
-  const availableBookProblems = allBooks.flatMap((book) => book.problems || []);
-  const allStudentProgress = getAllStudentProgress();
+  const availableBookProblems = allBooks.flatMap((book) => book.problems ?? []);
   const allStudentWorkload = getAllStudentWorkload();
   const availableGroups = getStudentGroups();
 
@@ -221,14 +221,14 @@ export default function AssignmentsPage() {
     ].reduce((sum, time) => sum + time, 0);
 
     const selectedBookData = allBooks.find(
-      (book) => book.id === newAssignment?.bookId,
+      (book) => book.id === newAssignment.bookId,
     );
 
     if (!newAssignment) return;
     const assignment: Assignment = {
       id: crypto.randomUUID(),
       ...newAssignment,
-      estimatedTime: totalEstimatedTime || newAssignment.estimatedTime,
+      estimatedTime: totalEstimatedTime ?? newAssignment.estimatedTime,
       status: "Draft",
       assignedGroups: [],
       createdDate: new Date().toISOString().split("T")[0] ?? "",
@@ -448,18 +448,18 @@ export default function AssignmentsPage() {
     return "text-red-600";
   };
 
-  const formatLastActivity = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60),
-    );
+  // const formatLastActivity = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   const now = new Date();
+  //   const diffInHours = Math.floor(
+  //     (now.getTime() - date.getTime()) / (1000 * 60 * 60),
+  //   );
 
-    if (diffInHours < 1) return "Just now";
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays}d ago`;
-  };
+  //   if (diffInHours < 1) return "Just now";
+  //   if (diffInHours < 24) return `${diffInHours}h ago`;
+  //   const diffInDays = Math.floor(diffInHours / 24);
+  //   return `${diffInDays}d ago`;
+  // };
 
   // const getGroupedProgress = () => {
   //   const grouped: { [key: string]: DetailedStudentProgress[] } = {};

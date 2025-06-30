@@ -212,8 +212,8 @@ export default function BooksPage() {
             <DialogHeader>
               <DialogTitle>Request a Book</DialogTitle>
               <DialogDescription>
-                Request a book that's not in our catalog. We'll review your
-                request and add it if approved.
+                Request a book that&apos;s not in our catalog. We&apos;ll review
+                your request and add it if approved.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">

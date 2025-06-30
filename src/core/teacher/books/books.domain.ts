@@ -1,4 +1,4 @@
-import { Book, BookRequest, TopicGroup } from "./books.types";
+import type { Book, BookRequest, TopicGroup } from "./books.types";
 
 export const getAvailableBooks = () => {
   return books;
@@ -11,7 +11,7 @@ export const getBookRequests = () => {
 export const getTopicsByBookId = (bookId: string): TopicGroup[] => {
   const book = books.find((b) => b.id === bookId);
 
-  if (!book || !book.problems) {
+  if (!book?.problems) {
     return [];
   }
 

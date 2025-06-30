@@ -15,18 +15,20 @@ export interface Student {
 export interface AIEvaluation {
   studentId: string;
   lastUpdated: string;
-  strengths: {
-    [concept: string]: {
+  strengths: Record<
+    string,
+    {
       score: number; // 0-100
       evidence: string[];
-    };
-  };
-  weaknesses: {
-    [concept: string]: {
+    }
+  >;
+  weaknesses: Record<
+    string,
+    {
       score: number; // 0-100 (lower is weaker)
       evidence: string[];
-    };
-  };
+    }
+  >;
   characterTraits: {
     trait: string;
     level: "Low" | "Moderate" | "High";

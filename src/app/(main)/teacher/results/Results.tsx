@@ -68,8 +68,9 @@ const groupBreakdown = (groupName: string) => {
   const studentResults = getStudentResults();
 
   const groupResults = studentResults.filter((r) => r.group === groupName);
-  const studentData: {
-    [key: string]: {
+  const studentData: Record<
+    string,
+    {
       name: string;
       scores: number[];
       maxScores: number[];
@@ -77,8 +78,8 @@ const groupBreakdown = (groupName: string) => {
       completed: number;
       total: number;
       assignments: StudentResult[];
-    };
-  } = {};
+    }
+  > = {};
 
   groupResults.forEach((result) => {
     if (!studentData[result.studentName]) {
@@ -710,7 +711,7 @@ export default function Results() {
                                                 </div>
                                               </div>
                                               <p className="mb-3 text-sm italic">
-                                                "{prompt.prompt}"
+                                                &ldquo;{prompt.prompt}&rdquo;
                                               </p>
                                               <div className="mb-1 text-xs font-medium text-blue-700">
                                                 AI Response:
