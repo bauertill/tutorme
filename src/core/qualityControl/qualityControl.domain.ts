@@ -1,4 +1,4 @@
-import { LLMAdapter } from "../adapters/llmAdapter";
+import { type LLMAdapter } from "../adapters/llmAdapter";
 
 export async function addPositiveSampleToQualityControlDataset(
   llmAdapter: LLMAdapter,

@@ -89,10 +89,12 @@ export function Canvas() {
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
       onSuccess: ({ evaluation, evaluateSolutionRunId }) => {
+        setLatestEvaluateSolutionRunId(evaluateSolutionRunId);
         setStudentSolutionEvaluation({
           studentSolutionId: evaluation.studentSolution,
           evaluation,
         });
+
         if (!evaluation.hasMistakes && evaluation.isComplete) {
           setCelebrationOpen(true);
           return;
