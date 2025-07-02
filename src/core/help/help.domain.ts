@@ -1,8 +1,10 @@
 import { type Language } from "@/i18n/types";
 import { type BaseMessage, SystemMessage } from "@langchain/core/messages";
+import { type PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { type LLMAdapter } from "../adapters/llmAdapter";
 import { type Draft } from "../utils";
+import { HelpRepository } from "./help.repository";
 import { type Message } from "./help.types";
 import { messageToLangchainMessage } from "./help.utils";
 import { generateReply, type GenerateReplyResponse } from "./llm/generateReply";
@@ -17,6 +19,7 @@ export function newMessage(draft: Draft<Message>): Message {
     ...draft,
     id: uuidv4(),
     createdAt: new Date(),
+    updatedAt: new Date(),
   };
 }
 
@@ -76,4 +79,20 @@ export async function setMessageThumbsDown(
     },
     llmAdapter,
   );
+}
+
+export async function getMessages(
+  db: PrismaClient,
+  studentSolutionId: string,
+): Promise<Message[]> {
+  const helpRepository = new HelpRepository(db);
+  return await helpRepository.getMessages(studentSolutionId);
+}
+
+export async function addMessage(
+  db: PrismaClient,
+  message: Message,
+): Promise<Message> {
+  const helpRepository = new HelpRepository(db);
+  return await helpRepository.addMessage(message);
 }

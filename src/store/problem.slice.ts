@@ -1,14 +1,14 @@
-import { type Problem } from "@/core/problem/problem.types";
 import { type StateCreator } from "zustand";
 import type { MiddlewareList, State } from ".";
 
 export interface ProblemSlice {
   activeProblemId: string | null;
+  activeAssignmentId: string | null;
   referenceSolutions: {
     entities: Record<string, string>;
     ids: string[];
   };
-  setActiveProblem: (problem: Problem, assignmentId: string) => void;
+  setActiveProblem: (problemId: string, assignmentId: string) => void;
   addReferenceSolution: (problemId: string, referenceSolution: string) => void;
 }
 
@@ -19,17 +19,17 @@ export const createProblemSlice: StateCreator<
   ProblemSlice
 > = (set, get) => ({
   activeProblemId: null,
+  activeAssignmentId: null,
   referenceSolutions: {
     entities: {},
     ids: [],
   },
-  setActiveProblem: (problem: Problem, assignmentId: string) => {
-    get().storeCurrentPathsOnStudentSolution();
+  setActiveProblem: (problemId: string, assignmentId: string) => {
     set((draft) => {
       draft.activeAssignmentId = assignmentId;
-      draft.activeProblemId = problem.id;
+      draft.activeProblemId = problemId;
     });
-    get().setCanvas({ paths: [] });
+    get().setPaths([]);
   },
 
   addReferenceSolution: (problemId: string, referenceSolution: string) => {

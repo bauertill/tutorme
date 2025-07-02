@@ -2,11 +2,14 @@
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { type Path } from "@/core/canvas/canvas.types";
+import { useHelp } from "@/hooks/use-help";
+import { useSaveCanvasPeriodically } from "@/hooks/use-save-canvas-periodically";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
-import { useActiveAssignmentId } from "@/store/assignment.selectors";
-import { useHelp } from "@/store/help.selectors";
-import { useActiveProblem } from "@/store/problem.selectors";
+import {
+  useActiveAssignmentId,
+  useActiveProblem,
+} from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import {
   Eraser,
@@ -23,11 +26,10 @@ import { LLMFeedbackButton } from "../LLMFeedbackButton";
 import { CelebrationDialog } from "./CelebrationDialog";
 import HelpButton from "./HelpButton";
 import { useCanvas } from "./useCanvas";
-import { useSaveCanvas } from "./useSaveCanvas";
 
 export function Canvas() {
-  const { t } = useTranslation();
   const utils = api.useUtils();
+  const { t } = useTranslation();
   const {
     canvas,
     undo,
@@ -52,37 +54,45 @@ export function Canvas() {
   const [studentSolution] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
       select: (data) => {
-        const solution = data.find(
+        const studentSolution = data.find(
           (solution) =>
             solution.problemId === activeProblemId &&
             solution.studentAssignmentId === activeAssignmentId,
         );
-        return solution;
+        if (!studentSolution) {
+          throw new Error("Student solution not found");
+        }
+        return studentSolution;
       },
     });
   const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
-  const {
-    messages,
-    setMessages,
-    setRecommendedQuestions,
-    newAssistantMessage,
-  } = useHelp();
+  const { addMessage, setRecommendedQuestions, newAssistantMessage } = useHelp(
+    studentSolution.id,
+  );
+  const { mutate: setStudentSolutionEvaluation } =
+    api.studentSolution.setStudentSolutionEvaluation.useMutation({
+      onMutate: ({ studentSolutionId, evaluation }) => {
+        utils.studentSolution.listStudentSolutions.setData(undefined, (old) =>
+          old?.map((s) =>
+            s.id === studentSolutionId ? { ...s, evaluation } : s,
+          ),
+        );
+      },
+    });
   const trackEvent = useTrackEvent();
   const [latestEvaluateSolutionRunId, setLatestEvaluateSolutionRunId] =
     useState("");
 
-  useSaveCanvas({
-    problemId: activeProblemId,
-    studentAssignmentId: activeAssignmentId,
-    paths,
-  });
+  useSaveCanvasPeriodically();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
-      onSuccess: (result) => {
-        const { evaluation, evaluateSolutionRunId } = result;
-        setLatestEvaluateSolutionRunId(evaluateSolutionRunId);
+      onSuccess: ({ evaluation, evaluateSolutionRunId }) => {
+        setStudentSolutionEvaluation({
+          studentSolutionId: evaluation.studentSolution,
+          evaluation,
+        });
         if (!evaluation.hasMistakes && evaluation.isComplete) {
           setCelebrationOpen(true);
           return;
@@ -96,7 +106,7 @@ export function Canvas() {
           message = t("assignment.feedback.notComplete");
 
         if (evaluation.hint) message += `\n${evaluation.hint}`;
-        if (message) setMessages([...messages, newAssistantMessage(message)]);
+        if (message) addMessage(newAssistantMessage(message));
         setRecommendedQuestions(evaluation.followUpQuestions);
         setHelpOpen(true);
         void utils.studentSolution.listStudentSolutions.invalidate();

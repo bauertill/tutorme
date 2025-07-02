@@ -2,23 +2,24 @@
 import { Button } from "@/components/ui/button";
 import { Trans } from "@/i18n/react";
 import { useStore } from "@/store";
-import { useProblemController } from "@/store/problem.selectors";
+import {
+  useActiveProblem,
+  useActiveStudentSolution,
+  useProblemController,
+} from "@/store/problem.selectors";
 import { ProblemRenderer } from "./ProblemRenderer";
 import { ProblemStatusIcon } from "./ProblemStatusIcon";
 
 export default function ProblemController() {
-  const {
-    activeAssignment,
-    activeProblem,
-    activeStudentSolution,
-    nextProblem,
-    previousProblem,
-    gotoNextProblem,
-    gotoPreviousProblem,
-  } = useProblemController();
+  const { nextProblem, previousProblem, gotoNextProblem, gotoPreviousProblem } =
+    useProblemController();
+
+  const activeProblem = useActiveProblem();
+  const activeStudentSolution = useActiveStudentSolution();
+  const activeAssignmentId = useStore.use.activeAssignmentId();
 
   const isTourRunning = useStore.use.isTourRunning();
-  if (!activeProblem || !activeAssignment) {
+  if (!activeProblem || !activeAssignmentId) {
     return null;
   }
 

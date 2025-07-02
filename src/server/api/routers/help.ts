@@ -1,5 +1,7 @@
 import {
+  addMessage,
   generateHelpReply,
+  getMessages,
   recommendQuestions,
   setMessageThumbsDown,
 } from "@/core/help/help.domain";
@@ -7,6 +9,7 @@ import { Message } from "@/core/help/help.types";
 import {
   createTRPCRouter,
   limitedPublicProcedure,
+  protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
 import { z } from "zod";
@@ -62,5 +65,21 @@ export const helpRouter = createTRPCRouter({
         ctx.llmAdapter,
         ctx.userLanguage,
       );
+    }),
+  getMessages: protectedProcedure
+    .input(
+      z.object({
+        studentSolutionId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // @TODO authorize
+      return await getMessages(ctx.db, input.studentSolutionId);
+    }),
+  addMessage: protectedProcedure
+    .input(Message)
+    .mutation(async ({ ctx, input }) => {
+      // @TODO authorize
+      return await addMessage(ctx.db, input);
     }),
 });

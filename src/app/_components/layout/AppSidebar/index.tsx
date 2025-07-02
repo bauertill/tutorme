@@ -20,10 +20,9 @@ import {
 } from "@/components/ui/sidebar";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useAuth } from "@/lib/react-auth";
-import { useActiveAssignmentId } from "@/store/assignment.selectors";
 import {
+  useActiveAssignmentId,
   useActiveProblem,
-  useProblemController,
 } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
@@ -36,7 +35,6 @@ export function AppSidebar() {
     api.assignment.listStudentAssignments.useSuspenseQuery();
   const activeProblem = useActiveProblem();
   const activeAssignmentId = useActiveAssignmentId();
-  const { setActiveProblemWithCanvas } = useProblemController();
   const [openAssignments, setOpenAssignments] = useState<Set<string>>(
     new Set(),
   );
@@ -166,7 +164,6 @@ export function AppSidebar() {
                   isOpen={autoExpandedAssignments.has(assignment.id)}
                   onOpenChange={() => toggleAssignment(assignment.id)}
                   activeProblem={activeProblem}
-                  setActiveProblem={setActiveProblemWithCanvas}
                 />
               ))}
             </SidebarText>

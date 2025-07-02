@@ -8,22 +8,13 @@ import superjson from "superjson";
 import { create } from "zustand";
 import { devtools, persist, type PersistStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import {
-  createAssignmentSlice,
-  type AssignmentSlice,
-} from "./assignment.slice";
 import { createCanvasSlice, type CanvasSlice } from "./canvas.slice";
-import { createHelpSlice, type HelpSlice } from "./help.slice";
 import {
   createOnboardingSlice,
   type OnboardingSlice,
 } from "./onboarding.slice";
 import { createProblemSlice, type ProblemSlice } from "./problem.slice";
 import { createProfileSlice, type ProfileSlice } from "./profile.slice";
-import {
-  createStudentSolutionSlice,
-  type StudentSolutionSlice,
-} from "./studentSolution.slice";
 import {
   createUsageLimitSlice,
   type UsageLimitSlice,
@@ -35,13 +26,10 @@ export type MiddlewareList = [
   ["zustand/immer", never],
 ];
 
-export type State = AssignmentSlice &
-  StudentSolutionSlice &
-  ProblemSlice &
+export type State = ProblemSlice &
   CanvasSlice &
   UsageLimitSlice &
   ProfileSlice &
-  HelpSlice &
   OnboardingSlice;
 
 const storage: PersistStorage<State> = {
@@ -66,19 +54,16 @@ const useStoreBase = create<State>()(
   devtools(
     persist(
       immer((...a) => ({
-        ...createAssignmentSlice(...a),
         ...createProblemSlice(...a),
-        ...createStudentSolutionSlice(...a),
         ...createCanvasSlice(...a),
         ...createUsageLimitSlice(...a),
         ...createProfileSlice(...a),
-        ...createHelpSlice(...a),
         ...createOnboardingSlice(...a),
       })),
       {
         name: "tutormegood-store",
         storage,
-        version: 3,
+        version: 4,
       },
     ),
   ),
