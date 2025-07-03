@@ -81,15 +81,12 @@ export function Canvas() {
       },
     });
   const trackEvent = useTrackEvent();
-  const [latestEvaluateSolutionRunId, setLatestEvaluateSolutionRunId] =
-    useState("");
 
   useSaveCanvasPeriodically();
 
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
-      onSuccess: ({ evaluation, evaluateSolutionRunId }) => {
-        setLatestEvaluateSolutionRunId(evaluateSolutionRunId);
+      onSuccess: (evaluation) => {
         setStudentSolutionEvaluation({
           studentSolutionId: studentSolution.id,
           evaluation,
@@ -146,7 +143,9 @@ export function Canvas() {
       <>
         <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
           <LLMFeedbackButton
-            latestEvaluateSolutionRunId={latestEvaluateSolutionRunId}
+            latestEvaluateSolutionRunId={
+              studentSolution.evaluation?.evaluateSolutionRunId ?? ""
+            }
           />
           <Button
             variant={!isEraser ? "default" : "outline"}
@@ -227,7 +226,6 @@ export function Canvas() {
       activeProblem,
       activeAssignment,
       studentSolution,
-      latestEvaluateSolutionRunId,
     ],
   );
   return useMemo(

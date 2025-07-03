@@ -105,16 +105,11 @@ export type EvaluateSolutionInput = {
   canvas: Canvas;
 };
 
-export type EvaluateSolutionResult = {
-  result: z.infer<typeof EvaluateSolutionSchema>;
-  runId: string;
-};
-
 // Function to evaluate the solution using the multimodal LLM
 export async function evaluateSolution(
   input: EvaluateSolutionInput,
   llmAdapter: LLMAdapter,
-): Promise<EvaluateSolutionResult> {
+): Promise<EvaluateSolutionOutput & { runId: string }> {
   const {
     problemId,
     exerciseText,
@@ -166,7 +161,7 @@ export async function evaluateSolution(
     );
 
   return {
-    result: response,
+    ...response,
     runId,
   };
 }

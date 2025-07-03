@@ -22,6 +22,18 @@ export function setStudentSolutionCanvas(
   });
 }
 
+export function setStudentSolutionEvaluateResult(
+  studentAssignmentId: string,
+  problemId: string,
+  evaluation: EvaluationResult,
+  db: PrismaClient,
+) {
+  const repository = new StudentSolutionRepository(db);
+  return repository.upsertStudentSolution(studentAssignmentId, problemId, {
+    evaluation,
+  });
+}
+
 export function setStudentSolutionRecommendedQuestions(
   studentSolutionId: string,
   recommendedQuestions: RecommendedQuestion[],
@@ -33,6 +45,8 @@ export function setStudentSolutionRecommendedQuestions(
   });
 }
 
+// @TODO discuss if thisn't overkill?
+// Why go roundtrip with optimistic update?
 export function setStudentSolutionEvaluation(
   studentSolutionId: string,
   evaluation: EvaluationResult,
@@ -44,46 +58,50 @@ export function setStudentSolutionEvaluation(
   });
 }
 
-export type EvaluateSolutionWithRunIdResult = {
-  evaluation: EvaluationResult;
-  evaluateSolutionRunId: string;
-  handwritingRunId: string;
-};
+export function storeStudentSolutionCanvasWithEvaluationResult(
+  payload: {
+    studentAssignmentId: string;
+    problemId: string;
+    evaluation: EvaluationResult;
+    canvas: Canvas;
+  },
+  db: PrismaClient,
+) {
+  const { studentAssignmentId, problemId, evaluation, canvas } = payload;
+  const repository = new StudentSolutionRepository(db);
+  return repository.upsertStudentSolution(studentAssignmentId, problemId, {
+    canvas,
+    evaluation,
+  });
+}
 
 export async function evaluateSolution(
   input: EvaluateSolutionInput,
   llmAdapter: LLMAdapter,
   db: PrismaClient,
-): Promise<EvaluateSolutionWithRunIdResult> {
-  const [evaluation, handwriting, _] = await Promise.all([
+): Promise<EvaluationResult> {
+  const [evaluationSolution, handwriting] = await Promise.all([
     evaluateSolutionLLM(input, llmAdapter),
     judgeHandwritingLLM(input, llmAdapter),
-    setStudentSolutionCanvas(
-      input.studentAssignmentId,
-      input.problemId,
-      input.canvas,
-      db,
-    ),
   ]);
-
-  if (handwriting.agreement) {
-    return {
-      evaluateSolutionRunId: evaluation.runId,
-      handwritingRunId: "TODO",
-      evaluation: {
-        ...evaluation.result,
+  const evaluation = handwriting.agreement
+    ? {
+        ...evaluationSolution,
         isLegible: true,
-      },
-    };
-  }
+        evaluateSolutionRunId: evaluationSolution.runId,
+        handwritingRunId: "TODO",
+      }
+    : {
+        ...evaluationSolution,
+        isLegible: false,
+        hint: handwriting.clarifying_request,
+        evaluateSolutionRunId: evaluationSolution.runId,
+        handwritingRunId: "TODO",
+      };
 
-  return {
-    evaluateSolutionRunId: evaluation.runId,
-    handwritingRunId: "TODO",
-    evaluation: {
-      ...evaluation.result,
-      isLegible: false,
-      hint: handwriting.clarifying_request,
-    },
-  };
+  void storeStudentSolutionCanvasWithEvaluationResult(
+    { ...input, evaluation },
+    db,
+  );
+  return evaluation;
 }
