@@ -22,7 +22,6 @@
     "preview": "next build && next start",
     "start": "next start",
     "push:prompts": "dotenv -e .env -- pnpm dlx tsx src/core/adapters/llmAdapter/uploadPrompts.ts",
-    "create:datasets": "pnpm dlx dotenv-cli -e .env -- pnpm dlx tsx src/core/adapters/llmAdapter/createDatasets.ts",
     "eval": "dotenv -e .env -- pnpm dlx tsx src/core/adapters/llmAdapter/assignment/__tests__/evaluateSolution.eval.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest"
