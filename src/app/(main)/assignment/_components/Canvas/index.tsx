@@ -91,7 +91,7 @@ export function Canvas() {
       onSuccess: ({ evaluation, evaluateSolutionRunId }) => {
         setLatestEvaluateSolutionRunId(evaluateSolutionRunId);
         setStudentSolutionEvaluation({
-          studentSolutionId: evaluation.studentSolution,
+          studentSolutionId: studentSolution.id,
           evaluation,
         });
 
@@ -111,7 +111,6 @@ export function Canvas() {
         if (message) addMessage(newAssistantMessage(message));
         setRecommendedQuestions(evaluation.followUpQuestions);
         setHelpOpen(true);
-        void utils.studentSolution.listStudentSolutions.invalidate();
       },
       onError: (error) => {
         if (error.message === "Free tier limit reached") {
