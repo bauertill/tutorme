@@ -1,6 +1,9 @@
 import { Canvas } from "@/core/canvas/canvas.types";
 import { RecommendedQuestion } from "@/core/help/help.types";
-import { addPositiveSampleToQualityControlDataset } from "@/core/qualityControl/qualityControl.domain";
+import {
+  addNegativeSampleToAnnotationQueue,
+  addPositiveSampleToQualityControlDataset,
+} from "@/core/qualityControl/qualityControl.domain";
 import { StudentRepository } from "@/core/student/student.repository";
 import {
   evaluateSolution,
@@ -51,6 +54,12 @@ export const studentSolutionRouter = createTRPCRouter({
         ctx.llmAdapter,
         input.runId,
       );
+      return { success: true };
+    }),
+  addNegativeSampleToAnnotationQueue: limitedPublicProcedure
+    .input(z.object({ runId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await addNegativeSampleToAnnotationQueue(ctx.llmAdapter, input.runId);
       return { success: true };
     }),
 
