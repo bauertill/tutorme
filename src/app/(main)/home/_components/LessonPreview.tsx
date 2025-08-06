@@ -27,8 +27,10 @@ export function LessonPreview({
           <Badge variant="secondary" className="mb-4 bg-blue-100 text-blue-800">
             LEVEL {level}
           </Badge>
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">{title}</h2>
-          <div className="mb-4 text-sm text-gray-600">
+          <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {title}
+          </h2>
+          <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
             Practice • {practiceTime}
           </div>
         </div>
@@ -48,19 +50,19 @@ export function LessonPreview({
 
         <div className="mt-6 flex justify-center gap-4">
           {/* Mock lesson type icons */}
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
             <span className="text-xl">⚖️</span>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
             <span className="text-xl">🧮</span>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
             <span className="text-xl">🐕</span>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
             <span className="text-xl">⚙️</span>
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
             <span className="text-xl">🌍</span>
           </div>
         </div>

@@ -6,13 +6,13 @@ import { LessonPreview } from "./_components/LessonPreview";
 
 export function Home() {
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4 dark:bg-gray-900">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
             Welcome, Vincent
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Ready to continue your learning journey?
           </p>
         </div>
@@ -21,14 +21,14 @@ export function Home() {
           {/* Left Column */}
           <div className="space-y-6">
             <div>
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Your Progress
               </h2>
               <DailyStreak streak={1} />
             </div>
 
             <div>
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Jump back in
               </h2>
               <League currentXP={140} targetXP={175} />
@@ -37,7 +37,7 @@ export function Home() {
 
           {/* Right Column */}
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
               Next Lesson
             </h2>
             <LessonPreview

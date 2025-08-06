@@ -36,10 +36,12 @@ export function DailyStreak({ streak = 1 }: DailyStreakProps) {
         </div>
 
         <div className="mb-4 text-center">
-          <h3 className="mb-1 text-2xl font-bold text-gray-900">
+          <h3 className="mb-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
             {streak} Day Streak
           </h3>
-          <p className="text-sm text-gray-600">Keep it up!</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Keep it up!
+          </p>
         </div>
 
         <div className="flex justify-center gap-3">
@@ -50,13 +52,13 @@ export function DailyStreak({ streak = 1 }: DailyStreakProps) {
                   day.completed
                     ? "bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-md"
                     : day.isToday
-                      ? "border-2 border-yellow-400 bg-gray-200 text-gray-700"
-                      : "bg-gray-100 text-gray-400"
+                      ? "border-2 border-yellow-400 bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                      : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500"
                 }`}
               >
                 {day.completed ? "⚡" : day.day}
               </div>
-              <span className="text-xs font-medium text-gray-500">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                 {day.day}
               </span>
             </div>

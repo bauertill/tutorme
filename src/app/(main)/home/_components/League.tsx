@@ -34,7 +34,7 @@ export function League({ currentXP = 140, targetXP = 175 }: LeagueProps) {
 
           <div className="flex-1">
             <div className="mb-2 flex items-center gap-2">
-              <h3 className="text-lg font-bold text-gray-900">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                 {isUnlocked ? "LEAGUES UNLOCKED" : "UNLOCK LEAGUES"}
               </h3>
               {!isUnlocked && (
@@ -46,7 +46,7 @@ export function League({ currentXP = 140, targetXP = 175 }: LeagueProps) {
                 </Badge>
               )}
             </div>
-            <p className="mb-3 text-sm text-gray-600">
+            <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
               {currentXP} of {targetXP} XP
             </p>
             <Progress value={progressPercentage} className="h-2" />
@@ -54,7 +54,7 @@ export function League({ currentXP = 140, targetXP = 175 }: LeagueProps) {
         </div>
 
         {!isUnlocked && (
-          <div className="text-center text-xs text-gray-500">
+          <div className="text-center text-xs text-gray-500 dark:text-gray-400">
             Complete more lessons to unlock competitive leagues!
           </div>
         )}
