@@ -177,8 +177,8 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800 p-4">
-      <Card className="w-full max-w-2xl border-0 shadow-2xl bg-white dark:bg-slate-900 dark:border dark:border-slate-700">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 dark:from-slate-900 dark:to-slate-800">
+      <Card className="w-full max-w-2xl border-0 bg-white shadow-2xl dark:border dark:border-slate-700 dark:bg-slate-900">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Welcome to TutorMe! 🎓</CardTitle>
           <CardDescription>
