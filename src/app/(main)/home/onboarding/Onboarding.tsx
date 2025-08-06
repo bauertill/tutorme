@@ -19,62 +19,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StudentContext } from "@/core/studentContext/studentContext.types";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-
-interface OnboardingData {
-  grade: string;
-  country: string;
-  textbook: string;
-  nextTestDate: Date | undefined;
-}
-
-const GRADES = [
-  { value: "5", label: "5th Grade" },
-  { value: "6", label: "6th Grade" },
-  { value: "7", label: "7th Grade" },
-  { value: "8", label: "8th Grade" },
-  { value: "9", label: "9th Grade" },
-  { value: "10", label: "10th Grade" },
-  { value: "11", label: "11th Grade" },
-  { value: "12", label: "12th Grade" },
-];
-
-const COUNTRIES = [
-  { value: "us", label: "United States" },
-  { value: "uk", label: "United Kingdom" },
-  { value: "ca", label: "Canada" },
-  { value: "au", label: "Australia" },
-  { value: "de", label: "Germany" },
-  { value: "fr", label: "France" },
-  { value: "es", label: "Spain" },
-  { value: "nl", label: "Netherlands" },
-  { value: "other", label: "Other" },
-];
+import { COUNTRIES, GRADES } from "./onboardingOptions";
 
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [data, setData] = useState<OnboardingData>({
-    grade: "",
-    country: "",
-    textbook: "",
-    nextTestDate: undefined,
-  });
+  const { mutate, isPending } =
+    api.studentContext.upsertStudentContext.useMutation();
+  const [data, setData] = useState<Partial<Omit<StudentContext, "studentId">>>(
+    {},
+  );
+  const router = useRouter();
 
   const totalSteps = 4;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
-  const updateData = (field: keyof OnboardingData, value: any) => {
+  const updateData = (field: keyof StudentContext, value: any) => {
     setData((prev) => ({ ...prev, [field]: value }));
   };
 
   const canProceed = () => {
     switch (currentStep) {
       case 0:
-        return data.grade !== "";
+        return data.grade !== undefined;
       case 1:
-        return data.country !== "";
+        return data.country !== undefined;
       case 2:
-        return data.textbook.trim() !== "";
+        return data.textbook !== undefined;
       case 3:
         return data.nextTestDate !== undefined;
       default:
@@ -86,9 +60,11 @@ export default function OnboardingPage() {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Final step - log the gathered context
-      console.log("Onboarding completed! Gathered context:", data);
-      alert("Onboarding completed! Check the console for gathered context.");
+      mutate(data as Omit<StudentContext, "studentId">, {
+        onSuccess: () => {
+          router.replace("/home");
+        },
+      });
     }
   };
 
@@ -247,7 +223,11 @@ export default function OnboardingPage() {
                 disabled={!canProceed()}
                 className="flex-1"
               >
-                {currentStep === totalSteps - 1 ? "Complete" : "Next"}
+                {isPending
+                  ? "Loading..."
+                  : currentStep === totalSteps - 1
+                    ? "Complete"
+                    : "Next"}
               </Button>
             </div>
           </div>

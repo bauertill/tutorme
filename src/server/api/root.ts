@@ -5,6 +5,7 @@ import { adminRouter } from "./routers/admin";
 import { assignmentRouter } from "./routers/assignment";
 import { helpRouter } from "./routers/help";
 import { renderAsyRouter } from "./routers/renderAsy";
+import { studentContextRouter } from "./routers/studentContext";
 import { studentSolutionRouter } from "./routers/studentSolution";
 import { subscriptionRouter } from "./routers/subscription";
 
@@ -22,6 +23,7 @@ export const appRouter = createTRPCRouter({
   subscription: subscriptionRouter,
   help: helpRouter,
   studentSolution: studentSolutionRouter,
+  studentContext: studentContextRouter,
 });
 
 // export type definition of API

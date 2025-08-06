@@ -129,6 +129,7 @@ model Student {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   studentAssignments StudentAssignment[]
+  studentContext     StudentContext?
 }
 
 model StudentGroup {
@@ -172,6 +173,20 @@ model StudentAssignment {
 
   problems         Problem[]
   studentSolutions StudentSolution[]
+}
+
+
+model StudentContext {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  studentId String   @unique
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  grade     String
+  country   String
+  textbook  String
+  nextTestDate DateTime?
 }
 
 model Book {
