@@ -10,6 +10,7 @@ import { AssignmentRepository } from "@/core/assignment/assignment.repository";
 import { syncAssignments } from "@/core/assignment/assignment.sync";
 import { StudentAssignment } from "@/core/assignment/assignment.types";
 import { StudentRepository } from "@/core/student/student.repository";
+import { getInitialStudentAssessment } from "@/core/studentContext/studentContext.domain";
 import {
   createTRPCRouter,
   limitedPublicProcedure,
@@ -43,6 +44,16 @@ export const assignmentRouter = createTRPCRouter({
       studentId,
     );
   }),
+  createInitialStudentAssignment: protectedProcedure.mutation(
+    async ({ ctx }) => {
+      return await getInitialStudentAssessment(
+        ctx.session.user.id,
+        ctx.userLanguage,
+        ctx.llmAdapter,
+        ctx.db,
+      );
+    },
+  ),
 
   createFromUpload: limitedPublicProcedure
     .input(z.string())

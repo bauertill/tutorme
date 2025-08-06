@@ -1,5 +1,6 @@
 import { extractAssignmentPromptTemplate } from "@/core/assignment/llm/extractAssignmentFromImage";
 import { solveProblemPromptTemplate } from "@/core/problem/llm/solveProblem";
+import { generateInitialAssessmentPromptTemplate } from "@/core/studentContext/llm/getInitialAssesment";
 import { evaluateSolutionPromptTemplate } from "@/core/studentSolution/llm/evaluateSolution";
 import { explainHintDetailPromptTemplate } from "@/core/studentSolution/llm/explainHintDetail";
 import {
@@ -24,6 +25,7 @@ export async function pushPromptsToLangSmith() {
     handle_thumbs_down: handleThumbsDownPromptTemplate,
     judge_handwriting: judgeHandwritingPromptTemplate,
     consolidate_handwriting: consolidateHandwritingPromptTemplate,
+    generate_initial_assessment: generateInitialAssessmentPromptTemplate,
   };
   const pushPromises = Object.entries(promptsByName).map(
     async ([promptName, promptTemplate]) => {
