@@ -1,28 +1,11 @@
 import { StudentRepository } from "@/core/student/student.repository";
 import { StudentContextRepository } from "@/core/studentContext/studentContext.repository";
+import { StudentContext } from "@/core/studentContext/studentContext.types";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { z } from "zod";
 
 export const studentContextRouter = createTRPCRouter({
   upsertStudentContext: protectedProcedure
-    .input(
-      z.object({
-        grade: z.enum(["8", "9", "10", "11", "12"]),
-        country: z.enum([
-          "us",
-          "uk",
-          "ca",
-          "au",
-          "de",
-          "fr",
-          "es",
-          "nl",
-          "other",
-        ]),
-        textbook: z.string(),
-        nextTestDate: z.date().optional(),
-      }),
-    )
+    .input(StudentContext.omit({ studentId: true }))
     .mutation(async ({ input, ctx }) => {
       const studentRepository = new StudentRepository(ctx.db);
       const studentId = await studentRepository.getStudentIdByUserIdOrThrow(

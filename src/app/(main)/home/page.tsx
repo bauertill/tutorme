@@ -2,9 +2,9 @@
 
 import { useAuth } from "@/lib/react-auth";
 import { api } from "@/trpc/react";
+import { redirect } from "next/navigation";
 import { Home } from "./Home";
 import Welcome from "./Welcome";
-import Onboarding from "./onboarding/Onboarding";
 
 export default function Page() {
   const { session, isAnon } = useAuth();
@@ -14,7 +14,7 @@ export default function Page() {
     return <Home />;
   }
   if (session && !isAnon) {
-    return <Onboarding />;
+    redirect("/onboarding");
   }
   return <Welcome />;
 }

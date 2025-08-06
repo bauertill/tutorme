@@ -1,6 +1,9 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Trans } from "@/i18n/react";
 import { useAuth } from "@/lib/react-auth";
+import { Link } from "lucide-react";
 import { DailyStreak } from "./_components/DailyStreak";
 import { League } from "./_components/League";
 import { LessonPreview } from "./_components/LessonPreview";
@@ -19,6 +22,11 @@ export function Home() {
           <p className="text-gray-600 dark:text-gray-400">
             Ready to continue your learning journey?
           </p>
+          <Button>
+            <Link href="/onboarding">
+              <Trans i18nKey="onboarding" />
+            </Link>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">

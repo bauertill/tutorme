@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StudentContext } from "@/core/studentContext/studentContext.types";
+import type { StudentContext } from "@/core/studentContext/studentContext.types";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -37,7 +37,10 @@ export default function OnboardingPage() {
   const totalSteps = 4;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
-  const updateData = (field: keyof StudentContext, value: any) => {
+  const updateData = (
+    field: keyof StudentContext,
+    value: string | Date | undefined,
+  ) => {
     setData((prev) => ({ ...prev, [field]: value }));
   };
 
