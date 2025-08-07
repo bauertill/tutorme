@@ -55,7 +55,7 @@ export function AssignmentPreview() {
               No assignments yet
             </h2>
             <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              You don't have any assignments at the moment.
+              You don&apos;t have any assignments at the moment.
             </p>
             <Button
               onClick={() => createInitialStudentAssignment()}
