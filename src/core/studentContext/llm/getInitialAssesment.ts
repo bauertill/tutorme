@@ -8,7 +8,7 @@ import {
 } from "@langchain/core/prompts";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { StudentContext } from "../studentContext.types";
+import { type StudentContext } from "../studentContext.types";
 
 // Define the system prompt template for generating initial assessment
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(

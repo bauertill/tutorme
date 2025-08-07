@@ -1,7 +1,7 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import { type Language } from "@/i18n/types";
-import { PrismaClient } from "@prisma/client";
+import { type PrismaClient } from "@prisma/client";
 import { AssignmentRepository } from "../assignment/assignment.repository";
 import { StudentRepository } from "../student/student.repository";
 import { getInitialAssessment } from "./llm/getInitialAssesment";
