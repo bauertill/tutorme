@@ -5,7 +5,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const studentContextRouter = createTRPCRouter({
   upsertStudentContext: protectedProcedure
-    .input(StudentContext.omit({ studentId: true }))
+    .input(StudentContext.omit({ userId: true }))
     .mutation(async ({ input, ctx }) => {
       const studentRepository = new StudentRepository(ctx.db);
       const studentId = await studentRepository.getStudentIdByUserIdOrThrow(
@@ -14,15 +14,11 @@ export const studentContextRouter = createTRPCRouter({
       const studentContextRepository = new StudentContextRepository(ctx.db);
       return studentContextRepository.upsertStudentContext({
         ...input,
-        studentId,
+        userId: ctx.session.user.id,
       });
     }),
   getStudentContext: protectedProcedure.query(async ({ ctx }) => {
-    const studentRepository = new StudentRepository(ctx.db);
-    const studentId = await studentRepository.getStudentIdByUserIdOrThrow(
-      ctx.session.user.id,
-    );
     const studentContextRepository = new StudentContextRepository(ctx.db);
-    return studentContextRepository.getStudentContext(studentId);
+    return studentContextRepository.getStudentContext(ctx.session.user.id);
   }),
 });

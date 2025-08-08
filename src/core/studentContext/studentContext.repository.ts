@@ -8,16 +8,16 @@ export class StudentContextRepository {
     studentContext: StudentContext,
   ): Promise<StudentContext> {
     const result = await this.db.studentContext.upsert({
-      where: { studentId: studentContext.studentId },
+      where: { userId: studentContext.userId },
       create: studentContext,
       update: studentContext,
     });
     return StudentContext.parse(result);
   }
 
-  async getStudentContext(studentId: string): Promise<StudentContext | null> {
+  async getStudentContext(userId: string): Promise<StudentContext | null> {
     const result = await this.db.studentContext.findUnique({
-      where: { studentId },
+      where: { userId },
     });
     if (!result) return null;
     return StudentContext.parse(result);

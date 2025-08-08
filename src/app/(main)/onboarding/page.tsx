@@ -28,7 +28,15 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const utils = api.useUtils();
   const { mutate, isPending } =
-    api.studentContext.upsertStudentContext.useMutation();
+    api.studentContext.upsertStudentContext.useMutation({
+      onSuccess: (newStudentContext) => {
+        utils.studentContext.getStudentContext.setData(
+          undefined,
+          newStudentContext,
+        );
+        router.push("/home");
+      },
+    });
   const [data, setData] = useState<Partial<Omit<StudentContext, "studentId">>>(
     {},
   );
@@ -74,13 +82,7 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = () => {
-    mutate(data as Omit<StudentContext, "studentId">, {
-      onSuccess: () => {
-        // Invalidate the studentContext query so it refetches when returning to home
-        void utils.studentContext.getStudentContext.invalidate();
-        router.push("/home");
-      },
-    });
+    mutate(data as Omit<StudentContext, "userId">);
   };
 
   const renderStepContent = () => {

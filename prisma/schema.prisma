@@ -86,6 +86,7 @@ model User {
   groupAssignments   GroupAssignment[]
   studentAssignments StudentAssignment[]
   Problem            Problem[]
+  studentContext     StudentContext?
 }
 
 model VerificationToken {
@@ -129,7 +130,6 @@ model Student {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   studentAssignments StudentAssignment[]
-  studentContext     StudentContext?
 }
 
 model StudentGroup {
@@ -180,8 +180,8 @@ model StudentContext {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  studentId String   @unique
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   grade     String
   country   String

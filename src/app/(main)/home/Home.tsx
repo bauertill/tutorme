@@ -1,5 +1,6 @@
 "use client";
 
+import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/react-auth";
 import { api } from "@/trpc/react";
@@ -21,6 +22,7 @@ export function Home() {
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
             Welcome, {userName}
+            {session?.user && <UserAndSignOutButton user={session?.user} />}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Ready to continue your learning journey?
