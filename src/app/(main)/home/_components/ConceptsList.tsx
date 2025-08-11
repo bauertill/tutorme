@@ -86,11 +86,6 @@ export function ConceptsList() {
     return "📚";
   };
 
-  // Calculate progress (for demo purposes, using a simple calculation)
-  const totalConcepts = concepts.length;
-  const completedConcepts = Math.floor(totalConcepts * 0.3); // Simulate 30% completion
-  const progressPercentage = (completedConcepts / totalConcepts) * 100;
-
   return (
     <Card className="w-full">
       <CardHeader>
@@ -126,13 +121,6 @@ export function ConceptsList() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {concept.concept.description}
                   </p>
-                </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-                  {index < completedConcepts ? (
-                    <span className="text-green-600">✓</span>
-                  ) : (
-                    <span className="text-gray-400">○</span>
-                  )}
                 </div>
               </div>
             </div>
