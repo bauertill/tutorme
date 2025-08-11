@@ -106,7 +106,7 @@ export async function getInitialAssessment(
       {
         metadata: {
           functionName: "getInitialAssessment",
-          studentId: studentContext.studentId,
+          userId: studentContext.userId,
         },
       },
     );
@@ -126,7 +126,6 @@ export async function getInitialAssessment(
       createdAt: now,
       updatedAt: now,
     })),
-    studentId: studentContext.studentId,
   };
 
   return studentAssignment;

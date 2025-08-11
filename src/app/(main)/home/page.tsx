@@ -10,6 +10,7 @@ export default function Page() {
   const { session, isAnon } = useAuth();
   const { data: studentContext } =
     api.studentContext.getStudentContext.useQuery();
+
   if (studentContext) {
     return <Home />;
   }

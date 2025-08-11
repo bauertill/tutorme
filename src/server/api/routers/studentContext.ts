@@ -1,4 +1,5 @@
 import { StudentRepository } from "@/core/student/student.repository";
+import { getYearEndConceptsForStudent } from "@/core/studentContext/studentContext.domain";
 import { StudentContextRepository } from "@/core/studentContext/studentContext.repository";
 import { StudentContext } from "@/core/studentContext/studentContext.types";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
@@ -20,5 +21,13 @@ export const studentContextRouter = createTRPCRouter({
   getStudentContext: protectedProcedure.query(async ({ ctx }) => {
     const studentContextRepository = new StudentContextRepository(ctx.db);
     return studentContextRepository.getStudentContext(ctx.session.user.id);
+  }),
+  getYearEndConcepts: protectedProcedure.query(async ({ ctx }) => {
+    return await getYearEndConceptsForStudent(
+      ctx.session.user.id,
+      ctx.userLanguage,
+      ctx.llmAdapter,
+      ctx.db,
+    );
   }),
 });

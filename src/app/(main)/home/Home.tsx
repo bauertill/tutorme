@@ -4,8 +4,8 @@ import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButto
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/react-auth";
 import { api } from "@/trpc/react";
-import Link from "next/link";
 import { AssignmentPreview } from "./_components/AssignmentPreview";
+import { ConceptsList } from "./_components/ConceptsList";
 import { DailyStreak } from "./_components/DailyStreak";
 import { League } from "./_components/League";
 
@@ -27,13 +27,10 @@ export function Home() {
           <p className="text-gray-600 dark:text-gray-400">
             Ready to continue your learning journey?
           </p>
-          <Link href="/onboarding">
-            <Button>Onboarding</Button>
-          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* Left Column */}
+          {/* Left Column - Progress */}
           <div className="space-y-6">
             <div>
               <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -48,23 +45,32 @@ export function Home() {
               </h2>
               <League currentXP={140} targetXP={175} />
             </div>
+
+            <div>
+              <Button
+                onClick={() => {
+                  createInitialStudentAssignment();
+                }}
+              >
+                Create your first lesson
+              </Button>
+            </div>
           </div>
 
-          {/* Right Column */}
-          <div>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Next Lesson
-            </h2>
-            <AssignmentPreview />
-          </div>
-          <div>
-            <Button
-              onClick={() => {
-                createInitialStudentAssignment();
-              }}
-            >
-              Create your first lesson
-            </Button>
+          {/* Right Column - Assignments and Learning Goals */}
+          <div className="space-y-8">
+            {/* Next Lesson Section */}
+            <div>
+              <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Next Lesson
+              </h2>
+              <AssignmentPreview />
+            </div>
+
+            {/* Learning Goals Section */}
+            <div>
+              <ConceptsList />
+            </div>
           </div>
         </div>
       </div>

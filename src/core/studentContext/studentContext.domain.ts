@@ -4,6 +4,10 @@ import { type Language } from "@/i18n/types";
 import { type PrismaClient } from "@prisma/client";
 import { AssignmentRepository } from "../assignment/assignment.repository";
 import { StudentRepository } from "../student/student.repository";
+import {
+  getConceptsForStudentContext,
+  type ConceptsListOutput,
+} from "./llm/getConceptsForStudentContext";
 import { getInitialAssessment } from "./llm/getInitialAssesment";
 import { StudentContextRepository } from "./studentContext.repository";
 
@@ -32,8 +36,30 @@ export async function getInitialStudentAssessment(
   const studentAssignment =
     await assignmentRepository.createStudentAssignmentWithProblems(
       assignment,
-      studentContext.studentId,
+      studentId,
       userId,
     );
   return studentAssignment;
+}
+
+export async function getYearEndConceptsForStudent(
+  userId: string,
+  language: Language,
+  llmAdapter: LLMAdapter,
+  db: PrismaClient,
+): Promise<ConceptsListOutput> {
+  const studentContextRepository = new StudentContextRepository(db);
+  const studentContext =
+    await studentContextRepository.getStudentContext(userId);
+  if (!studentContext) {
+    throw new Error("Student context not found");
+  }
+
+  const concepts = await getConceptsForStudentContext(
+    studentContext,
+    language,
+    llmAdapter,
+  );
+
+  return concepts;
 }
