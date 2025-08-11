@@ -2,17 +2,16 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/react";
-import { BookOpen, Target, TrendingUp } from "lucide-react";
+import { Target } from "lucide-react";
 
 export function ConceptsList() {
   const {
     data: concepts,
     isLoading,
     error,
-  } = api.studentContext.getYearEndConcepts.useQuery();
+  } = api.studentContext.getConceptsForStudent.useQuery();
 
   if (isLoading) {
     return (
@@ -58,14 +57,18 @@ export function ConceptsList() {
     return null;
   }
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty.toLowerCase()) {
-      case "foundational":
+  const getDifficultyColor = (
+    skillLevel: "unknown" | "1" | "2" | "3" | "4" | "5",
+  ) => {
+    switch (skillLevel) {
+      case "1":
+      case "2":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "intermediate":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "advanced":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "3":
+      case "4":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "5":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
@@ -83,7 +86,7 @@ export function ConceptsList() {
   };
 
   // Calculate progress (for demo purposes, using a simple calculation)
-  const totalConcepts = concepts.concepts.length;
+  const totalConcepts = concepts.length;
   const completedConcepts = Math.floor(totalConcepts * 0.3); // Simulate 30% completion
   const progressPercentage = (completedConcepts / totalConcepts) * 100;
 
@@ -94,21 +97,11 @@ export function ConceptsList() {
           <Target className="h-5 w-5" />
           Year-End Learning Goals
         </CardTitle>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">
-              {concepts.academicYear}
-            </span>
-            <span className="text-gray-600 dark:text-gray-400">
-              {completedConcepts} of {totalConcepts} concepts
-            </span>
-          </div>
-          <Progress value={progressPercentage} className="h-2" />
-        </div>
+        <div className="space-y-2"></div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3">
-          {concepts.concepts.slice(0, 6).map((concept, index) => (
+          {concepts.map((concept, index) => (
             <div
               key={index}
               className="rounded-lg border p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -117,25 +110,21 @@ export function ConceptsList() {
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">
-                      {getTopicIcon(concept.topic)}
+                      {getTopicIcon(concept.concept.name)}
                     </span>
                     <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                      {concept.name}
+                      {concept.concept.name}
                     </h3>
                     <Badge
                       variant="secondary"
-                      className={`text-xs ${getDifficultyColor(concept.difficulty)}`}
+                      className={`text-xs ${getDifficultyColor(concept.skillLevel)}`}
                     >
-                      {concept.difficulty}
+                      {concept.skillLevel}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {concept.description}
+                    {concept.concept.description}
                   </p>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <BookOpen className="h-3 w-3" />
-                    <span>{concept.topic}</span>
-                  </div>
                 </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
                   {index < completedConcepts ? (
@@ -147,15 +136,6 @@ export function ConceptsList() {
               </div>
             </div>
           ))}
-
-          {concepts.concepts.length > 6 && (
-            <div className="pt-2 text-center">
-              <button className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-                View all {concepts.concepts.length} concepts
-                <TrendingUp className="ml-1 inline h-3 w-3" />
-              </button>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

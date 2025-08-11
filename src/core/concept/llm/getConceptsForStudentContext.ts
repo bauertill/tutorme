@@ -1,4 +1,5 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
+import { type StudentContext } from "@/core/studentContext/studentContext.types";
 import { type Language, LanguageName } from "@/i18n/types";
 import {
   ChatPromptTemplate,
@@ -6,7 +7,6 @@ import {
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
 import { z } from "zod";
-import { type StudentContext } from "../studentContext.types";
 
 // Define the system prompt template for generating year-end concepts
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
@@ -15,17 +15,11 @@ const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
   Your goal is to generate a comprehensive list of mathematical concepts that a student needs to master by the end of their academic year.
 
   Requirements:
-  - Generate 8-12 key mathematical concepts appropriate for the student's grade level
+  - Generate all key mathematical concepts appropriate for the student's grade level
   - Align concepts with the educational standards and curriculum of the specified country
   - If a textbook is specified, prioritize concepts commonly covered in that textbook series
-  - Each concept should include:
-    * A clear, concise name
-    * A brief description explaining what the concept entails
-    * The difficulty level relative to the grade
-    * Prerequisites (if any) that students should know before tackling this concept
-  - Order concepts from foundational to more advanced
-  - Focus on concepts that are typically assessed in end-of-year examinations
-  - Consider the progression and scaffolding of mathematical understanding
+  - Each concept should include a clear, concise name and a brief description explaining what the concept entails
+  - Make sure concepts do not overlap with each other
 
   Write your response in {language} language only.`,
   {
@@ -54,46 +48,29 @@ export const generateConceptsPromptTemplate = ChatPromptTemplate.fromMessages([
 ]);
 
 // Define the output schema for a single concept
-const ConceptSchema = z.object({
+const ConceptGenerationSchema = z.object({
   name: z.string().describe("The concept name (e.g., 'Linear Equations')"),
   description: z
     .string()
     .describe(
       "A brief description of what the concept entails and why it's important",
     ),
-  difficulty: z
-    .enum(["Foundational", "Intermediate", "Advanced"])
-    .describe("The difficulty level relative to the grade"),
-  topic: z
-    .string()
-    .describe(
-      "The broader mathematical area (e.g., 'Algebra', 'Geometry', 'Statistics')",
-    ),
 });
 
 // Define the output schema for the entire concept list
 const ConceptsListSchema = z.object({
   concepts: z
-    .array(ConceptSchema)
-    .min(8)
-    .max(12)
-    .describe("8-12 key concepts to master by end of year"),
-  gradeLevel: z.string().describe("The grade level these concepts are for"),
-  academicYear: z
-    .string()
-    .describe(
-      "Description of the academic year (e.g., 'Grade 10 Mathematics')",
-    ),
+    .array(ConceptGenerationSchema)
+    .describe("All key concepts to master by end of year"),
 });
 
-export type ConceptsListOutput = z.infer<typeof ConceptsListSchema>;
-export type Concept = z.infer<typeof ConceptSchema>;
+export type ConceptGenerationSchema = z.infer<typeof ConceptGenerationSchema>;
 
 export async function getConceptsForStudentContext(
   studentContext: StudentContext,
   language: Language,
   llmAdapter: LLMAdapter,
-): Promise<ConceptsListOutput> {
+): Promise<ConceptGenerationSchema[]> {
   const { grade, country, textbook } = studentContext;
 
   // Use hub to pull the prompt (fallback to local prompt if not available)
@@ -124,5 +101,5 @@ export async function getConceptsForStudentContext(
       },
     );
 
-  return response;
+  return response.concepts;
 }
