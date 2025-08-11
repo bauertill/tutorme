@@ -82,6 +82,7 @@ export function ConceptsList() {
       return "📊";
     if (topicLower.includes("calculus")) return "∫";
     if (topicLower.includes("trigonometry")) return "📈";
+    if (topicLower.includes("equation")) return "🟰";
     return "📚";
   };
 
