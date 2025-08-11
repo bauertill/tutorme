@@ -87,6 +87,7 @@ model User {
   studentAssignments StudentAssignment[]
   Problem            Problem[]
   studentContext     StudentContext?
+  studentConcepts    StudentConcept[]
 }
 
 model VerificationToken {
@@ -187,6 +188,37 @@ model StudentContext {
   country   String
   textbook  String
   nextTestDate DateTime?
+}
+
+model Concept {
+  id        String   @id @default(cuid())
+  name      String
+  description String
+  // Self-relation
+  parentConceptId String?
+  parentConcept   Concept?   @relation("ConceptHierarchy", fields: [parentConceptId], references: [id], onDelete: Cascade)
+  subConcepts     Concept[]  @relation("ConceptHierarchy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentConcepts StudentConcept[]
+}
+
+
+
+model StudentConcept {
+  id        String   @id @default(cuid())
+  conceptId String
+  concept   Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  skillLevel String   @default("unknown")
+  teacherReport String?
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Book {
