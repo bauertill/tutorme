@@ -20,19 +20,13 @@ export async function getInitialStudentAssessment(
       await studentRepository.getStudentIdByUserIdOrThrow(userId);
 
     const studentContextRepository = new StudentContextRepository(db);
-    let studentContext =
+    const studentContext =
       await studentContextRepository.getStudentContext(userId);
 
-    // If no student context exists, create a default one
     if (!studentContext) {
-      const defaultContext = {
-        userId: userId,
-        grade: "10" as const,
-        country: "us" as const,
-        textbook: "Standard Math Curriculum",
-      };
-      studentContext =
-        await studentContextRepository.upsertStudentContext(defaultContext);
+      throw new Error(
+        "Student context not found. User must complete onboarding first.",
+      );
     }
 
     // Get concepts for the student
