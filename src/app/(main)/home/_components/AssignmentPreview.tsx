@@ -11,8 +11,17 @@ export function AssignmentPreview() {
   const { data: studentAssignments, isLoading } =
     api.assignment.listStudentAssignments.useQuery();
 
+  const utils = api.useUtils();
   const { mutate: createInitialStudentAssignment } =
-    api.assignment.createInitialStudentAssignment.useMutation();
+    api.assignment.createInitialStudentAssignment.useMutation({
+      onSuccess: () => {
+        // Refetch assignments after creating the first concept assignment
+        void utils.assignment.invalidate();
+      },
+      onError: (error) => {
+        console.error("Failed to create initial assignment:", error);
+      },
+    });
 
   const nextAssignment = studentAssignments?.find(
     (assignment) => assignment.problems.length > 0,

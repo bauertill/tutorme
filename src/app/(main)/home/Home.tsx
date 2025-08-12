@@ -13,8 +13,18 @@ export function Home() {
   const { session } = useAuth();
   const userName = session?.user?.name ?? "User";
 
-  const { mutate: createInitialStudentAssignment } =
-    api.assignment.createInitialStudentAssignment.useMutation();
+  const utils = api.useUtils();
+  const { mutate: createInitialStudentAssignment, isPending } =
+    api.assignment.createInitialStudentAssignment.useMutation({
+      onSuccess: () => {
+        // Refetch assignments after creating the first concept assignment
+        void utils.assignment.invalidate();
+        console.log("✅ Assignment created successfully!");
+      },
+      onError: (error) => {
+        console.error("Failed to create initial assignment:", error);
+      },
+    });
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 dark:bg-gray-900">
@@ -51,8 +61,9 @@ export function Home() {
                 onClick={() => {
                   createInitialStudentAssignment();
                 }}
+                disabled={isPending}
               >
-                Create your first lesson
+                {isPending ? "Creating..." : "Create your first lesson"}
               </Button>
             </div>
           </div>

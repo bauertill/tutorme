@@ -11,15 +11,40 @@ import { Tour } from "@/components/ui/tour";
 import { useStore } from "@/store";
 import { useActiveAssignmentId } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import Exercise from "./_components/Exercise";
 import Onboarding from "./_components/Onboarding";
 
 export default function AssignmentPage() {
+  const searchParams = useSearchParams();
+  const assignmentIdFromUrl = searchParams.get("assignmentId");
   const activeAssignmentId = useActiveAssignmentId();
+  const setActiveProblem = useStore.use.setActiveProblem();
+
+  // Set active assignment from URL parameter
+  useEffect(() => {
+    if (assignmentIdFromUrl && assignmentIdFromUrl !== activeAssignmentId) {
+      // We need to get the first problem of this assignment to set as active
+      // This will be handled by the assignment query below
+    }
+  }, [assignmentIdFromUrl, activeAssignmentId]);
+
+  const assignmentIdToUse = assignmentIdFromUrl || activeAssignmentId;
   const [activeAssignment] =
     api.assignment.getStudentAssignment.useSuspenseQuery(
-      activeAssignmentId ?? "",
+      assignmentIdToUse ?? "",
     );
+
+  // Set the first problem as active when assignment loads
+  useEffect(() => {
+    if (activeAssignment?.problems.length && assignmentIdFromUrl) {
+      const firstProblem = activeAssignment.problems[0];
+      if (firstProblem) {
+        setActiveProblem(firstProblem.id, assignmentIdFromUrl);
+      }
+    }
+  }, [activeAssignment, assignmentIdFromUrl, setActiveProblem]);
   const [assignments] =
     api.assignment.listStudentAssignments.useSuspenseQuery();
   const [solvedProblemsCount] =
@@ -28,7 +53,7 @@ export default function AssignmentPage() {
         studentSolutions.filter(
           (solution) =>
             solution.status === "SOLVED" &&
-            solution.studentAssignmentId === activeAssignmentId,
+            solution.studentAssignmentId === assignmentIdToUse,
         ).length ?? 0,
     });
 
@@ -43,7 +68,9 @@ export default function AssignmentPage() {
 
   return (
     <SidebarProvider>
-      {!hasCompletedOnboarding && <Tour />}
+      {!hasCompletedOnboarding && activeAssignment && totalProblems > 0 && (
+        <Tour />
+      )}
 
       <AppSidebar />
       <SidebarInset>
