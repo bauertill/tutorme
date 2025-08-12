@@ -114,7 +114,7 @@ export function AssignmentPreview() {
 
           <Link href={`/assignment?assignmentId=${nextAssignment.id}`}>
             <Button className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl">
-              Start Assignment
+              Continue Assignment
             </Button>
           </Link>
         </CardContent>
