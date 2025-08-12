@@ -22,14 +22,6 @@ export default function AssignmentPage() {
   const activeAssignmentId = useActiveAssignmentId();
   const setActiveProblem = useStore.use.setActiveProblem();
 
-  // Set active assignment from URL parameter
-  useEffect(() => {
-    if (assignmentIdFromUrl && assignmentIdFromUrl !== activeAssignmentId) {
-      // We need to get the first problem of this assignment to set as active
-      // This will be handled by the assignment query below
-    }
-  }, [assignmentIdFromUrl, activeAssignmentId]);
-
   const assignmentIdToUse = assignmentIdFromUrl ?? activeAssignmentId;
   const [activeAssignment] =
     api.assignment.getStudentAssignment.useSuspenseQuery(
