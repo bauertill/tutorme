@@ -37,9 +37,12 @@ export default function OnboardingPage() {
         router.push("/home");
       },
     });
-  const [data, setData] = useState<Partial<Omit<StudentContext, "studentId">>>(
-    {},
-  );
+  const [data, setData] = useState<Partial<Omit<StudentContext, "studentId">>>({
+    grade: undefined,
+    country: undefined,
+    textbook: undefined,
+    nextTestDate: undefined,
+  });
   const router = useRouter();
 
   const totalSteps = 4;
@@ -96,7 +99,7 @@ export default function OnboardingPage() {
               appropriate content.
             </p>
             <Select
-              value={data.grade}
+              value={data.grade ?? ""}
               onValueChange={(value) => updateData("grade", value)}
             >
               <SelectTrigger>
@@ -124,7 +127,7 @@ export default function OnboardingPage() {
               education system.
             </p>
             <Select
-              value={data.country}
+              value={data.country ?? ""}
               onValueChange={(value) => updateData("country", value)}
             >
               <SelectTrigger>
