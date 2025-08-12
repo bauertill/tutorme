@@ -51,24 +51,31 @@ export function Canvas() {
   const activeProblemId = useStore.use.activeProblemId();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const activeProblem = useActiveProblem();
-  const [studentSolution] =
-    api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
-      select: (data) => {
-        const studentSolution = data.find(
-          (solution) =>
-            solution.problemId === activeProblemId &&
-            solution.studentAssignmentId === activeAssignmentId,
-        );
-        if (!studentSolution) {
-          throw new Error("Student solution not found");
-        }
-        return studentSolution;
-      },
-    });
+  const [studentSolutions] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery();
+
+  const studentSolution = studentSolutions.find(
+    (solution) =>
+      solution.problemId === activeProblemId &&
+      solution.studentAssignmentId === activeAssignmentId,
+  );
+
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
+
+  // Create student solution if it doesn't exist
+  const { mutate: createStudentSolution } =
+    api.studentSolution.setStudentSolutionCanvas.useMutation({
+      onSuccess: () => {
+        // Refetch student solutions after creating
+        void utils.studentSolution.listStudentSolutions.invalidate();
+      },
+    });
+
+  // Use conditional hook calls with fallback values
   const { addMessage, setRecommendedQuestions, newAssistantMessage } = useHelp(
-    studentSolution.id,
+    studentSolution?.id ?? "",
   );
   const { mutate: setStudentSolutionEvaluation } =
     api.studentSolution.setStudentSolutionEvaluation.useMutation({
@@ -82,15 +89,15 @@ export function Canvas() {
     });
   const trackEvent = useTrackEvent();
 
-  useSaveCanvasPeriodically();
-
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
       onSuccess: (evaluation) => {
-        setStudentSolutionEvaluation({
-          studentSolutionId: studentSolution.id,
-          evaluation,
-        });
+        if (studentSolution) {
+          setStudentSolutionEvaluation({
+            studentSolutionId: studentSolution.id,
+            evaluation,
+          });
+        }
 
         if (!evaluation.hasMistakes && evaluation.isComplete) {
           setCelebrationOpen(true);
@@ -118,10 +125,29 @@ export function Canvas() {
       },
     });
 
+  useSaveCanvasPeriodically();
+
+  useEffect(() => {
+    if (!studentSolution && activeProblemId && activeAssignmentId) {
+      // Create initial student solution
+      createStudentSolution({
+        problemId: activeProblemId,
+        studentAssignmentId: activeAssignmentId,
+        canvas: { paths: [] },
+      });
+    }
+  }, [
+    studentSolution,
+    activeProblemId,
+    activeAssignmentId,
+    createStudentSolution,
+  ]);
+
   useEffect(() => {
     setHelpOpen(true);
   }, [activeProblemId]);
 
+  // Define callbacks and memoized values BEFORE conditional logic
   const onCheck = useCallback(
     (dataUrl: string, paths: Path[]) => {
       if (activeProblem && activeAssignment) {
@@ -144,7 +170,7 @@ export function Canvas() {
         <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
           <LLMFeedbackButton
             latestEvaluateSolutionRunId={
-              studentSolution.evaluation?.evaluateSolutionRunId ?? ""
+              studentSolution?.evaluation?.evaluateSolutionRunId ?? ""
             }
           />
           <Button
@@ -228,14 +254,22 @@ export function Canvas() {
       studentSolution,
     ],
   );
-  return useMemo(
+
+  const canvasWithControls = useMemo(
     () => (
       <div className="canvas-section relative h-full w-full overflow-hidden">
         {canvas}
-
         {controls}
       </div>
     ),
     [canvas, controls],
   );
+
+  if (!studentSolution) {
+    return (
+      <div className="flex h-full items-center justify-center">Loading...</div>
+    );
+  }
+
+  return canvasWithControls;
 }

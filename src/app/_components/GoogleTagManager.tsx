@@ -15,7 +15,10 @@ export type EventName =
 
 export function GoogleTagManager() {
   useEffect(() => {
-    TagManager.initialize(tagManagerArgs);
+    // Only initialize if GTM ID is provided
+    if (env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID) {
+      TagManager.initialize(tagManagerArgs);
+    }
   }, []);
 
   return null;
@@ -23,12 +26,15 @@ export function GoogleTagManager() {
 
 export const useTrackEvent = () => {
   const track = useCallback((eventName: EventName, data = {}) => {
-    TagManager.dataLayer({
-      dataLayer: {
-        event: eventName,
-        ...data,
-      },
-    });
+    // Only track if GTM ID is provided
+    if (env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID) {
+      TagManager.dataLayer({
+        dataLayer: {
+          event: eventName,
+          ...data,
+        },
+      });
+    }
   }, []);
 
   return track;

@@ -1,5 +1,5 @@
-import { Language, PrismaClient } from "@prisma/client";
-import { LLMAdapter } from "../adapters/llmAdapter";
+import type { Language, PrismaClient } from "@prisma/client";
+import type { LLMAdapter } from "../adapters/llmAdapter";
 import { StudentContextRepository } from "../studentContext/studentContext.repository";
 import { ConceptRepository } from "./concept.repository";
 import { type StudentConcept } from "./concept.types";

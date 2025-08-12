@@ -4,6 +4,7 @@ import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButto
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/react-auth";
 import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 import { AssignmentPreview } from "./_components/AssignmentPreview";
 import { ConceptsList } from "./_components/ConceptsList";
 import { DailyStreak } from "./_components/DailyStreak";
@@ -12,9 +13,22 @@ import { League } from "./_components/League";
 export function Home() {
   const { session } = useAuth();
   const userName = session?.user?.name ?? "User";
+  const router = useRouter();
 
-  const { mutate: createInitialStudentAssignment } =
-    api.assignment.createInitialStudentAssignment.useMutation();
+  const utils = api.useUtils();
+  const { mutate: createInitialStudentAssignment, isPending } =
+    api.assignment.createInitialStudentAssignment.useMutation({
+      onSuccess: (newAssignment) => {
+        // Refetch assignments after creating the first concept assignment
+        void utils.assignment.invalidate();
+        console.log("✅ Assignment created successfully!");
+        // Redirect to the newly created assignment
+        router.push(`/assignment?assignmentId=${newAssignment.id}`);
+      },
+      onError: (error) => {
+        console.error("Failed to create initial assignment:", error);
+      },
+    });
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 dark:bg-gray-900">
@@ -51,8 +65,9 @@ export function Home() {
                 onClick={() => {
                   createInitialStudentAssignment();
                 }}
+                disabled={isPending}
               >
-                Create your first lesson
+                {isPending ? "Creating..." : "Create your first lesson"}
               </Button>
             </div>
           </div>

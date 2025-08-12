@@ -6,22 +6,41 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/trpc/react";
 import { Calendar, Clock, FileText } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+type Assignment = {
+  problems: unknown[];
+  name: string;
+};
 
 export function AssignmentPreview() {
   const { data: studentAssignments, isLoading } =
     api.assignment.listStudentAssignments.useQuery();
+  const router = useRouter();
 
-  const { mutate: createInitialStudentAssignment } =
-    api.assignment.createInitialStudentAssignment.useMutation();
+  const utils = api.useUtils();
+  const { mutate: createInitialStudentAssignment, isPending } =
+    api.assignment.createInitialStudentAssignment.useMutation({
+      onSuccess: (newAssignment) => {
+        // Refetch assignments after creating the first concept assignment
+        void utils.assignment.invalidate();
+        // Redirect to the newly created assignment
+        router.push(`/assignment?assignmentId=${newAssignment.id}`);
+      },
+      onError: (error) => {
+        console.error("Failed to create initial assignment:", error);
+      },
+    });
 
-  const nextAssignment = studentAssignments?.find(
-    (assignment) => assignment.problems.length > 0,
-  );
+  // Filter out example assignments and keep only real assignments with problems
+  const isRealAssignment = (assignment: Assignment) =>
+    assignment.problems.length > 0 &&
+    assignment.name !== "Example Assignment" &&
+    !assignment.name.toLowerCase().includes("example");
 
-  const upcomingAssignments =
-    studentAssignments?.filter(
-      (assignment) => assignment.problems.length > 0,
-    ) ?? [];
+  const realAssignments = studentAssignments?.filter(isRealAssignment) ?? [];
+  const nextAssignment = realAssignments[0];
+  const upcomingAssignments = realAssignments;
 
   if (isLoading) {
     return (
@@ -59,9 +78,10 @@ export function AssignmentPreview() {
             </p>
             <Button
               onClick={() => createInitialStudentAssignment()}
+              disabled={isPending}
               className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"
             >
-              Create your first lesson
+              {isPending ? "Creating..." : "Create your first lesson"}
             </Button>
           </CardContent>
         </Card>
@@ -105,7 +125,7 @@ export function AssignmentPreview() {
 
           <Link href={`/assignment?assignmentId=${nextAssignment.id}`}>
             <Button className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl">
-              Start Assignment
+              Continue Assignment
             </Button>
           </Link>
         </CardContent>

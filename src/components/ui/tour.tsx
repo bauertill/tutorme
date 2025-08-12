@@ -25,8 +25,30 @@ export function Tour({ className }: TourProps) {
   const setIsTourRunning = useStore.use.setIsTourRunning();
 
   useEffect(() => {
-    if (!hasCompletedOnboarding) setIsTourRunning(true);
-  }, [hasCompletedOnboarding, setIsTourRunning]);
+    if (!hasCompletedOnboarding && activeProblem) {
+      // Wait for all target elements to be mounted before starting tour
+      const checkElements = () => {
+        const targets = [
+          ".current-problem",
+          ".canvas-section",
+          ".get-help-section",
+          ".check-answer-button",
+        ];
+        const allElementsPresent = targets.every((selector) =>
+          document.querySelector(selector),
+        );
+
+        if (allElementsPresent) {
+          setIsTourRunning(true);
+        } else {
+          setTimeout(checkElements, 500);
+        }
+      };
+
+      const timer = setTimeout(checkElements, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasCompletedOnboarding, setIsTourRunning, activeProblem]);
 
   const handleJoyrideCallback = useCallback(
     async (data: CallBackProps) => {

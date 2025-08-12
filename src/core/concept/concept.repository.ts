@@ -1,7 +1,6 @@
+import type { Concept, StudentConcept } from "@/core/concept/concept.types";
 import {
-  Concept,
   ConceptSchema,
-  StudentConcept,
   StudentConceptSchema,
 } from "@/core/concept/concept.types";
 import { type PrismaClient } from "@prisma/client";
@@ -32,7 +31,11 @@ export class ConceptRepository {
     if (newConcepts.length > 0) {
       // Remove relation fields as they are not database columns for creation
       const conceptsToCreate = newConcepts.map(
-        ({ subConcepts, parentConcept, ...concept }) => concept,
+        ({
+          subConcepts: _subConcepts,
+          parentConcept: _parentConcept,
+          ...concept
+        }) => concept,
       );
 
       await this.db.concept.createMany({
