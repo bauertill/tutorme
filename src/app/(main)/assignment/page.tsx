@@ -30,7 +30,7 @@ export default function AssignmentPage() {
     }
   }, [assignmentIdFromUrl, activeAssignmentId]);
 
-  const assignmentIdToUse = assignmentIdFromUrl || activeAssignmentId;
+  const assignmentIdToUse = assignmentIdFromUrl ?? activeAssignmentId;
   const [activeAssignment] =
     api.assignment.getStudentAssignment.useSuspenseQuery(
       assignmentIdToUse ?? "",
