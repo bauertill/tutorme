@@ -36,23 +36,26 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <ReactScan />
-      <body className="select-none [-webkit-user-select:none]">
-        <GoogleTagManager />
-        <PostHogProvider>
-          <ThemeProvider>
-            <ProgressProvider>
-              <TRPCReactProvider>
-                <ClientOnly>
+      <body
+        className="select-none [-webkit-user-select:none]"
+        suppressHydrationWarning
+      >
+        <ClientOnly>
+          <GoogleTagManager />
+          <PostHogProvider>
+            <ThemeProvider>
+              <ProgressProvider>
+                <TRPCReactProvider>
                   <I18nProvider>
                     {children}
                     <Toaster />
                   </I18nProvider>
-                </ClientOnly>
-              </TRPCReactProvider>
-            </ProgressProvider>
-          </ThemeProvider>
-          <SpeedInsights />
-        </PostHogProvider>
+                </TRPCReactProvider>
+              </ProgressProvider>
+            </ThemeProvider>
+            <SpeedInsights />
+          </PostHogProvider>
+        </ClientOnly>
       </body>
     </html>
   );
