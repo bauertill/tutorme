@@ -26,6 +26,10 @@ const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
   - The problem should align with the educational standards of the specified country
   - If a textbook is specified, try to align with common approaches from that textbook
   - Consider the student's current skill level for the concept when designing the problem
+  - DO NOT create multi-part questions with sub-parts like (a), (b), (c), etc.
+  - Create ONE single, focused question that can be answered directly
+  - Avoid complex analysis questions that require multiple steps or parts
+  - Keep the problem straightforward and focused on one main task
 
   Write your response in {language} language only.`,
   {
@@ -45,7 +49,9 @@ const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(
   Concept Description: {conceptDescription}
   Student's Current Skill Level: {skillLevel}
   
-  Generate 1 math problem that will help the student learn and practice this specific concept.`,
+  Generate 1 simple, single-question math problem that will help the student learn and practice this specific concept.
+  
+  Remember: Create only ONE question without sub-parts (a), (b), (c), etc. Make it a direct, straightforward problem.`,
   {
     name: "generate_concept_assignment_human_prompt",
   },
