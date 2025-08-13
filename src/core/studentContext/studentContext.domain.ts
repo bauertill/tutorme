@@ -61,6 +61,7 @@ export async function getInitialStudentAssessment(
         assignment,
         studentId,
         userId,
+        firstConcept.id, // Pass the StudentConcept ID
       );
     return studentAssignment;
   } catch (error) {

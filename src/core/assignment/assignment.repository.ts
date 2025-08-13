@@ -106,6 +106,7 @@ export class AssignmentRepository {
     },
     studentId: string,
     userId: string,
+    studentConceptId?: string,
   ): Promise<StudentAssignment> {
     const result = await this.db.$transaction(async (tx) => {
       const createdProblems = await Promise.all(
@@ -124,11 +125,14 @@ export class AssignmentRepository {
           name,
           userId,
           studentId,
+          studentConceptId,
           problems: {
             connect: createdProblems.map((problem) => ({ id: problem.id })),
           },
         },
-        include: { problems: true },
+        include: {
+          problems: true,
+        },
       });
     });
     return result;

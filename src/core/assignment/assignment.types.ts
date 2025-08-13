@@ -32,6 +32,7 @@ export const StudentAssignment = z.object({
   problems: z.array(Problem),
   groupAssignment: GroupAssignment.optional(),
   studentId: z.string().optional(),
+  studentConceptId: z.string().nullable().optional(),
 });
 
 export const StudentAssignmentWithStudentSolutions = StudentAssignment.extend({
