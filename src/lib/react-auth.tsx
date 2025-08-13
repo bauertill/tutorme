@@ -20,13 +20,28 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 function InnerSessionProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   useEffect(() => {
-    void getSession().then((session) => {
-      if (!session) {
-        void signInAnon();
-      } else {
-        setIsSigningInWithGoogle(false);
-      }
-    });
+    // Add a small delay to allow Google OAuth to complete
+    const timer = setTimeout(() => {
+      void getSession().then((session) => {
+        console.log("🔍 InnerSessionProvider Debug:", {
+          hasSession: !!session,
+          userEmail: session?.user?.email,
+          isSigningInWithGoogle: isSigningInWithGoogle(),
+        });
+
+        if (!session && !isSigningInWithGoogle()) {
+          console.log("🔄 Creating anonymous session");
+          void signInAnon();
+        } else {
+          console.log(
+            "✅ Session exists or signing in with Google, clearing flag",
+          );
+          setIsSigningInWithGoogle(false);
+        }
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
   if (!session) {
     return <Loader />;
@@ -59,11 +74,19 @@ export function useAuth() {
 
 async function signInAnon() {
   let anonToken = localStorage.getItem("anonToken");
+  console.log("🔍 signInAnon Debug:", {
+    existingToken: !!anonToken,
+    tokenValue: anonToken,
+  });
+
   if (!anonToken) {
     anonToken = crypto.randomUUID();
     localStorage.setItem("anonToken", anonToken);
+    console.log("🆕 Generated new anonToken:", anonToken);
+  } else {
+    console.log("♻️ Reusing existing anonToken:", anonToken);
   }
-  console.log("Signing in with anon token", anonToken);
+
   void signIn("credentials", {
     anonToken,
     redirect: false,
