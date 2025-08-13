@@ -26,6 +26,8 @@ import {
 } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export function AppSidebar() {
@@ -42,6 +44,8 @@ export function AppSidebar() {
   const { open, state, setOpen, openMobile, setOpenMobile, isMobile } =
     useSidebar();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const pathname = usePathname();
+  const hideUploadProblems = pathname?.startsWith("/assignment");
 
   useEffect(() => {
     if (activeAssignmentId) {
@@ -102,12 +106,19 @@ export function AppSidebar() {
       >
         <SidebarHeader className="ml-1 mt-2 flex-shrink-0 transition-all duration-200 ease-linear">
           <div className="flex items-center gap-1 font-medium">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <GraduationCap className="size-4" />
-            </div>
-            <SidebarText className="ml-2 flex-1 overflow-hidden">
-              Tutor Me Good
-            </SidebarText>
+            <Link
+              href="/home"
+              className="mr-auto flex cursor-pointer items-center gap-1"
+              aria-label="Go to Home"
+              title="Home"
+            >
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <GraduationCap className="size-4" />
+              </div>
+              <SidebarText className="ml-2 overflow-hidden">
+                Tutor Me Good
+              </SidebarText>
+            </Link>
             <Button
               variant="ghost"
               size="icon"
@@ -121,11 +132,13 @@ export function AppSidebar() {
             </Button>
           </div>
         </SidebarHeader>
-        <SidebarGroup className="transition-all duration-200 ease-linear">
-          <SidebarGroupContent>
-            <UploadUserProblems trigger="button" />
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {!hideUploadProblems && (
+          <SidebarGroup className="transition-all duration-200 ease-linear">
+            <SidebarGroupContent>
+              <UploadUserProblems trigger="button" />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         <SidebarGroup className="transition-all duration-200 ease-linear">
           <div className="relative flex h-10 w-full flex-shrink-0 items-center transition-all duration-200 ease-linear">
             <SearchIcon
