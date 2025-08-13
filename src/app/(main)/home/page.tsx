@@ -13,14 +13,11 @@ export default function Page() {
   const [isReady, setIsReady] = useState(false);
   const [fallbackData] = useState<StudentContextType | null>(null);
 
-  // Add a delay for Google users to ensure OAuth session is fully established
   useEffect(() => {
     if (session?.user?.email?.endsWith("@gmail.com")) {
-      // For Gmail users, add a small delay to avoid race conditions with OAuth
       const timer = setTimeout(() => setIsReady(true), 500);
       return () => clearTimeout(timer);
     } else {
-      // For other users, ready immediately
       setIsReady(true);
     }
   }, [session?.user?.email]);
