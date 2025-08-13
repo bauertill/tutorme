@@ -19,9 +19,10 @@ function InnerSessionProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuth() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   return {
     session,
+    status,
     isAnon: session?.user?.email?.endsWith("@anon.tutormegood.com"),
     signInWithGoogle: async () => {
       setIsSigningInWithGoogle(true);
