@@ -33,8 +33,6 @@ export function UserAndSignOutButton({ user }: { user: User }) {
         <Button
           onClick={(e) => {
             e.preventDefault();
-            // Set a flag to show welcome screen but keep user identity
-            localStorage.setItem("showWelcomeAfterSignOut", "true");
             void signOut({ redirect: false }).then(() => {
               queryClient.clear();
               router.push("/");
