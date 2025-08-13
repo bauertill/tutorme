@@ -7,10 +7,12 @@ import { Trans } from "@/i18n/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { User as LucideUser } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export function UserAndSignOutButton({ user }: { user: User }) {
   const imageUrl = user.image;
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return (
     <div className="flex items-center gap-2">
@@ -31,8 +33,9 @@ export function UserAndSignOutButton({ user }: { user: User }) {
         <Button
           onClick={(e) => {
             e.preventDefault();
-            void signOut().then(() => {
+            void signOut({ redirect: false }).then(() => {
               queryClient.clear();
+              router.push("/");
             });
           }}
           variant="link"

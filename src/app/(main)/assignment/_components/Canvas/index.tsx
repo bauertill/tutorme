@@ -60,20 +60,16 @@ export function Canvas() {
       solution.studentAssignmentId === activeAssignmentId,
   );
 
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
 
-  // Create student solution if it doesn't exist
   const { mutate: createStudentSolution } =
     api.studentSolution.setStudentSolutionCanvas.useMutation({
       onSuccess: () => {
-        // Refetch student solutions after creating
         void utils.studentSolution.listStudentSolutions.invalidate();
       },
     });
 
-  // Use conditional hook calls with fallback values
   const { addMessage, setRecommendedQuestions, newAssistantMessage } = useHelp(
     studentSolution?.id ?? "",
   );
@@ -129,7 +125,6 @@ export function Canvas() {
 
   useEffect(() => {
     if (!studentSolution && activeProblemId && activeAssignmentId) {
-      // Create initial student solution
       createStudentSolution({
         problemId: activeProblemId,
         studentAssignmentId: activeAssignmentId,
@@ -147,7 +142,6 @@ export function Canvas() {
     setHelpOpen(true);
   }, [activeProblemId]);
 
-  // Define callbacks and memoized values BEFORE conditional logic
   const onCheck = useCallback(
     (dataUrl: string, paths: Path[]) => {
       if (activeProblem && activeAssignment) {

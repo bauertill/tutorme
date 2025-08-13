@@ -172,6 +172,9 @@ model StudentAssignment {
   groupAssignmentId String?
   groupAssignment   GroupAssignment? @relation(fields: [groupAssignmentId], references: [id], onDelete: SetNull)
 
+  studentConceptId String?
+  studentConcept   StudentConcept? @relation(fields: [studentConceptId], references: [id], onDelete: SetNull)
+
   problems         Problem[]
   studentSolutions StudentSolution[]
 }
@@ -219,6 +222,8 @@ model StudentConcept {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  studentAssignments StudentAssignment[]
 }
 
 model Book {

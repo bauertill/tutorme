@@ -1,7 +1,6 @@
 "use client";
 
 import { UserAndSignOutButton } from "@/app/_components/user/UserAndSignOutButton";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/react-auth";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
@@ -58,17 +57,6 @@ export function Home() {
                 Jump back in
               </h2>
               <League currentXP={140} targetXP={175} />
-            </div>
-
-            <div>
-              <Button
-                onClick={() => {
-                  createInitialStudentAssignment();
-                }}
-                disabled={isPending}
-              >
-                {isPending ? "Creating..." : "Create your first lesson"}
-              </Button>
             </div>
           </div>
 

@@ -32,15 +32,12 @@ export function AssignmentPreview() {
       },
     });
 
-  // Filter out example assignments and keep only real assignments with problems
-  const isRealAssignment = (assignment: Assignment) =>
-    assignment.problems.length > 0 &&
-    assignment.name !== "Example Assignment" &&
-    !assignment.name.toLowerCase().includes("example");
+  const hasProblems = (assignment: Assignment) =>
+    assignment.problems.length > 0;
 
-  const realAssignments = studentAssignments?.filter(isRealAssignment) ?? [];
-  const nextAssignment = realAssignments[0];
-  const upcomingAssignments = realAssignments;
+  const assignmentsWithProblems = studentAssignments?.filter(hasProblems) ?? [];
+  const nextAssignment = assignmentsWithProblems[0];
+  const upcomingAssignments = assignmentsWithProblems;
 
   if (isLoading) {
     return (

@@ -14,57 +14,52 @@ export async function getInitialStudentAssessment(
   llmAdapter: LLMAdapter,
   db: PrismaClient,
 ): Promise<StudentAssignment> {
-  try {
-    const studentRepository = new StudentRepository(db);
-    const studentId =
-      await studentRepository.getStudentIdByUserIdOrThrow(userId);
+  const studentRepository = new StudentRepository(db);
+  const studentId = await studentRepository.getStudentIdByUserIdOrThrow(userId);
 
-    const studentContextRepository = new StudentContextRepository(db);
-    const studentContext =
-      await studentContextRepository.getStudentContext(userId);
+  const studentContextRepository = new StudentContextRepository(db);
+  const studentContext =
+    await studentContextRepository.getStudentContext(userId);
 
-    if (!studentContext) {
-      throw new Error(
-        "Student context not found. User must complete onboarding first.",
-      );
-    }
-
-    // Get concepts for the student
-    const concepts = await getConceptsForStudent(
-      userId,
-      language,
-      llmAdapter,
-      db,
+  if (!studentContext) {
+    throw new Error(
+      "Student context not found. User must complete onboarding first.",
     );
-
-    if (concepts.length === 0) {
-      throw new Error("No concepts found for student");
-    }
-
-    // Use the first concept to create an assignment
-    const firstConcept = concepts[0];
-    if (!firstConcept) {
-      throw new Error("First concept not found");
-    }
-
-    const assignment = await getConceptAssignment(
-      studentContext,
-      firstConcept,
-      language,
-      llmAdapter,
-    );
-
-    const assignmentRepository = new AssignmentRepository(db);
-
-    const studentAssignment =
-      await assignmentRepository.createStudentAssignmentWithProblems(
-        assignment,
-        studentId,
-        userId,
-      );
-    return studentAssignment;
-  } catch (error) {
-    console.error("Error in getInitialStudentAssessment:", error);
-    throw error;
   }
+
+  // Get concepts for the student
+  const concepts = await getConceptsForStudent(
+    userId,
+    language,
+    llmAdapter,
+    db,
+  );
+
+  if (concepts.length === 0) {
+    throw new Error("No concepts found for student");
+  }
+
+  // Use the first concept to create an assignment
+  const firstConcept = concepts[0];
+  if (!firstConcept) {
+    throw new Error("First concept not found");
+  }
+
+  const assignment = await getConceptAssignment(
+    studentContext,
+    firstConcept,
+    language,
+    llmAdapter,
+  );
+
+  const assignmentRepository = new AssignmentRepository(db);
+
+  const studentAssignment =
+    await assignmentRepository.createStudentAssignmentWithProblems(
+      assignment,
+      studentId,
+      userId,
+      firstConcept.id, // Pass the StudentConcept ID
+    );
+  return studentAssignment;
 }

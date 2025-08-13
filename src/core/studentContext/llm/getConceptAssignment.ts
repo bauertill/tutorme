@@ -26,6 +26,10 @@ const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
   - The problem should align with the educational standards of the specified country
   - If a textbook is specified, try to align with common approaches from that textbook
   - Consider the student's current skill level for the concept when designing the problem
+  - DO NOT create multi-part questions with sub-parts like (a), (b), (c), etc.
+  - Create ONE single, focused question that can be answered directly
+  - Avoid complex analysis questions that require multiple steps or parts
+  - Keep the problem straightforward and focused on one main task
 
   Write your response in {language} language only.`,
   {
@@ -45,7 +49,9 @@ const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(
   Concept Description: {conceptDescription}
   Student's Current Skill Level: {skillLevel}
   
-  Generate 1 math problem that will help the student learn and practice this specific concept.`,
+  Generate 1 simple, single-question math problem that will help the student learn and practice this specific concept.
+  
+  Remember: Create only ONE question without sub-parts (a), (b), (c), etc. Make it a direct, straightforward problem.`,
   {
     name: "generate_concept_assignment_human_prompt",
   },
@@ -91,101 +97,53 @@ export async function getConceptAssignment(
 ): Promise<StudentAssignment> {
   const { grade, country, textbook } = studentContext;
 
+  // Use hub to pull the prompt (fallback to local prompt if not available)
+  let prompt;
   try {
-    // Use hub to pull the prompt (fallback to local prompt if not available)
-    let prompt;
-    try {
-      prompt = await llmAdapter.hub.pull("generate_concept_assignment");
-    } catch {
-      // Fallback to local prompt template
-      console.log("No prompt found in hub, using local prompt");
-      prompt = generateConceptAssignmentPromptTemplate;
-    }
-
-    // Generate the assignment using LLM
-    console.log("Calling LLM with params:", {
-      grade,
-      country,
-      textbook,
-      conceptName: concept.concept.name,
-      conceptDescription: concept.concept.description,
-      skillLevel: concept.skillLevel,
-      language: LanguageName[language],
-    });
-
-    const response = await prompt
-      .pipe(
-        llmAdapter.models.model.withStructuredOutput(ConceptAssignmentSchema),
-      )
-      .invoke(
-        {
-          grade,
-          country,
-          textbook,
-          conceptName: concept.concept.name,
-          conceptDescription: concept.concept.description,
-          skillLevel: concept.skillLevel,
-          language: LanguageName[language],
-        },
-        {
-          metadata: {
-            functionName: "getConceptAssignment",
-            userId: studentContext.userId,
-            conceptId: concept.concept.id,
-          },
-        },
-      );
-
-    console.log("LLM response:", response);
-
-    // Check if response is valid
-    if (!response?.title || !response?.problems) {
-      console.error("Invalid LLM response:", response);
-      throw new Error("LLM returned invalid response");
-    }
-
-    // Transform the LLM response into a StudentAssignment
-    const now = new Date();
-    const studentAssignment: StudentAssignment = {
-      id: uuidv4(),
-      name: response.title,
-      createdAt: now,
-      updatedAt: now,
-      problems: response.problems.map((problem) => ({
-        id: uuidv4(),
-        problem: problem.problemText,
-        problemNumber: problem.problemNumber,
-        referenceSolution: problem.referenceSolution,
-        createdAt: now,
-        updatedAt: now,
-      })),
-    };
-
-    return studentAssignment;
-  } catch (error) {
-    console.error("Error in LLM call, using fallback:", error);
-
-    // Fallback: Create a simple assignment without LLM
-    const now = new Date();
-    const fallbackAssignment: StudentAssignment = {
-      id: uuidv4(),
-      name: `${concept.concept.name} - Practice Problem`,
-      createdAt: now,
-      updatedAt: now,
-      problems: [
-        {
-          id: uuidv4(),
-          problem: `Practice problem for ${concept.concept.name}: ${concept.concept.description}`,
-          problemNumber: "1",
-          referenceSolution:
-            "This is a placeholder solution. The LLM service is not available.",
-          createdAt: now,
-          updatedAt: now,
-        },
-      ],
-    };
-
-    console.log("Using fallback assignment:", fallbackAssignment);
-    return fallbackAssignment;
+    prompt = await llmAdapter.hub.pull("generate_concept_assignment");
+  } catch {
+    // Fallback to local prompt template
+    console.log("No prompt found in hub, using local prompt");
+    prompt = generateConceptAssignmentPromptTemplate;
   }
+
+  const response = await prompt
+    .pipe(llmAdapter.models.model.withStructuredOutput(ConceptAssignmentSchema))
+    .invoke(
+      {
+        grade,
+        country,
+        textbook,
+        conceptName: concept.concept.name,
+        conceptDescription: concept.concept.description,
+        skillLevel: concept.skillLevel,
+        language: LanguageName[language],
+      },
+      {
+        metadata: {
+          functionName: "getConceptAssignment",
+          userId: studentContext.userId,
+          conceptId: concept.concept.id,
+        },
+      },
+    );
+
+  // Transform the LLM response into a StudentAssignment
+  const now = new Date();
+  const studentAssignment: StudentAssignment = {
+    id: uuidv4(),
+    name: response.title,
+    createdAt: now,
+    updatedAt: now,
+    problems: response.problems.map((problem) => ({
+      id: uuidv4(),
+      problem: problem.problemText,
+      problemNumber: problem.problemNumber,
+      referenceSolution: problem.referenceSolution,
+      createdAt: now,
+      updatedAt: now,
+    })),
+  };
+
+  return studentAssignment;
 }
