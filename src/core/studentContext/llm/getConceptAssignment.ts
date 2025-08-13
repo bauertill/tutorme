@@ -107,17 +107,6 @@ export async function getConceptAssignment(
     prompt = generateConceptAssignmentPromptTemplate;
   }
 
-  // Generate the assignment using LLM
-  console.log("Calling LLM with params:", {
-    grade,
-    country,
-    textbook,
-    conceptName: concept.concept.name,
-    conceptDescription: concept.concept.description,
-    skillLevel: concept.skillLevel,
-    language: LanguageName[language],
-  });
-
   const response = await prompt
     .pipe(llmAdapter.models.model.withStructuredOutput(ConceptAssignmentSchema))
     .invoke(
@@ -138,14 +127,6 @@ export async function getConceptAssignment(
         },
       },
     );
-
-  console.log("LLM response:", response);
-
-  // Check if response is valid
-  if (!response?.title || !response?.problems) {
-    console.error("Invalid LLM response:", response);
-    throw new Error("LLM returned invalid response");
-  }
 
   // Transform the LLM response into a StudentAssignment
   const now = new Date();
