@@ -20,11 +20,19 @@ import {
 } from "@/components/ui/select";
 import type { StudentContext } from "@/core/studentContext/studentContext.types";
 import { api } from "@/trpc/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { COUNTRIES, GRADES } from "./onboardingOptions";
 
 export default function OnboardingPage() {
+  const { status } = useSession();
+  const router = useRouter();
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
   const [currentStep, setCurrentStep] = useState(0);
   const utils = api.useUtils();
   const { mutate, isPending } =
@@ -43,7 +51,6 @@ export default function OnboardingPage() {
     textbook: undefined,
     nextTestDate: undefined,
   });
-  const router = useRouter();
 
   const totalSteps = 4;
   const progress = ((currentStep + 1) / totalSteps) * 100;

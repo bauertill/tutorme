@@ -9,12 +9,9 @@ import { Home } from "./Home";
 import Welcome from "./Welcome";
 
 export default function Page() {
-  const { session, isAnon } = useAuth();
+  const { session } = useAuth();
   const [isReady, setIsReady] = useState(false);
-  const [fallbackData, setFallbackData] = useState<StudentContextType | null>(
-    null,
-  );
-  const [fallbackComplete, setFallbackComplete] = useState(false);
+  const [fallbackData] = useState<StudentContextType | null>(null);
 
   // Add a delay for Google users to ensure OAuth session is fully established
   useEffect(() => {
@@ -41,39 +38,13 @@ export default function Page() {
       refetchOnWindowFocus: false,
     });
 
-  // Fallback for Gmail users: Direct HTTP fetch to bypass tRPC client caching issues
-  useEffect(() => {
-    if (
-      session?.user?.email?.endsWith("@gmail.com") &&
-      isReady &&
-      !fallbackComplete
-    ) {
-      fetch(
-        "/api/trpc/studentContext.getStudentContext?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D",
-      )
-        .then(
-          (response) =>
-            response.json() as Promise<
-              Array<{
-                result?: { data?: { json?: StudentContextType | null } };
-              }>
-            >,
-        )
-        .then((data) => {
-          const json = data?.[0]?.result?.data?.json;
-          if (json) {
-            setFallbackData(json);
-          }
-          setFallbackComplete(true);
-        })
-        .catch(() => setFallbackComplete(true));
-    } else if (!session?.user?.email?.endsWith("@gmail.com")) {
-      setFallbackComplete(true);
-    }
-  }, [session?.user?.email, isReady, fallbackComplete]);
+  // If there is no authenticated session, show Welcome immediately
+  if (!session) {
+    return <Welcome />;
+  }
 
   // Show loading while waiting for session readiness, data fetching, or fallback
-  if (!isReady || (shouldQuery && isLoading) || !fallbackComplete) {
+  if (!isReady || (shouldQuery && isLoading)) {
     return <div>Loading...</div>;
   }
 
@@ -83,10 +54,9 @@ export default function Page() {
   }
 
   // If authenticated user hasn't completed onboarding, redirect to onboarding
-  if (session && !isAnon && !isLoading && isReady && fallbackComplete) {
+  if (session && !isLoading && isReady) {
     redirect("/onboarding");
   }
 
-  // For anonymous users without studentContext, show Welcome page
-  return <Welcome />;
+  return <div />;
 }
