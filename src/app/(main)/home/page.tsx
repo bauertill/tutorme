@@ -20,25 +20,17 @@ export default function Page() {
       refetchOnWindowFocus: false,
     });
 
-  // While session is resolving or data is loading, show loading
   if (status === "loading" || (shouldQuery && isLoading)) {
     return <div>Loading...</div>;
   }
 
-  // If there is no authenticated session, show Welcome immediately
   if (!session) {
     return <Welcome />;
   }
 
-  // If user has completed onboarding, show Home dashboard
   if (studentContext) {
     return <Home />;
   }
 
-  // If authenticated user hasn't completed onboarding, redirect to onboarding
-  if (session && !isLoading) {
-    redirect("/onboarding");
-  }
-
-  return <div />;
+  redirect("/onboarding");
 }
