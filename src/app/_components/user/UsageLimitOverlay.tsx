@@ -17,10 +17,10 @@ import { useEffect } from "react";
 import { CheckoutWithStripe } from "./CheckoutWithStripe";
 
 export function UsageLimitOverlay() {
-  const { session, isAnon } = useAuth();
+  const { session } = useAuth();
   const isUsageLimitReached = useStore.use.isUsageLimitReached();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
-  const isSignedIn = session && !isAnon;
+  const isSignedIn = !!session;
   const { data: isSubscribed } = api.subscription.isSubscribed.useQuery(
     isSignedIn ? undefined : skipToken,
   );

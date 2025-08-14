@@ -23,7 +23,6 @@ export function useAuth() {
   return {
     session,
     status,
-    isAnon: session?.user?.email?.endsWith("@anon.tutormegood.com"),
     signInWithGoogle: async () => {
       setIsSigningInWithGoogle(true);
       try {
