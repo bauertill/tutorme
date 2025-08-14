@@ -1,5 +1,6 @@
 "use client";
 
+import Loader from "@/components/ui/loading";
 import { useAuth } from "@/lib/react-auth";
 import { api } from "@/trpc/react";
 import { redirect } from "next/navigation";
@@ -21,7 +22,7 @@ export default function Page() {
     });
 
   if (status === "loading" || (shouldQuery && isLoading)) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   if (!session) {
