@@ -1,5 +1,6 @@
 "use client";
 
+import Loader from "@/components/ui/loading";
 import { useAuth } from "@/lib/react-auth";
 import { api } from "@/trpc/react";
 import { redirect } from "next/navigation";
@@ -7,15 +8,30 @@ import { Home } from "./Home";
 import Welcome from "./Welcome";
 
 export default function Page() {
-  const { session, isAnon } = useAuth();
-  const { data: studentContext } =
-    api.studentContext.getStudentContext.useQuery();
+  const { session, status } = useAuth();
+  const shouldQuery = !!session?.user?.id;
+
+  const { data: studentContext, isLoading } =
+    api.studentContext.getStudentContext.useQuery(undefined, {
+      enabled: shouldQuery,
+      retry: false,
+      staleTime: 0,
+      gcTime: 0,
+      refetchOnMount: true,
+      refetchOnWindowFocus: false,
+    });
+
+  if (status === "loading" || (shouldQuery && isLoading)) {
+    return <Loader />;
+  }
+
+  if (!session) {
+    return <Welcome />;
+  }
 
   if (studentContext) {
     return <Home />;
   }
-  if (session && !isAnon) {
-    redirect("/onboarding");
-  }
-  return <Welcome />;
+
+  redirect("/onboarding");
 }

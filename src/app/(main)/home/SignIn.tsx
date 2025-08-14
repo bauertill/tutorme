@@ -9,7 +9,7 @@ export function SignIn({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
-  const { session, isAnon } = useAuth();
+  const { session } = useAuth();
   const user = session?.user;
   return (
     <form
@@ -35,7 +35,7 @@ export function SignIn({
           </span>
         </div>
 
-        {user && !isAnon ? (
+        {user ? (
           <UserAndSignOutButton user={user} />
         ) : (
           <SignInButton className="w-full">

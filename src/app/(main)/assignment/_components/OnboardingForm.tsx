@@ -10,7 +10,7 @@ export function OnboardingForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
-  const { session, isAnon } = useAuth();
+  const { session } = useAuth();
   const user = session?.user;
   return (
     <form
@@ -43,7 +43,7 @@ export function OnboardingForm({
           </span>
         </div>
 
-        {user && !isAnon ? (
+        {user ? (
           <UserAndSignOutButton user={user} />
         ) : (
           <SignInButton variant="outline" className="w-full">
