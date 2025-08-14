@@ -12,6 +12,7 @@ import {
 import { type EvaluationResult } from "@/core/studentSolution/studentSolution.types";
 import { useTranslation } from "@/i18n/react";
 import { useProblemController } from "@/store/problem.selectors";
+import Link from "next/link";
 
 export function CelebrationDialog({
   evaluationResult,
@@ -41,21 +42,27 @@ export function CelebrationDialog({
               : t("celebrationDialog.description_all_problems_solved")}
           </p>
         </div>
-        <DialogFooter className="justify-end">
-          <DialogClose asChild>
-            <Button
-              type="button"
-              variant="default"
-              onClick={() => {
-                gotoNextUnsolvedProblem?.();
-                setOpen(false);
-              }}
-            >
-              {gotoNextUnsolvedProblem
-                ? t("celebrationDialog.next_problem")
-                : t("celebrationDialog.close")}
-            </Button>
-          </DialogClose>
+        <DialogFooter className="justify-end gap-2">
+          {gotoNextUnsolvedProblem ? (
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="default"
+                onClick={() => {
+                  gotoNextUnsolvedProblem?.();
+                  setOpen(false);
+                }}
+              >
+                {t("celebrationDialog.next_problem")}
+              </Button>
+            </DialogClose>
+          ) : (
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                <Link href="/home">{t("celebrationDialog.close")}</Link>
+              </Button>
+            </DialogClose>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

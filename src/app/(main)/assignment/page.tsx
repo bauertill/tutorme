@@ -39,34 +39,48 @@ export default function AssignmentPage() {
   }, [activeAssignment, assignmentIdFromUrl, setActiveProblem]);
   const [assignments] =
     api.assignment.listStudentAssignments.useSuspenseQuery();
-  const [solvedProblemsCount] =
-    api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
-      select: (studentSolutions) =>
-        studentSolutions.filter(
-          (solution) =>
-            solution.status === "SOLVED" &&
-            solution.studentAssignmentId === assignmentIdToUse,
-        ).length ?? 0,
-    });
+  const [studentSolutions] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery();
 
   const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
   if (assignments.length === 0) {
     return <Onboarding />;
   }
 
-  const totalProblems = activeAssignment?.problems.length ?? 0;
+  // Compute today's problems and solved count
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  const today = new Date();
+  const todayProblemIds = new Set(
+    (activeAssignment?.problems ?? [])
+      .filter((p) => isSameDay(new Date(p.createdAt), today))
+      .map((p) => p.id),
+  );
+  const totalProblemsToday = todayProblemIds.size;
+  const solvedProblemsCountToday = studentSolutions.filter(
+    (solution) =>
+      solution.status === "SOLVED" &&
+      solution.studentAssignmentId === assignmentIdToUse &&
+      todayProblemIds.has(solution.problemId),
+  ).length;
   const progressPercentage =
-    totalProblems > 0 ? (solvedProblemsCount / totalProblems) * 100 : 0;
+    totalProblemsToday > 0
+      ? (solvedProblemsCountToday / totalProblemsToday) * 100
+      : 0;
 
   return (
     <SidebarProvider>
-      {!hasCompletedOnboarding && activeAssignment && totalProblems > 0 && (
-        <Tour />
-      )}
+      {!hasCompletedOnboarding &&
+        activeAssignment &&
+        totalProblemsToday > 0 && <Tour />}
 
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4">
+          {null}
           <SidebarTrigger />
           {activeAssignment ? (
             <div className="flex w-full items-center gap-2">
@@ -75,7 +89,7 @@ export default function AssignmentPage() {
               </Latex>
               <div className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap">
                 <span className="min-w-[44px] flex-shrink-0 text-right text-xs text-muted-foreground">
-                  {solvedProblemsCount} / {totalProblems}
+                  {solvedProblemsCountToday} / {totalProblemsToday}
                 </span>
               </div>
               <Progress className="ml-2 w-24" value={progressPercentage} />

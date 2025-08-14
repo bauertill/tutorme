@@ -93,6 +93,18 @@ export function Canvas() {
             studentSolutionId: studentSolution.id,
             evaluation,
           });
+          // Ensure global progress updates immediately
+          void utils.studentSolution.listStudentSolutions.invalidate();
+          // Optimistically set status to SOLVED when fully correct
+          if (!evaluation.hasMistakes && evaluation.isComplete) {
+            utils.studentSolution.listStudentSolutions.setData(
+              undefined,
+              (old) =>
+                old?.map((s) =>
+                  s.id === studentSolution.id ? { ...s, status: "SOLVED" } : s,
+                ) ?? old,
+            );
+          }
         }
 
         if (!evaluation.hasMistakes && evaluation.isComplete) {

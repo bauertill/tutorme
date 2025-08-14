@@ -8,31 +8,19 @@ import { AssignmentPreview } from "./_components/AssignmentPreview";
 import { ConceptsList } from "./_components/ConceptsList";
 import { DailyStreak } from "./_components/DailyStreak";
 import { League } from "./_components/League";
+import { XPBar } from "./_components/XPBar";
 
 export function Home() {
   const { session } = useAuth();
   const userName = session?.user?.name ?? "User";
-  const router = useRouter();
+  useRouter();
 
-  const utils = api.useUtils();
-  const { mutate: createInitialStudentAssignment, isPending } =
-    api.assignment.createInitialStudentAssignment.useMutation({
-      onSuccess: (newAssignment) => {
-        // Refetch assignments after creating the first concept assignment
-        void utils.assignment.invalidate();
-        console.log("✅ Assignment created successfully!");
-        // Redirect to the newly created assignment
-        router.push(`/assignment?assignmentId=${newAssignment.id}`);
-      },
-      onError: (error) => {
-        console.error("Failed to create initial assignment:", error);
-      },
-    });
+  api.useUtils();
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 dark:bg-gray-900">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8">
+        <div className="mb-4">
           <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
             Welcome, {userName}
             {session?.user && <UserAndSignOutButton user={session?.user} />}
@@ -41,6 +29,7 @@ export function Home() {
             Ready to continue your learning journey?
           </p>
         </div>
+        <XPBar />
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Left Column - Progress */}
@@ -49,7 +38,7 @@ export function Home() {
               <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Your Progress
               </h2>
-              <DailyStreak streak={1} />
+              <DailyStreak />
             </div>
 
             <div>
