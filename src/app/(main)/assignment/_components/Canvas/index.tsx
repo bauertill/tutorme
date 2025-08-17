@@ -95,6 +95,8 @@ export function Canvas() {
           });
           // Ensure global progress updates immediately
           void utils.studentSolution.listStudentSolutions.invalidate();
+          // Also proactively refetch on home so XP/Leagues update fast
+          void utils.studentSolution.listStudentSolutions.refetch();
           // Optimistically set status to SOLVED when fully correct
           if (!evaluation.hasMistakes && evaluation.isComplete) {
             utils.studentSolution.listStudentSolutions.setData(

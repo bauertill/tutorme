@@ -8,7 +8,6 @@ import { AssignmentPreview } from "./_components/AssignmentPreview";
 import { ConceptsList } from "./_components/ConceptsList";
 import { DailyStreak } from "./_components/DailyStreak";
 import { League } from "./_components/League";
-import { XPBar } from "./_components/XPBar";
 
 export function Home() {
   const { session } = useAuth();
@@ -29,7 +28,6 @@ export function Home() {
             Ready to continue your learning journey?
           </p>
         </div>
-        <XPBar />
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Left Column - Progress */}
@@ -45,7 +43,7 @@ export function Home() {
               <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Jump back in
               </h2>
-              <League currentXP={140} targetXP={175} />
+              <League />
             </div>
           </div>
 

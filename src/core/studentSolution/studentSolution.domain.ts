@@ -55,6 +55,7 @@ export function setStudentSolutionEvaluation(
   const repository = new StudentSolutionRepository(db);
   return repository.updateStudentSolution(studentSolutionId, {
     evaluation,
+    status: evaluation.isComplete ? "SOLVED" : "IN_PROGRESS",
   });
 }
 
@@ -72,6 +73,7 @@ export function storeStudentSolutionCanvasWithEvaluationResult(
   return repository.upsertStudentSolution(studentAssignmentId, problemId, {
     canvas,
     evaluation,
+    status: evaluation.isComplete ? "SOLVED" : "IN_PROGRESS",
   });
 }
 
