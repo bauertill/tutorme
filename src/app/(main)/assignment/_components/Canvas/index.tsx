@@ -42,6 +42,7 @@ export function Canvas() {
     isEraser,
     toggleEraser,
     paths,
+    getPathsForSubmit,
   } = useCanvas();
   const activeAssignmentId = useActiveAssignmentId();
   const [activeAssignment] =
@@ -50,9 +51,12 @@ export function Canvas() {
     );
   const activeProblemId = useStore.use.activeProblemId();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
+  const setPaths = useStore.use.setPaths();
+  // NOTE: currentPaths removed (was only used for earlier hydration diff check)
   const activeProblem = useActiveProblem();
   const [studentSolutions] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
+  const currentPaths = useStore.use.paths();
 
   const studentSolution = studentSolutions.find(
     (solution) =>
@@ -63,7 +67,7 @@ export function Canvas() {
   const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
 
-  const { mutate: createStudentSolution } =
+  const { mutateAsync: upsertCanvasAsync } =
     api.studentSolution.setStudentSolutionCanvas.useMutation({
       onSuccess: () => {
         void utils.studentSolution.listStudentSolutions.invalidate();
@@ -87,8 +91,15 @@ export function Canvas() {
 
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
-      onSuccess: (evaluation) => {
+      onSuccess: async (evaluation) => {
         if (studentSolution) {
+          // Persist the exact paths we evaluated to avoid empty canvas saves
+          const evaluatedPaths = getPathsForSubmit();
+          await upsertCanvasAsync({
+            problemId: studentSolution.problemId,
+            studentAssignmentId: studentSolution.studentAssignmentId,
+            canvas: { paths: evaluatedPaths },
+          });
           setStudentSolutionEvaluation({
             studentSolutionId: studentSolution.id,
             evaluation,
@@ -137,33 +148,54 @@ export function Canvas() {
 
   useSaveCanvasPeriodically();
 
+  // Ensure we always re-fetch latest solutions when landing on the page
+  useEffect(() => {
+    void utils.studentSolution.listStudentSolutions.invalidate();
+  }, [utils.studentSolution.listStudentSolutions]);
+
   useEffect(() => {
     if (!studentSolution && activeProblemId && activeAssignmentId) {
-      createStudentSolution({
+      void upsertCanvasAsync({
         problemId: activeProblemId,
         studentAssignmentId: activeAssignmentId,
         canvas: { paths: [] },
       });
     }
-  }, [
-    studentSolution,
-    activeProblemId,
-    activeAssignmentId,
-    createStudentSolution,
-  ]);
+  }, [studentSolution, activeProblemId, activeAssignmentId, upsertCanvasAsync]);
+
+  useEffect(() => {
+    if (!activeAssignmentId || !activeProblemId) return;
+    const ss = studentSolutions.find(
+      (s) =>
+        s.problemId === activeProblemId &&
+        s.studentAssignmentId === activeAssignmentId,
+    );
+    if (!ss) return;
+    const raw = ss.canvas as unknown;
+    const obj =
+      typeof raw === "string"
+        ? (JSON.parse(raw) as { paths?: Path[] })
+        : (raw as { paths?: Path[] } | undefined);
+    const savedPaths: Path[] = obj?.paths ?? [];
+    const differs = JSON.stringify(savedPaths) !== JSON.stringify(currentPaths);
+    if (savedPaths.length > 0 && differs) {
+      setPaths(savedPaths);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAssignmentId, activeProblemId, studentSolutions]);
 
   useEffect(() => {
     setHelpOpen(true);
   }, [activeProblemId]);
 
   const onCheck = useCallback(
-    (dataUrl: string, paths: Path[]) => {
+    (dataUrl: string, pathsForSubmit: Path[]) => {
       if (activeProblem && activeAssignment) {
         submit({
           studentAssignmentId: activeAssignment.id,
           problemId: activeProblem.id,
           exerciseText: activeProblem.problem,
-          canvas: { paths },
+          canvas: { paths: pathsForSubmit },
           solutionImage: dataUrl,
           referenceSolution: activeProblem.referenceSolution ?? "N/A",
         });
@@ -210,7 +242,8 @@ export function Canvas() {
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
               if (!activeProblem || !activeAssignment) return;
-              onCheck(dataUrl, paths);
+              const toSubmit = getPathsForSubmit();
+              onCheck(dataUrl, toSubmit);
             }}
             disabled={isEmpty || isSubmitting}
             className="check-answer-button flex items-center gap-2"
@@ -252,8 +285,8 @@ export function Canvas() {
       toggleEraser,
       clear,
       isEraser,
-      paths,
       onCheck,
+      getPathsForSubmit,
       trackEvent,
       undo,
       redo,

@@ -1,8 +1,23 @@
+import {
+  Canvas as CanvasSchema,
+  type Canvas,
+} from "@/core/canvas/canvas.types";
 import { StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { Prisma, type PrismaClient } from "@prisma/client";
 
 export class StudentSolutionRepository {
   constructor(private db: PrismaClient) {}
+
+  private normalizeCanvas<T extends { canvas: unknown }>(
+    record: T,
+  ): Omit<T, "canvas"> & { canvas: Canvas } {
+    const rawCanvas = record.canvas;
+    const parsedCanvas =
+      typeof rawCanvas === "string"
+        ? CanvasSchema.parse(JSON.parse(rawCanvas))
+        : CanvasSchema.parse(rawCanvas);
+    return { ...(record as Omit<T, "canvas">), canvas: parsedCanvas };
+  }
 
   async updateStudentSolution(
     studentSolutionId: string,
@@ -18,7 +33,8 @@ export class StudentSolutionRepository {
           props.evaluation === null ? Prisma.JsonNull : props.evaluation,
       },
     });
-    return StudentSolution.parse(result);
+    const normalized = this.normalizeCanvas(result);
+    return StudentSolution.parse(normalized);
   }
 
   async upsertStudentSolution(
@@ -46,7 +62,8 @@ export class StudentSolutionRepository {
         evaluation: props.evaluation ?? Prisma.JsonNull,
       },
     });
-    return StudentSolution.parse(result);
+    const normalized = this.normalizeCanvas(result);
+    return StudentSolution.parse(normalized);
   }
 
   async getStudentSolutionsByStudentId(
@@ -55,6 +72,6 @@ export class StudentSolutionRepository {
     const results = await this.db.studentSolution.findMany({
       where: { studentAssignment: { studentId } },
     });
-    return results.map((s) => StudentSolution.parse(s));
+    return results.map((s) => StudentSolution.parse(this.normalizeCanvas(s)));
   }
 }

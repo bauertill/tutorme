@@ -47,8 +47,9 @@ export function useSetActiveProblem() {
           solution.studentAssignmentId === assignmentId,
       )?.canvas;
 
-      // set current canvas to the canvas in the studentsolution
-      setPaths(nextCachedCanvas?.paths ?? []);
+      if (nextCachedCanvas?.paths) {
+        setPaths(nextCachedCanvas.paths);
+      }
     },
     [
       saveCanvas,

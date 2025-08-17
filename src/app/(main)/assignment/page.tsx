@@ -28,15 +28,14 @@ export default function AssignmentPage() {
       assignmentIdToUse ?? "",
     );
 
-  // Set the first problem as active when assignment loads
   useEffect(() => {
-    if (activeAssignment?.problems.length && assignmentIdFromUrl) {
+    if (activeAssignment?.problems.length && assignmentIdToUse) {
       const firstProblem = activeAssignment.problems[0];
       if (firstProblem) {
-        setActiveProblem(firstProblem.id, assignmentIdFromUrl);
+        setActiveProblem(firstProblem.id, assignmentIdToUse);
       }
     }
-  }, [activeAssignment, assignmentIdFromUrl, setActiveProblem]);
+  }, [activeAssignment, assignmentIdToUse, setActiveProblem]);
   const [assignments] =
     api.assignment.listStudentAssignments.useSuspenseQuery();
   const [studentSolutions] =
@@ -66,10 +65,21 @@ export default function AssignmentPage() {
       solution.studentAssignmentId === assignmentIdToUse &&
       todayProblemIds.has(solution.problemId),
   ).length;
+
+  const totalProblemsAll = activeAssignment?.problems.length ?? 0;
+  const solvedProblemsCountAll = studentSolutions.filter(
+    (solution) =>
+      solution.status === "SOLVED" &&
+      solution.studentAssignmentId === assignmentIdToUse,
+  ).length;
+
+  const useToday = totalProblemsToday > 0;
+  const displayedSolved = useToday
+    ? solvedProblemsCountToday
+    : solvedProblemsCountAll;
+  const displayedTotal = useToday ? totalProblemsToday : totalProblemsAll;
   const progressPercentage =
-    totalProblemsToday > 0
-      ? (solvedProblemsCountToday / totalProblemsToday) * 100
-      : 0;
+    displayedTotal > 0 ? (displayedSolved / displayedTotal) * 100 : 0;
 
   return (
     <SidebarProvider>
@@ -89,7 +99,7 @@ export default function AssignmentPage() {
               </Latex>
               <div className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap">
                 <span className="min-w-[44px] flex-shrink-0 text-right text-xs text-muted-foreground">
-                  {solvedProblemsCountToday} / {totalProblemsToday}
+                  {displayedSolved} / {displayedTotal}
                 </span>
               </div>
               <Progress className="ml-2 w-24" value={progressPercentage} />

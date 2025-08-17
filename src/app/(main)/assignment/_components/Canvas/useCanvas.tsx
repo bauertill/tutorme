@@ -18,7 +18,25 @@ import {
 const BOTTOM_PADDING = 800;
 const ERASER_RADIUS = 10; // Radius for eraser collision detection
 
-export function useCanvas() {
+import type React from "react";
+
+type UseCanvasResult = {
+  canvas: React.ReactElement;
+  undo: () => void;
+  redo: () => void;
+  clear: () => void;
+  isEraser: boolean;
+  toggleEraser: (enabled?: boolean) => void;
+  getDataUrl: () => Promise<string | null>;
+  canUndo: boolean;
+  canRedo: boolean;
+  isEmpty: boolean;
+  isUntouched: boolean;
+  paths: Path[];
+  getPathsForSubmit: () => Path[];
+};
+
+export function useCanvas(): UseCanvasResult {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const assertedSvg = useCallback(() => {
@@ -256,6 +274,10 @@ export function useCanvas() {
     ],
   );
 
+  const getPathsForSubmit: () => Path[] = useCallback(() => {
+    return currentPathRef.current ? [...paths, currentPathRef.current] : paths;
+  }, [paths]);
+
   return {
     canvas,
     undo,
@@ -272,6 +294,7 @@ export function useCanvas() {
     isEmpty: useMemo(() => paths.length === 0, [paths]),
     isUntouched,
     paths,
+    getPathsForSubmit,
   };
 }
 

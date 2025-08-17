@@ -33,20 +33,29 @@ export function useSaveCanvasPeriodically() {
   useEffect(() => {
     const { problemId, studentAssignmentId, canvas } = debouncedSaveableItem;
     if (!problemId || !studentAssignmentId) return;
-    console.log("debouncedSaveableItem", debouncedSaveableItem);
-    const cachedCanvas = studentSolutions?.find(
+    if ((canvas.paths?.length ?? 0) === 0) return;
+
+    const found = studentSolutions?.find(
       (solution) =>
         solution.problemId === problemId &&
         solution.studentAssignmentId === studentAssignmentId,
-    )?.canvas;
-    console.log("cachedCanvas", cachedCanvas);
+    );
+    const cachedCanvasRaw = found?.canvas as unknown;
+    const cachedCanvas =
+      typeof cachedCanvasRaw === "string"
+        ? (JSON.parse(cachedCanvasRaw) as { paths?: typeof paths })
+        : (cachedCanvasRaw as { paths?: typeof paths } | undefined);
 
     const userHasChangedCanvas = !isEqual(
       debouncedSaveableItem.canvas,
       cachedCanvas,
     );
 
-    if (userHasChangedCanvas) {
+    const isDowngradeToEmpty =
+      (canvas.paths?.length ?? 0) === 0 &&
+      (cachedCanvas?.paths?.length ?? 0) > 0;
+
+    if (userHasChangedCanvas && !isDowngradeToEmpty) {
       saveCanvas({
         problemId,
         studentAssignmentId,
