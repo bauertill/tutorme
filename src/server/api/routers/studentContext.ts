@@ -1,7 +1,11 @@
 import { getConceptsForStudent } from "@/core/concept/concept.domain";
 import { StudentContextRepository } from "@/core/studentContext/studentContext.repository";
 import { StudentContext } from "@/core/studentContext/studentContext.types";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
 
 export const studentContextRouter = createTRPCRouter({
   upsertStudentContext: protectedProcedure
@@ -13,9 +17,15 @@ export const studentContextRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       });
     }),
-  getStudentContext: protectedProcedure.query(async ({ ctx }) => {
+  getStudentContext: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.session?.user?.id) {
+      return null;
+    }
+
     const studentContextRepository = new StudentContextRepository(ctx.db);
-    return studentContextRepository.getStudentContext(ctx.session.user.id);
+    return await studentContextRepository.getStudentContext(
+      ctx.session.user.id,
+    );
   }),
   getConceptsForStudent: protectedProcedure.query(async ({ ctx }) => {
     return await getConceptsForStudent(

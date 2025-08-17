@@ -32,7 +32,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 export function AppSidebar() {
   const { t } = useTranslation();
-  const { session, isAnon } = useAuth();
+  const { session } = useAuth();
   const [assignments] =
     api.assignment.listStudentAssignments.useSuspenseQuery();
   const activeProblem = useActiveProblem();
@@ -184,7 +184,7 @@ export function AppSidebar() {
         </SidebarGroup>
         <SidebarFooter className="mt-auto w-full flex-shrink-0 transition-all duration-200 ease-linear">
           <div className="min-h-[90px] w-full transition-all duration-200 ease-linear">
-            {session?.user && !isAnon ? (
+            {session?.user ? (
               <div className="mb-2 w-full px-2 transition-all duration-200 ease-linear">
                 <UserAndSignOutButton user={session.user} />
               </div>
