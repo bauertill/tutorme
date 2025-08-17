@@ -29,6 +29,7 @@ export class StudentSolutionRepository {
       where: { id: studentSolutionId },
       data: {
         ...props,
+        ...(props.status === "SOLVED" ? { completedAt: new Date() } : {}),
         evaluation:
           props.evaluation === null ? Prisma.JsonNull : props.evaluation,
       },
@@ -50,6 +51,7 @@ export class StudentSolutionRepository {
       },
       update: {
         ...props,
+        ...(props.status === "SOLVED" ? { completedAt: new Date() } : {}),
         evaluation:
           props.evaluation === null ? Prisma.JsonNull : props.evaluation,
       },
@@ -57,6 +59,7 @@ export class StudentSolutionRepository {
         studentAssignmentId,
         problemId,
         ...props,
+        ...(props.status === "SOLVED" ? { completedAt: new Date() } : {}),
         canvas: props.canvas ?? { paths: [] },
         recommendedQuestions: props.recommendedQuestions ?? [],
         evaluation: props.evaluation ?? Prisma.JsonNull,

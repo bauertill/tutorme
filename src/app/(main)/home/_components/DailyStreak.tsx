@@ -13,7 +13,9 @@ export function DailyStreak() {
     const byDay = new Map<string, number>();
     for (const s of solutions) {
       if (s.status !== "SOLVED") continue;
-      const d = new Date(s.updatedAt);
+      const completedAt = (s as { completedAt?: Date } | undefined)
+        ?.completedAt;
+      const d = new Date(completedAt ?? s.updatedAt);
       const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
       byDay.set(key, (byDay.get(key) ?? 0) + 1);
     }
