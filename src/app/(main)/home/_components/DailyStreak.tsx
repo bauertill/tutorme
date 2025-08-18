@@ -22,7 +22,10 @@ export function DailyStreak() {
 
     let currentStreak = 0;
     const today = new Date();
-    for (let i = 0; i < 30; i++) {
+    const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+    const solvedToday = (byDay.get(todayKey) ?? 0) > 0;
+
+    for (let i = solvedToday ? 0 : 1; i < 30; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
