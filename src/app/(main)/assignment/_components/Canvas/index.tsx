@@ -65,11 +65,7 @@ export function Canvas() {
   const [celebrationOpen, setCelebrationOpen] = useState(false);
 
   const { mutateAsync: upsertCanvasAsync } =
-    api.studentSolution.setStudentSolutionCanvas.useMutation({
-      onSuccess: () => {
-        // No invalidate here to avoid re-fetch churn while editing
-      },
-    });
+    api.studentSolution.setStudentSolutionCanvas.useMutation();
 
   // Always call hook; pass empty id when unavailable. Downstream usage is guarded.
   const help = useHelp(studentSolution?.id ?? "");
@@ -143,6 +139,24 @@ export function Canvas() {
     });
 
   useSaveCanvasPeriodically();
+
+  useEffect(() => {
+    if (!activeAssignmentId || !activeProblemId) return;
+    const existing = studentSolutions.find(
+      (s) =>
+        s.problemId === activeProblemId &&
+        s.studentAssignmentId === activeAssignmentId,
+    );
+    if (existing) return;
+    void upsertCanvasAsync({
+      problemId: activeProblemId,
+      studentAssignmentId: activeAssignmentId,
+      canvas: { paths: [] },
+    }).then(() => {
+      void utils.studentSolution.listStudentSolutions.invalidate();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAssignmentId, activeProblemId]);
 
   useEffect(() => {
     if (!activeAssignmentId || !activeProblemId) return;
@@ -240,6 +254,7 @@ export function Canvas() {
             getCanvasDataUrl={getDataUrl}
             open={helpOpen}
             setOpen={setHelpOpen}
+            isSubmitting={isSubmitting}
           />
         </div>
         <CelebrationDialog

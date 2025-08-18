@@ -20,10 +20,12 @@ export default function HelpBox({
   onClose,
   getCanvasDataUrl,
   studentSolutionId,
+  isSubmitting,
 }: {
   onClose?: () => void;
   getCanvasDataUrl: () => Promise<string | null>;
   studentSolutionId: string;
+  isSubmitting?: boolean;
 }) {
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const activeProblem = useActiveProblem();
@@ -167,9 +169,34 @@ export default function HelpBox({
   const container = useRef<HTMLDivElement>(null);
   useScrollToBottom(container);
 
-  const questionsToShow: RecommendedQuestionType[] = hasStudentSolution
+  const questionsToShow: RecommendedQuestionType[] = isSubmitting
     ? recommendedQuestions
-    : fallbackQuestions.map((q) => ({ question: q, studentSolutionId: "" }));
+    : hasStudentSolution
+      ? recommendedQuestions.length > 0
+        ? recommendedQuestions
+        : fallbackQuestions.map((q) => ({
+            question: q,
+            studentSolutionId: studentSolutionId,
+          }))
+      : fallbackQuestions.map((q) => ({
+          question: q,
+          studentSolutionId: "",
+        }));
+
+  useEffect(() => {
+    if (
+      hasStudentSolution &&
+      recommendedQuestions.length === 0 &&
+      fallbackQuestions.length > 0
+    ) {
+      setRecommendedQuestions(fallbackQuestions);
+    }
+  }, [
+    hasStudentSolution,
+    recommendedQuestions,
+    fallbackQuestions,
+    setRecommendedQuestions,
+  ]);
 
   return (
     <div className="relative flex">

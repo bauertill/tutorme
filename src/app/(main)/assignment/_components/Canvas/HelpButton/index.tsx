@@ -9,10 +9,12 @@ export default function HelpButton({
   getCanvasDataUrl,
   open,
   setOpen,
+  isSubmitting,
 }: {
   getCanvasDataUrl: () => Promise<string | null>;
   open: boolean;
   setOpen: (open: boolean) => void;
+  isSubmitting?: boolean;
 }) {
   const trackEvent = useTrackEvent();
   const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -37,6 +39,7 @@ export default function HelpButton({
               onClose={() => setOpen(false)}
               getCanvasDataUrl={getCanvasDataUrl}
               studentSolutionId={studentSolution?.id ?? ""}
+              isSubmitting={isSubmitting ?? false}
             />
           </motion.div>
         )}
