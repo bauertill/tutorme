@@ -38,6 +38,11 @@ export default function HelpBox({
 
   const hasStudentSolution = Boolean(studentSolutionId);
   const [fallbackQuestions, setFallbackQuestions] = useState<string[]>([]);
+  const [localMessages, setLocalMessages] = useState<
+    ReturnType<typeof newUserMessage>[]
+  >([]);
+
+  const displayedMessages = hasStudentSolution ? messages : localMessages;
 
   const { t } = useTranslation();
   const askMutation = api.help.ask.useMutation({
@@ -46,28 +51,36 @@ export default function HelpBox({
       else setFallbackQuestions([]);
     },
     onSuccess: (reply) => {
-      addMessage(newAssistantMessage(reply.reply));
-      if (hasStudentSolution) setRecommendedQuestions(reply.followUpQuestions);
-      else setFallbackQuestions(reply.followUpQuestions);
+      if (hasStudentSolution) {
+        addMessage(newAssistantMessage(reply.reply));
+        setRecommendedQuestions(reply.followUpQuestions);
+      } else {
+        setLocalMessages((prev) => [...prev, newAssistantMessage(reply.reply)]);
+        setFallbackQuestions(reply.followUpQuestions);
+      }
     },
     onError: (error) => {
       if (error.message === "Free tier limit reached") {
         setUsageLimitReached(true);
       } else {
-        addMessage(newAssistantMessage(error.message));
+        const msg = newAssistantMessage(error.message);
+        if (hasStudentSolution) addMessage(msg);
+        else setLocalMessages((prev) => [...prev, msg]);
       }
     },
   });
 
   const ask = async (question: string) => {
-    const payload = {
+    const userMsg = newUserMessage(question);
+    if (hasStudentSolution) addMessage(userMsg);
+    else setLocalMessages((prev) => [...prev, userMsg]);
+
+    askMutation.mutate({
       problemId: activeProblem?.id ?? "",
-      messages: [...messages, newUserMessage(question)],
+      messages: [...displayedMessages, userMsg],
       problem: activeProblem?.problem ?? "",
       solutionImage: await getCanvasDataUrl(),
-    };
-    askMutation.mutate(payload);
-    addMessage(newUserMessage(question));
+    });
   };
 
   const thumbsDownMutation = api.help.setMessageThumbsDown.useMutation({
@@ -76,25 +89,33 @@ export default function HelpBox({
       else setFallbackQuestions([]);
     },
     onSuccess: (reply) => {
-      addMessage(newAssistantMessage(reply.reply));
-      if (hasStudentSolution) setRecommendedQuestions(reply.followUpQuestions);
-      else setFallbackQuestions(reply.followUpQuestions);
+      if (hasStudentSolution) {
+        addMessage(newAssistantMessage(reply.reply));
+        setRecommendedQuestions(reply.followUpQuestions);
+      } else {
+        setLocalMessages((prev) => [...prev, newAssistantMessage(reply.reply)]);
+        setFallbackQuestions(reply.followUpQuestions);
+      }
     },
     onError: (error) => {
       if (error.message === "Free tier limit reached") {
         setUsageLimitReached(true);
       } else {
-        addMessage(newAssistantMessage(error.message));
+        const msg = newAssistantMessage(error.message);
+        if (hasStudentSolution) addMessage(msg);
+        else setLocalMessages((prev) => [...prev, msg]);
       }
     },
   });
 
   const handleThumbsDown = async () => {
-    const newMessage = newUserMessage(t("badResponseButton"));
-    addMessage(newMessage);
+    const msg = newUserMessage(t("badResponseButton"));
+    if (hasStudentSolution) addMessage(msg);
+    else setLocalMessages((prev) => [...prev, msg]);
+
     thumbsDownMutation.mutate({
       problemId: activeProblem?.id ?? "",
-      messages: [...messages, newMessage],
+      messages: [...displayedMessages, msg],
       problem: activeProblem?.problem ?? "",
       solutionImage: await getCanvasDataUrl(),
     });
@@ -169,14 +190,14 @@ export default function HelpBox({
             "[scrollbar-color:hsl(var(--muted))_transparent]",
           )}
         >
-          {messages.length === 0 ? (
+          {displayedMessages.length === 0 ? (
             <CardContent className="flex h-full w-full items-center justify-center p-4">
               <Trans i18nKey="help_box_empty_message" />
             </CardContent>
           ) : (
             <CardContent className="p-4">
               <MessageList
-                messages={messages}
+                messages={displayedMessages}
                 onThumbsDown={() => void handleThumbsDown()}
               />
             </CardContent>

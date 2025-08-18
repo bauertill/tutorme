@@ -14,7 +14,7 @@ export const useHelp = (studentSolutionId: string) => {
   );
   const messages = messagesQuery.data ?? [];
 
-  const { mutate: addMessage } = api.help.addMessage.useMutation({
+  const addMessageMutation = api.help.addMessage.useMutation({
     onMutate: (message) => {
       if (!hasId) return;
       utils.help.getMessages.setData({ studentSolutionId }, (old) => [
@@ -27,6 +27,10 @@ export const useHelp = (studentSolutionId: string) => {
       void utils.help.getMessages.invalidate({ studentSolutionId });
     },
   });
+  const addMessage = (message: ReturnType<typeof newMessage>) => {
+    if (!hasId) return;
+    addMessageMutation.mutate(message);
+  };
 
   const studentSolutionsQuery =
     api.studentSolution.listStudentSolutions.useQuery(undefined, {
