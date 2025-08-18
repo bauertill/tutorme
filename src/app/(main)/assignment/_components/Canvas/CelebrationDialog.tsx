@@ -10,9 +10,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { type EvaluationResult } from "@/core/studentSolution/studentSolution.types";
+import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { useTranslation } from "@/i18n/react";
-import { useProblemController } from "@/store/problem.selectors";
+import {
+  useActiveAssignmentId,
+  useProblemController,
+  useUnsolvedProblems,
+} from "@/store/problem.selectors";
+import { api } from "@/trpc/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
 export function CelebrationDialog({
   evaluationResult,
@@ -25,6 +33,48 @@ export function CelebrationDialog({
 }) {
   const { t } = useTranslation();
   const { gotoNextUnsolvedProblem } = useProblemController();
+  const activeAssignmentId = useActiveAssignmentId();
+  useUnsolvedProblems();
+  const [studentSolutions] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery();
+  const [activeAssignment] =
+    api.assignment.getStudentAssignment.useSuspenseQuery(
+      activeAssignmentId ?? "",
+    );
+  const todayRemaining = useMemo(() => {
+    if (!activeAssignment) return 0;
+    const isSameDay = (a: Date, b: Date) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+    const today = new Date();
+    const todayProblemIds = new Set(
+      (activeAssignment.problems ?? [])
+        .filter((p) => isSameDay(new Date(p.createdAt), today))
+        .map((p) => p.id),
+    );
+    const totalToday = todayProblemIds.size;
+    const solvedToday = studentSolutions.filter(
+      (s) =>
+        s.status === "SOLVED" &&
+        s.studentAssignmentId === activeAssignment.id &&
+        todayProblemIds.has(s.problemId),
+    ).length;
+    const remaining = Math.max(0, totalToday - solvedToday);
+    return remaining;
+  }, [activeAssignment, studentSolutions]);
+
+  const utils = api.useUtils();
+  const setActiveProblem = useSetActiveProblem();
+  const router = useRouter();
+  const { mutateAsync: createInitialAssignmentAsync, isPending } =
+    api.assignment.createInitialStudentAssignment.useMutation({
+      onSuccess: async () => {
+        await Promise.all([
+          utils.assignment.listStudentAssignments.invalidate(),
+        ]);
+      },
+    });
   return (
     <Dialog open={open} onOpenChange={setOpen} modal={false}>
       {open && <Confetti />}
@@ -36,14 +86,17 @@ export function CelebrationDialog({
           {evaluationResult?.successMessage && (
             <Latex>{evaluationResult.successMessage}</Latex>
           )}
-          <p>
-            {gotoNextUnsolvedProblem
-              ? t("celebrationDialog.description_one_problem_solved")
-              : t("celebrationDialog.description_all_problems_solved")}
-          </p>
+          {todayRemaining > 0 ? (
+            <p>
+              Keep going {todayRemaining} more problem
+              {todayRemaining === 1 ? "" : "s"} to complete today.
+            </p>
+          ) : (
+            <p>You&apos;ve completed your daily training.</p>
+          )}
         </div>
         <DialogFooter className="justify-end gap-2">
-          {gotoNextUnsolvedProblem ? (
+          {todayRemaining > 0 && gotoNextUnsolvedProblem ? (
             <DialogClose asChild>
               <Button
                 type="button"
@@ -58,9 +111,28 @@ export function CelebrationDialog({
             </DialogClose>
           ) : (
             <DialogClose asChild>
-              <Button type="button" variant="outline">
-                <Link href="/home">{t("celebrationDialog.close")}</Link>
-              </Button>
+              <div className="flex w-full items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="default"
+                  disabled={isPending}
+                  onClick={async () => {
+                    const newAssignment = await createInitialAssignmentAsync();
+                    if (!newAssignment) return;
+                    router.push(`/assignment?assignmentId=${newAssignment.id}`);
+                    const firstProblemId = newAssignment.problems?.[0]?.id;
+                    if (firstProblemId) {
+                      void setActiveProblem(firstProblemId, newAssignment.id);
+                    }
+                    setOpen(false);
+                  }}
+                >
+                  Earn more points
+                </Button>
+                <Button type="button" variant="outline">
+                  <Link href="/home">Return home</Link>
+                </Button>
+              </div>
             </DialogClose>
           )}
         </DialogFooter>

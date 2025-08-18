@@ -8,6 +8,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Tour } from "@/components/ui/tour";
+import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { useStore } from "@/store";
 import { useActiveAssignmentId } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
@@ -20,7 +21,7 @@ export default function AssignmentPage() {
   const searchParams = useSearchParams();
   const assignmentIdFromUrl = searchParams.get("assignmentId");
   const activeAssignmentId = useActiveAssignmentId();
-  const setActiveProblem = useStore.use.setActiveProblem();
+  const setActiveProblemSafe = useSetActiveProblem();
 
   const assignmentIdToUse = assignmentIdFromUrl ?? activeAssignmentId;
   const [activeAssignment] =
@@ -32,10 +33,10 @@ export default function AssignmentPage() {
     if (activeAssignment?.problems.length && assignmentIdToUse) {
       const firstProblem = activeAssignment.problems[0];
       if (firstProblem) {
-        setActiveProblem(firstProblem.id, assignmentIdToUse);
+        void setActiveProblemSafe(firstProblem.id, assignmentIdToUse);
       }
     }
-  }, [activeAssignment, assignmentIdToUse, setActiveProblem]);
+  }, [activeAssignment, assignmentIdToUse, setActiveProblemSafe]);
   const [assignments] =
     api.assignment.listStudentAssignments.useSuspenseQuery();
   const [studentSolutions] =

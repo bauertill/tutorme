@@ -25,7 +25,7 @@ export default function HelpButton({
   return (
     <>
       <AnimatePresence>
-        {open && studentSolution && (
+        {open && (
           <motion.div
             initial={{ opacity: 0, scale: 0.1 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -36,7 +36,7 @@ export default function HelpButton({
             <HelpBox
               onClose={() => setOpen(false)}
               getCanvasDataUrl={getCanvasDataUrl}
-              studentSolutionId={studentSolution.id}
+              studentSolutionId={studentSolution?.id ?? ""}
             />
           </motion.div>
         )}

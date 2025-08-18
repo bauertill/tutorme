@@ -138,6 +138,35 @@ export class AssignmentRepository {
     return result;
   }
 
+  async addProblemsToStudentAssignment(
+    assignmentId: string,
+    problems: Draft<Problem>[],
+    userId: string,
+  ): Promise<{ createdProblemIds: string[] }> {
+    const created = await this.db.$transaction(async (tx) => {
+      const createdProblems = await Promise.all(
+        problems.map((problem) =>
+          tx.problem.create({
+            data: {
+              ...problem,
+              userId,
+            },
+          }),
+        ),
+      );
+      await tx.studentAssignment.update({
+        where: { id: assignmentId },
+        data: {
+          problems: {
+            connect: createdProblems.map((p) => ({ id: p.id })),
+          },
+        },
+      });
+      return createdProblems.map((p) => p.id);
+    });
+    return { createdProblemIds: created };
+  }
+
   async deleteGroupAssignmentById(assignmentId: string): Promise<void> {
     await this.db.groupAssignment.delete({
       where: {

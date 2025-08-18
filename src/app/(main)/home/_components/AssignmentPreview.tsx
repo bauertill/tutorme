@@ -9,13 +9,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type Assignment = {
-  problems: unknown[];
+  id: string;
   name: string;
+  createdAt: string | Date;
+  problems: { id: string; createdAt?: string | Date }[];
 };
 
 export function AssignmentPreview() {
   const { data: studentAssignments, isLoading } =
     api.assignment.listStudentAssignments.useQuery();
+  const { data: studentSolutions = [] } =
+    api.studentSolution.listStudentSolutions.useQuery();
   const router = useRouter();
 
   const utils = api.useUtils();
@@ -35,9 +39,24 @@ export function AssignmentPreview() {
   const hasProblems = (assignment: Assignment) =>
     assignment.problems.length > 0;
 
-  const assignmentsWithProblems = studentAssignments?.filter(hasProblems) ?? [];
-  const nextAssignment = assignmentsWithProblems[0];
+  const assignmentsWithProblems = (studentAssignments ?? []).filter(
+    hasProblems,
+  );
   const upcomingAssignments = assignmentsWithProblems;
+
+  const solvedByAssignment = new Map<string, Set<string>>();
+  for (const s of studentSolutions ?? []) {
+    if (!s.completedAt && s.status !== "SOLVED") continue;
+    const set =
+      solvedByAssignment.get(s.studentAssignmentId) ?? new Set<string>();
+    set.add(s.problemId);
+    solvedByAssignment.set(s.studentAssignmentId, set);
+  }
+  const isFullySolved = (a: Assignment): boolean =>
+    a.problems.every((p) => solvedByAssignment.get(a.id)?.has(p.id));
+  const nextAssignment = assignmentsWithProblems.find((a) => !isFullySolved(a));
+
+  const hasAnyAssignments = assignmentsWithProblems.length > 0;
 
   if (isLoading) {
     return (
@@ -57,7 +76,7 @@ export function AssignmentPreview() {
     );
   }
 
-  if (!nextAssignment) {
+  if (!hasAnyAssignments) {
     return (
       <div className="space-y-6">
         <Card className="w-full">
@@ -86,7 +105,7 @@ export function AssignmentPreview() {
     );
   }
 
-  const estimatedTime = nextAssignment.problems.length * 2; // Rough estimate: 2 minutes per problem
+  const estimatedTime = (nextAssignment?.problems.length ?? 0) * 2; // Rough estimate: 2 minutes per problem
 
   return (
     <div className="space-y-6">
@@ -101,12 +120,12 @@ export function AssignmentPreview() {
               NEXT ASSIGNMENT
             </Badge>
             <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {nextAssignment.name}
+              {nextAssignment?.name ?? ""}
             </h2>
             <div className="mb-4 flex items-center justify-center gap-4 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <FileText className="h-4 w-4" />
-                {nextAssignment.problems.length} problems
+                {nextAssignment?.problems.length ?? 0} problems
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />~{estimatedTime} min
@@ -120,11 +139,21 @@ export function AssignmentPreview() {
             </div>
           </div>
 
-          <Link href={`/assignment?assignmentId=${nextAssignment.id}`}>
-            <Button className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl">
-              Continue Assignment
+          {nextAssignment ? (
+            <Link href={`/assignment?assignmentId=${nextAssignment.id}`}>
+              <Button className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl">
+                Continue Assignment
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              onClick={() => createInitialStudentAssignment()}
+              disabled={isPending}
+              className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"
+            >
+              {isPending ? "Creating..." : "Create a new assignment"}
             </Button>
-          </Link>
+          )}
         </CardContent>
       </Card>
 

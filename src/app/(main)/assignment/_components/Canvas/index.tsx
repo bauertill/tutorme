@@ -41,7 +41,6 @@ export function Canvas() {
     isEmpty,
     isEraser,
     toggleEraser,
-    paths,
     getPathsForSubmit,
   } = useCanvas();
   const activeAssignmentId = useActiveAssignmentId();
@@ -52,11 +51,9 @@ export function Canvas() {
   const activeProblemId = useStore.use.activeProblemId();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const setPaths = useStore.use.setPaths();
-  // NOTE: currentPaths removed (was only used for earlier hydration diff check)
   const activeProblem = useActiveProblem();
   const [studentSolutions] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
-  const currentPaths = useStore.use.paths();
 
   const studentSolution = studentSolutions.find(
     (solution) =>
@@ -70,13 +67,12 @@ export function Canvas() {
   const { mutateAsync: upsertCanvasAsync } =
     api.studentSolution.setStudentSolutionCanvas.useMutation({
       onSuccess: () => {
-        void utils.studentSolution.listStudentSolutions.invalidate();
+        // No invalidate here to avoid re-fetch churn while editing
       },
     });
 
-  const { addMessage, setRecommendedQuestions, newAssistantMessage } = useHelp(
-    studentSolution?.id ?? "",
-  );
+  // Always call hook; pass empty id when unavailable. Downstream usage is guarded.
+  const help = useHelp(studentSolution?.id ?? "");
   const { mutate: setStudentSolutionEvaluation } =
     api.studentSolution.setStudentSolutionEvaluation.useMutation({
       onMutate: ({ studentSolutionId, evaluation }) => {
@@ -93,7 +89,6 @@ export function Canvas() {
     api.studentSolution.submitSolution.useMutation({
       onSuccess: async (evaluation) => {
         if (studentSolution) {
-          // Persist the exact paths we evaluated to avoid empty canvas saves
           const evaluatedPaths = getPathsForSubmit();
           await upsertCanvasAsync({
             problemId: studentSolution.problemId,
@@ -104,11 +99,8 @@ export function Canvas() {
             studentSolutionId: studentSolution.id,
             evaluation,
           });
-          // Ensure global progress updates immediately
           void utils.studentSolution.listStudentSolutions.invalidate();
-          // Also proactively refetch on home so XP/Leagues update fast
           void utils.studentSolution.listStudentSolutions.refetch();
-          // Optimistically set status to SOLVED when fully correct
           if (!evaluation.hasMistakes && evaluation.isComplete) {
             utils.studentSolution.listStudentSolutions.setData(
               undefined,
@@ -133,8 +125,12 @@ export function Canvas() {
           message = t("assignment.feedback.notComplete");
 
         if (evaluation.hint) message += `\n${evaluation.hint}`;
-        if (message) addMessage(newAssistantMessage(message));
-        setRecommendedQuestions(evaluation.followUpQuestions);
+        if (message && studentSolution) {
+          help.addMessage(help.newAssistantMessage(message));
+        }
+        if (studentSolution) {
+          help.setRecommendedQuestions(evaluation.followUpQuestions);
+        }
         setHelpOpen(true);
       },
       onError: (error) => {
@@ -147,21 +143,6 @@ export function Canvas() {
     });
 
   useSaveCanvasPeriodically();
-
-  // Ensure we always re-fetch latest solutions when landing on the page
-  useEffect(() => {
-    void utils.studentSolution.listStudentSolutions.invalidate();
-  }, [utils.studentSolution.listStudentSolutions]);
-
-  useEffect(() => {
-    if (!studentSolution && activeProblemId && activeAssignmentId) {
-      void upsertCanvasAsync({
-        problemId: activeProblemId,
-        studentAssignmentId: activeAssignmentId,
-        canvas: { paths: [] },
-      });
-    }
-  }, [studentSolution, activeProblemId, activeAssignmentId, upsertCanvasAsync]);
 
   useEffect(() => {
     if (!activeAssignmentId || !activeProblemId) return;
@@ -177,12 +158,9 @@ export function Canvas() {
         ? (JSON.parse(raw) as { paths?: Path[] })
         : (raw as { paths?: Path[] } | undefined);
     const savedPaths: Path[] = obj?.paths ?? [];
-    const differs = JSON.stringify(savedPaths) !== JSON.stringify(currentPaths);
-    if (savedPaths.length > 0 && differs) {
-      setPaths(savedPaths);
-    }
+    setPaths(savedPaths);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeAssignmentId, activeProblemId, studentSolutions]);
+  }, [activeAssignmentId, activeProblemId]);
 
   useEffect(() => {
     setHelpOpen(true);
@@ -256,7 +234,7 @@ export function Canvas() {
             <Trans i18nKey="check" />
           </Button>
         </div>
-        <div className="absolute right-4 top-[4rem] z-10 flex h-[calc(100%-5rem)]">
+        <div className="absolute right-4 top-[4rem] z-50 flex h-[calc(100%-5rem)]">
           <HelpButton
             key={activeProblemId}
             getCanvasDataUrl={getDataUrl}
@@ -305,12 +283,6 @@ export function Canvas() {
     ),
     [canvas, controls],
   );
-
-  if (!studentSolution) {
-    return (
-      <div className="flex h-full items-center justify-center">Loading...</div>
-    );
-  }
 
   return canvasWithControls;
 }

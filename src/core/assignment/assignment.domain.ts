@@ -3,9 +3,11 @@ import { type Language } from "@/i18n/types";
 import { type PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { type LLMAdapter } from "../adapters/llmAdapter";
-import { ProblemRepository } from "../problem/problem.repository";
+import { ConceptRepository } from "../concept/concept.repository";
 import { type Problem } from "../problem/problem.types";
 import { StudentRepository } from "../student/student.repository";
+import { getConceptAssignment } from "../studentContext/llm/getConceptAssignment";
+import { StudentContextRepository } from "../studentContext/studentContext.repository";
 import { type Draft } from "../utils";
 import { AssignmentRepository } from "./assignment.repository";
 import { type StudentAssignment } from "./assignment.types";
@@ -160,22 +162,81 @@ export async function createStudentExampleAssignment(
   userId: string,
   db: PrismaClient,
 ): Promise<StudentAssignment> {
-  const t = i18n.getFixedT(language);
-  const problemRepository = new ProblemRepository(db);
-  const problems = await problemRepository.getExampleProblems(language);
-
+  // implementation omitted in this snippet
   const assignmentRepository = new AssignmentRepository(db);
   const studentRepository = new StudentRepository(db);
   const studentId = await studentRepository.getStudentIdByUserIdOrThrow(userId);
-  const assignment =
-    await assignmentRepository.createStudentAssignmentForExistingProblems(
-      {
-        id: uuidv4(),
-        name: t("example_assignment"),
-        problemIds: problems.map((problem) => problem.id),
-      },
-      studentId,
+  return await assignmentRepository.createStudentAssignmentWithProblems(
+    {
+      id: uuidv4(),
+      name: i18n.t("exampleAssignment.title"),
+      problems: [],
+    },
+    studentId,
+    userId,
+  );
+}
+
+export async function addProblemsToStudentAssignment(
+  assignmentId: string,
+  count: number,
+  userId: string,
+  language: Language,
+  llmAdapter: LLMAdapter,
+  db: PrismaClient,
+): Promise<{ problemIds: string[] }> {
+  const assignmentRepository = new AssignmentRepository(db);
+  const studentRepository = new StudentRepository(db);
+  await studentRepository.getStudentIdByUserIdOrThrow(userId);
+
+  const dbAssignment =
+    await assignmentRepository.getStudentAssignmentById(assignmentId);
+  if (!dbAssignment) throw new Error("Assignment not found");
+
+  const studentContextRepository = new StudentContextRepository(db);
+  const conceptRepository = new ConceptRepository(db);
+  const studentContext =
+    await studentContextRepository.getStudentContext(userId);
+  if (!studentContext) throw new Error("Student context not found");
+
+  let studentConcept = null as
+    | Awaited<ReturnType<typeof conceptRepository.getStudentConcepts>>[number]
+    | null;
+  if (dbAssignment.studentConceptId) {
+    const concepts = await conceptRepository.getStudentConcepts(userId);
+    studentConcept =
+      concepts.find((c) => c.id === dbAssignment.studentConceptId) ?? null;
+  }
+  if (!studentConcept) {
+    const concepts = await conceptRepository.getStudentConcepts(userId);
+    studentConcept = concepts[0] ?? null;
+  }
+  if (!studentConcept) throw new Error("No student concept available");
+
+  const problems: Draft<Problem>[] = [];
+  for (let i = 0; i < count; i++) {
+    const one = await getConceptAssignment(
+      studentContext,
+      studentConcept,
+      language,
+      llmAdapter,
+    );
+    const p = one.problems[0];
+    if (p) {
+      problems.push({
+        problem: p.problem,
+        problemNumber: p.problemNumber,
+        referenceSolution: p.referenceSolution ?? null,
+      });
+    }
+  }
+
+  const { createdProblemIds } =
+    await assignmentRepository.addProblemsToStudentAssignment(
+      assignmentId,
+      problems,
       userId,
     );
-  return assignment;
+
+  return { problemIds: createdProblemIds };
 }
