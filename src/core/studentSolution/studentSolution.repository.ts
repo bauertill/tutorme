@@ -2,6 +2,7 @@ import {
   Canvas as CanvasSchema,
   type Canvas,
 } from "@/core/canvas/canvas.types";
+import { type Problem } from "@/core/problem/problem.types";
 import { StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { Prisma, type PrismaClient } from "@prisma/client";
 
@@ -76,5 +77,25 @@ export class StudentSolutionRepository {
       where: { studentAssignment: { studentId } },
     });
     return results.map((s) => StudentSolution.parse(this.normalizeCanvas(s)));
+  }
+
+  async getSolvedProblems(
+    studentId: string,
+    conceptId: string,
+  ): Promise<Problem[]> {
+    const solutions = await this.db.studentSolution.findMany({
+      where: {
+        studentAssignment: {
+          studentId,
+          studentConceptId: conceptId,
+        },
+        status: "SOLVED",
+      },
+      include: {
+        problem: true,
+      },
+    });
+
+    return solutions.map((s) => s.problem);
   }
 }

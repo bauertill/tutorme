@@ -1,6 +1,7 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import { getConceptsForStudent } from "@/core/concept/concept.domain";
+import { StudentSolutionRepository } from "@/core/studentSolution/studentSolution.repository";
 import { type Language } from "@/i18n/types";
 import { type PrismaClient } from "@prisma/client";
 import { AssignmentRepository } from "../assignment/assignment.repository";
@@ -45,11 +46,18 @@ export async function getInitialStudentAssessment(
     throw new Error("First concept not found");
   }
 
+  const studentSolutionRepository = new StudentSolutionRepository(db);
+  const solvedProblems = await studentSolutionRepository.getSolvedProblems(
+    studentId,
+    firstConcept.id,
+  );
+
   const assignment = await getConceptAssignment(
     studentContext,
     firstConcept,
     language,
     llmAdapter,
+    solvedProblems,
   );
 
   const assignmentRepository = new AssignmentRepository(db);

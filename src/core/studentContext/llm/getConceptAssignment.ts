@@ -1,6 +1,7 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import { type StudentConcept } from "@/core/concept/concept.types";
+import { type Problem } from "@/core/problem/problem.types";
 import { type Language, LanguageName } from "@/i18n/types";
 import {
   ChatPromptTemplate,
@@ -51,6 +52,8 @@ const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(
   
   Generate 1 simple, single-question math problem that will help the student learn and practice this specific concept.
   
+  {solvedProblems}
+
   Remember: Create only ONE question without sub-parts (a), (b), (c), etc. Make it a direct, straightforward problem.`,
   {
     name: "generate_concept_assignment_human_prompt",
@@ -94,6 +97,7 @@ export async function getConceptAssignment(
   concept: StudentConcept,
   language: Language,
   llmAdapter: LLMAdapter,
+  solvedProblems: Problem[],
 ): Promise<StudentAssignment> {
   const { grade, country, textbook } = studentContext;
 
@@ -118,6 +122,12 @@ export async function getConceptAssignment(
         conceptDescription: concept.concept.description,
         skillLevel: concept.skillLevel,
         language: LanguageName[language],
+        solvedProblems:
+          solvedProblems.length > 0
+            ? `The student has already solved the following problems: ${solvedProblems
+                .map((p) => `"${p.problem}"`)
+                .join(", ")}. Please generate a different one.`
+            : "",
       },
       {
         metadata: {
