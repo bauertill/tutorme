@@ -20,7 +20,6 @@ import {
 import { api } from "@/trpc/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
 
 export function CelebrationDialog({
   evaluationResult,
@@ -35,34 +34,10 @@ export function CelebrationDialog({
   const { gotoNextUnsolvedProblem } = useProblemController();
   const activeAssignmentId = useActiveAssignmentId();
   useUnsolvedProblems();
-  const [studentSolutions] =
-    api.studentSolution.listStudentSolutions.useSuspenseQuery();
-  const [activeAssignment] =
-    api.assignment.getStudentAssignment.useSuspenseQuery(
-      activeAssignmentId ?? "",
-    );
-  const todayRemaining = useMemo(() => {
-    if (!activeAssignment) return 0;
-    const isSameDay = (a: Date, b: Date) =>
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate();
-    const today = new Date();
-    const todayProblemIds = new Set(
-      (activeAssignment.problems ?? [])
-        .filter((p) => isSameDay(new Date(p.createdAt), today))
-        .map((p) => p.id),
-    );
-    const totalToday = todayProblemIds.size;
-    const solvedToday = studentSolutions.filter(
-      (s) =>
-        s.status === "SOLVED" &&
-        s.studentAssignmentId === activeAssignment.id &&
-        todayProblemIds.has(s.problemId),
-    ).length;
-    const remaining = Math.max(0, totalToday - solvedToday);
-    return remaining;
-  }, [activeAssignment, studentSolutions]);
+  const [dailyProgress] = api.assignment.getDailyProgress.useSuspenseQuery(
+    activeAssignmentId ?? "",
+  );
+  const todayRemaining = dailyProgress?.remaining ?? 0;
 
   const utils = api.useUtils();
   const setActiveProblem = useSetActiveProblem();

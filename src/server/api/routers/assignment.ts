@@ -28,6 +28,13 @@ export const assignmentRouter = createTRPCRouter({
     );
   }),
 
+  getDailyProgress: protectedProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: studentAssignmentId }) => {
+      const assignmentRepository = new AssignmentRepository(ctx.db);
+      return await assignmentRepository.getDailyProgress(studentAssignmentId);
+    }),
+
   getStudentAssignment: protectedProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {

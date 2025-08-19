@@ -245,6 +245,50 @@ export class AssignmentRepository {
     return dbAssignment;
   }
 
+  async getDailyProgress(
+    studentAssignmentId: string,
+  ): Promise<{ remaining: number }> {
+    const assignment = await this.db.studentAssignment.findUnique({
+      where: { id: studentAssignmentId },
+      include: {
+        problems: true,
+        studentSolutions: {
+          where: {
+            status: "SOLVED",
+          },
+        },
+      },
+    });
+
+    if (!assignment) {
+      return { remaining: 0 };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayProblemIds = new Set(
+      assignment.problems
+        .filter((p) => {
+          const createdAt = new Date(p.createdAt);
+          return createdAt >= today && createdAt < tomorrow;
+        })
+        .map((p) => p.id),
+    );
+
+    const solvedToday = assignment.studentSolutions.filter((s) =>
+      todayProblemIds.has(s.problemId),
+    ).length;
+
+    const totalToday = todayProblemIds.size;
+    const remaining = Math.max(0, totalToday - solvedToday);
+
+    return { remaining };
+  }
+
   async deleteAllProblemsAndAssignmentsByUserId(userId: string): Promise<void> {
     await this.db.$transaction([
       this.db.groupAssignment.deleteMany({ where: { userId } }),
