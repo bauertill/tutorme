@@ -15,7 +15,6 @@ import { useTranslation } from "@/i18n/react";
 import {
   useActiveAssignmentId,
   useProblemController,
-  useUnsolvedProblems,
 } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import Link from "next/link";
@@ -33,7 +32,6 @@ export function CelebrationDialog({
   const { t } = useTranslation();
   const { gotoNextUnsolvedProblem } = useProblemController();
   const activeAssignmentId = useActiveAssignmentId();
-  useUnsolvedProblems();
   const [dailyProgress] = api.assignment.getDailyProgress.useSuspenseQuery(
     activeAssignmentId ?? "",
   );

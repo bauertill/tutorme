@@ -94,8 +94,6 @@ export function Canvas() {
             studentSolutionId: studentSolution.id,
             evaluation,
           });
-          void utils.studentSolution.listStudentSolutions.invalidate();
-          void utils.studentSolution.listStudentSolutions.refetch();
           if (!evaluation.hasMistakes && evaluation.isComplete) {
             utils.studentSolution.listStudentSolutions.setData(
               undefined,
@@ -104,6 +102,15 @@ export function Canvas() {
                   s.id === studentSolution.id ? { ...s, status: "SOLVED" } : s,
                 ) ?? old,
             );
+            await Promise.all([
+              utils.studentSolution.listStudentSolutions.invalidate(),
+              utils.assignment.getDailyProgress.invalidate(),
+            ]);
+            setCelebrationOpen(true);
+            return;
+          } else {
+            void utils.studentSolution.listStudentSolutions.invalidate();
+            void utils.assignment.getDailyProgress.invalidate();
           }
         }
 
