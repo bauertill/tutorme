@@ -283,6 +283,7 @@ model StudentSolution {
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   status               StudentSolutionStatus @default(INITIAL)
+  completedAt          DateTime?
   canvas               Json                  @default("{\"paths\": []}")
   evaluation           Json                  @default("null")
   messages             Message[]

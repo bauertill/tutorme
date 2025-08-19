@@ -3,16 +3,37 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useMemo, useState } from "react";
 
 interface LeagueProps {
   currentXP?: number;
   targetXP?: number;
 }
 
-export function League({ currentXP = 140, targetXP = 175 }: LeagueProps) {
+export function League({ currentXP, targetXP }: LeagueProps) {
   const [isUnlocked] = useState(false);
-  const progressPercentage = (currentXP / targetXP) * 100;
+
+  const { data: solutions = [] } =
+    api.studentSolution.listStudentSolutions.useQuery(undefined, {
+      refetchOnMount: "always",
+      refetchOnWindowFocus: true,
+    });
+
+  const computed = useMemo(() => {
+    const solved = solutions.filter((s) => s.status === "SOLVED");
+    const firstTry = solved.filter((s) => s.evaluation?.hasMistakes === false);
+    const xp = solved.length * 10 + firstTry.length * 10;
+    const target = (Math.floor(xp / 100) + 1) * 100; // simple level target every 100 XP
+    return { xp, target };
+  }, [solutions]);
+
+  const effectiveCurrentXP = currentXP ?? computed.xp;
+  const effectiveTargetXP = targetXP ?? computed.target;
+  const progressPercentage =
+    effectiveTargetXP > 0
+      ? Math.min(100, (effectiveCurrentXP / effectiveTargetXP) * 100)
+      : 0;
 
   return (
     <Card className="w-full">
@@ -47,7 +68,7 @@ export function League({ currentXP = 140, targetXP = 175 }: LeagueProps) {
               )}
             </div>
             <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-              {currentXP} of {targetXP} XP
+              {effectiveCurrentXP} of {effectiveTargetXP} XP
             </p>
             <Progress value={progressPercentage} className="h-2" />
           </div>

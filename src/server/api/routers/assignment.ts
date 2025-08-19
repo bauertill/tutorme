@@ -1,4 +1,5 @@
 import {
+  addProblemsToStudentAssignment,
   adminCreateAssignment,
   createStudentAssignment,
   createStudentAssignmentFromUpload,
@@ -26,6 +27,13 @@ export const assignmentRouter = createTRPCRouter({
       ctx.session.user.id,
     );
   }),
+
+  getDailyProgress: protectedProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: studentAssignmentId }) => {
+      const assignmentRepository = new AssignmentRepository(ctx.db);
+      return await assignmentRepository.getDailyProgress(studentAssignmentId);
+    }),
 
   getStudentAssignment: protectedProcedure
     .input(z.string())
@@ -131,6 +139,26 @@ export const assignmentRouter = createTRPCRouter({
         ctx.db,
       );
       return assignment;
+    }),
+
+  addProblemsToStudentAssignment: protectedProcedure
+    .input(
+      z.object({
+        assignmentId: z.string(),
+        count: z.number().min(1).max(5).default(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { assignmentId, count } = input;
+      const { problemIds } = await addProblemsToStudentAssignment(
+        assignmentId,
+        count,
+        ctx.session.user.id,
+        ctx.userLanguage,
+        ctx.llmAdapter,
+        ctx.db,
+      );
+      return { problemIds };
     }),
 
   createAssignmentFromProblems: protectedProcedure

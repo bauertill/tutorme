@@ -41,7 +41,7 @@ export function Canvas() {
     isEmpty,
     isEraser,
     toggleEraser,
-    paths,
+    getPathsForSubmit,
   } = useCanvas();
   const activeAssignmentId = useActiveAssignmentId();
   const [activeAssignment] =
@@ -50,6 +50,7 @@ export function Canvas() {
     );
   const activeProblemId = useStore.use.activeProblemId();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
+  const setPaths = useStore.use.setPaths();
   const activeProblem = useActiveProblem();
   const [studentSolutions] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
@@ -63,16 +64,10 @@ export function Canvas() {
   const [helpOpen, setHelpOpen] = useState(true);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
 
-  const { mutate: createStudentSolution } =
-    api.studentSolution.setStudentSolutionCanvas.useMutation({
-      onSuccess: () => {
-        void utils.studentSolution.listStudentSolutions.invalidate();
-      },
-    });
+  const { mutateAsync: upsertCanvasAsync } =
+    api.studentSolution.setStudentSolutionCanvas.useMutation();
 
-  const { addMessage, setRecommendedQuestions, newAssistantMessage } = useHelp(
-    studentSolution?.id ?? "",
-  );
+  const help = useHelp(studentSolution?.id ?? "");
   const { mutate: setStudentSolutionEvaluation } =
     api.studentSolution.setStudentSolutionEvaluation.useMutation({
       onMutate: ({ studentSolutionId, evaluation }) => {
@@ -87,12 +82,36 @@ export function Canvas() {
 
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
-      onSuccess: (evaluation) => {
+      onSuccess: async (evaluation) => {
         if (studentSolution) {
+          const evaluatedPaths = getPathsForSubmit();
+          await upsertCanvasAsync({
+            problemId: studentSolution.problemId,
+            studentAssignmentId: studentSolution.studentAssignmentId,
+            canvas: { paths: evaluatedPaths },
+          });
           setStudentSolutionEvaluation({
             studentSolutionId: studentSolution.id,
             evaluation,
           });
+          if (!evaluation.hasMistakes && evaluation.isComplete) {
+            utils.studentSolution.listStudentSolutions.setData(
+              undefined,
+              (old) =>
+                old?.map((s) =>
+                  s.id === studentSolution.id ? { ...s, status: "SOLVED" } : s,
+                ) ?? old,
+            );
+            await Promise.all([
+              utils.studentSolution.listStudentSolutions.invalidate(),
+              utils.assignment.getDailyProgress.invalidate(),
+            ]);
+            setCelebrationOpen(true);
+            return;
+          } else {
+            void utils.studentSolution.listStudentSolutions.invalidate();
+            void utils.assignment.getDailyProgress.invalidate();
+          }
         }
 
         if (!evaluation.hasMistakes && evaluation.isComplete) {
@@ -108,8 +127,12 @@ export function Canvas() {
           message = t("assignment.feedback.notComplete");
 
         if (evaluation.hint) message += `\n${evaluation.hint}`;
-        if (message) addMessage(newAssistantMessage(message));
-        setRecommendedQuestions(evaluation.followUpQuestions);
+        if (message && studentSolution) {
+          help.addMessage(help.newAssistantMessage(message));
+        }
+        if (studentSolution) {
+          help.setRecommendedQuestions(evaluation.followUpQuestions);
+        }
         setHelpOpen(true);
       },
       onError: (error) => {
@@ -124,32 +147,53 @@ export function Canvas() {
   useSaveCanvasPeriodically();
 
   useEffect(() => {
-    if (!studentSolution && activeProblemId && activeAssignmentId) {
-      createStudentSolution({
-        problemId: activeProblemId,
-        studentAssignmentId: activeAssignmentId,
-        canvas: { paths: [] },
-      });
-    }
-  }, [
-    studentSolution,
-    activeProblemId,
-    activeAssignmentId,
-    createStudentSolution,
-  ]);
+    if (!activeAssignmentId || !activeProblemId) return;
+    const existing = studentSolutions.find(
+      (s) =>
+        s.problemId === activeProblemId &&
+        s.studentAssignmentId === activeAssignmentId,
+    );
+    if (existing) return;
+    void upsertCanvasAsync({
+      problemId: activeProblemId,
+      studentAssignmentId: activeAssignmentId,
+      canvas: { paths: [] },
+    }).then(() => {
+      void utils.studentSolution.listStudentSolutions.invalidate();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAssignmentId, activeProblemId]);
+
+  useEffect(() => {
+    if (!activeAssignmentId || !activeProblemId) return;
+    const ss = studentSolutions.find(
+      (s) =>
+        s.problemId === activeProblemId &&
+        s.studentAssignmentId === activeAssignmentId,
+    );
+    if (!ss) return;
+    const raw = ss.canvas as unknown;
+    const obj =
+      typeof raw === "string"
+        ? (JSON.parse(raw) as { paths?: Path[] })
+        : (raw as { paths?: Path[] } | undefined);
+    const savedPaths: Path[] = obj?.paths ?? [];
+    setPaths(savedPaths);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAssignmentId, activeProblemId]);
 
   useEffect(() => {
     setHelpOpen(true);
   }, [activeProblemId]);
 
   const onCheck = useCallback(
-    (dataUrl: string, paths: Path[]) => {
+    (dataUrl: string, pathsForSubmit: Path[]) => {
       if (activeProblem && activeAssignment) {
         submit({
           studentAssignmentId: activeAssignment.id,
           problemId: activeProblem.id,
           exerciseText: activeProblem.problem,
-          canvas: { paths },
+          canvas: { paths: pathsForSubmit },
           solutionImage: dataUrl,
           referenceSolution: activeProblem.referenceSolution ?? "N/A",
         });
@@ -196,7 +240,8 @@ export function Canvas() {
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
               if (!activeProblem || !activeAssignment) return;
-              onCheck(dataUrl, paths);
+              const toSubmit = getPathsForSubmit();
+              onCheck(dataUrl, toSubmit);
             }}
             disabled={isEmpty || isSubmitting}
             className="check-answer-button flex items-center gap-2"
@@ -209,12 +254,13 @@ export function Canvas() {
             <Trans i18nKey="check" />
           </Button>
         </div>
-        <div className="absolute right-4 top-[4rem] z-10 flex h-[calc(100%-5rem)]">
+        <div className="absolute right-4 top-[4rem] z-50 flex h-[calc(100%-5rem)]">
           <HelpButton
             key={activeProblemId}
             getCanvasDataUrl={getDataUrl}
             open={helpOpen}
             setOpen={setHelpOpen}
+            isSubmitting={isSubmitting}
           />
         </div>
         <CelebrationDialog
@@ -238,8 +284,8 @@ export function Canvas() {
       toggleEraser,
       clear,
       isEraser,
-      paths,
       onCheck,
+      getPathsForSubmit,
       trackEvent,
       undo,
       redo,
@@ -258,12 +304,6 @@ export function Canvas() {
     ),
     [canvas, controls],
   );
-
-  if (!studentSolution) {
-    return (
-      <div className="flex h-full items-center justify-center">Loading...</div>
-    );
-  }
 
   return canvasWithControls;
 }

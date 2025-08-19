@@ -29,7 +29,6 @@ export const createProblemSlice: StateCreator<
       draft.activeAssignmentId = assignmentId;
       draft.activeProblemId = problemId;
     });
-    get().setPaths([]);
   },
 
   addReferenceSolution: (problemId: string, referenceSolution: string) => {

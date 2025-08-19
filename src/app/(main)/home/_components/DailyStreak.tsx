@@ -2,21 +2,53 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState } from "react";
+import { api } from "@/trpc/react";
+import { useMemo } from "react";
 
-interface DailyStreakProps {
-  streak?: number;
-}
+export function DailyStreak() {
+  const { data: solutions = [] } =
+    api.studentSolution.listStudentSolutions.useQuery();
 
-export function DailyStreak({ streak = 1 }: DailyStreakProps) {
-  // Mock data for the week - in a real app this would come from props/server
-  const [weekData] = useState([
-    { day: "M", completed: true, isToday: true },
-    { day: "T", completed: false, isToday: false },
-    { day: "W", completed: false, isToday: false },
-    { day: "Th", completed: false, isToday: false },
-    { day: "F", completed: false, isToday: false },
-  ]);
+  const { streak, weekData } = useMemo(() => {
+    const byDay = new Map<string, number>();
+    for (const s of solutions) {
+      const completedAt = (s as { completedAt?: Date } | undefined)
+        ?.completedAt;
+      if (s.status !== "SOLVED" || !completedAt) continue;
+      const d = new Date(completedAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      byDay.set(key, (byDay.get(key) ?? 0) + 1);
+    }
+
+    let currentStreak = 0;
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+    const solvedToday = (byDay.get(todayKey) ?? 0) > 0;
+
+    for (let i = solvedToday ? 0 : 1; i < 30; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const hadSolved = (byDay.get(key) ?? 0) > 0;
+      if (hadSolved) currentStreak += 1;
+      else break;
+    }
+
+    const days = ["M", "T", "W", "Th", "F"];
+    const monday = new Date(today);
+    const dayOfWeek = (today.getDay() + 6) % 7; // 0=Mon
+    monday.setDate(today.getDate() - dayOfWeek);
+    const weekData = days.map((label, idx) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + idx);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const completed = (byDay.get(key) ?? 0) > 0;
+      const isToday = d.toDateString() === today.toDateString();
+      return { day: label, completed, isToday };
+    });
+
+    return { streak: currentStreak, weekData };
+  }, [solutions]);
 
   return (
     <Card className="w-full">

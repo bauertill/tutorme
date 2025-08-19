@@ -138,6 +138,35 @@ export class AssignmentRepository {
     return result;
   }
 
+  async addProblemsToStudentAssignment(
+    assignmentId: string,
+    problems: Draft<Problem>[],
+    userId: string,
+  ): Promise<{ createdProblemIds: string[] }> {
+    const created = await this.db.$transaction(async (tx) => {
+      const createdProblems = await Promise.all(
+        problems.map((problem) =>
+          tx.problem.create({
+            data: {
+              ...problem,
+              userId,
+            },
+          }),
+        ),
+      );
+      await tx.studentAssignment.update({
+        where: { id: assignmentId },
+        data: {
+          problems: {
+            connect: createdProblems.map((p) => ({ id: p.id })),
+          },
+        },
+      });
+      return createdProblems.map((p) => p.id);
+    });
+    return { createdProblemIds: created };
+  }
+
   async deleteGroupAssignmentById(assignmentId: string): Promise<void> {
     await this.db.groupAssignment.delete({
       where: {
@@ -214,6 +243,50 @@ export class AssignmentRepository {
       include: { problems: true },
     });
     return dbAssignment;
+  }
+
+  async getDailyProgress(
+    studentAssignmentId: string,
+  ): Promise<{ remaining: number }> {
+    const assignment = await this.db.studentAssignment.findUnique({
+      where: { id: studentAssignmentId },
+      include: {
+        problems: true,
+        studentSolutions: {
+          where: {
+            status: "SOLVED",
+          },
+        },
+      },
+    });
+
+    if (!assignment) {
+      return { remaining: 0 };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayProblemIds = new Set(
+      assignment.problems
+        .filter((p) => {
+          const createdAt = new Date(p.createdAt);
+          return createdAt >= today && createdAt < tomorrow;
+        })
+        .map((p) => p.id),
+    );
+
+    const solvedToday = assignment.studentSolutions.filter((s) =>
+      todayProblemIds.has(s.problemId),
+    ).length;
+
+    const totalToday = todayProblemIds.size;
+    const remaining = Math.max(0, totalToday - solvedToday);
+
+    return { remaining };
   }
 
   async deleteAllProblemsAndAssignmentsByUserId(userId: string): Promise<void> {

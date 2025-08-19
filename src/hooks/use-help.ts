@@ -3,29 +3,50 @@ import { api } from "@/trpc/react";
 
 export const useHelp = (studentSolutionId: string) => {
   const utils = api.useUtils();
-  const [messages] = api.help.getMessages.useSuspenseQuery({
-    studentSolutionId,
-  });
-  const { mutate: addMessage } = api.help.addMessage.useMutation({
+  const hasId = Boolean(studentSolutionId);
+
+  const messagesQuery = api.help.getMessages.useQuery(
+    { studentSolutionId },
+    {
+      enabled: hasId,
+      initialData: [] as ReturnType<typeof newMessage>[],
+    },
+  );
+  const messages = messagesQuery.data ?? [];
+
+  const addMessageMutation = api.help.addMessage.useMutation({
     onMutate: (message) => {
+      if (!hasId) return;
       utils.help.getMessages.setData({ studentSolutionId }, (old) => [
         ...(old ?? []),
         message,
       ]);
     },
     onSuccess: () => {
+      if (!hasId) return;
       void utils.help.getMessages.invalidate({ studentSolutionId });
     },
   });
-  const [recommendedQuestions] =
-    api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
-      select: (data) =>
-        data.find((s) => s.id === studentSolutionId)?.recommendedQuestions ??
-        [],
+  const addMessage = (message: ReturnType<typeof newMessage>) => {
+    if (!hasId) return;
+    addMessageMutation.mutate(message);
+  };
+
+  const studentSolutionsQuery =
+    api.studentSolution.listStudentSolutions.useQuery(undefined, {
+      enabled: hasId,
+      initialData: [],
     });
-  const { mutate: setRecommendedQuestions } =
+  const recommendedQuestions = hasId
+    ? ((studentSolutionsQuery.data ?? []).find(
+        (s) => s.id === studentSolutionId,
+      )?.recommendedQuestions ?? [])
+    : [];
+
+  const { mutate: setRecommendedQuestionsMutation } =
     api.studentSolution.setStudentSolutionRecommendedQuestions.useMutation({
       onMutate: ({ recommendedQuestions }) => {
+        if (!hasId) return;
         utils.studentSolution.listStudentSolutions.setData(undefined, (old) =>
           old?.map((s) =>
             s.id === studentSolutionId ? { ...s, recommendedQuestions } : s,
@@ -33,9 +54,22 @@ export const useHelp = (studentSolutionId: string) => {
         );
       },
       onSuccess: () => {
+        if (!hasId) return;
         void utils.studentSolution.listStudentSolutions.invalidate();
       },
     });
+
+  const setRecommendedQuestions = (recommended: string[]) => {
+    if (!hasId) return;
+    setRecommendedQuestionsMutation({
+      studentSolutionId,
+      recommendedQuestions: recommended.map((q) => ({
+        question: q,
+        studentSolutionId,
+      })),
+    });
+  };
+
   return {
     messages,
     recommendedQuestions,
@@ -44,13 +78,6 @@ export const useHelp = (studentSolutionId: string) => {
     newAssistantMessage: (content: string) =>
       newMessage({ role: "assistant", content, studentSolutionId }),
     addMessage,
-    setRecommendedQuestions: (recommendedQuestions: string[]) =>
-      setRecommendedQuestions({
-        studentSolutionId,
-        recommendedQuestions: recommendedQuestions.map((q) => ({
-          question: q,
-          studentSolutionId,
-        })),
-      }),
+    setRecommendedQuestions,
   };
 };

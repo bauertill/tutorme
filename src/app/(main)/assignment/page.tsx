@@ -8,6 +8,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Tour } from "@/components/ui/tour";
+import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { useStore } from "@/store";
 import { useActiveAssignmentId } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
@@ -20,7 +21,7 @@ export default function AssignmentPage() {
   const searchParams = useSearchParams();
   const assignmentIdFromUrl = searchParams.get("assignmentId");
   const activeAssignmentId = useActiveAssignmentId();
-  const setActiveProblem = useStore.use.setActiveProblem();
+  const setActiveProblemSafe = useSetActiveProblem();
 
   const assignmentIdToUse = assignmentIdFromUrl ?? activeAssignmentId;
   const [activeAssignment] =
@@ -28,45 +29,69 @@ export default function AssignmentPage() {
       assignmentIdToUse ?? "",
     );
 
-  // Set the first problem as active when assignment loads
   useEffect(() => {
-    if (activeAssignment?.problems.length && assignmentIdFromUrl) {
+    if (activeAssignment?.problems.length && assignmentIdToUse) {
       const firstProblem = activeAssignment.problems[0];
       if (firstProblem) {
-        setActiveProblem(firstProblem.id, assignmentIdFromUrl);
+        void setActiveProblemSafe(firstProblem.id, assignmentIdToUse);
       }
     }
-  }, [activeAssignment, assignmentIdFromUrl, setActiveProblem]);
+  }, [activeAssignment, assignmentIdToUse, setActiveProblemSafe]);
   const [assignments] =
     api.assignment.listStudentAssignments.useSuspenseQuery();
-  const [solvedProblemsCount] =
-    api.studentSolution.listStudentSolutions.useSuspenseQuery(undefined, {
-      select: (studentSolutions) =>
-        studentSolutions.filter(
-          (solution) =>
-            solution.status === "SOLVED" &&
-            solution.studentAssignmentId === assignmentIdToUse,
-        ).length ?? 0,
-    });
+  const [studentSolutions] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery();
 
   const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
   if (assignments.length === 0) {
     return <Onboarding />;
   }
 
-  const totalProblems = activeAssignment?.problems.length ?? 0;
+  // Compute today's problems and solved count
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  const today = new Date();
+  const todayProblemIds = new Set(
+    (activeAssignment?.problems ?? [])
+      .filter((p) => isSameDay(new Date(p.createdAt), today))
+      .map((p) => p.id),
+  );
+  const totalProblemsToday = todayProblemIds.size;
+  const solvedProblemsCountToday = studentSolutions.filter(
+    (solution) =>
+      solution.status === "SOLVED" &&
+      solution.studentAssignmentId === assignmentIdToUse &&
+      todayProblemIds.has(solution.problemId),
+  ).length;
+
+  const totalProblemsAll = activeAssignment?.problems.length ?? 0;
+  const solvedProblemsCountAll = studentSolutions.filter(
+    (solution) =>
+      solution.status === "SOLVED" &&
+      solution.studentAssignmentId === assignmentIdToUse,
+  ).length;
+
+  const useToday = totalProblemsToday > 0;
+  const displayedSolved = useToday
+    ? solvedProblemsCountToday
+    : solvedProblemsCountAll;
+  const displayedTotal = useToday ? totalProblemsToday : totalProblemsAll;
   const progressPercentage =
-    totalProblems > 0 ? (solvedProblemsCount / totalProblems) * 100 : 0;
+    displayedTotal > 0 ? (displayedSolved / displayedTotal) * 100 : 0;
 
   return (
     <SidebarProvider>
-      {!hasCompletedOnboarding && activeAssignment && totalProblems > 0 && (
-        <Tour />
-      )}
+      {!hasCompletedOnboarding &&
+        activeAssignment &&
+        totalProblemsToday > 0 && <Tour />}
 
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 flex h-14 items-center gap-4 border-b bg-background px-4">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4">
+          {null}
           <SidebarTrigger />
           {activeAssignment ? (
             <div className="flex w-full items-center gap-2">
@@ -75,7 +100,7 @@ export default function AssignmentPage() {
               </Latex>
               <div className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap">
                 <span className="min-w-[44px] flex-shrink-0 text-right text-xs text-muted-foreground">
-                  {solvedProblemsCount} / {totalProblems}
+                  {displayedSolved} / {displayedTotal}
                 </span>
               </div>
               <Progress className="ml-2 w-24" value={progressPercentage} />

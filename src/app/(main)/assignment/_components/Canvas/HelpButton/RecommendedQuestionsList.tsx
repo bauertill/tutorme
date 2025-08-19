@@ -12,9 +12,9 @@ export default function RecommendedQuestionsList({
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      {questions.map((question) => (
+      {questions.map((question, idx) => (
         <Button
-          key={question.question}
+          key={`${idx}-${question.question}`}
           variant="outline"
           className="min-w-30 h-auto flex-1 basis-36 whitespace-normal font-normal text-muted-foreground"
           onClick={() => onAsk(question.question)}

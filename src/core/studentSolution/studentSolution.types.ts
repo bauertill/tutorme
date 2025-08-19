@@ -25,6 +25,7 @@ export const StudentSolution = z.object({
   problemId: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  completedAt: z.date().nullable(),
   recommendedQuestions: z.array(RecommendedQuestion),
 });
 

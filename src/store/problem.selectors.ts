@@ -78,15 +78,36 @@ export const useProblemController = (): {
     api.assignment.getStudentAssignment.useSuspenseQuery(
       activeAssignmentId ?? "",
     );
+  const [studentSolutions] =
+    api.studentSolution.listStudentSolutions.useSuspenseQuery();
   const activeProblem = useActiveProblem();
-  const activeProblemIndex =
-    activeAssignment?.problems.findIndex((p) => p.id === activeProblem?.id) ??
-    0;
+  const activeProblemIndex = activeAssignment
+    ? activeAssignment.problems.findIndex((p) => p.id === activeProblem?.id)
+    : -1;
 
-  const nextProblem = activeAssignment?.problems[activeProblemIndex + 1];
-  const unsolvedProblems = useUnsolvedProblems();
-  const nextUnsolvedProblem = unsolvedProblems[0];
-  const previousProblem = activeAssignment?.problems[activeProblemIndex - 1];
+  const nextProblem =
+    activeAssignment && activeProblemIndex >= 0
+      ? activeAssignment.problems[activeProblemIndex + 1]
+      : undefined;
+  const isSolved = (problemId: string): boolean => {
+    if (!activeAssignment) return false;
+    const solution = studentSolutions.find(
+      (s) =>
+        s.problemId === problemId &&
+        s.studentAssignmentId === activeAssignment.id,
+    );
+    return solution?.status === "SOLVED";
+  };
+  const nextUnsolvedProblem =
+    activeAssignment && activeProblemIndex >= 0
+      ? activeAssignment.problems
+          .slice(activeProblemIndex + 1)
+          .find((p) => !isSolved(p.id))
+      : undefined;
+  const previousProblem =
+    activeAssignment && activeProblemIndex > 0
+      ? activeAssignment.problems[activeProblemIndex - 1]
+      : undefined;
 
   const gotoNextProblem = useCallback(() => {
     if (!nextProblem || !activeAssignment) return;

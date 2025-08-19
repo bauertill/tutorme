@@ -1,8 +1,24 @@
+import {
+  Canvas as CanvasSchema,
+  type Canvas,
+} from "@/core/canvas/canvas.types";
+import { type Problem } from "@/core/problem/problem.types";
 import { StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { Prisma, type PrismaClient } from "@prisma/client";
 
 export class StudentSolutionRepository {
   constructor(private db: PrismaClient) {}
+
+  private normalizeCanvas<T extends { canvas: unknown }>(
+    record: T,
+  ): Omit<T, "canvas"> & { canvas: Canvas } {
+    const rawCanvas = record.canvas;
+    const parsedCanvas =
+      typeof rawCanvas === "string"
+        ? CanvasSchema.parse(JSON.parse(rawCanvas))
+        : CanvasSchema.parse(rawCanvas);
+    return { ...(record as Omit<T, "canvas">), canvas: parsedCanvas };
+  }
 
   async updateStudentSolution(
     studentSolutionId: string,
@@ -14,11 +30,13 @@ export class StudentSolutionRepository {
       where: { id: studentSolutionId },
       data: {
         ...props,
+        ...(props.status === "SOLVED" ? { completedAt: new Date() } : {}),
         evaluation:
           props.evaluation === null ? Prisma.JsonNull : props.evaluation,
       },
     });
-    return StudentSolution.parse(result);
+    const normalized = this.normalizeCanvas(result);
+    return StudentSolution.parse(normalized);
   }
 
   async upsertStudentSolution(
@@ -34,6 +52,7 @@ export class StudentSolutionRepository {
       },
       update: {
         ...props,
+        ...(props.status === "SOLVED" ? { completedAt: new Date() } : {}),
         evaluation:
           props.evaluation === null ? Prisma.JsonNull : props.evaluation,
       },
@@ -41,12 +60,14 @@ export class StudentSolutionRepository {
         studentAssignmentId,
         problemId,
         ...props,
+        ...(props.status === "SOLVED" ? { completedAt: new Date() } : {}),
         canvas: props.canvas ?? { paths: [] },
         recommendedQuestions: props.recommendedQuestions ?? [],
         evaluation: props.evaluation ?? Prisma.JsonNull,
       },
     });
-    return StudentSolution.parse(result);
+    const normalized = this.normalizeCanvas(result);
+    return StudentSolution.parse(normalized);
   }
 
   async getStudentSolutionsByStudentId(
@@ -55,6 +76,26 @@ export class StudentSolutionRepository {
     const results = await this.db.studentSolution.findMany({
       where: { studentAssignment: { studentId } },
     });
-    return results.map((s) => StudentSolution.parse(s));
+    return results.map((s) => StudentSolution.parse(this.normalizeCanvas(s)));
+  }
+
+  async getSolvedProblems(
+    studentId: string,
+    conceptId: string,
+  ): Promise<Problem[]> {
+    const solutions = await this.db.studentSolution.findMany({
+      where: {
+        studentAssignment: {
+          studentId,
+          studentConceptId: conceptId,
+        },
+        status: "SOLVED",
+      },
+      include: {
+        problem: true,
+      },
+    });
+
+    return solutions.map((s) => s.problem);
   }
 }
