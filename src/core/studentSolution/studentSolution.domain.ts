@@ -61,19 +61,17 @@ export function setStudentSolutionEvaluation(
 
 export function storeStudentSolutionCanvasWithEvaluationResult(
   payload: {
-    studentAssignmentId: string;
-    problemId: string;
+    studentSolutionId: string;
     evaluation: EvaluationResult;
     canvas: Canvas;
   },
   db: PrismaClient,
 ) {
-  const { studentAssignmentId, problemId, evaluation, canvas } = payload;
+  const { studentSolutionId, evaluation, canvas } = payload;
   const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(studentAssignmentId, problemId, {
+  return repository.upsertStudentSolution(studentSolutionId, {
     canvas,
     evaluation,
-    status: evaluation.isComplete ? "SOLVED" : "IN_PROGRESS",
   });
 }
 

@@ -24,8 +24,7 @@ export const studentSolutionRouter = createTRPCRouter({
   submitSolution: limitedPublicProcedure
     .input(
       z.object({
-        problemId: z.string(),
-        studentAssignmentId: z.string(),
+        studentSolutionId: z.string(),
         exerciseText: z.string(),
         canvas: Canvas,
         solutionImage: z.string(),
@@ -69,8 +68,8 @@ export const studentSolutionRouter = createTRPCRouter({
       ctx.session.user.id,
     );
     const studentSolutionRepository = new StudentSolutionRepository(ctx.db);
-    return await studentSolutionRepository.getStudentSolutionsByStudentId(
-      studentId,
+    return await studentSolutionRepository.getStudentSolutionsByUserId(
+      ctx.session.user.id,
     );
   }),
 

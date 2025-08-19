@@ -96,8 +96,7 @@ export const evaluateSolutionPromptTemplate = ChatPromptTemplate.fromMessages([
 ]);
 
 export type EvaluateSolutionInput = {
-  problemId: string;
-  studentAssignmentId: string;
+  studentSolutionId: string;
   exerciseText: string;
   solutionImage: string;
   referenceSolution: string;
@@ -111,11 +110,10 @@ export async function evaluateSolution(
   llmAdapter: LLMAdapter,
 ): Promise<EvaluateSolutionOutput & { runId: string }> {
   const {
-    problemId,
+    studentSolutionId,
     exerciseText,
     solutionImage,
     referenceSolution,
-    studentAssignmentId,
     language,
   } = input;
 
@@ -144,8 +142,7 @@ export async function evaluateSolution(
       {
         metadata: {
           functionName: "evaluateSolution",
-          problemId,
-          studentAssignmentId,
+          studentSolutionId,
         },
         callbacks: [
           {
