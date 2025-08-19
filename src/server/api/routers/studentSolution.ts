@@ -21,7 +21,7 @@ import {
 import { z } from "zod";
 
 export const studentSolutionRouter = createTRPCRouter({
-  submitSolution: limitedPublicProcedure
+  submitSolution: protectedProcedure
     .input(
       z.object({
         studentSolutionId: z.string(),
@@ -29,6 +29,7 @@ export const studentSolutionRouter = createTRPCRouter({
         canvas: Canvas,
         solutionImage: z.string(),
         referenceSolution: z.string(),
+        problemId: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -36,6 +37,8 @@ export const studentSolutionRouter = createTRPCRouter({
         {
           ...input,
           language: ctx.userLanguage,
+          userId: ctx.session.user.id,
+          problemId: input.problemId,
         },
         ctx.llmAdapter,
         ctx.db,
@@ -77,13 +80,14 @@ export const studentSolutionRouter = createTRPCRouter({
     .input(
       z.object({
         problemId: z.string(),
-        studentAssignmentId: z.string(),
+        studentSolutionId: z.string(),
         canvas: Canvas,
       }),
     )
     .mutation(async ({ ctx, input }) => {
       return await setStudentSolutionCanvas(
-        input.studentAssignmentId,
+        input.studentSolutionId,
+        ctx.session.user.id,
         input.problemId,
         input.canvas,
         ctx.db,

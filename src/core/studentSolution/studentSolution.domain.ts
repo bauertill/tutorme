@@ -12,26 +12,38 @@ import { type EvaluationResult } from "./studentSolution.types";
 
 export function setStudentSolutionCanvas(
   studentAssignmentId: string,
+  userId: string,
   problemId: string,
   canvas: Canvas,
   db: PrismaClient,
 ) {
   const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(studentAssignmentId, problemId, {
-    canvas,
-  });
+  return repository.upsertStudentSolution(
+    studentAssignmentId,
+    userId,
+    problemId,
+    {
+      canvas,
+    },
+  );
 }
 
 export function setStudentSolutionEvaluateResult(
-  studentAssignmentId: string,
+  studentSolutionId: string,
   problemId: string,
+  userId: string,
   evaluation: EvaluationResult,
   db: PrismaClient,
 ) {
   const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(studentAssignmentId, problemId, {
-    evaluation,
-  });
+  return repository.upsertStudentSolution(
+    studentSolutionId,
+    userId,
+    problemId,
+    {
+      evaluation,
+    },
+  );
 }
 
 export function setStudentSolutionRecommendedQuestions(
@@ -62,17 +74,24 @@ export function setStudentSolutionEvaluation(
 export function storeStudentSolutionCanvasWithEvaluationResult(
   payload: {
     studentSolutionId: string;
+    userId: string;
+    problemId: string;
     evaluation: EvaluationResult;
     canvas: Canvas;
   },
   db: PrismaClient,
 ) {
-  const { studentSolutionId, evaluation, canvas } = payload;
+  const { studentSolutionId, userId, problemId, evaluation, canvas } = payload;
   const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(studentSolutionId, {
-    canvas,
-    evaluation,
-  });
+  return repository.upsertStudentSolution(
+    studentSolutionId,
+    userId,
+    problemId,
+    {
+      canvas,
+      evaluation,
+    },
+  );
 }
 
 export async function evaluateSolution(
@@ -100,7 +119,12 @@ export async function evaluateSolution(
       };
 
   void storeStudentSolutionCanvasWithEvaluationResult(
-    { ...input, evaluation },
+    {
+      ...input,
+      evaluation,
+      userId: input.userId,
+      problemId: input.problemId,
+    },
     db,
   );
   return evaluation;

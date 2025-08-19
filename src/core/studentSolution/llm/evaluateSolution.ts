@@ -97,6 +97,8 @@ export const evaluateSolutionPromptTemplate = ChatPromptTemplate.fromMessages([
 
 export type EvaluateSolutionInput = {
   studentSolutionId: string;
+  userId: string;
+  problemId: string;
   exerciseText: string;
   solutionImage: string;
   referenceSolution: string;
@@ -111,6 +113,8 @@ export async function evaluateSolution(
 ): Promise<EvaluateSolutionOutput & { runId: string }> {
   const {
     studentSolutionId,
+    userId,
+    problemId,
     exerciseText,
     solutionImage,
     referenceSolution,
@@ -143,6 +147,8 @@ export async function evaluateSolution(
         metadata: {
           functionName: "evaluateSolution",
           studentSolutionId,
+          userId,
+          problemId,
         },
         callbacks: [
           {
