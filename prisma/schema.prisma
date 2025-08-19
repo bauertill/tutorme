@@ -82,12 +82,9 @@ model User {
   accounts           Account[]
   sessions           Session[]
   subscription       Subscription?
-  student            Student?
-  groupAssignments   GroupAssignment[]
-  studentAssignments StudentAssignment[]
-  Problem            Problem[]
   studentContext     StudentContext?
   studentConcepts    StudentConcept[]
+  studentSolutions   StudentSolution[]
 }
 
 model VerificationToken {
@@ -98,87 +95,12 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-enum ProblemUploadStatus {
-  PENDING
-  SUCCESS
-  ERROR
-  CANCELLED
-}
 
-model ProblemUpload {
-  id        String              @id @default(cuid())
-  fileName  String
-  nRecords  Int
-  fileSize  Int
-  status    ProblemUploadStatus @default(PENDING)
-  error     String?
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-
-  problems Problem[]
-}
 
 enum Language {
   de
   en
 }
-
-model Student {
-  id                 String              @id @default(cuid())
-  userId             String              @unique
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  studentGroup       StudentGroup[]
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  studentAssignments StudentAssignment[]
-}
-
-model StudentGroup {
-  id               String            @id @default(cuid())
-  name             String
-  description      String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  students         Student[]
-  groupAssignments GroupAssignment[]
-}
-
-model GroupAssignment {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  studentGroupId String
-  studentGroup   StudentGroup @relation(fields: [studentGroupId], references: [id], onDelete: Cascade)
-
-  problems           Problem[]
-  studentAssignments StudentAssignment[]
-}
-
-model StudentAssignment {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  studentId String
-  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  groupAssignmentId String?
-  groupAssignment   GroupAssignment? @relation(fields: [groupAssignmentId], references: [id], onDelete: SetNull)
-
-  studentConceptId String?
-  studentConcept   StudentConcept? @relation(fields: [studentConceptId], references: [id], onDelete: SetNull)
-
-  problems         Problem[]
-  studentSolutions StudentSolution[]
-}
-
 
 model StudentContext {
   id        String   @id @default(cuid())
@@ -206,6 +128,7 @@ model Concept {
   updatedAt DateTime @updatedAt
 
   studentConcepts StudentConcept[]
+  problems Problem[]
 }
 
 
@@ -223,37 +146,6 @@ model StudentConcept {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  studentAssignments StudentAssignment[]
-}
-
-model Book {
-  id          String        @id @default(cuid())
-  name        String
-  publisher   String
-  isbn        String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  BookChapter BookChapter[]
-}
-
-model BookChapter {
-  id           String         @id @default(cuid())
-  name         String
-  bookId       String
-  book         Book           @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  BookExercise BookExercise[]
-}
-
-model BookExercise {
-  id            String      @id @default(cuid())
-  name          String
-  bookChapterId String
-  bookChapter   BookChapter @relation(fields: [bookChapterId], references: [id], onDelete: Cascade)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  Problem       Problem[]
 }
 
 model Problem {
@@ -265,16 +157,8 @@ model Problem {
   createdAt         DateTime                     @default(now())
   updatedAt         DateTime                     @updatedAt
 
-  userId String?
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  bookExerciseId  String?
-  bookExercise    BookExercise?  @relation(fields: [bookExerciseId], references: [id], onDelete: Cascade)
-  ProblemUpload   ProblemUpload? @relation(fields: [problemUploadId], references: [id])
-  problemUploadId String?
-
-  groupAssignments   GroupAssignment[]
-  studentAssignments StudentAssignment[]
+  conceptId String?
+  concept   Concept? @relation(fields: [conceptId], references: [id], onDelete: Cascade)
   studentSolutions   StudentSolution[]
 }
 
@@ -289,13 +173,14 @@ model StudentSolution {
   messages             Message[]
   recommendedQuestions Json                  @default("[]")
 
-  studentAssignmentId String
-  studentAssignment   StudentAssignment @relation(fields: [studentAssignmentId], references: [id], onDelete: Cascade)
 
   problem   Problem @relation(fields: [problemId], references: [id])
   problemId String
 
-  @@unique([problemId, studentAssignmentId])
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([problemId, userId])
 }
 
 enum MessageRole {

@@ -15,6 +15,9 @@ export default function Exercise() {
   const [debouncedProblem] = useDebounce(activeProblem, 5000);
   const { mutateAsync: createReferenceSolution } =
     api.problem.createReferenceSolution.useMutation();
+
+  // @TODO challenge this workflow as we can create the reference solution as part of the
+  // problem generation step.
   const addReferenceSolution = useStore.use.addReferenceSolution();
   const referenceSolution = useReferenceSolution(activeProblem?.id ?? null);
 
