@@ -25,10 +25,11 @@ export class StudentSolutionRepository {
       Omit<StudentSolution, "id" | "studentAssignmentId" | "problemId">
     >,
   ): Promise<StudentSolution> {
+    const { userId: _, messages: __, evaluation: ___, ...data } = props;
     const result = await this.db.studentSolution.update({
       where: { id: studentSolutionId },
       data: {
-        ...props,
+        ...data,
         ...(props.status === "SOLVED" ? { completedAt: new Date() } : {}),
         evaluation:
           props.evaluation === null ? Prisma.JsonNull : props.evaluation,
@@ -59,8 +60,8 @@ export class StudentSolutionRepository {
         ...data,
         evaluation:
           props.evaluation === null ? Prisma.JsonNull : props.evaluation,
-        userId: userId,
-        problemId: problemId,
+        userId,
+        problemId,
       },
     });
     const normalized = this.normalizeCanvas(result);
