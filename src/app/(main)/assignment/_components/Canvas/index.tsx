@@ -67,7 +67,6 @@ export function Canvas() {
   const { mutateAsync: upsertCanvasAsync } =
     api.studentSolution.setStudentSolutionCanvas.useMutation();
 
-  // Always call hook; pass empty id when unavailable. Downstream usage is guarded.
   const help = useHelp(studentSolution?.id ?? "");
   const { mutate: setStudentSolutionEvaluation } =
     api.studentSolution.setStudentSolutionEvaluation.useMutation({
