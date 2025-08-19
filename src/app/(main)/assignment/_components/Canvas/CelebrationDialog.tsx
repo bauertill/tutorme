@@ -93,12 +93,16 @@ export function CelebrationDialog({
                   disabled={isPending}
                   onClick={async () => {
                     const newAssignment = await createInitialAssignmentAsync();
+
                     if (!newAssignment) return;
+
                     router.push(`/assignment?assignmentId=${newAssignment.id}`);
                     const firstProblemId = newAssignment.problems?.[0]?.id;
+
                     if (firstProblemId) {
                       void setActiveProblem(firstProblemId, newAssignment.id);
                     }
+
                     setOpen(false);
                   }}
                 >

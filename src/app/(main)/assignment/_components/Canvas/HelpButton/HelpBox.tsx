@@ -49,8 +49,11 @@ export default function HelpBox({
   const { t } = useTranslation();
   const askMutation = api.help.ask.useMutation({
     onMutate: () => {
-      if (hasStudentSolution) setRecommendedQuestions([]);
-      else setFallbackQuestions([]);
+      if (hasStudentSolution) {
+        setRecommendedQuestions([]);
+      } else {
+        setFallbackQuestions([]);
+      }
     },
     onSuccess: (reply) => {
       if (hasStudentSolution) {
@@ -66,16 +69,23 @@ export default function HelpBox({
         setUsageLimitReached(true);
       } else {
         const msg = newAssistantMessage(error.message);
-        if (hasStudentSolution) addMessage(msg);
-        else setLocalMessages((prev) => [...prev, msg]);
+
+        if (hasStudentSolution) {
+          addMessage(msg);
+        } else {
+          setLocalMessages((prev) => [...prev, msg]);
+        }
       }
     },
   });
 
   const ask = async (question: string) => {
     const userMsg = newUserMessage(question);
-    if (hasStudentSolution) addMessage(userMsg);
-    else setLocalMessages((prev) => [...prev, userMsg]);
+    if (hasStudentSolution) {
+      addMessage(userMsg);
+    } else {
+      setLocalMessages((prev) => [...prev, userMsg]);
+    }
 
     askMutation.mutate({
       problemId: activeProblem?.id ?? "",
@@ -87,8 +97,11 @@ export default function HelpBox({
 
   const thumbsDownMutation = api.help.setMessageThumbsDown.useMutation({
     onMutate: () => {
-      if (hasStudentSolution) setRecommendedQuestions([]);
-      else setFallbackQuestions([]);
+      if (hasStudentSolution) {
+        setRecommendedQuestions([]);
+      } else {
+        setFallbackQuestions([]);
+      }
     },
     onSuccess: (reply) => {
       if (hasStudentSolution) {
@@ -104,16 +117,22 @@ export default function HelpBox({
         setUsageLimitReached(true);
       } else {
         const msg = newAssistantMessage(error.message);
-        if (hasStudentSolution) addMessage(msg);
-        else setLocalMessages((prev) => [...prev, msg]);
+        if (hasStudentSolution) {
+          addMessage(msg);
+        } else {
+          setLocalMessages((prev) => [...prev, msg]);
+        }
       }
     },
   });
 
   const handleThumbsDown = async () => {
     const msg = newUserMessage(t("badResponseButton"));
-    if (hasStudentSolution) addMessage(msg);
-    else setLocalMessages((prev) => [...prev, msg]);
+    if (hasStudentSolution) {
+      addMessage(msg);
+    } else {
+      setLocalMessages((prev) => [...prev, msg]);
+    }
 
     thumbsDownMutation.mutate({
       problemId: activeProblem?.id ?? "",
