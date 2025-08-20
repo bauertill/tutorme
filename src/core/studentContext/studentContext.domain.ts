@@ -42,7 +42,6 @@ export async function getInitialStudentAssessment(
   }
   const selectedConcept = concepts[0];
 
-  // Get all solved problems to inform the LLM
   const studentSolutionRepository = new StudentSolutionRepository(db);
   const solvedProblems =
     await studentSolutionRepository.getAllSolvedProblems(userId);
@@ -82,7 +81,6 @@ async function generateUniqueAssignment(
       attemptCount,
     );
 
-    // Check if generated problems are duplicates
     const hasDuplicates = assignment.problems.some((problemData: any) => {
       const newProblemText = problemData.problemText.toLowerCase();
       return solvedProblems.some((solvedProblem) => {

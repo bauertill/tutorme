@@ -1,5 +1,4 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
-// Removed StudentAssignment import as assignments no longer exist
 import { type StudentConcept } from "@/core/concept/concept.types";
 import { type Problem } from "@/core/problem/problem.types";
 import { type Language, LanguageName } from "@/i18n/types";
@@ -8,7 +7,6 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-// import { v4 as uuidv4 } from "uuid"; // No longer needed
 import { z } from "zod";
 import { type StudentContext } from "../studentContext.types";
 
@@ -143,7 +141,6 @@ export async function getConceptAssignment(
       },
     );
 
-  // Return the LLM response directly
   return response;
 }
 

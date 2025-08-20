@@ -126,7 +126,6 @@ export function AppSidebar() {
                     activeProblem?.id === problem.id ? "bg-accent" : ""
                   }`}
                   onClick={() => {
-                    // Navigate to the problem
                     window.location.href = `/assignment`;
                   }}
                 >

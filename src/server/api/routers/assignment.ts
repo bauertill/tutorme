@@ -1,5 +1,4 @@
 import { getInitialStudentAssessment } from "@/core/studentContext/studentContext.domain";
-// import { StudentSolutionRepository } from "@/core/studentSolution/studentSolution.repository"; // Not used in this router
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 
@@ -26,7 +25,6 @@ export const assignmentRouter = createTRPCRouter({
 
   getStudentProblems: protectedProcedure.query(async ({ ctx }) => {
     try {
-      // Get all problems for the user through their student solutions
       const studentSolutions = await ctx.db.studentSolution.findMany({
         where: {
           userId: ctx.session.user.id,
@@ -75,10 +73,7 @@ export const assignmentRouter = createTRPCRouter({
     }
   }),
 
-  // Legacy admin methods - these are called by admin components but assignments no longer exist
-  // Return empty results or throw errors to indicate the functionality has changed
   deleteAllAssignmentsAndProblems: protectedProcedure.mutation(async () => {
-    // TODO: Implement deletion of all problems for admin if needed
     throw new Error(
       "Assignment functionality has been removed. Use problem management instead.",
     );
@@ -92,24 +87,20 @@ export const assignmentRouter = createTRPCRouter({
       }),
     )
     .mutation(async () => {
-      // TODO: This functionality needs to be reimplemented for the new structure
       throw new Error(
         "Assignment functionality has been removed. Problems are now managed directly.",
       );
     }),
 
   listGroupAssignments: protectedProcedure.query(async () => {
-    // Return empty array since assignments no longer exist
     return [];
   }),
 
   deleteAllStudentData: protectedProcedure.mutation(async ({ ctx }) => {
-    // Delete all student solutions and problems for the user
     await ctx.db.studentSolution.deleteMany({
       where: { userId: ctx.session.user.id } as any,
     });
 
-    // Also delete student context if needed
     await ctx.db.studentContext.deleteMany({
       where: { userId: ctx.session.user.id },
     });
@@ -118,13 +109,11 @@ export const assignmentRouter = createTRPCRouter({
   }),
 
   createExampleAssignment: protectedProcedure.mutation(async () => {
-    // TODO: This should create example problems instead of assignments
     throw new Error(
       "Example assignment functionality needs to be reimplemented for problems",
     );
   }),
 
-  // Add missing methods that are being called by components
   deleteAssignment: protectedProcedure
     .input(z.object({ assignmentId: z.string() }))
     .mutation(async () => {
