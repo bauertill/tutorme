@@ -1,4 +1,11 @@
 "use client";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { type Path } from "@/core/canvas/canvas.types";
@@ -40,7 +47,6 @@ export function Canvas() {
     toggleEraser,
     getPathsForSubmit,
   } = useCanvas();
-  const activeProblemId = useStore.use.activeProblemId();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const setPaths = useStore.use.setPaths();
   const activeProblem = useActiveProblem();
@@ -48,7 +54,7 @@ export function Canvas() {
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
 
   const studentSolution = studentSolutions.find(
-    (solution) => solution.problemId === activeProblemId,
+    (solution) => solution.problemId === activeProblem?.id,
   );
 
   const [helpOpen, setHelpOpen] = useState(true);
@@ -73,90 +79,39 @@ export function Canvas() {
   const { mutate: submit, isPending: isSubmitting } =
     api.studentSolution.submitSolution.useMutation({
       onSuccess: async (evaluation) => {
-        if (studentSolution) {
-          const evaluatedPaths = getPathsForSubmit();
-          await upsertCanvasAsync({
-            problemId: studentSolution.problemId,
-            studentSolutionId: studentSolution.id,
-            canvas: { paths: evaluatedPaths },
-          });
-          setStudentSolutionEvaluation({
-            studentSolutionId: studentSolution.id,
-            evaluation,
-          });
-          if (!evaluation.hasMistakes && evaluation.isComplete) {
-            utils.studentSolution.listStudentSolutions.setData(
-              undefined,
-              (old) =>
-                old?.map((s) =>
-                  s.id === studentSolution.id ? { ...s, status: "SOLVED" } : s,
-                ) ?? old,
-            );
-            await Promise.all([
-              utils.studentSolution.listStudentSolutions.invalidate(),
-              utils.assignment.getDailyProgress.invalidate(),
-            ]);
-            setCelebrationOpen(true);
-            return;
-          } else {
-            void utils.studentSolution.listStudentSolutions.invalidate();
-            void utils.assignment.getDailyProgress.invalidate();
-          }
-        }
-        let message = "";
-        if (!evaluation.isLegible)
-          message = t("assignment.feedback.notLegible");
-        else if (evaluation.hasMistakes)
-          message = t("assignment.feedback.hasMistakes");
-        else if (!evaluation.isComplete)
-          message = t("assignment.feedback.notComplete");
-
-        if (evaluation.hint) message += `\n${evaluation.hint}`;
-        if (message && studentSolution) {
-          help.addMessage(help.newAssistantMessage(message));
-        }
-        if (studentSolution) {
-          help.setRecommendedQuestions(evaluation.followUpQuestions);
-        }
-        setHelpOpen(true);
+        await handleSubmitSuccess(
+          evaluation,
+          studentSolution,
+          getPathsForSubmit,
+          upsertCanvasAsync,
+          setStudentSolutionEvaluation,
+          utils,
+          setCelebrationOpen,
+          help,
+          setHelpOpen,
+          t,
+        );
       },
       onError: (error) => {
-        if (error.message === "Free tier limit reached") {
-          setUsageLimitReached(true);
-        } else {
-          toast.error(`Error submitting solution: ${error.message}`);
-        }
+        handleSubmitError(error, setUsageLimitReached);
       },
     });
 
   useSaveCanvasPeriodically();
 
   useEffect(() => {
-    if (!activeProblemId) return;
-    const existing = studentSolutions.find(
-      (s) => s.problemId === activeProblemId,
+    if (!activeProblem?.id) return;
+
+    const studentSolution = studentSolutions.find(
+      (s) => s.problemId === activeProblem.id,
     );
-    if (existing) return;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeProblemId]);
+    if (studentSolution) {
+      const savedPaths = parseCanvasFromStudentSolution(studentSolution);
+      setPaths(savedPaths);
+    }
 
-  useEffect(() => {
-    if (!activeProblemId) return;
-    const ss = studentSolutions.find((s) => s.problemId === activeProblemId);
-    if (!ss) return;
-    const raw = ss.canvas as unknown;
-    const obj =
-      typeof raw === "string"
-        ? (JSON.parse(raw) as { paths?: Path[] })
-        : (raw as { paths?: Path[] } | undefined);
-    const savedPaths: Path[] = obj?.paths ?? [];
-    setPaths(savedPaths);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeProblemId]);
-
-  useEffect(() => {
     setHelpOpen(true);
-  }, [activeProblemId]);
+  }, [activeProblem?.id, studentSolutions, setPaths, setHelpOpen]);
 
   const onCheck = useCallback(
     (dataUrl: string, pathsForSubmit: Path[]) => {
@@ -179,64 +134,34 @@ export function Canvas() {
   const controls = useMemo(
     () => (
       <>
-        <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
-          <LLMFeedbackButton
-            latestEvaluateSolutionRunId={
-              studentSolution?.evaluation?.evaluateSolutionRunId ?? ""
-            }
-          />
-          <Button
-            variant={!isEraser ? "default" : "outline"}
-            onClick={() => void toggleEraser(false)}
-            title={"Switch to Pencil"}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={isEraser ? "default" : "outline"}
-            onClick={() => void toggleEraser(true)}
-            title={"Switch to Eraser"}
-          >
-            <Eraser className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" onClick={clear} disabled={isEmpty}>
-            <Trash className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" onClick={undo} disabled={!canUndo}>
-            <Undo className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" onClick={redo} disabled={!canRedo}>
-            <Redo className="h-4 w-4" />
-          </Button>
-          <Button
-            onClick={async () => {
-              trackEvent("clicked_check_solution");
-              const dataUrl = await getDataUrl();
-              if (!dataUrl) return;
-              if (!activeProblem) return;
-              const toSubmit = getPathsForSubmit();
-              onCheck(dataUrl, toSubmit);
-            }}
-            disabled={isEmpty || isSubmitting}
-            className="check-answer-button flex items-center gap-2"
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4" />
-            )}
-            <Trans i18nKey="check" />
-          </Button>
-        </div>
+        {renderToolbar({
+          studentSolution,
+          isEraser,
+          toggleEraser,
+          clear,
+          isEmpty,
+          undo,
+          canUndo,
+          redo,
+          canRedo,
+          onCheck,
+          getDataUrl,
+          activeProblem,
+          getPathsForSubmit,
+          trackEvent,
+          isSubmitting,
+        })}
+
         <div className="absolute right-4 top-[4rem] z-50 flex h-[calc(100%-5rem)]">
           <HelpButton
-            key={activeProblemId}
+            key={activeProblem?.id}
             getCanvasDataUrl={getDataUrl}
             open={helpOpen}
             setOpen={setHelpOpen}
             isSubmitting={isSubmitting}
           />
         </div>
+
         <CelebrationDialog
           evaluationResult={studentSolution?.evaluation ?? null}
           open={celebrationOpen}
@@ -245,26 +170,25 @@ export function Canvas() {
       </>
     ),
     [
-      activeProblemId,
-      getDataUrl,
+      studentSolution,
+      isEraser,
+      toggleEraser,
+      clear,
       isEmpty,
+      undo,
+      canUndo,
+      redo,
+      canRedo,
+      onCheck,
+      getDataUrl,
+      activeProblem,
+      getPathsForSubmit,
+      trackEvent,
       isSubmitting,
       helpOpen,
       setHelpOpen,
       celebrationOpen,
       setCelebrationOpen,
-      canUndo,
-      canRedo,
-      toggleEraser,
-      clear,
-      isEraser,
-      onCheck,
-      getPathsForSubmit,
-      trackEvent,
-      undo,
-      redo,
-      activeProblem,
-      studentSolution,
     ],
   );
 
@@ -279,4 +203,163 @@ export function Canvas() {
   );
 
   return canvasWithControls;
+}
+
+async function handleSubmitSuccess(
+  evaluation: any,
+  studentSolution: any,
+  getPathsForSubmit: () => any,
+  upsertCanvasAsync: any,
+  setStudentSolutionEvaluation: any,
+  utils: any,
+  setCelebrationOpen: (open: boolean) => void,
+  help: any,
+  setHelpOpen: (open: boolean) => void,
+  t: any,
+) {
+  if (!studentSolution) return;
+
+  const evaluatedPaths = getPathsForSubmit();
+  await upsertCanvasAsync({
+    problemId: studentSolution.problemId,
+    studentSolutionId: studentSolution.id,
+    canvas: { paths: evaluatedPaths },
+  });
+
+  setStudentSolutionEvaluation({
+    studentSolutionId: studentSolution.id,
+    evaluation,
+  });
+
+  if (!evaluation.hasMistakes && evaluation.isComplete) {
+    utils.studentSolution.listStudentSolutions.setData(
+      undefined,
+      (old: any) =>
+        old?.map((s: any) =>
+          s.id === studentSolution.id ? { ...s, status: "SOLVED" } : s,
+        ) ?? old,
+    );
+    await Promise.all([
+      utils.studentSolution.listStudentSolutions.invalidate(),
+      utils.assignment.getDailyProgress.invalidate(),
+    ]);
+    setCelebrationOpen(true);
+    return;
+  }
+
+  void utils.studentSolution.listStudentSolutions.invalidate();
+  void utils.assignment.getDailyProgress.invalidate();
+
+  const message = buildFeedbackMessage(evaluation, t);
+  if (message) {
+    help.addMessage(help.newAssistantMessage(message));
+  }
+  help.setRecommendedQuestions(evaluation.followUpQuestions);
+  setHelpOpen(true);
+}
+
+function buildFeedbackMessage(evaluation: any, t: any): string {
+  let message = "";
+  if (!evaluation.isLegible) {
+    message = t("assignment.feedback.notLegible");
+  } else if (evaluation.hasMistakes) {
+    message = t("assignment.feedback.hasMistakes");
+  } else if (!evaluation.isComplete) {
+    message = t("assignment.feedback.notComplete");
+  }
+
+  if (evaluation.hint) {
+    message += `\n${evaluation.hint}`;
+  }
+
+  return message;
+}
+
+function parseCanvasFromStudentSolution(studentSolution: any): Path[] {
+  const raw = studentSolution.canvas as unknown;
+  const obj =
+    typeof raw === "string"
+      ? (JSON.parse(raw) as { paths?: Path[] })
+      : (raw as { paths?: Path[] } | undefined);
+  return obj?.paths ?? [];
+}
+
+function renderToolbar({
+  studentSolution,
+  isEraser,
+  toggleEraser,
+  clear,
+  isEmpty,
+  undo,
+  canUndo,
+  redo,
+  canRedo,
+  onCheck,
+  getDataUrl,
+  activeProblem,
+  getPathsForSubmit,
+  trackEvent,
+  isSubmitting,
+}: any) {
+  return (
+    <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
+      <LLMFeedbackButton
+        latestEvaluateSolutionRunId={
+          studentSolution?.evaluation?.evaluateSolutionRunId ?? ""
+        }
+      />
+      <Button
+        variant={!isEraser ? "default" : "outline"}
+        onClick={() => void toggleEraser(false)}
+        title="Switch to Pencil"
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={isEraser ? "default" : "outline"}
+        onClick={() => void toggleEraser(true)}
+        title="Switch to Eraser"
+      >
+        <Eraser className="h-4 w-4" />
+      </Button>
+      <Button variant="outline" onClick={clear} disabled={isEmpty}>
+        <Trash className="h-4 w-4" />
+      </Button>
+      <Button variant="outline" onClick={undo} disabled={!canUndo}>
+        <Undo className="h-4 w-4" />
+      </Button>
+      <Button variant="outline" onClick={redo} disabled={!canRedo}>
+        <Redo className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={async () => {
+          trackEvent("clicked_check_solution");
+          const dataUrl = await getDataUrl();
+          if (!dataUrl || !activeProblem) return;
+          const toSubmit = getPathsForSubmit();
+          onCheck(dataUrl, toSubmit);
+        }}
+        disabled={isEmpty || isSubmitting}
+        className="check-answer-button flex items-center gap-2"
+      >
+        {isSubmitting ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Sparkles className="h-4 w-4" />
+        )}
+        <Trans i18nKey="check" />
+      </Button>
+    </div>
+  );
+}
+
+function handleSubmitError(
+  error: any,
+  setUsageLimitReached: (reached: boolean) => void,
+) {
+  if (error.message === "Free tier limit reached") {
+    setUsageLimitReached(true);
+  } else {
+    toast.error(`Error submitting solution: ${error.message}`);
+  }
 }
