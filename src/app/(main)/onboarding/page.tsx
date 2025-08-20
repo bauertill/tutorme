@@ -38,14 +38,19 @@ export default function OnboardingPage() {
   const { mutate, isPending } =
     api.studentContext.upsertStudentContext.useMutation({
       onSuccess: (newStudentContext) => {
+        console.log("✅ StudentContext upsert successful:", newStudentContext);
         utils.studentContext.getStudentContext.setData(
           undefined,
           newStudentContext,
         );
         router.push("/home");
       },
+      onError: (error) => {
+        console.error("❌ StudentContext upsert failed:", error);
+        console.error("Error details:", JSON.stringify(error, null, 2));
+      },
     });
-  const [data, setData] = useState<Partial<Omit<StudentContext, "studentId">>>({
+  const [data, setData] = useState<Partial<Omit<StudentContext, "userId">>>({
     grade: undefined,
     country: undefined,
     textbook: undefined,
@@ -71,7 +76,7 @@ export default function OnboardingPage() {
       case 2:
         return data.textbook !== undefined;
       case 3:
-        return data.nextTestDate !== undefined;
+        return true;
       default:
         return false;
     }
@@ -92,7 +97,20 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = () => {
-    mutate(data as Omit<StudentContext, "userId">);
+    if (!data.grade || !data.country || !data.textbook) {
+      console.error("Missing required fields:", data);
+      return;
+    }
+
+    const submitData = {
+      grade: data.grade,
+      country: data.country,
+      textbook: data.textbook,
+      nextTestDate: data.nextTestDate ?? undefined,
+    };
+
+    console.log("Submitting student context:", submitData);
+    mutate(submitData);
   };
 
   const renderStepContent = () => {

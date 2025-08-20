@@ -25,7 +25,7 @@ export function CollapsibleSettings() {
   const { mutate: deleteAllAssignments } =
     api.assignment.deleteAllStudentData.useMutation({
       onSuccess: () => {
-        void utils.assignment.listStudentAssignments.invalidate();
+        void utils.assignment.getStudentProblems.invalidate();
       },
     });
   const [isDeleting, setIsDeleting] = useState(false);

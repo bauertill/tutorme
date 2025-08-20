@@ -10,22 +10,27 @@ import { judgeHandwriting as judgeHandwritingLLM } from "./llm/judgeHandwriting"
 import { StudentSolutionRepository } from "./studentSolution.repository";
 import { type EvaluationResult } from "./studentSolution.types";
 
-export function setStudentSolutionCanvas(
-  studentAssignmentId: string,
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
+export async function setStudentSolutionCanvas(
+  studentSolutionId: string,
   userId: string,
   problemId: string,
   canvas: Canvas,
   db: PrismaClient,
 ) {
-  const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(
-    studentAssignmentId,
-    userId,
-    problemId,
-    {
+  try {
+    const repository = new StudentSolutionRepository(db);
+    const result = await repository.updateStudentSolution(studentSolutionId, {
       canvas,
-    },
-  );
+    });
+    return result;
+  } catch (error) {
+    console.error("Failed to set canvas:", error);
+    throw error;
+  }
 }
 
 export function setStudentSolutionEvaluateResult(
@@ -36,14 +41,9 @@ export function setStudentSolutionEvaluateResult(
   db: PrismaClient,
 ) {
   const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(
-    studentSolutionId,
-    userId,
-    problemId,
-    {
-      evaluation,
-    },
-  );
+  return repository.updateStudentSolution(studentSolutionId, {
+    evaluation,
+  });
 }
 
 export function setStudentSolutionRecommendedQuestions(
@@ -81,17 +81,12 @@ export function storeStudentSolutionCanvasWithEvaluationResult(
   },
   db: PrismaClient,
 ) {
-  const { studentSolutionId, userId, problemId, evaluation, canvas } = payload;
+  const { studentSolutionId, evaluation, canvas } = payload;
   const repository = new StudentSolutionRepository(db);
-  return repository.upsertStudentSolution(
-    studentSolutionId,
-    userId,
-    problemId,
-    {
-      canvas,
-      evaluation,
-    },
-  );
+  return repository.updateStudentSolution(studentSolutionId, {
+    canvas,
+    evaluation,
+  });
 }
 
 export async function evaluateSolution(
@@ -118,14 +113,19 @@ export async function evaluateSolution(
         handwritingRunId: "TODO",
       };
 
-  void storeStudentSolutionCanvasWithEvaluationResult(
-    {
-      ...input,
-      evaluation,
-      userId: input.userId,
-      problemId: input.problemId,
-    },
-    db,
-  );
+  try {
+    void storeStudentSolutionCanvasWithEvaluationResult(
+      {
+        studentSolutionId: input.studentSolutionId,
+        canvas: input.canvas,
+        evaluation,
+        userId: input.userId,
+        problemId: input.problemId,
+      } as any,
+      db,
+    );
+  } catch (error) {
+    console.error("Error storing solution canvas with evaluation:", error);
+  }
   return evaluation;
 }

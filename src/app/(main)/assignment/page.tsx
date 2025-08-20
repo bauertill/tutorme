@@ -10,44 +10,81 @@ import {
 import { Tour } from "@/components/ui/tour";
 import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { useStore } from "@/store";
-import { useActiveAssignmentId } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+
+type StudentProblem = {
+  id: string;
+  problem: string;
+  problemNumber: string;
+  referenceSolution: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 import Exercise from "./_components/Exercise";
 import Onboarding from "./_components/Onboarding";
 
 export default function AssignmentPage() {
-  const searchParams = useSearchParams();
-  const assignmentIdFromUrl = searchParams.get("assignmentId");
-  const activeAssignmentId = useActiveAssignmentId();
   const setActiveProblemSafe = useSetActiveProblem();
+  const activeProblemId = useStore.use.activeProblemId();
+  const router = useRouter();
 
-  const assignmentIdToUse = assignmentIdFromUrl ?? activeAssignmentId;
-  const [activeAssignment] =
-    api.assignment.getStudentAssignment.useSuspenseQuery(
-      assignmentIdToUse ?? "",
-    );
-
-  useEffect(() => {
-    if (activeAssignment?.problems.length && assignmentIdToUse) {
-      const firstProblem = activeAssignment.problems[0];
-      if (firstProblem) {
-        void setActiveProblemSafe(firstProblem.id, assignmentIdToUse);
-      }
-    }
-  }, [activeAssignment, assignmentIdToUse, setActiveProblemSafe]);
-  const [assignments] =
-    api.assignment.listStudentAssignments.useSuspenseQuery();
+  const [studentProblems] =
+    api.assignment.getStudentProblems.useSuspenseQuery();
   const [studentSolutions] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
 
+  useEffect(() => {
+    if (studentProblems.length > 0) {
+      if (activeProblemId) {
+        const activeProblemExists = (studentProblems as StudentProblem[]).find(
+          (p: StudentProblem) => p.id === activeProblemId,
+        );
+
+        if (activeProblemExists) {
+          return;
+        }
+      }
+
+      const newestProblem = (studentProblems as StudentProblem[])[0];
+      const solvedProblemIds = new Set(
+        studentSolutions
+          .filter((s) => s.status === "SOLVED")
+          .map((s) => s.problemId),
+      );
+
+      const newestIsUnsolved =
+        newestProblem && !solvedProblemIds.has(newestProblem.id);
+
+      if (newestIsUnsolved) {
+        void setActiveProblemSafe(newestProblem.id, "default");
+      } else {
+        const firstUnsolvedProblem = (studentProblems as StudentProblem[]).find(
+          (p: StudentProblem) => !solvedProblemIds.has(p.id),
+        );
+
+        if (firstUnsolvedProblem) {
+          void setActiveProblemSafe(firstUnsolvedProblem.id, "default");
+        } else {
+          router.push("/home");
+        }
+      }
+    }
+  }, [
+    studentProblems,
+    studentSolutions,
+    activeProblemId,
+    setActiveProblemSafe,
+    router,
+  ]);
+
   const hasCompletedOnboarding = useStore.use.hasCompletedOnboarding();
-  if (assignments.length === 0) {
+  if (studentProblems.length === 0) {
     return <Onboarding />;
   }
 
-  // Compute today's problems and solved count
   const isSameDay = (a: Date, b: Date) =>
     a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
@@ -55,23 +92,19 @@ export default function AssignmentPage() {
 
   const today = new Date();
   const todayProblemIds = new Set(
-    (activeAssignment?.problems ?? [])
-      .filter((p) => isSameDay(new Date(p.createdAt), today))
-      .map((p) => p.id),
+    (studentProblems as StudentProblem[])
+      .filter((p: StudentProblem) => isSameDay(new Date(p.createdAt), today))
+      .map((p: StudentProblem) => p.id),
   );
   const totalProblemsToday = todayProblemIds.size;
   const solvedProblemsCountToday = studentSolutions.filter(
     (solution) =>
-      solution.status === "SOLVED" &&
-      solution.studentAssignmentId === assignmentIdToUse &&
-      todayProblemIds.has(solution.problemId),
+      solution.status === "SOLVED" && todayProblemIds.has(solution.problemId),
   ).length;
 
-  const totalProblemsAll = activeAssignment?.problems.length ?? 0;
+  const totalProblemsAll = studentProblems.length;
   const solvedProblemsCountAll = studentSolutions.filter(
-    (solution) =>
-      solution.status === "SOLVED" &&
-      solution.studentAssignmentId === assignmentIdToUse,
+    (solution) => solution.status === "SOLVED",
   ).length;
 
   const useToday = totalProblemsToday > 0;
@@ -84,19 +117,17 @@ export default function AssignmentPage() {
 
   return (
     <SidebarProvider>
-      {!hasCompletedOnboarding &&
-        activeAssignment &&
-        totalProblemsToday > 0 && <Tour />}
+      {!hasCompletedOnboarding && totalProblemsToday > 0 && <Tour />}
 
       <AppSidebar />
       <SidebarInset>
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4">
           {null}
           <SidebarTrigger />
-          {activeAssignment ? (
+          {studentProblems.length > 0 ? (
             <div className="flex w-full items-center gap-2">
               <Latex className="mr-2 flex-1 truncate font-semibold">
-                {activeAssignment.name}
+                Math Problems
               </Latex>
               <div className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap">
                 <span className="min-w-[44px] flex-shrink-0 text-right text-xs text-muted-foreground">
@@ -107,7 +138,7 @@ export default function AssignmentPage() {
             </div>
           ) : (
             <span className="text-sm text-muted-foreground">
-              No assignment selected
+              No problems available
             </span>
           )}
         </header>

@@ -1,7 +1,12 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import { UploadUserProblems } from "@/app/(main)/assignment/_components/Problem/UploadUserProblems";
-import { CollapsibleAssignment } from "@/app/_components/layout/AppSidebar/CollapsibleAssignment";
 import { CollapsibleSettings } from "@/app/_components/layout/AppSidebar/CollapsibleSettings";
 import { Footer } from "@/app/_components/layout/Footer";
 import { SignInButton } from "@/app/_components/user/SignInButton";
@@ -20,26 +25,21 @@ import {
 } from "@/components/ui/sidebar";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useAuth } from "@/lib/react-auth";
-import {
-  useActiveAssignmentId,
-  useActiveProblem,
-} from "@/store/problem.selectors";
+import { useActiveProblem } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 export function AppSidebar() {
   const { t } = useTranslation();
   const { session } = useAuth();
-  const [assignments] =
-    api.assignment.listStudentAssignments.useSuspenseQuery();
+  const [studentProblems] =
+    api.assignment.getStudentProblems.useSuspenseQuery();
   const activeProblem = useActiveProblem();
-  const activeAssignmentId = useActiveAssignmentId();
-  const [openAssignments, setOpenAssignments] = useState<Set<string>>(
-    new Set(),
-  );
+  // const activeAssignmentId = useActiveAssignmentId(); // No longer needed
+  // No longer need assignment state since we work directly with problems
   const [searchQuery, setSearchQuery] = useState("");
   const { open, state, setOpen, openMobile, setOpenMobile, isMobile } =
     useSidebar();
@@ -47,56 +47,16 @@ export function AppSidebar() {
   const pathname = usePathname();
   const hideUploadProblems = pathname?.startsWith("/assignment");
 
-  useEffect(() => {
-    if (activeAssignmentId) {
-      setOpenAssignments(
-        (assignmentIds) => new Set([...assignmentIds, activeAssignmentId]),
-      );
-    }
-  }, [activeAssignmentId]);
-
-  const toggleAssignment = (assignmentId: string) => {
-    const newOpenAssignments = new Set(openAssignments);
-    if (newOpenAssignments.has(assignmentId)) {
-      newOpenAssignments.delete(assignmentId);
-    } else {
-      newOpenAssignments.add(assignmentId);
-    }
-    setOpenAssignments(newOpenAssignments);
-  };
-
-  const filteredAssignments = useMemo(() => {
-    if (!searchQuery.trim()) return assignments;
+  const filteredProblems = useMemo(() => {
+    if (!searchQuery.trim()) return studentProblems;
 
     const query = searchQuery.toLowerCase().trim();
-    return assignments
-      .map((assignment) => ({
-        ...assignment,
-        problems: assignment.problems.filter(
-          (problem) =>
-            problem.problem.toLowerCase().includes(query) ||
-            problem.id.toString().includes(query),
-        ),
-      }))
-      .filter(
-        (assignment) =>
-          assignment.name.toLowerCase().includes(query) ||
-          assignment.problems.length > 0,
-      );
-  }, [assignments, searchQuery]);
-
-  // Auto-expand assignments that have matching problems when searching
-  const autoExpandedAssignments = useMemo(() => {
-    if (!searchQuery.trim()) return openAssignments;
-
-    const newOpenAssignments = new Set(openAssignments);
-    filteredAssignments.forEach((assignment) => {
-      if (assignment.problems.length > 0) {
-        newOpenAssignments.add(assignment.id);
-      }
-    });
-    return newOpenAssignments;
-  }, [filteredAssignments, searchQuery, openAssignments]);
+    return (studentProblems ?? []).filter(
+      (problem: any) =>
+        problem.problem.toLowerCase().includes(query) ||
+        problem.id.toString().includes(query),
+    );
+  }, [studentProblems, searchQuery]);
 
   return (
     <Sidebar className="border-r bg-background">
@@ -135,7 +95,7 @@ export function AppSidebar() {
         {!hideUploadProblems && (
           <SidebarGroup className="transition-all duration-200 ease-linear">
             <SidebarGroupContent>
-              <UploadUserProblems trigger="button" />
+              <UploadUserProblems />
             </SidebarGroupContent>
           </SidebarGroup>
         )}
@@ -164,20 +124,30 @@ export function AppSidebar() {
                 <Trans i18nKey="assignments" />
               </p>
               <p className="rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium">
-                {filteredAssignments.length}
+                {filteredProblems?.length ?? 0}
               </p>
             </SidebarText>
           </div>
           <SidebarGroupContent className="no-scrollbar overflow-y-auto">
             <SidebarText className="block w-full">
-              {filteredAssignments.map((assignment) => (
-                <CollapsibleAssignment
-                  key={assignment.id}
-                  assignment={assignment}
-                  isOpen={autoExpandedAssignments.has(assignment.id)}
-                  onOpenChange={() => toggleAssignment(assignment.id)}
-                  activeProblem={activeProblem}
-                />
+              {filteredProblems?.map((problem: any) => (
+                <div
+                  key={problem.id}
+                  className={`cursor-pointer rounded-lg p-2 transition-colors hover:bg-accent ${
+                    activeProblem?.id === problem.id ? "bg-accent" : ""
+                  }`}
+                  onClick={() => {
+                    // Navigate to the problem
+                    window.location.href = `/assignment`;
+                  }}
+                >
+                  <div className="truncate text-sm font-medium">
+                    Problem {problem.problemNumber}
+                  </div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {problem.problem.substring(0, 50)}...
+                  </div>
+                </div>
               ))}
             </SidebarText>
           </SidebarGroupContent>

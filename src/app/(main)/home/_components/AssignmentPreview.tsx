@@ -3,60 +3,73 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { api } from "@/trpc/react";
 import { Calendar, Clock, FileText } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-type Assignment = {
+type StudentProblem = {
   id: string;
-  name: string;
-  createdAt: string | Date;
-  problems: { id: string; createdAt?: string | Date }[];
+  problem: string;
+  problemNumber: string;
+  referenceSolution: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type StudentSolution = {
+  id: string;
+  problemId: string;
+  status: "INITIAL" | "IN_PROGRESS" | "SOLVED";
+  createdAt: Date;
+  completedAt: Date | null;
 };
 
 export function AssignmentPreview() {
-  const { data: studentAssignments, isLoading } =
-    api.assignment.listStudentAssignments.useQuery();
+  const { data: studentProblems, isLoading } =
+    api.assignment.getStudentProblems.useQuery() as {
+      data: StudentProblem[];
+      isLoading: boolean;
+    };
   const { data: studentSolutions = [] } =
-    api.studentSolution.listStudentSolutions.useQuery();
+    api.studentSolution.listStudentSolutions.useQuery() as {
+      data: StudentSolution[];
+    };
   const router = useRouter();
+  const setActiveProblem = useSetActiveProblem();
 
   const utils = api.useUtils();
-  const { mutate: createInitialStudentAssignment, isPending } =
-    api.assignment.createInitialStudentAssignment.useMutation({
-      onSuccess: (newAssignment) => {
-        // Refetch assignments after creating the first concept assignment
-        void utils.assignment.invalidate();
-        // Redirect to the newly created assignment
-        router.push(`/assignment?assignmentId=${newAssignment.id}`);
+  const { mutate: createInitialStudentProblems, isPending } =
+    api.assignment.createInitialStudentProblems.useMutation({
+      onSuccess: async (newProblems) => {
+        if (newProblems && newProblems.length > 0) {
+          const firstProblemId = newProblems[0]?.id;
+          if (firstProblemId) {
+            void setActiveProblem(firstProblemId, "default");
+          }
+        }
+
+        await utils.assignment.invalidate();
+        router.push(`/assignment`);
       },
       onError: (error) => {
-        console.error("Failed to create initial assignment:", error);
+        console.error("Failed to create initial problems:", error);
       },
     });
 
-  const hasProblems = (assignment: Assignment) =>
-    assignment.problems.length > 0;
-
-  const assignmentsWithProblems = (studentAssignments ?? []).filter(
-    hasProblems,
+  const hasAnyProblems = (studentProblems ?? []).length > 0;
+  const solvedProblemIds = new Set(
+    (studentSolutions ?? [])
+      .filter((s) => s.completedAt && s.status === "SOLVED")
+      .map((s) => s.problemId),
   );
-  const upcomingAssignments = assignmentsWithProblems;
 
-  const solvedByAssignment = new Map<string, Set<string>>();
-  for (const s of studentSolutions ?? []) {
-    if (!s.completedAt && s.status !== "SOLVED") continue;
-    const set =
-      solvedByAssignment.get(s.studentAssignmentId) ?? new Set<string>();
-    set.add(s.problemId);
-    solvedByAssignment.set(s.studentAssignmentId, set);
-  }
-  const isFullySolved = (a: Assignment): boolean =>
-    a.problems.every((p) => solvedByAssignment.get(a.id)?.has(p.id));
-  const nextAssignment = assignmentsWithProblems.find((a) => !isFullySolved(a));
+  const unsolvedProblems = (studentProblems ?? []).filter(
+    (p: StudentProblem) => !solvedProblemIds.has(p.id),
+  );
 
-  const hasAnyAssignments = assignmentsWithProblems.length > 0;
+  const nextProblem = unsolvedProblems[0];
 
   if (isLoading) {
     return (
@@ -76,7 +89,7 @@ export function AssignmentPreview() {
     );
   }
 
-  if (!hasAnyAssignments) {
+  if (!hasAnyProblems) {
     return (
       <div className="space-y-6">
         <Card className="w-full">
@@ -90,10 +103,10 @@ export function AssignmentPreview() {
               No assignments yet
             </h2>
             <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              You don&apos;t have any assignments at the moment.
+              You don&apos;t have any problems at the moment.
             </p>
             <Button
-              onClick={() => createInitialStudentAssignment()}
+              onClick={() => createInitialStudentProblems()}
               disabled={isPending}
               className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"
             >
@@ -105,7 +118,7 @@ export function AssignmentPreview() {
     );
   }
 
-  const estimatedTime = (nextAssignment?.problems.length ?? 0) * 2; // Rough estimate: 2 minutes per problem
+  const estimatedTime = unsolvedProblems.length * 2; // Rough estimate: 2 minutes per problem
 
   return (
     <div className="space-y-6">
@@ -120,12 +133,12 @@ export function AssignmentPreview() {
               NEXT ASSIGNMENT
             </Badge>
             <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {nextAssignment?.name ?? ""}
+              {nextProblem ? "Continue Learning" : "Math Problems"}
             </h2>
             <div className="mb-4 flex items-center justify-center gap-4 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <FileText className="h-4 w-4" />
-                {nextAssignment?.problems.length ?? 0} problems
+                {unsolvedProblems.length} problems
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />~{estimatedTime} min
@@ -139,15 +152,15 @@ export function AssignmentPreview() {
             </div>
           </div>
 
-          {nextAssignment ? (
-            <Link href={`/assignment?assignmentId=${nextAssignment.id}`}>
+          {nextProblem ? (
+            <Link href={`/assignment`}>
               <Button className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl">
-                Continue Assignment
+                Continue Learning
               </Button>
             </Link>
           ) : (
             <Button
-              onClick={() => createInitialStudentAssignment()}
+              onClick={() => createInitialStudentProblems()}
               disabled={isPending}
               className="w-full rounded-xl bg-blue-600 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"
             >
@@ -157,36 +170,25 @@ export function AssignmentPreview() {
         </CardContent>
       </Card>
 
-      {/* Upcoming Assignments List */}
-      {upcomingAssignments.length > 1 && (
+      {/* Additional Problems List */}
+      {unsolvedProblems.length > 1 && (
         <Card className="w-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Upcoming Assignments
+              More Problems
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {upcomingAssignments.slice(1, 4).map((assignment) => (
-              <Link
-                key={assignment.id}
-                href={`/assignment?assignmentId=${assignment.id}`}
-                className="block"
-              >
+            {unsolvedProblems.slice(1, 4).map((problem: StudentProblem) => (
+              <Link key={problem.id} href={`/assignment`} className="block">
                 <div className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                      {assignment.name}
+                      Problem {problem.problemNumber}
                     </h3>
-                    <div className="mt-1 flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <FileText className="h-3 w-3" />
-                        {assignment.problems.length} problems
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />~
-                        {assignment.problems.length * 2} min
-                      </div>
+                    <div className="mt-1 truncate text-sm text-gray-600 dark:text-gray-400">
+                      {problem.problem.substring(0, 60)}...
                     </div>
                   </div>
                   <div className="text-gray-400">
@@ -208,10 +210,10 @@ export function AssignmentPreview() {
               </Link>
             ))}
 
-            {upcomingAssignments.length > 4 && (
+            {unsolvedProblems.length > 4 && (
               <div className="pt-2 text-center">
                 <Button variant="outline" size="sm">
-                  View all {upcomingAssignments.length} assignments
+                  View all {unsolvedProblems.length} problems
                 </Button>
               </div>
             )}

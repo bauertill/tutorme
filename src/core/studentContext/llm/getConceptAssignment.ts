@@ -1,5 +1,5 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
-import { type StudentAssignment } from "@/core/assignment/assignment.types";
+// Removed StudentAssignment import as assignments no longer exist
 import { type StudentConcept } from "@/core/concept/concept.types";
 import { type Problem } from "@/core/problem/problem.types";
 import { type Language, LanguageName } from "@/i18n/types";
@@ -8,7 +8,7 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import { v4 as uuidv4 } from "uuid";
+// import { v4 as uuidv4 } from "uuid"; // No longer needed
 import { z } from "zod";
 import { type StudentContext } from "../studentContext.types";
 
@@ -98,7 +98,8 @@ export async function getConceptAssignment(
   language: Language,
   llmAdapter: LLMAdapter,
   solvedProblems: Problem[],
-): Promise<StudentAssignment> {
+  attemptCount = 1,
+): Promise<ConceptAssignmentOutput> {
   const { grade, country, textbook } = studentContext;
 
   // Use hub to pull the prompt (fallback to local prompt if not available)
@@ -111,6 +112,25 @@ export async function getConceptAssignment(
     prompt = generateConceptAssignmentPromptTemplate;
   }
 
+  const solvedProblemsText =
+    solvedProblems.length > 0
+      ? `IMPORTANT: The student has already solved these problems: ${solvedProblems
+          .map((p) => `"${p.problem}"`)
+          .join(", ")}. 
+        
+        You MUST generate a completely different problem that:
+        1. Uses different numbers/values
+        2. Has a different context/scenario  
+        3. Tests the same concept but in a different way
+        4. Is NOT similar to any of the solved problems above
+        
+        ${attemptCount > 1 ? `RETRY ATTEMPT ${attemptCount}: Your previous attempt was too similar. Be MORE creative and generate a COMPLETELY different problem!` : ""}
+        
+        IMPORTANT: This is a request for a NEW lesson. Generate a fresh, unique problem that the student has never seen before.
+        
+        Make sure the new problem is genuinely different!`
+      : "";
+
   const response = await prompt
     .pipe(llmAdapter.models.model.withStructuredOutput(ConceptAssignmentSchema))
     .invoke(
@@ -122,12 +142,11 @@ export async function getConceptAssignment(
         conceptDescription: concept.concept.description,
         skillLevel: concept.skillLevel,
         language: LanguageName[language],
-        solvedProblems:
-          solvedProblems.length > 0
-            ? `The student has already solved the following problems: ${solvedProblems
-                .map((p) => `"${p.problem}"`)
-                .join(", ")}. Please generate a different one.`
-            : "",
+        solvedProblems: `${solvedProblemsText}
+        
+        [CACHE_BUSTER: ${Date.now()}-${Math.random()}-attempt-${attemptCount}]
+        
+        Generate a completely NEW and DIFFERENT problem for this lesson request.`,
       },
       {
         metadata: {
@@ -138,22 +157,6 @@ export async function getConceptAssignment(
       },
     );
 
-  // Transform the LLM response into a StudentAssignment
-  const now = new Date();
-  const studentAssignment: StudentAssignment = {
-    id: uuidv4(),
-    name: response.title,
-    createdAt: now,
-    updatedAt: now,
-    problems: response.problems.map((problem) => ({
-      id: uuidv4(),
-      problem: problem.problemText,
-      problemNumber: problem.problemNumber,
-      referenceSolution: problem.referenceSolution,
-      createdAt: now,
-      updatedAt: now,
-    })),
-  };
-
-  return studentAssignment;
+  // Return the LLM response directly
+  return response;
 }

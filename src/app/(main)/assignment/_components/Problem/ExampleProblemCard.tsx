@@ -1,52 +1,54 @@
-"use client";
-import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
-import { Trans } from "@/i18n/react";
+import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/trpc/react";
 import { ArrowRight, BookOpen } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ExampleProblemCard() {
   const utils = api.useUtils();
+
   const { mutate: createExampleAssignment } =
     api.assignment.createExampleAssignment.useMutation({
-      onSuccess: (exampleAssignment) => {
-        // @TODO use the .invalidate() method declaratively instead of the .useUtils() method
-        void utils.assignment.listStudentAssignments.invalidate();
-        const problem = exampleAssignment.problems[0];
-        if (problem) {
-          void setActiveProblem(problem.id, exampleAssignment.id);
-        }
+      onSuccess: () => {
+        void utils.assignment.getStudentProblems.invalidate();
+        toast.info(
+          "Example assignment functionality needs to be reimplemented",
+        );
+      },
+      onError: (error) => {
+        toast.error("Example assignment not available: " + error.message);
       },
     });
 
-  const setActiveProblem = useSetActiveProblem();
-  const trackEvent = useTrackEvent();
-
-  const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    trackEvent("clicked_example_assignment_card");
+  const handleClick = () => {
     createExampleAssignment();
   };
 
   return (
-    <Card>
-      <CardContent className="flex items-center gap-4 p-6 pb-4 2xl:pb-6">
-        <p className="">
-          <Trans i18nKey="learn_the_basics_by_working_through_a_guided_example_problem" />
-        </p>
+    <Card className="w-full cursor-pointer transition-all hover:shadow-md">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900">
+              <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Try Example Problem</h3>
+              <p className="text-sm text-muted-foreground">
+                Sample math problem (Coming Soon)
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleClick}
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700"
+          >
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
       </CardContent>
-      <CardFooter className="flex items-center gap-2">
-        <Button
-          className="flex items-center gap-4 font-semibold"
-          onClick={onClick}
-        >
-          <BookOpen className="h-6 w-6 flex-shrink-0" />
-          <Trans i18nKey="try_example_now" />
-          <ArrowRight className="size-4" />
-        </Button>
-      </CardFooter>
     </Card>
   );
 }

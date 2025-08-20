@@ -16,9 +16,6 @@ export class UserRepository {
       update: {},
       create: {
         email,
-        student: {
-          create: {},
-        },
       },
     });
   }
@@ -27,9 +24,6 @@ export class UserRepository {
     return await this.db.user.create({
       data: {
         ...data,
-        student: {
-          create: {},
-        },
       },
     });
   }

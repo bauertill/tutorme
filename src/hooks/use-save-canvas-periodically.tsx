@@ -11,7 +11,6 @@ export function useSaveCanvasPeriodically() {
   const { mutate: saveCanvas } = useSaveCanvas();
 
   const activeProblemId = useStore.use.activeProblemId();
-  const activeAssignmentId = useStore.use.activeAssignmentId();
   const paths = useStore.use.paths();
   const { data: studentSolutions } =
     api.studentSolution.listStudentSolutions.useQuery(undefined, {
@@ -25,12 +24,11 @@ export function useSaveCanvasPeriodically() {
   const saveableItem = useMemo(() => {
     return {
       problemId: activeProblemId,
-      studentAssignmentId: activeAssignmentId,
       canvas: {
         paths: paths,
       },
     };
-  }, [activeProblemId, activeAssignmentId, paths]);
+  }, [activeProblemId, paths]);
 
   const [debouncedSaveableItem] = useDebounce(saveableItem, DEBOUNCE_TIME, {
     maxWait: DEBOUNCE_TIME,
@@ -41,14 +39,12 @@ export function useSaveCanvasPeriodically() {
   const lastSavedAtRef = useRef<number>(0);
 
   useEffect(() => {
-    const { problemId, studentAssignmentId, canvas } = debouncedSaveableItem;
-    if (!problemId || !studentAssignmentId) return;
+    const { problemId, canvas } = debouncedSaveableItem;
+    if (!problemId) return;
     if ((canvas.paths?.length ?? 0) === 0) return;
 
     const found = studentSolutions?.find(
-      (solution) =>
-        solution.problemId === problemId &&
-        solution.studentAssignmentId === studentAssignmentId,
+      (solution) => solution.problemId === problemId,
     );
     const cachedCanvasRaw = found?.canvas as unknown;
     const cachedCanvas =
@@ -65,7 +61,7 @@ export function useSaveCanvasPeriodically() {
       (canvas.paths?.length ?? 0) === 0 &&
       (cachedCanvas?.paths?.length ?? 0) > 0;
 
-    const key = `${studentAssignmentId}:${problemId}`;
+    const key = problemId;
     const hash = JSON.stringify(canvas.paths ?? []);
     const now = Date.now();
     const minIntervalMs = 2500;
@@ -80,11 +76,14 @@ export function useSaveCanvasPeriodically() {
       !duplicatePayload &&
       !tooSoon
     ) {
-      saveCanvas({
-        problemId,
-        studentAssignmentId,
-        canvas,
-      });
+      const studentSolution = found;
+      if (studentSolution) {
+        saveCanvas({
+          problemId,
+          studentSolutionId: studentSolution.id,
+          canvas,
+        });
+      }
       lastSavedKeyRef.current = key;
       lastSavedHashRef.current = hash;
       lastSavedAtRef.current = now;

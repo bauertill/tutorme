@@ -6,10 +6,7 @@ import { useHelp } from "@/hooks/use-help";
 import { useSaveCanvasPeriodically } from "@/hooks/use-save-canvas-periodically";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useStore } from "@/store";
-import {
-  useActiveAssignmentId,
-  useActiveProblem,
-} from "@/store/problem.selectors";
+import { useActiveProblem } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import {
   Eraser,
@@ -43,11 +40,6 @@ export function Canvas() {
     toggleEraser,
     getPathsForSubmit,
   } = useCanvas();
-  const activeAssignmentId = useActiveAssignmentId();
-  const [activeAssignment] =
-    api.assignment.getStudentAssignment.useSuspenseQuery(
-      activeAssignmentId ?? "",
-    );
   const activeProblemId = useStore.use.activeProblemId();
   const setUsageLimitReached = useStore.use.setUsageLimitReached();
   const setPaths = useStore.use.setPaths();
@@ -56,9 +48,7 @@ export function Canvas() {
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
 
   const studentSolution = studentSolutions.find(
-    (solution) =>
-      solution.problemId === activeProblemId &&
-      solution.studentAssignmentId === activeAssignmentId,
+    (solution) => solution.problemId === activeProblemId,
   );
 
   const [helpOpen, setHelpOpen] = useState(true);
@@ -87,7 +77,7 @@ export function Canvas() {
           const evaluatedPaths = getPathsForSubmit();
           await upsertCanvasAsync({
             problemId: studentSolution.problemId,
-            studentAssignmentId: studentSolution.studentAssignmentId,
+            studentSolutionId: studentSolution.id,
             canvas: { paths: evaluatedPaths },
           });
           setStudentSolutionEvaluation({
@@ -112,11 +102,6 @@ export function Canvas() {
             void utils.studentSolution.listStudentSolutions.invalidate();
             void utils.assignment.getDailyProgress.invalidate();
           }
-        }
-
-        if (!evaluation.hasMistakes && evaluation.isComplete) {
-          setCelebrationOpen(true);
-          return;
         }
         let message = "";
         if (!evaluation.isLegible)
@@ -147,30 +132,17 @@ export function Canvas() {
   useSaveCanvasPeriodically();
 
   useEffect(() => {
-    if (!activeAssignmentId || !activeProblemId) return;
+    if (!activeProblemId) return;
     const existing = studentSolutions.find(
-      (s) =>
-        s.problemId === activeProblemId &&
-        s.studentAssignmentId === activeAssignmentId,
+      (s) => s.problemId === activeProblemId,
     );
     if (existing) return;
-    void upsertCanvasAsync({
-      problemId: activeProblemId,
-      studentAssignmentId: activeAssignmentId,
-      canvas: { paths: [] },
-    }).then(() => {
-      void utils.studentSolution.listStudentSolutions.invalidate();
-    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeAssignmentId, activeProblemId]);
+  }, [activeProblemId]);
 
   useEffect(() => {
-    if (!activeAssignmentId || !activeProblemId) return;
-    const ss = studentSolutions.find(
-      (s) =>
-        s.problemId === activeProblemId &&
-        s.studentAssignmentId === activeAssignmentId,
-    );
+    if (!activeProblemId) return;
+    const ss = studentSolutions.find((s) => s.problemId === activeProblemId);
     if (!ss) return;
     const raw = ss.canvas as unknown;
     const obj =
@@ -180,7 +152,7 @@ export function Canvas() {
     const savedPaths: Path[] = obj?.paths ?? [];
     setPaths(savedPaths);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeAssignmentId, activeProblemId]);
+  }, [activeProblemId]);
 
   useEffect(() => {
     setHelpOpen(true);
@@ -188,18 +160,20 @@ export function Canvas() {
 
   const onCheck = useCallback(
     (dataUrl: string, pathsForSubmit: Path[]) => {
-      if (activeProblem && activeAssignment) {
-        submit({
-          studentAssignmentId: activeAssignment.id,
-          problemId: activeProblem.id,
-          exerciseText: activeProblem.problem,
-          canvas: { paths: pathsForSubmit },
-          solutionImage: dataUrl,
-          referenceSolution: activeProblem.referenceSolution ?? "N/A",
-        });
+      if (activeProblem) {
+        if (studentSolution) {
+          submit({
+            problemId: activeProblem.id,
+            studentSolutionId: studentSolution.id,
+            exerciseText: activeProblem.problem,
+            canvas: { paths: pathsForSubmit },
+            solutionImage: dataUrl,
+            referenceSolution: activeProblem.referenceSolution ?? "N/A",
+          });
+        }
       }
     },
-    [activeProblem, submit, activeAssignment],
+    [activeProblem, submit, studentSolution],
   );
 
   const controls = useMemo(
@@ -239,7 +213,7 @@ export function Canvas() {
               trackEvent("clicked_check_solution");
               const dataUrl = await getDataUrl();
               if (!dataUrl) return;
-              if (!activeProblem || !activeAssignment) return;
+              if (!activeProblem) return;
               const toSubmit = getPathsForSubmit();
               onCheck(dataUrl, toSubmit);
             }}
@@ -290,7 +264,6 @@ export function Canvas() {
       undo,
       redo,
       activeProblem,
-      activeAssignment,
       studentSolution,
     ],
   );

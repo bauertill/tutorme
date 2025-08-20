@@ -22,9 +22,7 @@ export function useSetActiveProblem() {
 
       // find canvas in cached studentsolution list
       const nextCachedCanvas = studentSolutions?.find(
-        (solution) =>
-          solution.problemId === problemId &&
-          solution.studentAssignmentId === assignmentId,
+        (solution) => solution.problemId === problemId,
       )?.canvas;
 
       if (nextCachedCanvas?.paths && nextCachedCanvas.paths.length > 0) {

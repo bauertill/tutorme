@@ -4,7 +4,6 @@ import {
   addNegativeSampleToAnnotationQueue,
   addPositiveSampleToQualityControlDataset,
 } from "@/core/qualityControl/qualityControl.domain";
-import { StudentRepository } from "@/core/student/student.repository";
 import {
   evaluateSolution,
   setStudentSolutionCanvas,
@@ -66,10 +65,6 @@ export const studentSolutionRouter = createTRPCRouter({
     }),
 
   listStudentSolutions: protectedProcedure.query(async ({ ctx }) => {
-    const studentRepository = new StudentRepository(ctx.db);
-    const studentId = await studentRepository.getStudentIdByUserIdOrThrow(
-      ctx.session.user.id,
-    );
     const studentSolutionRepository = new StudentSolutionRepository(ctx.db);
     return await studentSolutionRepository.getStudentSolutionsByUserId(
       ctx.session.user.id,

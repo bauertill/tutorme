@@ -12,9 +12,7 @@ export function useSaveCanvas() {
           if (!existingSolutions) return existingSolutions;
           return existingSolutions.map((existingSolution) => {
             if (
-              existingSolution.problemId === updatedStudentSolution.problemId &&
-              existingSolution.studentAssignmentId ===
-                updatedStudentSolution.studentAssignmentId
+              existingSolution.problemId === updatedStudentSolution.problemId
             ) {
               return {
                 ...existingSolution,
