@@ -8,7 +8,11 @@ export class ProblemRepository {
 
   async getProblemsByUserId(userId: string): Promise<Problem[]> {
     const dbProblems = await this.db.problem.findMany({
-      where: { userId },
+      where: {
+        studentSolutions: {
+          some: { userId },
+        },
+      },
     });
     return dbProblems;
   }

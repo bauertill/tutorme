@@ -1,5 +1,5 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
-import { type StudentAssignment } from "@/core/assignment/assignment.types";
+import { type Problem } from "@/core/problem/problem.types";
 import { type Language, LanguageName } from "@/i18n/types";
 import {
   ChatPromptTemplate,
@@ -80,7 +80,7 @@ export async function getInitialAssessment(
   studentContext: StudentContext,
   language: Language,
   llmAdapter: LLMAdapter,
-): Promise<StudentAssignment> {
+): Promise<Problem[]> {
   const { grade, country, textbook } = studentContext;
 
   // Use hub to pull the prompt (fallback to local prompt if not available)
@@ -111,22 +111,17 @@ export async function getInitialAssessment(
       },
     );
 
-  // Transform the LLM response into a StudentAssignment
+  // Transform the LLM response into Problem array
   const now = new Date();
-  const studentAssignment: StudentAssignment = {
+  const problems: Problem[] = response.problems.map((problem) => ({
     id: uuidv4(),
-    name: response.title,
+    problem: problem.problemText,
+    problemNumber: problem.problemNumber,
+    referenceSolution: problem.referenceSolution,
     createdAt: now,
     updatedAt: now,
-    problems: response.problems.map((problem) => ({
-      id: uuidv4(),
-      problem: problem.problemText,
-      problemNumber: problem.problemNumber,
-      referenceSolution: problem.referenceSolution,
-      createdAt: now,
-      updatedAt: now,
-    })),
-  };
+    conceptId: "",
+  }));
 
-  return studentAssignment;
+  return problems;
 }

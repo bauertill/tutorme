@@ -6,7 +6,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import { UploadUserProblems } from "@/app/(main)/assignment/_components/Problem/UploadUserProblems";
 import { CollapsibleSettings } from "@/app/_components/layout/AppSidebar/CollapsibleSettings";
 import { Footer } from "@/app/_components/layout/Footer";
 import { SignInButton } from "@/app/_components/user/SignInButton";
@@ -29,7 +28,7 @@ import { useActiveProblem } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import { BookOpen, ChevronLeft, GraduationCap, SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+
 import { useMemo, useRef, useState } from "react";
 
 export function AppSidebar() {
@@ -38,14 +37,10 @@ export function AppSidebar() {
   const [studentProblems] =
     api.assignment.getStudentProblems.useSuspenseQuery();
   const activeProblem = useActiveProblem();
-  // const activeAssignmentId = useActiveAssignmentId(); // No longer needed
-  // No longer need assignment state since we work directly with problems
   const [searchQuery, setSearchQuery] = useState("");
   const { open, state, setOpen, openMobile, setOpenMobile, isMobile } =
     useSidebar();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const pathname = usePathname();
-  const hideUploadProblems = pathname?.startsWith("/assignment");
 
   const filteredProblems = useMemo(() => {
     if (!searchQuery.trim()) return studentProblems;
@@ -92,13 +87,7 @@ export function AppSidebar() {
             </Button>
           </div>
         </SidebarHeader>
-        {!hideUploadProblems && (
-          <SidebarGroup className="transition-all duration-200 ease-linear">
-            <SidebarGroupContent>
-              <UploadUserProblems />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+
         <SidebarGroup className="transition-all duration-200 ease-linear">
           <div className="relative flex h-10 w-full flex-shrink-0 items-center transition-all duration-200 ease-linear">
             <SearchIcon

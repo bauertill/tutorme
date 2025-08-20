@@ -28,15 +28,6 @@ export const problemRouter = createTRPCRouter({
       );
     }),
 
-  adminUploadProblems: protectedAdminProcedure
-    .input(z.string())
-    .mutation(async ({ ctx }) => {
-      if (!ctx.session.user.id)
-        throw new Error("User must be present for admin actions");
-      // TODO: Implement admin upload problems
-      throw new Error("Not implemented");
-    }),
-
   getProblems: protectedAdminProcedure.query(async ({ ctx }) => {
     if (!ctx.session.user.id)
       throw new Error("User must be present for admin actions");
