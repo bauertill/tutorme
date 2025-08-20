@@ -47,7 +47,6 @@ export default function OnboardingPage() {
       },
       onError: (error) => {
         console.error("❌ StudentContext upsert failed:", error);
-        console.error("Error details:", JSON.stringify(error, null, 2));
       },
     });
   const [data, setData] = useState<Partial<Omit<StudentContext, "userId">>>({

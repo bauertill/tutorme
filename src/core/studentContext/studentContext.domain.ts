@@ -20,7 +20,6 @@ export async function getInitialStudentAssessment(
   llmAdapter: LLMAdapter,
   db: PrismaClient,
 ): Promise<Problem[]> {
-  // Validate student context
   const studentContextRepository = new StudentContextRepository(db);
   const studentContext =
     await studentContextRepository.getStudentContext(userId);
