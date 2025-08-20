@@ -75,7 +75,7 @@ export default function OnboardingPage() {
       case 2:
         return data.textbook !== undefined;
       case 3:
-        return true;
+        return data.nextTestDate !== undefined;
       default:
         return false;
     }
