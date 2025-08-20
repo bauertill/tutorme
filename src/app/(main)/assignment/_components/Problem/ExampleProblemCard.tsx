@@ -11,9 +11,6 @@ export default function ExampleProblemCard() {
     api.assignment.createExampleAssignment.useMutation({
       onSuccess: () => {
         void utils.assignment.getStudentProblems.invalidate();
-        toast.info(
-          "Example assignment functionality needs to be reimplemented",
-        );
       },
       onError: (error) => {
         toast.error("Example assignment not available: " + error.message);
