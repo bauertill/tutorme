@@ -112,24 +112,10 @@ export async function getConceptAssignment(
     prompt = generateConceptAssignmentPromptTemplate;
   }
 
-  const solvedProblemsText =
-    solvedProblems.length > 0
-      ? `IMPORTANT: The student has already solved these problems: ${solvedProblems
-          .map((p) => `"${p.problem}"`)
-          .join(", ")}. 
-        
-        You MUST generate a completely different problem that:
-        1. Uses different numbers/values
-        2. Has a different context/scenario  
-        3. Tests the same concept but in a different way
-        4. Is NOT similar to any of the solved problems above
-        
-        ${attemptCount > 1 ? `RETRY ATTEMPT ${attemptCount}: Your previous attempt was too similar. Be MORE creative and generate a COMPLETELY different problem!` : ""}
-        
-        IMPORTANT: This is a request for a NEW lesson. Generate a fresh, unique problem that the student has never seen before.
-        
-        Make sure the new problem is genuinely different!`
-      : "";
+  const solvedProblemsText = buildSolvedProblemsPrompt(
+    solvedProblems,
+    attemptCount,
+  );
 
   const response = await prompt
     .pipe(llmAdapter.models.model.withStructuredOutput(ConceptAssignmentSchema))
@@ -159,4 +145,31 @@ export async function getConceptAssignment(
 
   // Return the LLM response directly
   return response;
+}
+
+function buildSolvedProblemsPrompt(
+  solvedProblems: Problem[],
+  attemptCount: number,
+): string {
+  if (solvedProblems.length === 0) return "";
+
+  const problemsList = solvedProblems.map((p) => `"${p.problem}"`).join(", ");
+  const retryText =
+    attemptCount > 1
+      ? `RETRY ATTEMPT ${attemptCount}: Your previous attempt was too similar. Be MORE creative and generate a COMPLETELY different problem!`
+      : "";
+
+  return `IMPORTANT: The student has already solved these problems: ${problemsList}. 
+    
+    You MUST generate a completely different problem that:
+    1. Uses different numbers/values
+    2. Has a different context/scenario  
+    3. Tests the same concept but in a different way
+    4. Is NOT similar to any of the solved problems above
+    
+    ${retryText}
+    
+    IMPORTANT: This is a request for a NEW lesson. Generate a fresh, unique problem that the student has never seen before.
+    
+    Make sure the new problem is genuinely different!`;
 }

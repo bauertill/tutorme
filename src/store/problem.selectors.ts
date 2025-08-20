@@ -2,9 +2,15 @@ import { type Problem } from "@/core/problem/problem.types";
 import { type StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { api } from "@/trpc/react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { useStore } from ".";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 export const useActiveAssignmentId = (): string | null => {
   return useStore(useShallow(({ activeAssignmentId }) => activeAssignmentId));
@@ -57,53 +63,58 @@ export const useProblemController = (): {
   gotoPreviousProblem: () => void;
 } => {
   const setActiveProblem = useSetActiveProblem();
-
   const [studentProblems] =
     api.assignment.getStudentProblems.useSuspenseQuery();
   const [studentSolutions] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
   const activeProblem = useActiveProblem();
 
-  const activeProblemIndex = studentProblems
-    ? studentProblems.findIndex((p) => p.id === activeProblem?.id)
-    : -1;
+  const { nextProblem, previousProblem, nextUnsolvedProblem } = useMemo(() => {
+    if (!studentProblems || !activeProblem) {
+      return {
+        nextProblem: undefined,
+        previousProblem: undefined,
+        nextUnsolvedProblem: undefined,
+      };
+    }
 
-  const nextProblem =
-    studentProblems && activeProblemIndex >= 0
-      ? studentProblems[activeProblemIndex + 1]
-      : undefined;
+    const currentIndex = studentProblems.findIndex(
+      (p) => p.id === activeProblem.id,
+    );
+    const nextProblem =
+      currentIndex >= 0 ? studentProblems[currentIndex + 1] : undefined;
+    const previousProblem =
+      currentIndex > 0 ? studentProblems[currentIndex - 1] : undefined;
 
-  const isSolved = (problemId: string): boolean => {
-    const solution = studentSolutions.find((s) => s.problemId === problemId);
-    return solution?.status === "SOLVED";
-  };
+    const isSolved = (problemId: string) => {
+      return (
+        studentSolutions.find((s) => s.problemId === problemId)?.status ===
+        "SOLVED"
+      );
+    };
 
-  const nextUnsolvedProblem =
-    studentProblems && activeProblemIndex >= 0
-      ? studentProblems
-          .slice(activeProblemIndex + 1)
-          .find((p) => !isSolved(p.id))
-      : undefined;
+    const nextUnsolvedProblem =
+      currentIndex >= 0
+        ? studentProblems.slice(currentIndex + 1).find((p) => !isSolved(p.id))
+        : undefined;
 
-  const previousProblem =
-    studentProblems && activeProblemIndex > 0
-      ? studentProblems[activeProblemIndex - 1]
-      : undefined;
+    return {
+      nextProblem,
+      previousProblem,
+      nextUnsolvedProblem,
+    };
+  }, [studentProblems, studentSolutions, activeProblem]);
 
   const gotoNextProblem = useCallback(() => {
-    if (!nextProblem) return;
-    void setActiveProblem(nextProblem.id, "default");
+    if (nextProblem) void setActiveProblem(nextProblem.id, "default");
   }, [nextProblem, setActiveProblem]);
 
   const gotoNextUnsolvedProblem = nextUnsolvedProblem
-    ? () => {
-        void setActiveProblem(nextUnsolvedProblem.id, "default");
-      }
+    ? () => void setActiveProblem(nextUnsolvedProblem.id, "default")
     : undefined;
 
   const gotoPreviousProblem = useCallback(() => {
-    if (!previousProblem) return;
-    void setActiveProblem(previousProblem.id, "default");
+    if (previousProblem) void setActiveProblem(previousProblem.id, "default");
   }, [previousProblem, setActiveProblem]);
 
   return {

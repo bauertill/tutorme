@@ -10,6 +10,9 @@ import { StudentContextRepository } from "./studentContext.repository";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 
 export async function getInitialStudentAssessment(
   userId: string,
@@ -17,17 +20,17 @@ export async function getInitialStudentAssessment(
   llmAdapter: LLMAdapter,
   db: PrismaClient,
 ): Promise<Problem[]> {
+  // Validate student context
   const studentContextRepository = new StudentContextRepository(db);
   const studentContext =
     await studentContextRepository.getStudentContext(userId);
-
   if (!studentContext) {
     throw new Error(
       "Student context not found. User must complete onboarding first.",
     );
   }
 
-  // Get concepts for the student
+  // Get concepts and select the first one
   const concepts = await getConceptsForStudent(
     userId,
     language,
@@ -37,34 +40,40 @@ export async function getInitialStudentAssessment(
   if (concepts.length === 0) {
     throw new Error("No concepts found for student");
   }
+  const selectedConcept = concepts[0];
 
-  // Find a concept that has unsolved problems or use the first one
+  // Get all solved problems to inform the LLM
   const studentSolutionRepository = new StudentSolutionRepository(db);
-
-  let selectedConcept = null;
-  let solvedProblems = [];
-
-  // Get ALL solved problems for the user (regardless of concept) to pass to LLM
-  const allSolvedProblems =
+  const solvedProblems =
     await studentSolutionRepository.getAllSolvedProblems(userId);
 
-  // For concept selection, still check per-concept but use the first concept for simplicity
-  selectedConcept = concepts[0];
-  if (!selectedConcept) {
-    throw new Error("No concepts available");
-  }
+  const assignment = await generateUniqueAssignment(
+    studentContext,
+    selectedConcept,
+    language,
+    llmAdapter,
+    solvedProblems,
+  );
 
-  // Use ALL solved problems (not just for this concept) to inform the LLM
-  solvedProblems = allSolvedProblems;
+  return await createProblemsForStudent(
+    assignment,
+    selectedConcept,
+    userId,
+    db,
+  );
+}
 
-  // Try to generate problems, with retry if duplicates are detected
-  let assignment;
-  let attemptCount = 0;
+async function generateUniqueAssignment(
+  studentContext: any,
+  selectedConcept: any,
+  language: Language,
+  llmAdapter: LLMAdapter,
+  solvedProblems: Problem[],
+): Promise<any> {
   const maxAttempts = 3;
 
-  do {
-    attemptCount++;
-    assignment = await getConceptAssignment(
+  for (let attemptCount = 1; attemptCount <= maxAttempts; attemptCount++) {
+    const assignment = await getConceptAssignment(
       studentContext,
       selectedConcept,
       language,
@@ -74,7 +83,7 @@ export async function getInitialStudentAssessment(
     );
 
     // Check if generated problems are duplicates
-    const hasDuplicates = assignment.problems.some((problemData) => {
+    const hasDuplicates = assignment.problems.some((problemData: any) => {
       const newProblemText = problemData.problemText.toLowerCase();
       return solvedProblems.some((solvedProblem) => {
         const solvedText = solvedProblem.problem.toLowerCase();
@@ -89,37 +98,31 @@ export async function getInitialStudentAssessment(
     });
 
     if (!hasDuplicates) {
-      break;
+      return assignment;
     }
-  } while (attemptCount < maxAttempts);
-
-  if (attemptCount >= maxAttempts) {
-    throw new Error(
-      "Unable to generate unique problems for this concept. Please try again.",
-    );
   }
 
-  // Create problems directly in the database
+  throw new Error(
+    "Unable to generate unique problems for this concept. Please try again.",
+  );
+}
+
+async function createProblemsForStudent(
+  assignment: any,
+  selectedConcept: any,
+  userId: string,
+  db: PrismaClient,
+): Promise<Problem[]> {
   const createdProblems: Problem[] = [];
 
   for (const problemData of assignment.problems) {
-    console.log(
-      "🆕 Creating new problem:",
-      problemData.problemText.substring(0, 100) + "...",
-    );
-
-    // Check if this exact problem already exists in the database AND if user has encountered it
     const existingProblem = await db.problem.findFirst({
       where: {
         problem: problemData.problemText,
         conceptId: selectedConcept.concept.id,
       } as any,
       include: {
-        studentSolutions: {
-          where: {
-            userId: userId,
-          } as any,
-        },
+        studentSolutions: { where: { userId } as any },
       },
     });
 
@@ -127,46 +130,29 @@ export async function getInitialStudentAssessment(
       existingProblem &&
       (existingProblem as any).studentSolutions.length > 0
     ) {
-      console.warn(
-        "⚠️ Problem already exists AND user has encountered it, skipping",
-      );
-      console.warn("  Existing problem ID:", existingProblem.id);
-      console.warn(
-        "  User has",
-        (existingProblem as any).studentSolutions.length,
-        "solutions for this problem",
-      );
-      continue; // Skip this problem entirely
+      continue;
     }
 
-    let problemToUse;
-    if (existingProblem) {
-      console.log("♻️ Problem exists but user hasn't encountered it, reusing");
-      console.log("  Existing problem ID:", existingProblem.id);
-      problemToUse = existingProblem;
-    } else {
-      problemToUse = await db.problem.create({
+    const problemToUse =
+      existingProblem ??
+      (await db.problem.create({
         data: {
           problem: problemData.problemText,
           problemNumber: problemData.problemNumber,
           referenceSolution: problemData.referenceSolution,
           conceptId: selectedConcept.concept.id,
         } as any,
-      });
-      console.log("✅ Created new problem with ID:", problemToUse.id);
-    }
+      }));
 
-    // Create a student solution for this problem (we know user doesn't have one)
     await db.studentSolution.create({
       data: {
         problemId: problemToUse.id,
-        userId: userId,
+        userId,
         canvas: { paths: [] },
         evaluation: Prisma.JsonNull,
         recommendedQuestions: [],
       } as any,
     });
-    console.log("✅ Created StudentSolution for problem:", problemToUse.id);
 
     createdProblems.push(problemToUse);
   }

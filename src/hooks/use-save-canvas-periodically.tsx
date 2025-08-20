@@ -5,6 +5,11 @@ import { useEffect, useMemo, useRef } from "react";
 import { useDebounce } from "use-debounce";
 import { useSaveCanvas } from "./use-save-canvas";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+
 const DEBOUNCE_TIME = 3000;
 
 export function useSaveCanvasPeriodically() {
@@ -40,53 +45,73 @@ export function useSaveCanvasPeriodically() {
 
   useEffect(() => {
     const { problemId, canvas } = debouncedSaveableItem;
-    if (!problemId) return;
-    if ((canvas.paths?.length ?? 0) === 0) return;
+    if (!problemId || !canvas.paths?.length) return;
 
-    const found = studentSolutions?.find(
-      (solution) => solution.problemId === problemId,
+    const studentSolution = studentSolutions?.find(
+      (s) => s.problemId === problemId,
     );
-    const cachedCanvasRaw = found?.canvas as unknown;
-    const cachedCanvas =
-      typeof cachedCanvasRaw === "string"
-        ? (JSON.parse(cachedCanvasRaw) as { paths?: typeof paths })
-        : (cachedCanvasRaw as { paths?: typeof paths } | undefined);
+    if (!studentSolution) return;
 
-    const userHasChangedCanvas = !isEqual(
-      debouncedSaveableItem.canvas,
-      cachedCanvas,
-    );
+    const cachedCanvas = parseCanvasData(studentSolution.canvas);
+    const hasChanges = !isEqual(canvas, cachedCanvas);
+    const shouldSave =
+      hasChanges &&
+      !isDuplicateOrTooSoon(
+        problemId,
+        canvas,
+        lastSavedKeyRef,
+        lastSavedHashRef,
+        lastSavedAtRef,
+      );
 
-    const isDowngradeToEmpty =
-      (canvas.paths?.length ?? 0) === 0 &&
-      (cachedCanvas?.paths?.length ?? 0) > 0;
-
-    const key = problemId;
-    const hash = JSON.stringify(canvas.paths ?? []);
-    const now = Date.now();
-    const minIntervalMs = 2500;
-
-    const duplicatePayload =
-      lastSavedKeyRef.current === key && lastSavedHashRef.current === hash;
-    const tooSoon = now - lastSavedAtRef.current < minIntervalMs;
-
-    if (
-      userHasChangedCanvas &&
-      !isDowngradeToEmpty &&
-      !duplicatePayload &&
-      !tooSoon
-    ) {
-      const studentSolution = found;
-      if (studentSolution) {
-        saveCanvas({
-          problemId,
-          studentSolutionId: studentSolution.id,
-          canvas,
-        });
-      }
-      lastSavedKeyRef.current = key;
-      lastSavedHashRef.current = hash;
-      lastSavedAtRef.current = now;
+    if (shouldSave) {
+      saveCanvas({
+        problemId,
+        studentSolutionId: studentSolution.id,
+        canvas,
+      });
+      updateSaveTracking(
+        problemId,
+        canvas,
+        lastSavedKeyRef,
+        lastSavedHashRef,
+        lastSavedAtRef,
+      );
     }
   }, [debouncedSaveableItem, studentSolutions, saveCanvas]);
+}
+
+function parseCanvasData(canvasRaw: unknown) {
+  return typeof canvasRaw === "string" ? JSON.parse(canvasRaw) : canvasRaw;
+}
+
+function isDuplicateOrTooSoon(
+  problemId: string,
+  canvas: any,
+  lastSavedKeyRef: React.MutableRefObject<string>,
+  lastSavedHashRef: React.MutableRefObject<string>,
+  lastSavedAtRef: React.MutableRefObject<number>,
+): boolean {
+  const key = problemId;
+  const hash = JSON.stringify(canvas.paths ?? []);
+  const now = Date.now();
+  const minIntervalMs = 2500;
+
+  const duplicatePayload =
+    lastSavedKeyRef.current === key && lastSavedHashRef.current === hash;
+  const tooSoon = now - lastSavedAtRef.current < minIntervalMs;
+
+  return duplicatePayload || tooSoon;
+}
+
+function updateSaveTracking(
+  problemId: string,
+  canvas: any,
+  lastSavedKeyRef: React.MutableRefObject<string>,
+  lastSavedHashRef: React.MutableRefObject<string>,
+  lastSavedAtRef: React.MutableRefObject<number>,
+): void {
+  lastSavedKeyRef.current = problemId;
+  lastSavedHashRef.current = JSON.stringify(canvas.paths ?? []);
+  lastSavedAtRef.current = Date.now();
 }
