@@ -5,10 +5,6 @@ import {
 import { type Problem } from "@/core/problem/problem.types";
 import { StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { Prisma, type PrismaClient } from "@prisma/client";
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 export class StudentSolutionRepository {
   constructor(private db: PrismaClient) {}
 
@@ -25,7 +21,9 @@ export class StudentSolutionRepository {
 
   async updateStudentSolution(
     studentSolutionId: string,
-    props: Partial<Omit<StudentSolution, "id" | "problemId" | "userId">>,
+    props: Partial<
+      Omit<StudentSolution, "id" | "problemId" | "userId" | "messages">
+    >,
   ): Promise<StudentSolution> {
     const result = await this.db.studentSolution.update({
       where: { id: studentSolutionId },
@@ -34,7 +32,7 @@ export class StudentSolutionRepository {
         ...(props.status === "SOLVED" ? { completedAt: new Date() } : {}),
         evaluation:
           props.evaluation === null ? Prisma.JsonNull : props.evaluation,
-      } as any,
+      },
       include: {
         messages: true,
       },
@@ -46,18 +44,20 @@ export class StudentSolutionRepository {
   async upsertStudentSolution(
     userId: string,
     problemId: string,
-    props: Partial<Omit<StudentSolution, "id" | "problemId" | "userId">>,
+    props: Partial<
+      Omit<StudentSolution, "id" | "problemId" | "userId" | "messages">
+    >,
   ): Promise<StudentSolution> {
     const result = await this.db.studentSolution.upsert({
       where: {
         problemId_userId: { problemId, userId },
-      } as any,
+      },
       update: {
         ...props,
         ...(props.status === "SOLVED" ? { completedAt: new Date() } : {}),
         evaluation:
           props.evaluation === null ? Prisma.JsonNull : props.evaluation,
-      } as any,
+      },
       create: {
         userId,
         problemId,
@@ -66,7 +66,7 @@ export class StudentSolutionRepository {
         canvas: props.canvas ?? { paths: [] },
         recommendedQuestions: props.recommendedQuestions ?? [],
         evaluation: props.evaluation ?? Prisma.JsonNull,
-      } as any,
+      },
       include: {
         messages: true,
       },
@@ -79,7 +79,7 @@ export class StudentSolutionRepository {
     userId: string,
   ): Promise<StudentSolution[]> {
     const results = await this.db.studentSolution.findMany({
-      where: { userId } as any,
+      where: { userId },
       include: {
         messages: true,
       },
@@ -98,7 +98,7 @@ export class StudentSolutionRepository {
         problem: {
           conceptId,
         },
-      } as any,
+      },
       include: {
         problem: true,
         messages: true,
@@ -113,7 +113,7 @@ export class StudentSolutionRepository {
       where: {
         userId,
         status: "SOLVED",
-      } as any,
+      },
       include: {
         problem: true,
         messages: true,
