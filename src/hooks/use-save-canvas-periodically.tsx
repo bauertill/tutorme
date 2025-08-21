@@ -1,14 +1,10 @@
+import { type Canvas } from "@/core/canvas/canvas.types";
 import { useStore } from "@/store";
 import { api } from "@/trpc/react";
 import { isEqual } from "lodash";
 import { useEffect, useMemo, useRef } from "react";
 import { useDebounce } from "use-debounce";
 import { useSaveCanvas } from "./use-save-canvas";
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 
 const DEBOUNCE_TIME = 3000;
 
@@ -81,13 +77,16 @@ export function useSaveCanvasPeriodically() {
   }, [debouncedSaveableItem, studentSolutions, saveCanvas]);
 }
 
-function parseCanvasData(canvasRaw: unknown) {
-  return typeof canvasRaw === "string" ? JSON.parse(canvasRaw) : canvasRaw;
+function parseCanvasData(canvasRaw: unknown): Canvas {
+  if (typeof canvasRaw === "string") {
+    return JSON.parse(canvasRaw) as Canvas;
+  }
+  return canvasRaw as Canvas;
 }
 
 function isDuplicateOrTooSoon(
   problemId: string,
-  canvas: any,
+  canvas: Canvas,
   lastSavedKeyRef: React.MutableRefObject<string>,
   lastSavedHashRef: React.MutableRefObject<string>,
   lastSavedAtRef: React.MutableRefObject<number>,
@@ -106,7 +105,7 @@ function isDuplicateOrTooSoon(
 
 function updateSaveTracking(
   problemId: string,
-  canvas: any,
+  canvas: Canvas,
   lastSavedKeyRef: React.MutableRefObject<string>,
   lastSavedHashRef: React.MutableRefObject<string>,
   lastSavedAtRef: React.MutableRefObject<number>,

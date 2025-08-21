@@ -2,11 +2,6 @@ import { getInitialStudentAssessment } from "@/core/studentContext/studentContex
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
 export const assignmentRouter = createTRPCRouter({
   createInitialStudentProblems: protectedProcedure.mutation(async ({ ctx }) => {
     try {
@@ -28,7 +23,7 @@ export const assignmentRouter = createTRPCRouter({
       const studentSolutions = await ctx.db.studentSolution.findMany({
         where: {
           userId: ctx.session.user.id,
-        } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        },
         include: {
           problem: true,
         },
@@ -37,7 +32,7 @@ export const assignmentRouter = createTRPCRouter({
         },
       });
 
-      return studentSolutions.map((solution) => (solution as any).problem); // eslint-disable-line @typescript-eslint/no-explicit-any
+      return studentSolutions.map((solution) => solution.problem);
     } catch (error) {
       console.error("Error in getStudentProblems:", error);
       return [];
@@ -60,7 +55,7 @@ export const assignmentRouter = createTRPCRouter({
             lt: tomorrow,
           },
           status: "SOLVED",
-        } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        },
       });
 
       return {
@@ -98,7 +93,7 @@ export const assignmentRouter = createTRPCRouter({
 
   deleteAllStudentData: protectedProcedure.mutation(async ({ ctx }) => {
     await ctx.db.studentSolution.deleteMany({
-      where: { userId: ctx.session.user.id } as any,
+      where: { userId: ctx.session.user.id },
     });
 
     await ctx.db.studentContext.deleteMany({
@@ -120,7 +115,7 @@ export const assignmentRouter = createTRPCRouter({
       throw new Error("Assignment deletion not available in new structure");
     }),
 
-  createFromUpload: protectedProcedure.input(z.any()).mutation(async () => {
+  createFromUpload: protectedProcedure.input(z.unknown()).mutation(async () => {
     throw new Error("Upload functionality needs to be reimplemented");
   }),
 });
