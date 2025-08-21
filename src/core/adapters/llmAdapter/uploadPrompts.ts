@@ -1,4 +1,3 @@
-import { extractAssignmentPromptTemplate } from "@/core/assignment/llm/extractAssignmentFromImage";
 import { solveProblemPromptTemplate } from "@/core/problem/llm/solveProblem";
 import { generateInitialAssessmentPromptTemplate } from "@/core/studentContext/llm/getInitialAssesment";
 import { evaluateSolutionPromptTemplate } from "@/core/studentSolution/llm/evaluateSolution";
@@ -18,7 +17,6 @@ export async function pushPromptsToLangSmith() {
   const promptsByName: Record<string, ChatPromptTemplate> = {
     evaluate_solution: evaluateSolutionPromptTemplate,
     explain_hint_detail: explainHintDetailPromptTemplate,
-    extract_assignment: extractAssignmentPromptTemplate,
     solve_problem: solveProblemPromptTemplate,
     recommend_questions: recommendQuestionsPromptTemplate,
     generate_reply: generateReplyPromptTemplate,

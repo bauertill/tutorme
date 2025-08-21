@@ -1,7 +1,5 @@
 import { problemRouter } from "@/server/api/routers/problem";
-import { problemUploadRouter } from "@/server/api/routers/problemUpload";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
-import { adminRouter } from "./routers/admin";
 import { assignmentRouter } from "./routers/assignment";
 import { helpRouter } from "./routers/help";
 import { renderAsyRouter } from "./routers/renderAsy";
@@ -15,9 +13,7 @@ import { subscriptionRouter } from "./routers/subscription";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  admin: adminRouter,
   problem: problemRouter,
-  problemUpload: problemUploadRouter,
   renderAsy: renderAsyRouter,
   assignment: assignmentRouter,
   subscription: subscriptionRouter,

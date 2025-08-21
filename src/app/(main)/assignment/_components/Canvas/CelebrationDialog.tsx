@@ -12,10 +12,7 @@ import {
 import { type EvaluationResult } from "@/core/studentSolution/studentSolution.types";
 import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { useTranslation } from "@/i18n/react";
-import {
-  useActiveAssignmentId,
-  useProblemController,
-} from "@/store/problem.selectors";
+import { useProblemController } from "@/store/problem.selectors";
 import { api } from "@/trpc/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,20 +28,18 @@ export function CelebrationDialog({
 }) {
   const { t } = useTranslation();
   const { gotoNextUnsolvedProblem } = useProblemController();
-  const activeAssignmentId = useActiveAssignmentId();
-  const [dailyProgress] = api.assignment.getDailyProgress.useSuspenseQuery(
-    activeAssignmentId ?? "",
-  );
+  const [dailyProgress] = api.assignment.getDailyProgress.useSuspenseQuery();
   const todayRemaining = dailyProgress?.remaining ?? 0;
 
   const utils = api.useUtils();
   const setActiveProblem = useSetActiveProblem();
   const router = useRouter();
-  const { mutateAsync: createInitialAssignmentAsync, isPending } =
-    api.assignment.createInitialStudentAssignment.useMutation({
+  const { mutateAsync: createInitialProblemsAsync, isPending } =
+    api.assignment.createInitialStudentProblems.useMutation({
       onSuccess: async () => {
         await Promise.all([
-          utils.assignment.listStudentAssignments.invalidate(),
+          utils.assignment.getStudentProblems.invalidate(),
+          utils.studentSolution.listStudentSolutions.invalidate(),
         ]);
       },
     });
@@ -90,18 +85,17 @@ export function CelebrationDialog({
                   variant="default"
                   disabled={isPending}
                   onClick={async () => {
-                    const newAssignment = await createInitialAssignmentAsync();
+                    const newProblems = await createInitialProblemsAsync();
 
-                    if (!newAssignment) return;
+                    if (!newProblems || newProblems.length === 0) return;
 
-                    router.push(`/assignment?assignmentId=${newAssignment.id}`);
-                    const firstProblemId = newAssignment.problems?.[0]?.id;
+                    const firstProblemId = newProblems[0]?.id;
 
                     if (firstProblemId) {
-                      void setActiveProblem(firstProblemId, newAssignment.id);
+                      void setActiveProblem(firstProblemId, "default");
+                      router.push(`/assignment`);
+                      setOpen(false);
                     }
-
-                    setOpen(false);
                   }}
                 >
                   Earn more points

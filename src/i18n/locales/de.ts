@@ -5,11 +5,7 @@ const translation = {
     "Dein persönlicher Mathe-Buddy, der dir Aufgaben endlich so erklärt, dass du sie wirklich verstehst.",
   learn_the_basics_by_working_through_a_guided_example_problem:
     "Probier's gleich aus – mit echten Beispielen, die wir gemeinsam lösen können:",
-  upload_problems_card_description:
-    "Oder fang direkt an mit deinen eigenen Hausaufgaben:",
-  upload_assignment: "Hausaufgaben hochladen",
-  upload_problems_card_description_admin: "Aufgaben für Ihre Schüler hochladen",
-  upload_problems_admin: "Hochladen",
+
   try_example_now: "Jetzt Beispielaufgabe lösen",
   search_exercises: "Aufgaben durchsuchen...",
   assignments: "Aufgaben",

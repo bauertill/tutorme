@@ -1,5 +1,4 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
-import { type StudentAssignment } from "@/core/assignment/assignment.types";
 import { type StudentConcept } from "@/core/concept/concept.types";
 import { type Problem } from "@/core/problem/problem.types";
 import { type Language, LanguageName } from "@/i18n/types";
@@ -8,13 +7,12 @@ import {
   HumanMessagePromptTemplate,
   SystemMessagePromptTemplate,
 } from "@langchain/core/prompts";
-import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { type StudentContext } from "../studentContext.types";
 
-// Define the system prompt template for generating concept-based assignment
+// Define the system prompt template for generating concept-based problem
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
-  `You are an expert math teacher creating a focused lesson assignment for a specific mathematical concept.
+  `You are an expert math teacher creating a focused math problem for a specific mathematical concept.
   
   Your goal is to create 1 well-crafted math problem that introduces and tests the student's understanding of the given concept.
 
@@ -34,13 +32,13 @@ const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
 
   Write your response in {language} language only.`,
   {
-    name: "generate_concept_assignment_system_prompt",
+    name: "generate_concept_problem_system_prompt",
   },
 );
 
 // Define the human message template
 const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(
-  `Create a lesson assignment for a student with the following context:
+  `Create a math problem for a student with the following context:
   
   Grade: {grade}
   Country: {country}
@@ -56,12 +54,12 @@ const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(
 
   Remember: Create only ONE question without sub-parts (a), (b), (c), etc. Make it a direct, straightforward problem.`,
   {
-    name: "generate_concept_assignment_human_prompt",
+    name: "generate_concept_problem_human_prompt",
   },
 );
 
 // Combine the templates into a single prompt template
-export const generateConceptAssignmentPromptTemplate =
+export const generateConceptProblemPromptTemplate =
   ChatPromptTemplate.fromMessages([systemPromptTemplate, humanPromptTemplate]);
 
 // Define the output schema for a single problem
@@ -79,40 +77,48 @@ const ConceptProblemSchema = z.object({
     .describe("The main mathematical topic matching the concept"),
 });
 
-// Define the output schema for the concept assignment
-const ConceptAssignmentSchema = z.object({
-  title: z
-    .string()
-    .describe("Title for the assignment focusing on the concept"),
+// Define the output schema for the concept problem generation
+const ConceptProblemGenerationSchema = z.object({
+  title: z.string().describe("Title for the problem focusing on the concept"),
   problems: z
     .array(ConceptProblemSchema)
     .length(1)
     .describe("Exactly 1 problem for the concept"),
 });
 
-export type ConceptAssignmentOutput = z.infer<typeof ConceptAssignmentSchema>;
+export type ConceptProblemGenerationOutput = z.infer<
+  typeof ConceptProblemGenerationSchema
+>;
 
-export async function getConceptAssignment(
+export async function getConceptProblem(
   studentContext: StudentContext,
   concept: StudentConcept,
   language: Language,
   llmAdapter: LLMAdapter,
   solvedProblems: Problem[],
-): Promise<StudentAssignment> {
+  attemptCount = 1,
+): Promise<ConceptProblemGenerationOutput> {
   const { grade, country, textbook } = studentContext;
 
-  // Use hub to pull the prompt (fallback to local prompt if not available)
   let prompt;
   try {
-    prompt = await llmAdapter.hub.pull("generate_concept_assignment");
+    prompt = await llmAdapter.hub.pull("generate_concept_problem");
   } catch {
-    // Fallback to local prompt template
     console.log("No prompt found in hub, using local prompt");
-    prompt = generateConceptAssignmentPromptTemplate;
+    prompt = generateConceptProblemPromptTemplate;
   }
 
+  const solvedProblemsText = buildSolvedProblemsPrompt(
+    solvedProblems,
+    attemptCount,
+  );
+
   const response = await prompt
-    .pipe(llmAdapter.models.model.withStructuredOutput(ConceptAssignmentSchema))
+    .pipe(
+      llmAdapter.models.model.withStructuredOutput(
+        ConceptProblemGenerationSchema,
+      ),
+    )
     .invoke(
       {
         grade,
@@ -122,38 +128,51 @@ export async function getConceptAssignment(
         conceptDescription: concept.concept.description,
         skillLevel: concept.skillLevel,
         language: LanguageName[language],
-        solvedProblems:
-          solvedProblems.length > 0
-            ? `The student has already solved the following problems: ${solvedProblems
-                .map((p) => `"${p.problem}"`)
-                .join(", ")}. Please generate a different one.`
-            : "",
+        solvedProblems: `${solvedProblemsText}
+        
+        [CACHE_BUSTER: ${Date.now()}-${Math.random()}-attempt-${attemptCount}]
+        
+        Generate a completely NEW and DIFFERENT problem for this lesson request.`,
       },
       {
         metadata: {
-          functionName: "getConceptAssignment",
+          functionName: "getConceptProblem",
           userId: studentContext.userId,
           conceptId: concept.concept.id,
         },
       },
     );
 
-  // Transform the LLM response into a StudentAssignment
-  const now = new Date();
-  const studentAssignment: StudentAssignment = {
-    id: uuidv4(),
-    name: response.title,
-    createdAt: now,
-    updatedAt: now,
-    problems: response.problems.map((problem) => ({
-      id: uuidv4(),
-      problem: problem.problemText,
-      problemNumber: problem.problemNumber,
-      referenceSolution: problem.referenceSolution,
-      createdAt: now,
-      updatedAt: now,
-    })),
-  };
+  return response;
+}
 
-  return studentAssignment;
+// Backward compatibility export (deprecated)
+export const getConceptAssignment = getConceptProblem;
+export type ConceptAssignmentOutput = ConceptProblemGenerationOutput;
+
+function buildSolvedProblemsPrompt(
+  solvedProblems: Problem[],
+  attemptCount: number,
+): string {
+  if (solvedProblems.length === 0) return "";
+
+  const problemsList = solvedProblems.map((p) => `"${p.problem}"`).join(", ");
+  const retryText =
+    attemptCount > 1
+      ? `RETRY ATTEMPT ${attemptCount}: Your previous attempt was too similar. Be MORE creative and generate a COMPLETELY different problem!`
+      : "";
+
+  return `IMPORTANT: The student has already solved these problems: ${problemsList}. 
+    
+    You MUST generate a completely different problem that:
+    1. Uses different numbers/values
+    2. Has a different context/scenario  
+    3. Tests the same concept but in a different way
+    4. Is NOT similar to any of the solved problems above
+    
+    ${retryText}
+    
+    IMPORTANT: This is a request for a NEW lesson. Generate a fresh, unique problem that the student has never seen before.
+    
+    Make sure the new problem is genuinely different!`;
 }

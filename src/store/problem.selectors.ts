@@ -2,7 +2,7 @@ import { type Problem } from "@/core/problem/problem.types";
 import { type StudentSolution } from "@/core/studentSolution/studentSolution.types";
 import { useSetActiveProblem } from "@/hooks/use-set-active-problem";
 import { api } from "@/trpc/react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { useStore } from ".";
 
@@ -11,15 +11,11 @@ export const useActiveAssignmentId = (): string | null => {
 };
 
 export const useActiveProblem = (): Problem | null => {
-  const activeAssignmentId = useActiveAssignmentId();
-  const [activeAssignment] =
-    api.assignment.getStudentAssignment.useSuspenseQuery(
-      activeAssignmentId ?? "",
-    );
+  const [studentProblems] =
+    api.assignment.getStudentProblems.useSuspenseQuery();
   const problemId = useStore.use.activeProblemId();
-  const problem =
-    activeAssignment?.problems.find((p) => p.id === problemId) ?? null;
-  return problem ?? activeAssignment?.problems[0] ?? null;
+  const problem = studentProblems?.find((p) => p.id === problemId) ?? null;
+  return problem ?? studentProblems?.[0] ?? null;
 };
 
 export const useReferenceSolution = (
@@ -33,35 +29,24 @@ export const useReferenceSolution = (
 };
 
 export const useUnsolvedProblems = (): Problem[] => {
-  const activeAssignmentId = useActiveAssignmentId();
-  const [activeAssignment] =
-    api.assignment.getStudentAssignment.useSuspenseQuery(
-      activeAssignmentId ?? "",
-    );
+  const [studentProblems] =
+    api.assignment.getStudentProblems.useSuspenseQuery();
   const [studentSolutions] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
-  if (!activeAssignment) return [];
-  return activeAssignment.problems.filter((p) => {
-    const studentSolution = studentSolutions.find(
-      (s) =>
-        s.problemId === p.id && s.studentAssignmentId === activeAssignment.id,
-    );
+
+  if (!studentProblems) return [];
+
+  return studentProblems.filter((p) => {
+    const studentSolution = studentSolutions.find((s) => s.problemId === p.id);
     return studentSolution?.status !== "SOLVED";
   });
 };
 
 export const useActiveStudentSolution = (): StudentSolution | null => {
   const activeProblemId = useStore.use.activeProblemId();
-  const activeAssignmentId = useActiveAssignmentId();
   const [studentSolutions] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
-  return (
-    studentSolutions.find(
-      (s) =>
-        s.problemId === activeProblemId &&
-        s.studentAssignmentId === activeAssignmentId,
-    ) ?? null
-  );
+  return studentSolutions.find((s) => s.problemId === activeProblemId) ?? null;
 };
 
 export const useProblemController = (): {
@@ -72,57 +57,59 @@ export const useProblemController = (): {
   gotoPreviousProblem: () => void;
 } => {
   const setActiveProblem = useSetActiveProblem();
-
-  const activeAssignmentId = useActiveAssignmentId();
-  const [activeAssignment] =
-    api.assignment.getStudentAssignment.useSuspenseQuery(
-      activeAssignmentId ?? "",
-    );
+  const [studentProblems] =
+    api.assignment.getStudentProblems.useSuspenseQuery();
   const [studentSolutions] =
     api.studentSolution.listStudentSolutions.useSuspenseQuery();
   const activeProblem = useActiveProblem();
-  const activeProblemIndex = activeAssignment
-    ? activeAssignment.problems.findIndex((p) => p.id === activeProblem?.id)
-    : -1;
 
-  const nextProblem =
-    activeAssignment && activeProblemIndex >= 0
-      ? activeAssignment.problems[activeProblemIndex + 1]
-      : undefined;
-  const isSolved = (problemId: string): boolean => {
-    if (!activeAssignment) return false;
-    const solution = studentSolutions.find(
-      (s) =>
-        s.problemId === problemId &&
-        s.studentAssignmentId === activeAssignment.id,
+  const { nextProblem, previousProblem, nextUnsolvedProblem } = useMemo(() => {
+    if (!studentProblems || !activeProblem) {
+      return {
+        nextProblem: undefined,
+        previousProblem: undefined,
+        nextUnsolvedProblem: undefined,
+      };
+    }
+
+    const currentIndex = studentProblems.findIndex(
+      (p) => p.id === activeProblem.id,
     );
-    return solution?.status === "SOLVED";
-  };
-  const nextUnsolvedProblem =
-    activeAssignment && activeProblemIndex >= 0
-      ? activeAssignment.problems
-          .slice(activeProblemIndex + 1)
-          .find((p) => !isSolved(p.id))
-      : undefined;
-  const previousProblem =
-    activeAssignment && activeProblemIndex > 0
-      ? activeAssignment.problems[activeProblemIndex - 1]
-      : undefined;
+    const nextProblem =
+      currentIndex >= 0 ? studentProblems[currentIndex + 1] : undefined;
+    const previousProblem =
+      currentIndex > 0 ? studentProblems[currentIndex - 1] : undefined;
+
+    const isSolved = (problemId: string) => {
+      return (
+        studentSolutions.find((s) => s.problemId === problemId)?.status ===
+        "SOLVED"
+      );
+    };
+
+    const nextUnsolvedProblem =
+      currentIndex >= 0
+        ? studentProblems.slice(currentIndex + 1).find((p) => !isSolved(p.id))
+        : undefined;
+
+    return {
+      nextProblem,
+      previousProblem,
+      nextUnsolvedProblem,
+    };
+  }, [studentProblems, studentSolutions, activeProblem]);
 
   const gotoNextProblem = useCallback(() => {
-    if (!nextProblem || !activeAssignment) return;
-    void setActiveProblem(nextProblem.id, activeAssignment.id);
-  }, [nextProblem, setActiveProblem, activeAssignment]);
+    if (nextProblem) void setActiveProblem(nextProblem.id, "default");
+  }, [nextProblem, setActiveProblem]);
+
   const gotoNextUnsolvedProblem = nextUnsolvedProblem
-    ? () => {
-        if (!activeAssignment) return;
-        void setActiveProblem(nextUnsolvedProblem.id, activeAssignment.id);
-      }
+    ? () => void setActiveProblem(nextUnsolvedProblem.id, "default")
     : undefined;
+
   const gotoPreviousProblem = useCallback(() => {
-    if (!previousProblem || !activeAssignment) return;
-    void setActiveProblem(previousProblem.id, activeAssignment.id);
-  }, [previousProblem, activeAssignment, setActiveProblem]);
+    if (previousProblem) void setActiveProblem(previousProblem.id, "default");
+  }, [previousProblem, setActiveProblem]);
 
   return {
     nextProblem,

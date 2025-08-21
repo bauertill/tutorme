@@ -5,11 +5,7 @@ const translation = {
     "Your personal math buddy that explains problems in a way that finally makes sense to you.",
   learn_the_basics_by_working_through_a_guided_example_problem:
     "Try it out – with real examples we can solve together:",
-  upload_problems_card_description:
-    "Or start with your own homework assignment:",
-  upload_assignment: "Upload Assignment",
-  upload_problems_card_description_admin: "Upload problems for your students",
-  upload_problems_admin: "Upload",
+
   try_example_now: "Try Example Now",
   search_exercises: "Search exercises...",
   assignments: "Assignments",

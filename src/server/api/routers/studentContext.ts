@@ -11,11 +11,18 @@ export const studentContextRouter = createTRPCRouter({
   upsertStudentContext: protectedProcedure
     .input(StudentContext.omit({ userId: true }))
     .mutation(async ({ input, ctx }) => {
-      const studentContextRepository = new StudentContextRepository(ctx.db);
-      return studentContextRepository.upsertStudentContext({
-        ...input,
-        userId: ctx.session.user.id,
-      });
+      try {
+        const studentContextRepository = new StudentContextRepository(ctx.db);
+        const fullData = {
+          ...input,
+          userId: ctx.session.user.id,
+        };
+
+        return await studentContextRepository.upsertStudentContext(fullData);
+      } catch (error) {
+        console.error("Error in upsertStudentContext:", error);
+        throw error;
+      }
     }),
   getStudentContext: publicProcedure.query(async ({ ctx }) => {
     if (!ctx.session?.user?.id) {
@@ -28,11 +35,16 @@ export const studentContextRouter = createTRPCRouter({
     );
   }),
   getConceptsForStudent: protectedProcedure.query(async ({ ctx }) => {
-    return await getConceptsForStudent(
-      ctx.session.user.id,
-      ctx.userLanguage,
-      ctx.llmAdapter,
-      ctx.db,
-    );
+    try {
+      return await getConceptsForStudent(
+        ctx.session.user.id,
+        ctx.userLanguage,
+        ctx.llmAdapter,
+        ctx.db,
+      );
+    } catch (error) {
+      console.error("Error in getConceptsForStudent:", error);
+      return [];
+    }
   }),
 });

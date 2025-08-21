@@ -17,7 +17,7 @@ export const createProblemSlice: StateCreator<
   MiddlewareList,
   [],
   ProblemSlice
-> = (set, get) => ({
+> = (set, _get) => ({
   activeProblemId: null,
   activeAssignmentId: null,
   referenceSolutions: {

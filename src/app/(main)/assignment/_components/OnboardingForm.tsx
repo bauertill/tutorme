@@ -5,7 +5,7 @@ import { Trans } from "@/i18n/react";
 import { useAuth } from "@/lib/react-auth";
 import { cn } from "@/lib/utils";
 import ExampleProblemCard from "./Problem/ExampleProblemCard";
-import { UploadUserProblems } from "./Problem/UploadUserProblems";
+
 export function OnboardingForm({
   className,
   ...props
@@ -31,7 +31,6 @@ export function OnboardingForm({
         </div>
         <div className="flex flex-col items-center justify-center gap-5 2xl:gap-10">
           <ExampleProblemCard />
-          <UploadUserProblems trigger="card" />
         </div>
       </div>
 
