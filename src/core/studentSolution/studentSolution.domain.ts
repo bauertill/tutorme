@@ -10,10 +10,6 @@ import { judgeHandwriting as judgeHandwritingLLM } from "./llm/judgeHandwriting"
 import { StudentSolutionRepository } from "./studentSolution.repository";
 import { type EvaluationResult } from "./studentSolution.types";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 export async function setStudentSolutionCanvas(
   studentSolutionId: string,
   userId: string,
@@ -121,7 +117,7 @@ export async function evaluateSolution(
         evaluation,
         userId: input.userId,
         problemId: input.problemId,
-      } as any,
+      },
       db,
     );
   } catch (error) {
