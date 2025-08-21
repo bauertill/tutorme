@@ -1,11 +1,5 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import { CollapsibleSettings } from "@/app/_components/layout/AppSidebar/CollapsibleSettings";
 import { Footer } from "@/app/_components/layout/Footer";
 import { SignInButton } from "@/app/_components/user/SignInButton";
@@ -22,6 +16,7 @@ import {
   SidebarText,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { type Problem } from "@/core/problem/problem.types";
 import { Trans, useTranslation } from "@/i18n/react";
 import { useAuth } from "@/lib/react-auth";
 import { useActiveProblem } from "@/store/problem.selectors";
@@ -42,16 +37,18 @@ export function AppSidebar() {
     useSidebar();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const typedStudentProblems = studentProblems as Problem[];
+
   const filteredProblems = useMemo(() => {
-    if (!searchQuery.trim()) return studentProblems;
+    if (!searchQuery.trim()) return typedStudentProblems;
 
     const query = searchQuery.toLowerCase().trim();
-    return (studentProblems ?? []).filter(
-      (problem: any) =>
+    return (typedStudentProblems ?? []).filter(
+      (problem: Problem) =>
         problem.problem.toLowerCase().includes(query) ||
         problem.id.toString().includes(query),
     );
-  }, [studentProblems, searchQuery]);
+  }, [typedStudentProblems, searchQuery]);
 
   return (
     <Sidebar className="border-r bg-background">
@@ -119,7 +116,7 @@ export function AppSidebar() {
           </div>
           <SidebarGroupContent className="no-scrollbar overflow-y-auto">
             <SidebarText className="block w-full">
-              {filteredProblems?.map((problem: any) => (
+              {filteredProblems?.map((problem: Problem) => (
                 <div
                   key={problem.id}
                   className={`cursor-pointer rounded-lg p-2 transition-colors hover:bg-accent ${

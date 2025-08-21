@@ -1,14 +1,13 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
 import { useTrackEvent } from "@/app/_components/GoogleTagManager";
 import { Button } from "@/components/ui/button";
 import { type Path } from "@/core/canvas/canvas.types";
+import { type Problem } from "@/core/problem/problem.types";
+import {
+  type EvaluationResult,
+  type StudentSolution,
+} from "@/core/studentSolution/studentSolution.types";
 import { useHelp } from "@/hooks/use-help";
 import { useSaveCanvasPeriodically } from "@/hooks/use-save-canvas-periodically";
 import { Trans, useTranslation } from "@/i18n/react";
@@ -206,16 +205,21 @@ export function Canvas() {
 }
 
 async function handleSubmitSuccess(
-  evaluation: any,
-  studentSolution: any,
-  getPathsForSubmit: () => any,
-  upsertCanvasAsync: any,
-  setStudentSolutionEvaluation: any,
-  utils: any,
+  evaluation: EvaluationResult,
+  studentSolution: StudentSolution | undefined,
+  getPathsForSubmit: () => Path[],
+  upsertCanvasAsync: ReturnType<
+    typeof api.studentSolution.setStudentSolutionCanvas.useMutation
+  >["mutateAsync"],
+  setStudentSolutionEvaluation: (input: {
+    studentSolutionId: string;
+    evaluation: EvaluationResult;
+  }) => void,
+  utils: ReturnType<typeof api.useUtils>,
   setCelebrationOpen: (open: boolean) => void,
-  help: any,
+  help: ReturnType<typeof useHelp>,
   setHelpOpen: (open: boolean) => void,
-  t: any,
+  t: (key: string) => string,
 ) {
   if (!studentSolution) return;
 
@@ -234,9 +238,9 @@ async function handleSubmitSuccess(
   if (!evaluation.hasMistakes && evaluation.isComplete) {
     utils.studentSolution.listStudentSolutions.setData(
       undefined,
-      (old: any) =>
-        old?.map((s: any) =>
-          s.id === studentSolution.id ? { ...s, status: "SOLVED" } : s,
+      (old) =>
+        old?.map((s) =>
+          s.id === studentSolution.id ? { ...s, status: "SOLVED" as const } : s,
         ) ?? old,
     );
     await Promise.all([
@@ -258,7 +262,10 @@ async function handleSubmitSuccess(
   setHelpOpen(true);
 }
 
-function buildFeedbackMessage(evaluation: any, t: any): string {
+function buildFeedbackMessage(
+  evaluation: EvaluationResult,
+  t: (key: string) => string,
+): string {
   let message = "";
   if (!evaluation.isLegible) {
     message = t("assignment.feedback.notLegible");
@@ -275,7 +282,9 @@ function buildFeedbackMessage(evaluation: any, t: any): string {
   return message;
 }
 
-function parseCanvasFromStudentSolution(studentSolution: any): Path[] {
+function parseCanvasFromStudentSolution(
+  studentSolution: StudentSolution,
+): Path[] {
   const raw = studentSolution.canvas as unknown;
   const obj =
     typeof raw === "string"
@@ -300,7 +309,23 @@ function renderToolbar({
   getPathsForSubmit,
   trackEvent,
   isSubmitting,
-}: any) {
+}: {
+  studentSolution: StudentSolution | undefined;
+  isEraser: boolean;
+  toggleEraser: (enabled?: boolean) => void;
+  clear: () => void;
+  isEmpty: boolean;
+  undo: () => void;
+  canUndo: boolean;
+  redo: () => void;
+  canRedo: boolean;
+  onCheck: (dataUrl: string, pathsForSubmit: Path[]) => void;
+  getDataUrl: () => Promise<string | null>;
+  activeProblem: Problem | null;
+  getPathsForSubmit: () => Path[];
+  trackEvent: ReturnType<typeof useTrackEvent>;
+  isSubmitting: boolean;
+}) {
   return (
     <div className="absolute right-4 top-4 z-10 flex items-end space-x-4">
       <LLMFeedbackButton
@@ -354,7 +379,7 @@ function renderToolbar({
 }
 
 function handleSubmitError(
-  error: any,
+  error: { message: string },
   setUsageLimitReached: (reached: boolean) => void,
 ) {
   if (error.message === "Free tier limit reached") {

@@ -1,18 +1,16 @@
 import { type LLMAdapter } from "@/core/adapters/llmAdapter";
 import { getConceptsForStudent } from "@/core/concept/concept.domain";
+import { type StudentConcept } from "@/core/concept/concept.types";
 import { type Problem } from "@/core/problem/problem.types";
 import { StudentSolutionRepository } from "@/core/studentSolution/studentSolution.repository";
 import { type Language } from "@/i18n/types";
 import { Prisma, type PrismaClient } from "@prisma/client";
-import { getConceptAssignment } from "./llm/getConceptAssignment";
+import {
+  getConceptProblem,
+  type ConceptProblemGenerationOutput,
+} from "./llm/getConceptProblem";
 import { StudentContextRepository } from "./studentContext.repository";
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+import { type StudentContext } from "./studentContext.types";
 
 export async function getInitialStudentAssessment(
   userId: string,
@@ -29,7 +27,6 @@ export async function getInitialStudentAssessment(
     );
   }
 
-  // Get concepts and select the first one
   const concepts = await getConceptsForStudent(
     userId,
     language,
@@ -40,12 +37,15 @@ export async function getInitialStudentAssessment(
     throw new Error("No concepts found for student");
   }
   const selectedConcept = concepts[0];
+  if (!selectedConcept) {
+    throw new Error("Selected concept is undefined");
+  }
 
   const studentSolutionRepository = new StudentSolutionRepository(db);
   const solvedProblems =
     await studentSolutionRepository.getAllSolvedProblems(userId);
 
-  const assignment = await generateUniqueAssignment(
+  const assignment = await generateUniqueProblem(
     studentContext,
     selectedConcept,
     language,
@@ -61,17 +61,17 @@ export async function getInitialStudentAssessment(
   );
 }
 
-async function generateUniqueAssignment(
-  studentContext: any,
-  selectedConcept: any,
+async function generateUniqueProblem(
+  studentContext: StudentContext,
+  selectedConcept: StudentConcept,
   language: Language,
   llmAdapter: LLMAdapter,
   solvedProblems: Problem[],
-): Promise<any> {
+): Promise<ConceptProblemGenerationOutput> {
   const maxAttempts = 3;
 
   for (let attemptCount = 1; attemptCount <= maxAttempts; attemptCount++) {
-    const assignment = await getConceptAssignment(
+    const assignment = await getConceptProblem(
       studentContext,
       selectedConcept,
       language,
@@ -80,7 +80,7 @@ async function generateUniqueAssignment(
       attemptCount,
     );
 
-    const hasDuplicates = assignment.problems.some((problemData: any) => {
+    const hasDuplicates = assignment.problems.some((problemData) => {
       const newProblemText = problemData.problemText.toLowerCase();
       return solvedProblems.some((solvedProblem) => {
         const solvedText = solvedProblem.problem.toLowerCase();
@@ -105,8 +105,8 @@ async function generateUniqueAssignment(
 }
 
 async function createProblemsForStudent(
-  assignment: any,
-  selectedConcept: any,
+  assignment: ConceptProblemGenerationOutput,
+  selectedConcept: StudentConcept,
   userId: string,
   db: PrismaClient,
 ): Promise<Problem[]> {
@@ -117,16 +117,13 @@ async function createProblemsForStudent(
       where: {
         problem: problemData.problemText,
         conceptId: selectedConcept.concept.id,
-      } as any,
+      },
       include: {
-        studentSolutions: { where: { userId } as any },
+        studentSolutions: { where: { userId } },
       },
     });
 
-    if (
-      existingProblem &&
-      (existingProblem as any).studentSolutions.length > 0
-    ) {
+    if (existingProblem && existingProblem.studentSolutions.length > 0) {
       continue;
     }
 
@@ -138,7 +135,7 @@ async function createProblemsForStudent(
           problemNumber: problemData.problemNumber,
           referenceSolution: problemData.referenceSolution,
           conceptId: selectedConcept.concept.id,
-        } as any,
+        },
       }));
 
     await db.studentSolution.create({
@@ -148,7 +145,7 @@ async function createProblemsForStudent(
         canvas: { paths: [] },
         evaluation: Prisma.JsonNull,
         recommendedQuestions: [],
-      } as any,
+      },
     });
 
     createdProblems.push(problemToUse);

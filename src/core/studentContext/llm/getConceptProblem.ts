@@ -10,9 +10,9 @@ import {
 import { z } from "zod";
 import { type StudentContext } from "../studentContext.types";
 
-// Define the system prompt template for generating concept-based assignment
+// Define the system prompt template for generating concept-based problem
 const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
-  `You are an expert math teacher creating a focused lesson assignment for a specific mathematical concept.
+  `You are an expert math teacher creating a focused math problem for a specific mathematical concept.
   
   Your goal is to create 1 well-crafted math problem that introduces and tests the student's understanding of the given concept.
 
@@ -32,13 +32,13 @@ const systemPromptTemplate = SystemMessagePromptTemplate.fromTemplate(
 
   Write your response in {language} language only.`,
   {
-    name: "generate_concept_assignment_system_prompt",
+    name: "generate_concept_problem_system_prompt",
   },
 );
 
 // Define the human message template
 const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(
-  `Create a lesson assignment for a student with the following context:
+  `Create a math problem for a student with the following context:
   
   Grade: {grade}
   Country: {country}
@@ -54,12 +54,12 @@ const humanPromptTemplate = HumanMessagePromptTemplate.fromTemplate(
 
   Remember: Create only ONE question without sub-parts (a), (b), (c), etc. Make it a direct, straightforward problem.`,
   {
-    name: "generate_concept_assignment_human_prompt",
+    name: "generate_concept_problem_human_prompt",
   },
 );
 
 // Combine the templates into a single prompt template
-export const generateConceptAssignmentPromptTemplate =
+export const generateConceptProblemPromptTemplate =
   ChatPromptTemplate.fromMessages([systemPromptTemplate, humanPromptTemplate]);
 
 // Define the output schema for a single problem
@@ -77,37 +77,35 @@ const ConceptProblemSchema = z.object({
     .describe("The main mathematical topic matching the concept"),
 });
 
-// Define the output schema for the concept assignment
-const ConceptAssignmentSchema = z.object({
-  title: z
-    .string()
-    .describe("Title for the assignment focusing on the concept"),
+// Define the output schema for the concept problem generation
+const ConceptProblemGenerationSchema = z.object({
+  title: z.string().describe("Title for the problem focusing on the concept"),
   problems: z
     .array(ConceptProblemSchema)
     .length(1)
     .describe("Exactly 1 problem for the concept"),
 });
 
-export type ConceptAssignmentOutput = z.infer<typeof ConceptAssignmentSchema>;
+export type ConceptProblemGenerationOutput = z.infer<
+  typeof ConceptProblemGenerationSchema
+>;
 
-export async function getConceptAssignment(
+export async function getConceptProblem(
   studentContext: StudentContext,
   concept: StudentConcept,
   language: Language,
   llmAdapter: LLMAdapter,
   solvedProblems: Problem[],
   attemptCount = 1,
-): Promise<ConceptAssignmentOutput> {
+): Promise<ConceptProblemGenerationOutput> {
   const { grade, country, textbook } = studentContext;
 
-  // Use hub to pull the prompt (fallback to local prompt if not available)
   let prompt;
   try {
-    prompt = await llmAdapter.hub.pull("generate_concept_assignment");
+    prompt = await llmAdapter.hub.pull("generate_concept_problem");
   } catch {
-    // Fallback to local prompt template
     console.log("No prompt found in hub, using local prompt");
-    prompt = generateConceptAssignmentPromptTemplate;
+    prompt = generateConceptProblemPromptTemplate;
   }
 
   const solvedProblemsText = buildSolvedProblemsPrompt(
@@ -116,7 +114,11 @@ export async function getConceptAssignment(
   );
 
   const response = await prompt
-    .pipe(llmAdapter.models.model.withStructuredOutput(ConceptAssignmentSchema))
+    .pipe(
+      llmAdapter.models.model.withStructuredOutput(
+        ConceptProblemGenerationSchema,
+      ),
+    )
     .invoke(
       {
         grade,
@@ -134,7 +136,7 @@ export async function getConceptAssignment(
       },
       {
         metadata: {
-          functionName: "getConceptAssignment",
+          functionName: "getConceptProblem",
           userId: studentContext.userId,
           conceptId: concept.concept.id,
         },
@@ -143,6 +145,10 @@ export async function getConceptAssignment(
 
   return response;
 }
+
+// Backward compatibility export (deprecated)
+export const getConceptAssignment = getConceptProblem;
+export type ConceptAssignmentOutput = ConceptProblemGenerationOutput;
 
 function buildSolvedProblemsPrompt(
   solvedProblems: Problem[],
